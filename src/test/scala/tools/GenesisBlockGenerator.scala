@@ -9,7 +9,7 @@ import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.GenesisTransaction
 import scorex.transaction.TransactionParser.SignatureLength
 import scorex.wallet.Wallet
-
+import scorex.crypto.encode.Base58
 import scala.concurrent.duration._
 
 object GenesisBlockGenerator extends App {
@@ -23,13 +23,24 @@ object GenesisBlockGenerator extends App {
     4 -> Seq(700000000000000L, 200000000000000L, 150000000000000L, 50000000000000L)
   )
 
+  // add test use wallet address
+  val test_wallet_addresses = Array (
+      "3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS",
+      "3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr",
+      "3MvRSHqRtn4sWgwr3EnDrP6VjphnQrrEB6t"
 
-  def generateFullAddressInfo() = {
+  )
+
+  def generateFullAddressInfo(n: Int) = {
+    println("n=" + n + ", address = " + test_wallet_addresses(n))
+
     val seed = Array.fill(32)((scala.util.Random.nextInt(256)).toByte)
     val acc = Wallet.generateNewAccount(seed, 0)
     val privateKey = ByteStr(acc.privateKey)
     val publicKey = ByteStr(acc.publicKey)
-    val address = acc.toAddress
+    // change address value for testnet
+    //    val address = acc.toAddress
+    val address = Address.fromString(test_wallet_addresses(n)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
 
     (ByteStr(seed), ByteStr(acc.seed), privateKey, publicKey, address)
   }
@@ -41,7 +52,7 @@ object GenesisBlockGenerator extends App {
     val timestamp = System.currentTimeMillis()
     val initialBalance = 1000000000000000L
 
-    val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo())
+    val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))
     val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), timestamp, ByteStr.empty) }
     val genesisBlock = Block.buildAndSign(1, timestamp, reference, NxtLikeConsensusBlockData(baseTraget, Array.fill(DigestSize)(0: Byte)), genesisTxs, genesisSigner)
     val signature = genesisBlock.signerData.signature
@@ -78,7 +89,7 @@ object GenesisBlockGenerator extends App {
      """.stripMargin)
   }
 
-  val (a, s) = generate('D', 3, 153722867, 60.seconds)
+  val (a, s) = generate('T', 3, 153722867, 60.seconds)
   print(a, s)
 
 
