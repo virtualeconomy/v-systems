@@ -2,7 +2,7 @@ package scorex.block
 
 import cats._
 import com.google.common.primitives.{Bytes, Ints, Longs}
-import com.wavesplatform.settings.GenesisSettings
+import vee.settings.GenesisSettings
 import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
