@@ -30,7 +30,7 @@ object GenesisSettings {
     153722867L, 60.seconds)
 
   val TESTNET = GenesisSettings(1521577973210L, 1521577973210L, Constants.UnitsInWave * Constants.TotalWaves,
-    ByteStr.decodeBase58("5uqnLK3Z9eiot6FyYBfwUnbyid3abicQbAZjz38GQ1Q8XigQMxTK4C1zNkqS1SVw7FqSidbZKxWAKLVoEsp4nNqa").toOption,
+    ByteStr.decodeBase58("4MREs3vrh6wAv33uVw8nZyTPCRnomqvR4mfiVTRxw9g5y7UG9zXyNjAdMjh7zqtKBGDkSGonbDBcDeApHia4aecr").toOption,
     List(
       GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", (Constants.UnitsInWave * Constants.TotalWaves * 0.65).toLong),
       GenesisTransactionSettings("3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr", (Constants.UnitsInWave * Constants.TotalWaves * 0.20).toLong),

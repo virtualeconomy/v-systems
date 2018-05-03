@@ -1,6 +1,6 @@
 package tools
 
-import com.wavesplatform.settings.{GenesisSettings, GenesisTransactionSettings}
+import vee.settings.{GenesisSettings, GenesisTransactionSettings}
 import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
@@ -9,7 +9,6 @@ import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.GenesisTransaction
 import scorex.transaction.TransactionParser.SignatureLength
 import scorex.wallet.Wallet
-import scorex.crypto.encode.Base58
 import scala.concurrent.duration._
 
 object GenesisBlockGenerator extends App {
