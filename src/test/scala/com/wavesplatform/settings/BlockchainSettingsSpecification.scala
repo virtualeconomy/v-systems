@@ -118,15 +118,22 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(51500)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
-    settings.genesisSettings.blockTimestamp should be(1521577973210L)
-    settings.genesisSettings.timestamp should be(1521577973210L)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("4MREs3vrh6wAv33uVw8nZyTPCRnomqvR4mfiVTRxw9g5y7UG9zXyNjAdMjh7zqtKBGDkSGonbDBcDeApHia4aecr").toOption)
+    settings.genesisSettings.blockTimestamp should be(1526669776380L)
+    settings.genesisSettings.timestamp should be (1526669776380L)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("2Uw5waewVMCthmtEtMEKWjEsRhzK7Yf5gwEFKm6jZ4TA6Z6PjDVrHAKxZoCp4tTyfd8gjQG4AJzuBJKcjctaLt8e").toOption)
     settings.genesisSettings.initialBalance should be(10000000000000000L)
 
     settings.genesisSettings.transactions should be(Seq(
-      GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", 6500000000000000L),
+      GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", 4000000000000000L),
       GenesisTransactionSettings("3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr", 2000000000000000L),
-      GenesisTransactionSettings("3MvRSHqRtn4sWgwr3EnDrP6VjphnQrrEB6t", 1500000000000000L)))
+      GenesisTransactionSettings("3MvRSHqRtn4sWgwr3EnDrP6VjphnQrrEB6t", 1500000000000000L),
+      GenesisTransactionSettings("3MxPwccKXAp9bT9edNLRZHBvJhuEgrdJ61K", 500000000000000L),
+      GenesisTransactionSettings("3MzgaPu93fkmCqgkPZHLHgGt3pUZapuU3jM", 600000000000000L),
+      GenesisTransactionSettings("3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5", 600000000000000L),
+      GenesisTransactionSettings("3MxYTgmMWiaKT82y4jfZaSPDqEDN1JbETvp", 600000000000000L),
+      GenesisTransactionSettings("3MpZ718ivTCaRbra6JpABGV9Hdk75QAvpbj", 600000000000000L),
+      GenesisTransactionSettings("3N3SZdKP5qWv7AsKXDC1Vk7unWg81oQ3ynK", 400000000000000L),
+      GenesisTransactionSettings("3N15meHNxRzmfRYJJqrWA7p5NN2yd4CF62v", 200000000000000L)))
   }
 
   it should "read mainnet settings" in {
