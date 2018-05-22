@@ -118,13 +118,14 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(51500)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
-    settings.genesisSettings.blockTimestamp should be(1526669776380L)
-    settings.genesisSettings.timestamp should be (1526669776380L)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("2Uw5waewVMCthmtEtMEKWjEsRhzK7Yf5gwEFKm6jZ4TA6Z6PjDVrHAKxZoCp4tTyfd8gjQG4AJzuBJKcjctaLt8e").toOption)
+    settings.genesisSettings.blockTimestamp should be(1526867497824L)
+    settings.genesisSettings.timestamp should be (1526867497824L)
+    settings.genesisSettings.averageBlockDelay should be(60.seconds)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("664mXiBBXvcp55bjnQZ6dFyS6eKdoApcZy1FHVo5fXmYRzg1HF7g3D4SNujqzJRZHa7VhY5Nes7t8UVB755WDYE8").toOption)
     settings.genesisSettings.initialBalance should be(10000000000000000L)
 
     settings.genesisSettings.transactions should be(Seq(
-      GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", 4000000000000000L),
+      GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", 3000000000000000L),
       GenesisTransactionSettings("3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr", 2000000000000000L),
       GenesisTransactionSettings("3MvRSHqRtn4sWgwr3EnDrP6VjphnQrrEB6t", 1500000000000000L),
       GenesisTransactionSettings("3MxPwccKXAp9bT9edNLRZHBvJhuEgrdJ61K", 500000000000000L),
