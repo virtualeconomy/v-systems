@@ -7,6 +7,8 @@ import scorex.account.PublicKeyAccount
 import scorex.crypto.encode.Base58
 import scorex.serialization.{BytesSerializable, JsonSerializable}
 import scorex.transaction.Transaction
+import scorex.crypto.authds.merkle.MerkleTree
+
 
 /**
   * An abstraction of a part of a block, wrapping some data. The wrapper interface
@@ -55,4 +57,20 @@ case class SignerDataBlockField(override val name: String, override val value: S
     "signature" -> value.signature.base58)
 
   override lazy val bytes: Array[Byte] = value.generator.publicKey ++ value.signature.arr
+}
+
+
+case class MerkleRootBlockField(override val name: String, override val value: Seq[Transaction])
+  extends BlockField[Seq[Transaction]] {
+
+  val trxMerkleRootHash = if (value.length == 0) {
+    Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
+  }
+  else {
+    MerkleTree(value.map(_.bytes))(scorex.crypto.hash.Blake2b256).rootHash
+  }
+
+  override lazy val json: JsObject = Json.obj(name -> Base58.encode(trxMerkleRootHash))
+  override lazy val bytes: Array[Byte] = trxMerkleRootHash
+
 }
