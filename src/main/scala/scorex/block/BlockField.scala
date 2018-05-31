@@ -67,7 +67,7 @@ case class MerkleRootBlockField(override val name: String, override val value: S
     Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
   }
   else {
-    MerkleTree(value.map(_.bytes))(scorex.crypto.hash.FastCryptographicHash).rootHash
+    MerkleTree(value.map(_.bytes))(scorex.crypto.hash.Blake2b256).rootHash
   }
 
   override lazy val json: JsObject = Json.obj(name -> Base58.encode(trxMerkleRootHash))
