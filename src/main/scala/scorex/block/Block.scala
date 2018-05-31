@@ -25,6 +25,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   private lazy val signerDataField: SignerDataBlockField = SignerDataBlockField("signature", signerData)
   private lazy val consensusDataField = NxtConsensusBlockField(consensusData)
   private lazy val transactionDataField = TransactionsBlockField(version.toInt, transactionData)
+  private lazy val transactionMerkleField = MerkleRootBlockField("TransactionMerkleRoot", transactionData)
 
   lazy val uniqueId: ByteStr = signerData.signature
 
@@ -40,6 +41,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
       timestampField.json ++
       referenceField.json ++
       consensusDataField.json ++
+      transactionMerkleField.json ++
       transactionDataField.json ++
       signerDataField.json ++
       Json.obj(
@@ -58,6 +60,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
       timestampField.bytes ++
       referenceField.bytes ++
       cBytes ++
+      transactionMerkleField.bytes ++
       txBytes ++
       signerDataField.bytes
   }
@@ -99,7 +102,7 @@ object Block extends ScorexLogging {
   val GeneratorSignatureLength: Int = 32
 
   val BlockIdLength = SignatureLength
-
+  val TransactionMerkleRootLength: Int = 32
   val TransactionSizeLength = 4
 
   def transParseBytes(version: Int,bytes: Array[Byte]): Try[Seq[Transaction]] = Try {
@@ -139,6 +142,8 @@ object Block extends ScorexLogging {
     val cBytes = bytes.slice(position, position + cBytesLength)
     val consData = NxtLikeConsensusBlockData(Longs.fromByteArray(cBytes.take(Block.BaseTargetLength)), cBytes.takeRight(Block.GeneratorSignatureLength))
     position += cBytesLength
+
+    position += TransactionMerkleRootLength
 
     val tBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
     position += 4
@@ -192,6 +197,7 @@ object Block extends ScorexLogging {
     val txBytes = Bytes.ensureCapacity(Ints.toByteArray(txBytesSize), 4, 0) ++ transactionGenesisDataField.bytes
     val cBytesSize = consensusGenesisDataField.bytes.length
     val cBytes = Bytes.ensureCapacity(Ints.toByteArray(cBytesSize), 4, 0) ++ consensusGenesisDataField.bytes
+    val genesisTransactionMerkleBytes = MerkleRootBlockField("TransactionMerkleRoot", transactionGenesisData).bytes
 
     val reference = Array.fill(SignatureLength)(-1: Byte)
 
@@ -200,6 +206,7 @@ object Block extends ScorexLogging {
       Bytes.ensureCapacity(Longs.toByteArray(timestamp), 8, 0) ++
       reference ++
       cBytes ++
+      genesisTransactionMerkleBytes ++
       txBytes ++
       genesisSigner.publicKey
 
