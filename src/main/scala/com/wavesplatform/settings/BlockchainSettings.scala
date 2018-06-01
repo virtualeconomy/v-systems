@@ -27,6 +27,7 @@ case class FunctionalitySettings(allowTemporaryNegativeUntil: Long,
                                  allowLeasedBalanceTransferUntil: Long)
 
 object FunctionalitySettings {
+  //TODO, change the default settings
   val MAINNET = FunctionalitySettings(allowTemporaryNegativeUntil = 1479168000000L,
     allowInvalidPaymentTransactionsByTimestamp = 1479168000000L,
     requireSortedTransactionsAfter = 1479168000000L,
@@ -46,7 +47,7 @@ object FunctionalitySettings {
 
   val TESTNET = FunctionalitySettings(
     allowTemporaryNegativeUntil = 1477958400000L,
-    allowInvalidPaymentTransactionsByTimestamp = 1477958400000L,
+    allowInvalidPaymentTransactionsByTimestamp = 1477958400000000000L, // timestamp rescale
     requireSortedTransactionsAfter = 1477958400000L,
     generationBalanceDepthFrom50To1000AfterHeight = Long.MinValue,
     minimalGeneratingBalanceAfter = Long.MinValue,
@@ -56,9 +57,9 @@ object FunctionalitySettings {
     allowLeaseTransactionAfter = Long.MinValue,
     requirePaymentUniqueIdAfter = 1485942685000L,
     allowExchangeTransactionAfter = 1483228800000L,
-    allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000L,
+    allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000000000L,
     allowCreatealiasTransactionAfter = 1493596800000L,
-    allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000L,
+    allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000000000L,
     resetEffectiveBalancesAtHeight = 51500,
     allowLeasedBalanceTransferUntil = 1495238400000L)
 

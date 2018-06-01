@@ -17,7 +17,8 @@ object PoSCalc extends ScorexLogging {
   val AvgBlockTimeDepth: Int = 3
 
   def calcTarget(prevBlock: Block, timestamp: Long, balance: Long): BigInt = {
-    val eta = (timestamp - prevBlock.timestamp) / 1000
+    //nanoseconds/1e-9
+    val eta = (timestamp - prevBlock.timestamp) / 1000000000L
     BigInt(prevBlock.consensusData.baseTarget) * eta * balance
   }
 
@@ -34,9 +35,10 @@ object PoSCalc extends ScorexLogging {
 
     val prevBaseTarget = parent.consensusData.baseTarget
     if (parentHeight % 2 == 0) {
+      //nanoseconds/1e-9
       val blocktimeAverage = greatGrandParent.fold(timestamp - parent.timestamp) {
         b => (timestamp - b.timestamp) / AvgBlockTimeDepth
-      } / 1000
+      } / 1000000000L
 
       val minBlocktimeLimit = normalize(53)
       val maxBlocktimeLimit = normalize(67)
@@ -76,7 +78,7 @@ object PoSCalc extends ScorexLogging {
         val hit = calcHit(cData, account)
         val t = cData.baseTarget
 
-        val calculatedTs = (hit * 1000) / (BigInt(t) * balance) + block.timestamp
+        val calculatedTs = (hit * 1000000000L) / (BigInt(t) * balance) + block.timestamp
         if (0 < calculatedTs && calculatedTs < Long.MaxValue) {
           Right(calculatedTs.toLong)
         } else {
