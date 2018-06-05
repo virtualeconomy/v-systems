@@ -138,12 +138,18 @@ object Coordinator extends ScorexLogging {
       blockGs = blockData.generationSignature
       _ <- Either.cond(calcGs.sameElements(blockGs), (),
         s"declared generation signature ${blockGs.mkString} does not match calculated generation signature ${calcGs.mkString}")
+      // will remove this part later
       effectiveBalance = generatingBalance(state, fs, generator, parentHeight)
       _ <- Either.cond(blockTime < fs.minimalGeneratingBalanceAfter || effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
-      hit = calcHit(prevBlockData, generator)
-      target = calcTarget(parent, blockTime, effectiveBalance)
-      _ <- Either.cond(hit < target, (), s"calculated hit $hit >= calculated target $target")
+      //TODO
+      //check the generator's address
+      //check generator.address
+
+      // not hit validation
+      //hit = calcHit(prevBlockData, generator)
+      //target = calcTarget(parent, blockTime, effectiveBalance)
+      //_ <- Either.cond(hit < target, (), s"calculated hit $hit >= calculated target $target")
     } yield ()).left.map(e => GenericError(s"Block ${block.uniqueId} is invalid: $e"))
   }
 
