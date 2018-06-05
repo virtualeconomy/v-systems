@@ -66,12 +66,16 @@ class Miner(
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
+    // in SPOS case, comparison between h and t is useless
     lazy val h = calcHit(lastBlockKernelData, account)
     lazy val t = calcTarget(parent, currentTime, balance)
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(h < t, (), s"${System.currentTimeMillis()} (in Millisecond): Hit $h was NOT less than target $t, not forging block with ${account.address}")
-      _ = log.debug(s"Forging with ${account.address}, H $h < T $t, balance $balance, prev block ${parent.uniqueId}")
+      //_ <- Either.cond(h < t, (), s"${System.currentTimeMillis()} (in Millisecond): Hit $h was NOT less than target $t, not forging block with ${account.address}")
+      //_ = log.debug(s"Forging with ${account.address}, H $h < T $t, balance $balance, prev block ${parent.uniqueId}")
+      //_ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with target ${lastBlockKernelData.baseTarget}")
+      _ <- Either.cond(balance >= 1000000, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target 1000000, not forging block with ${account.address}")
+      _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with target ${lastBlockKernelData.baseTarget}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       btg = calcBaseTarget(avgBlockDelay, parentHeight, parent, greatGrandParent, currentTime)
@@ -91,10 +95,14 @@ class Miner(
     val grandParent = history.parent(lastBlock, 2)
     (for {
       _ <- checkAge(height, lastBlock)
-      ts <- nextBlockGenerationTime(height, stateReader, blockchainSettings.functionalitySettings, lastBlock, account)
+      //ts <- nextBlockGenerationTime(height, stateReader, blockchainSettings.functionalitySettings, lastBlock, account)
+      // useful to deal with the delay cases
+      ts = 1000000000L
     } yield ts) match {
       case Right(ts) =>
-        val offset = calcOffset(timeService, ts)
+        // offset control the next attempt, we can set it to constant 60s here.
+        //val offset = calcOffset(timeService, ts)
+        val offset = (5000-System.currentTimeMillis()%1000).millis
         log.debug(s"Next attempt for acc=$account in $offset")
         val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
         generateOneBlockTask(account, height, lastBlock, grandParent, balance)(offset).flatMap {
