@@ -17,7 +17,7 @@ import scorex.utils.ScorexLogging
 import scala.util.{Failure, Try}
 
 case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData: SignerData,
-                 consensusData: NxtLikeConsensusBlockData, transactionData: Seq[Transaction]) extends Signed {
+                 consensusData: NxtLikeConsensusBlockData, transactionData: Seq[ProcessedTransaction]) extends Signed {
 
   private lazy val versionField: ByteBlockField = ByteBlockField("version", version)
   private lazy val timestampField: LongBlockField = LongBlockField("timestamp", timestamp)
@@ -30,7 +30,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   lazy val uniqueId: ByteStr = signerData.signature
 
   lazy val fee: Long =
-    transactionData.map(_.assetFee)
+    transactionData.map(_.transaction.assetFee)
       .map(a => AssetAcc(signerData.generator, a._1) -> a._2)
       .groupBy(a => a._1)
       .mapValues(_.map(_._2).sum)
@@ -72,7 +72,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
 
   lazy val feesDistribution: Diff = Monoid[Diff].combineAll({
     val generator = signerData.generator
-    val assetFees: Seq[(Option[AssetId], Long)] = transactionData.map(_.assetFee)
+    val assetFees: Seq[(Option[AssetId], Long)] = transactionData.map(_.transaction.assetFee)
     assetFees
       .map { case (maybeAssetId, vol) => AssetAcc(generator, maybeAssetId) -> vol }
       .groupBy(a => a._1)
@@ -88,7 +88,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   })
 
   override lazy val signatureValid: Boolean = EllipticCurveImpl.verify(signerData.signature.arr, bytesWithoutSignature, signerData.generator.publicKey)
-  override lazy val signedDescendants: Seq[Signed] = transactionData
+  override lazy val signedDescendants: Seq[Signed] = transactionData.map(_.transaction)
 }
 
 
@@ -105,7 +105,7 @@ object Block extends ScorexLogging {
   val TransactionMerkleRootLength: Int = 32
   val TransactionSizeLength = 4
 
-  def transParseBytes(version: Int,bytes: Array[Byte]): Try[Seq[Transaction]] = Try {
+  def transParseBytes(version: Int,bytes: Array[Byte]): Try[Seq[ProcessedTransaction]] = Try {
     if (bytes.isEmpty ) {
        Seq.empty
       } else {
@@ -114,11 +114,11 @@ object Block extends ScorexLogging {
         case _ => ???
       }
 
-      (1 to v._2).foldLeft((0: Int, Seq[Transaction]())) { case ((pos, txs), _) =>
+      (1 to v._2).foldLeft((0: Int, Seq[ProcessedTransaction]())) { case ((pos, txs), _) =>
           val transactionLengthBytes = v._1.slice(pos, pos + TransactionSizeLength)
           val transactionLength = Ints.fromByteArray(transactionLengthBytes)
           val transactionBytes = v._1.slice(pos + TransactionSizeLength, pos + TransactionSizeLength + transactionLength)
-          val transaction = TransactionParser.parseBytes(transactionBytes).get
+          val transaction = ProcessedTransactionParser.parseBytes(transactionBytes).get
 
         (pos + TransactionSizeLength + transactionLength, txs :+ transaction)
       }._2
@@ -168,7 +168,8 @@ object Block extends ScorexLogging {
                    consensusData: NxtLikeConsensusBlockData,
                    transactionData: Seq[Transaction],
                    signer: PrivateKeyAccount): Block = {
-    val nonSignedBlock = Block(timestamp, version, reference, SignerData(signer, ByteStr.empty), consensusData, transactionData)
+    val nonSignedBlock = Block(timestamp, version, reference, SignerData(signer, ByteStr.empty), consensusData,
+      transactionData.map(ProcessedTransaction(TransactionStatus.Success, 0, _)))
     val toSign = nonSignedBlock.bytes
     val signature = EllipticCurveImpl.sign(signer, toSign)
     require(reference.arr.length == SignatureLength, "Incorrect reference")
@@ -189,7 +190,9 @@ object Block extends ScorexLogging {
 
     val genesisSigner = PrivateKeyAccount(Array.empty)
 
-    val transactionGenesisData = genesisTransactions(genesisSettings)
+    val transactionGenesisData = genesisTransactions(genesisSettings).map(
+      ProcessedTransaction(TransactionStatus.Success, 0, _)
+    )
     val transactionGenesisDataField = TransactionsBlockFieldVersion1or2(transactionGenesisData)
     val consensusGenesisData = NxtLikeConsensusBlockData(genesisSettings.initialBaseTarget, Array.fill(DigestSize)(0: Byte))
     val consensusGenesisDataField = NxtConsensusBlockField(consensusGenesisData)
