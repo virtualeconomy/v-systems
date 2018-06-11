@@ -17,7 +17,7 @@ import scorex.account.PrivateKeyAccount
 import scorex.block.Block
 import scorex.consensus.nxt.NxtLikeConsensusBlockData
 import scorex.transaction.PoSCalc._
-import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
+import scorex.transaction.{BlockchainUpdater, CheckpointService, History, MintingTransaction}
 import scorex.utils.{ScorexLogging, Time}
 import scorex.wallet.Wallet
 
@@ -73,7 +73,7 @@ class Miner(
       btg = calcBaseTarget(avgBlockDelay, parentHeight, parent, greatGrandParent, currentTime)
       gs = calcGeneratorSignature(lastBlockKernelData, account)
       consensusData = NxtLikeConsensusBlockData(btg, gs)
-      unconfirmed = utx.packUnconfirmed()
+      unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, 10, 5, System.currentTimeMillis()).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
       _ = blockBuildTimeStats.record(System.currentTimeMillis() - start)
