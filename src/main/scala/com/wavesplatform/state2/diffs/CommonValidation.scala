@@ -83,6 +83,7 @@ object CommonValidation {
       case _: LeaseTransaction => Right(tx)
       case _: LeaseCancelTransaction => Right(tx)
       case _: CreateAliasTransaction => Right(tx)
+      case _: MintingTransaction => Right(tx)
       case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
     }
 
