@@ -79,7 +79,8 @@ object Coordinator extends ScorexLogging {
       GenericError(s"Block ${block.uniqueId} at height ${history.height() + 1} is not valid w.r.t. checkpoint"))
     _ <- blockConsensusValidation(history, stateReader, settings, time.correctedTime())(block)
     _ <- blockchainUpdater.processBlock(block)
-  } yield utxStorage.removeAll(block.transactionData)
+  } yield utxStorage.removeAll(block.transactionData.map(_.transaction))
+  // TODO: change utxStorage to use ProcessedTransaction
 
   def processCheckpoint(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater)
                        (newCheckpoint: Checkpoint): Either[ValidationError, BigInt] =
@@ -124,7 +125,8 @@ object Coordinator extends ScorexLogging {
 
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
-      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd || block.transactionData.sorted(TransactionsOrdering.InBlock) == block.transactionData,
+      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
+        block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InBlock) == block.transactionData,
         (), "transactions are not sorted")
       parent <- history.parent(block).toRight(s"history does not contain parent ${block.reference}")
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")

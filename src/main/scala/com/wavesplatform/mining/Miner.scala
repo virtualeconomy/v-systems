@@ -48,9 +48,11 @@ class Miner(
 
   private val blockBuildTimeStats = Kamon.metrics.histogram("block-build-time", instrument.Time.Milliseconds)
 
+  //Here use transfor to milliseconds
+  //minerSettings.intervalAfterLastBlockThenGenerationIsAllowed is in milliseconds
   private def checkAge(parentHeight: Int, parent: Block): Either[String, Unit] =
     Either
-      .cond(parentHeight == 1, (), Duration.between(Instant.ofEpochMilli(parent.timestamp), Instant.ofEpochMilli(timeService.correctedTime())))
+      .cond(parentHeight == 1, (), Duration.between(Instant.ofEpochMilli(parent.timestamp/1000000L), Instant.ofEpochMilli(timeService.correctedTime()/1000000L)))
       .left.flatMap(blockAge => Either.cond(blockAge <= minerSettings.intervalAfterLastBlockThenGenerationIsAllowed, (),
       s"BlockChain is too old (last block ${parent.uniqueId} generated $blockAge ago)"
     ))
@@ -59,14 +61,16 @@ class Miner(
                                    greatGrandParent: Option[Block], balance: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
     val pc = allChannels.size()
     lazy val lastBlockKernelData = parent.consensusData
+    // will use as timestamp, should in nanoseonds
     val currentTime = timeService.correctedTime()
+    // start only use to record the duration
     val start = System.currentTimeMillis()
-    log.debug(s"$start: Corrected time: $currentTime")
+    log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
     lazy val h = calcHit(lastBlockKernelData, account)
     lazy val t = calcTarget(parent, currentTime, balance)
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(h < t, (), s"${System.currentTimeMillis()}: Hit $h was NOT less than target $t, not forging block with ${account.address}")
+      _ <- Either.cond(h < t, (), s"${System.currentTimeMillis()} (in Millisecond): Hit $h was NOT less than target $t, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, H $h < T $t, balance $balance, prev block ${parent.uniqueId}")
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with target ${lastBlockKernelData.baseTarget}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
@@ -76,6 +80,7 @@ class Miner(
       unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, 10, 5, System.currentTimeMillis()).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
+      // call currentTimeMillis to record the duration
       _ = blockBuildTimeStats.record(System.currentTimeMillis() - start)
     } yield block
   }.delayExecution(delay)
@@ -128,9 +133,11 @@ object Miner extends ScorexLogging {
   val MinimalGenerationOffsetMillis: Long = 1001
 
   def calcOffset(timeService: Time, calculatedTimestamp: Long): FiniteDuration = {
-    val calculatedGenerationTimestamp = (Math.ceil(calculatedTimestamp / 1000.0) * 1000).toLong
+    // calculatedTimestamp in nanoseconds
+    val calculatedGenerationTimestamp = (Math.ceil(calculatedTimestamp / 1000000000.0) * 1000000000L).toLong
     log.debug(s"CalculatedTS $calculatedTimestamp: CalculatedGenerationTS: $calculatedGenerationTimestamp")
     val calculatedOffset = calculatedGenerationTimestamp - timeService.correctedTime()
-    Math.max(MinimalGenerationOffsetMillis, calculatedOffset).millis
+    // will return a duration, so millis is ok
+    Math.max(MinimalGenerationOffsetMillis, calculatedOffset/1000000L).millis
   }
 }

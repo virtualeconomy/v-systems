@@ -67,13 +67,13 @@ class UtxPoolSpecification extends FreeSpec
     recipient <- accountGen
     n <- chooseNum(3, 10)
     fee <- chooseNum(1, (senderBalance * 0.01).toLong)
-    offset <- chooseNum(1000L, 2000L)
+    offset <- chooseNum(1000000000L, 2000000000L)
   } yield {
     val time = new TestTime()
     val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, 10.minutes))
     val amountPart = (senderBalance - fee) / 2 - fee
     val txs = for (_ <- 1 to n) yield PaymentTransaction.create(sender, recipient, amountPart, fee, time.getTimestamp()).right.get
-    (utx, time, txs, (offset + 1000).millis)
+    (utx, time, txs, (offset + 1000000000L).nanos)
   }).label("twoOutOfManyValidPayments")
 
   private val emptyUtxPool = stateGen
@@ -111,16 +111,16 @@ class UtxPoolSpecification extends FreeSpec
   private val dualTxGen: Gen[(UtxPool, TestTime, Seq[Transaction], FiniteDuration, Seq[Transaction])] =
     for {
       (sender, senderBalance, state, history) <- stateGen
-      ts = System.currentTimeMillis()
+      ts = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
       count1 <- chooseNum(5, 10)
       tx1 <- listOfN(count1, transfer(sender, senderBalance / 2, new TestTime(ts)))
-      offset <- chooseNum(5000L, 10000L)
-      tx2 <- listOfN(count1, transfer(sender, senderBalance / 2, new TestTime(ts + offset + 1000)))
+      offset <- chooseNum(5000000000L, 10000000000L)
+      tx2 <- listOfN(count1, transfer(sender, senderBalance / 2, new TestTime(ts + offset + 1000000000L)))
     } yield {
       val time = new TestTime()
       val history = HistoryWriterImpl(None, new ReentrantReadWriteLock()).get
-      val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, offset.millis))
-      (utx, time, tx1, (offset + 1000).millis, tx2)
+      val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, offset.nanos))
+      (utx, time, tx1, (offset + 1000000000L).nanos, tx2)
     }
 
   "UTX Pool" - {

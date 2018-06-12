@@ -55,7 +55,7 @@ class HistoryWriterImpl private(file: Option[File], val synchronizationToken: Re
   override def discardBlock(): Seq[Transaction] = write { implicit lock =>
     val h = height()
     val transactions =
-      Block.parseBytes(blockBodyByHeight.mutate(_.remove(h))).fold(_ => Seq.empty[Transaction], _.transactionData)
+      Block.parseBytes(blockBodyByHeight.mutate(_.remove(h))).fold(_ => Seq.empty[Transaction], _.transactionData.map(_.transaction))
     scoreByHeight.mutate(_.remove(h))
     val vOpt = Option(blockIdByHeight.mutate(_.remove(h)))
     vOpt.map(v => heightByBlockId.mutate(_.remove(v)))

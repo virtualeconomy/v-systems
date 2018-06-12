@@ -82,13 +82,15 @@ class ExchangeTransactionSpecification extends PropSpec with PropertyChecks with
       buyMatcherFee = (BigInt(mf)*amount/buy.amount).toLong,
       sellMatcherFee = (BigInt(mf)*amount/sell.amount).toLong,
       fee = mf,
-      timestamp = NTP.correctedTime())
+      //from correctTime to getTimestamp, if use correctTime, the timestamp will go back
+      timestamp = NTP.getTimestamp())
   }
 
   property("Test transaction with small amount and expired order") {
     forAll(accountGen, accountGen, accountGen, assetPairGen) {
       (sender1: PrivateKeyAccount, sender2: PrivateKeyAccount, matcher: PrivateKeyAccount, pair: AssetPair) =>
-        val time = NTP.correctedTime()
+        //from correctTime to getTimestamp, if use correctTime, the timestamp will go back
+        val time = NTP.getTimestamp()
         val expirationTimestamp = time + Order.MaxLiveTime
         val buyPrice = 1*Order.PriceConstant
         val sellPrice = (0.50*Order.PriceConstant).toLong

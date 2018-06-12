@@ -60,7 +60,7 @@ object GenesisBlockGenerator extends App {
     scorex.account.AddressScheme.current = new AddressScheme {
       override val chainId: Byte = networkByte.toByte
     }
-    val timestamp = System.currentTimeMillis()
+    val timestamp = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
     val initialBalance = 1000000000000000L
 
     val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))

@@ -43,7 +43,7 @@ class UtxPool(time: Time,
   private val putRequestStats = Kamon.metrics.counter("utx-pool-put-if-new")
 
   private def removeExpired(currentTs: Long): Unit = write { implicit l =>
-    def isExpired(tx: Transaction) = (currentTs - tx.timestamp).millis > utxSettings.maxTransactionAge
+    def isExpired(tx: Transaction) = (currentTs - tx.timestamp).nanos > utxSettings.maxTransactionAge
 
     transactions()
       .values
