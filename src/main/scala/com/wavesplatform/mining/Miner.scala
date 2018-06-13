@@ -91,10 +91,6 @@ class Miner(
     } yield block
   }.delayExecution(delay)
 
-  private def waitTask(delay: FiniteDuration):Task[Unit] = {
-    Task.unit
-  }.delayExecution(delay)
-
   private def generateBlockTask(account: PrivateKeyAccount): Task[Unit] = {
     val height = history.height()
     val lastBlock = history.lastBlock.get
