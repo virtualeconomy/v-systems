@@ -130,20 +130,23 @@ object Coordinator extends ScorexLogging {
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")
       prevBlockData = parent.consensusData
       blockData = block.consensusData
-      cbt = calcBaseTarget(bcs.genesisSettings.averageBlockDelay, parentHeight, parent, history.parent(parent, 2), blockTime)
-      bbt = blockData.baseTarget
-      _ <- Either.cond(cbt == bbt, (), s"declared baseTarget $bbt does not match calculated baseTarget $cbt")
+
+      // will not check base target here in spos
+      //cbt = calcBaseTarget(bcs.genesisSettings.averageBlockDelay, parentHeight, parent, history.parent(parent, 2), blockTime)
+      //bbt = blockData.baseTarget
+      //_ <- Either.cond(cbt == bbt, (), s"declared baseTarget $bbt does not match calculated baseTarget $cbt")
+      // will remove this part later
       generator = block.signerData.generator
       calcGs = calcGeneratorSignature(prevBlockData, generator)
       blockGs = blockData.generationSignature
       _ <- Either.cond(calcGs.sameElements(blockGs), (),
         s"declared generation signature ${blockGs.mkString} does not match calculated generation signature ${calcGs.mkString}")
-      // will remove this part later
+
       effectiveBalance = generatingBalance(state, fs, generator, parentHeight)
       _ <- Either.cond(blockTime < fs.minimalGeneratingBalanceAfter || effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
       //TODO
-      //check the generator's address
+      //check the generator's address for multi slots address case (VEE)
       //check generator.address
 
       // not hit validation
