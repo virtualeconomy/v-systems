@@ -22,6 +22,7 @@ case class FunctionalitySettings(allowTemporaryNegativeUntil: Long,
                                  allowExchangeTransactionAfter: Long,
                                  allowInvalidReissueInSameBlockUntilTimestamp: Long,
                                  allowCreatealiasTransactionAfter: Long,
+                                 allowContendSlotsTransactionAfter: Long,
                                  allowMultipleLeaseCancelTransactionUntilTimestamp: Long,
                                  resetEffectiveBalancesAtHeight: Long,
                                  allowLeasedBalanceTransferUntil: Long)
@@ -41,6 +42,7 @@ object FunctionalitySettings {
     allowExchangeTransactionAfter = 1491192000000L,
     allowInvalidReissueInSameBlockUntilTimestamp = 1492768800000L,
     allowCreatealiasTransactionAfter = 1503914400000L, // 2017-08-28T10:00:00Z
+    allowContendSlotsTransactionAfter = 1503914400000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492768800000L,
     resetEffectiveBalancesAtHeight = 462000,
     allowLeasedBalanceTransferUntil = Long.MaxValue)
@@ -59,6 +61,7 @@ object FunctionalitySettings {
     allowExchangeTransactionAfter = 1483228800000L,
     allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000000000L,
     allowCreatealiasTransactionAfter = 1493596800000L,
+    allowContendSlotsTransactionAfter = 1493596800000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000000000L,
     resetEffectiveBalancesAtHeight = 51500,
     allowLeasedBalanceTransferUntil = 1495238400000L)
@@ -102,7 +105,7 @@ object BlockchainSettings {
       stateFile = config.getAs[File](s"$configPath.state-file"),
       checkpointFile = config.getAs[File](s"$configPath.checkpoint-file"),
       addressSchemeCharacter = addressSchemeCharacter,
-      minimumInMemoryDiffSize = config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
+      minimumInMemoryDiffSize = 1,//config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
       functionalitySettings = functionalitySettings,
       genesisSettings = genesisSettings)
   }
