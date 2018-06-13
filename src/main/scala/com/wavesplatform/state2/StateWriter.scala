@@ -13,6 +13,8 @@ trait StateWriter {
   def applyBlockDiff(blockDiff: BlockDiff): Unit
 
   def clear(): Unit
+
+  def setInitialSlots(): Unit
 }
 
 class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteLock)
@@ -102,6 +104,10 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       _.foreach { case (id, isActive) => sp().leaseState.put(id, isActive) })
 
 
+    // if the blockDiff has contend transaction issued, change the slot address
+    measureSizeLog("slotids")(blockDiff.txsDiff.slotids)(
+      _.foreach { case (id, acc) => sp().setSlotAddress(id,acc) })
+
     sp().setHeight(sp().getHeight + blockDiff.heightDiff)
     sp().commit()
 
@@ -121,6 +127,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().leaseState.clear()
     sp().lastBalanceSnapshotHeight.clear()
     sp().setHeight(0)
+    sp().commit()
+  }
+
+  override def setInitialSlots(): Unit = write { implicit l =>
+    // set the initial slot address
+    sp().setSlotAddress(0,"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5")
     sp().commit()
   }
 }
