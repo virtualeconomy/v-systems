@@ -27,6 +27,8 @@ trait StateReader extends Synchronized {
 
   def height: Int
 
+  def slotAddress(id: Int): Option[String]
+
   def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr]
 
   def paymentTransactionIdByHash(hash: ByteStr): Option[ByteStr]
