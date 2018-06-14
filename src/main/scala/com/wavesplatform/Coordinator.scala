@@ -126,7 +126,7 @@ object Coordinator extends ScorexLogging {
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
       _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
-        block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InBlock) == block.transactionData,
+        block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InBlock) == block.transactionData.map(_.transaction),
         (), "transactions are not sorted")
       parent <- history.parent(block).toRight(s"history does not contain parent ${block.reference}")
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")
@@ -146,6 +146,7 @@ object Coordinator extends ScorexLogging {
       hit = calcHit(prevBlockData, generator)
       target = calcTarget(parent, blockTime, effectiveBalance)
       _ <- Either.cond(hit < target, (), s"calculated hit $hit >= calculated target $target")
+      _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1, (), s"Only one minting block allowd in a block" )
     } yield ()).left.map(e => GenericError(s"Block ${block.uniqueId} is invalid: $e"))
   }
 

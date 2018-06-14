@@ -77,7 +77,9 @@ class Miner(
       btg = calcBaseTarget(avgBlockDelay, parentHeight, parent, greatGrandParent, currentTime)
       gs = calcGeneratorSignature(lastBlockKernelData, account)
       consensusData = NxtLikeConsensusBlockData(btg, gs)
-      unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, 10, 5, System.currentTimeMillis()).right.get
+      _ = utx.putIfNew(MintingTransaction.create(account, MintingTransaction.mintingReward, MintingTransaction.mintingFee, currentTime).right.get)
+      unconfirmed = utx.packUnconfirmed()
+      //:+ MintingTransaction.create(account, 1000000, 100000, System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
       // call currentTimeMillis to record the duration
