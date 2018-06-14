@@ -53,7 +53,7 @@ case class MintingTransaction private(minter: PublicKeyAccount,
 object MintingTransaction {
 
   val mintingFee = 100000
-  val mintingReward = 1000000000
+  val mintingReward = 100000000
 
   private val minterLength = 32
   private val FeeLength = 8
