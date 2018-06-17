@@ -50,6 +50,8 @@ object CommonValidation {
             Left(GenericError(s"Attempt to transfer unavailable funds:" +
               s" Transaction application leads to negative asset '${negativeAsset.get._1}' balance to (at least) temporary negative state, current balance is ${negativeAsset.get._2}, spends equals ${negativeAsset.get._3}, result is ${negativeAsset.get._4}"))
           else Right(tx)
+        case mtx: MintingTransaction if mtx.amount != MintingTransaction.mintingReward || mtx.fee < MintingTransaction.mintingFee =>
+          Left(GenericError(s"Minting Transaction Reward/Fee invalid" ))
         case _ => Right(tx)
       } else Right(tx)
 
