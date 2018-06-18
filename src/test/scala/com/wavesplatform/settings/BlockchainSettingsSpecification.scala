@@ -16,7 +16,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
       """waves {
         |  directory = "/waves"
         |  blockchain {
-        |    minimum-in-memory-diff-blocks = 201
+        |    minimum-in-memory-diff-blocks = 1
         |    type = CUSTOM
         |    custom {
         |      address-scheme-character = "C"
@@ -36,6 +36,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        allow-createalias-transaction-after = 13
         |        allow-multiple-lease-cancel-transaction-until-timestamp = 14
         |        reset-effective-balances-at-height = 15
+        |        allow-contend-slots-transaction-after =16
         |        allow-leased-balance-transfer-until = 17
         |      }
         |      genesis {
@@ -58,7 +59,8 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.blockchainFile should be(Some(new File("/waves/data/blockchain.dat")))
     settings.stateFile should be(Some(new File("/waves/data/state.dat")))
     settings.checkpointFile should be(Some(new File("/waves/data/checkpoint.dat")))
-    settings.minimumInMemoryDiffSize should be(201)
+    //not snapshot
+    settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('C')
     settings.functionalitySettings.allowTemporaryNegativeUntil should be(1)
     settings.functionalitySettings.allowInvalidPaymentTransactionsByTimestamp should be(2)
@@ -75,6 +77,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(13)
     settings.functionalitySettings.allowMultipleLeaseCancelTransactionUntilTimestamp should be(14)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(15)
+    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(16)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(17)
     settings.genesisSettings.blockTimestamp should be(1460678400000L)
     settings.genesisSettings.timestamp should be(1460678400000L)
@@ -92,7 +95,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
       """waves {
         |  directory = "/waves"
         |  blockchain {
-        |    minimum-in-memory-diff-blocks = 202
+        |    minimum-in-memory-diff-blocks = 1
         |    type = TESTNET
         |  }
         |}""".stripMargin))
@@ -101,7 +104,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.blockchainFile should be(Some(new File("/waves/data/blockchain.dat")))
     settings.stateFile should be(Some(new File("/waves/data/state.dat")))
     settings.checkpointFile should be(Some(new File("/waves/data/checkpoint.dat")))
-    settings.minimumInMemoryDiffSize should be(202)
+    settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('T')
     settings.functionalitySettings.allowTemporaryNegativeUntil should be(1477958400000L)
     settings.functionalitySettings.allowInvalidPaymentTransactionsByTimestamp should be(1477958400000000000L)
@@ -117,11 +120,12 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowExchangeTransactionAfter should be(1483228800000L)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(51500)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(1493596800000L)
+    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.genesisSettings.blockTimestamp should be(1528036610296763852L)
     settings.genesisSettings.timestamp should be(1528036610296763852L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("2H79rTSHpt8j2xrBJdG9GzH3KBFD3oiCW2vUjCfdWxouDp2tB9Hx1cggYg5USk3fZjkJUm7HV5SJmDdiBdHtvmDd").toOption)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("5JY5NvSfyT3fu2nurcHB5sZojeXY43dT9vxcBbcTMd61T3wYV9e7n74f3Dh8iRL39YB2TfQpvHBqkLJk97TTW69S").toOption)
     settings.genesisSettings.initialBalance should be(10000000000000000L)
 
     settings.genesisSettings.transactions should be(Seq(
@@ -142,7 +146,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
       """waves {
         |  directory = "/waves"
         |  blockchain {
-        |    minimum-in-memory-diff-blocks = 203
+        |    minimum-in-memory-diff-blocks = 1
         |    type = MAINNET
         |  }
         |}""".stripMargin))
@@ -151,7 +155,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.blockchainFile should be(Some(new File("/waves/data/blockchain.dat")))
     settings.stateFile should be(Some(new File("/waves/data/state.dat")))
     settings.checkpointFile should be(Some(new File("/waves/data/checkpoint.dat")))
-    settings.minimumInMemoryDiffSize should be(203)
+    settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('W')
     settings.functionalitySettings.allowTemporaryNegativeUntil should be(1479168000000L)
     settings.functionalitySettings.allowInvalidPaymentTransactionsByTimestamp should be(1479168000000L)

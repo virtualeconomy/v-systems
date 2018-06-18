@@ -30,6 +30,9 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def height: Int = inner.height + blockDiff.heightDiff
 
+  override def slotAddress(id: Int): Option[String] =
+    inner.slotAddress(id).orElse(None)
+
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = {
     val fromDiff = txDiff.accountTransactionIds.get(a).orEmpty
     if (fromDiff.length >= limit) {
@@ -101,6 +104,9 @@ object CompositeStateReader {
 
     override def height: Int =
       new CompositeStateReader(inner, blockDiff()).height
+
+    override def slotAddress(id: Int): Option[String] =
+      new CompositeStateReader(inner,blockDiff()).slotAddress(id)
 
     override def isLeaseActive(leaseTx: LeaseTransaction): Boolean =
       new CompositeStateReader(inner, blockDiff()).isLeaseActive(leaseTx)
