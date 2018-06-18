@@ -6,7 +6,7 @@ import play.api.libs.json.{JsObject, Json}
 import scorex.account.PublicKeyAccount
 import scorex.crypto.encode.Base58
 import scorex.serialization.{BytesSerializable, JsonSerializable}
-import scorex.transaction.Transaction
+import scorex.transaction.{ProcessedTransaction, Transaction}
 import scorex.crypto.authds.merkle.MerkleTree
 
 
@@ -60,8 +60,8 @@ case class SignerDataBlockField(override val name: String, override val value: S
 }
 
 
-case class MerkleRootBlockField(override val name: String, override val value: Seq[Transaction])
-  extends BlockField[Seq[Transaction]] {
+case class MerkleRootBlockField(override val name: String, override val value: Seq[ProcessedTransaction])
+  extends BlockField[Seq[ProcessedTransaction]] {
 
   val trxMerkleRootHash = if (value.length == 0) {
     Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )

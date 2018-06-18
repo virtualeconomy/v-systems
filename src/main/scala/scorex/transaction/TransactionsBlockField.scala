@@ -4,16 +4,16 @@ import com.google.common.primitives.{Bytes, Ints}
 import play.api.libs.json.{JsArray, JsObject, Json}
 import scorex.block.{Block, BlockField}
 
-trait TransactionsBlockField extends BlockField[Seq[Transaction]]
+trait TransactionsBlockField extends BlockField[Seq[ProcessedTransaction]]
 
 object TransactionsBlockField {
-  def apply(version: Int, value: Seq[Transaction]): TransactionsBlockField = version match {
+  def apply(version: Int, value: Seq[ProcessedTransaction]): TransactionsBlockField = version match {
     case 1 | 2 => TransactionsBlockFieldVersion1or2(value)
     case 3 => TransactionsBlockFieldVersion3(value)
   }
 }
 
-case class TransactionsBlockFieldVersion1or2(override val value: Seq[Transaction]) extends TransactionsBlockField {
+case class TransactionsBlockFieldVersion1or2(override val value: Seq[ProcessedTransaction]) extends TransactionsBlockField {
   override val name = "transactions"
 
   override lazy val json: JsObject = Json.obj(name -> JsArray(value.map(_.json)))
@@ -27,7 +27,7 @@ case class TransactionsBlockFieldVersion1or2(override val value: Seq[Transaction
   }
 }
 
-case class TransactionsBlockFieldVersion3(override val value: Seq[Transaction]) extends TransactionsBlockField {
+case class TransactionsBlockFieldVersion3(override val value: Seq[ProcessedTransaction]) extends TransactionsBlockField {
   override val name = "transactions"
 
   override lazy val json: JsObject = Json.obj(name -> JsArray(value.map(_.json)))
