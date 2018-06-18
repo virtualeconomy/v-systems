@@ -67,7 +67,7 @@ object TransactionParser {
       
       case txType: Byte if txType == TransactionType.MintingTransaction.id =>
         MintingTransaction.parseTail(data.tail)
-
+      
       case txType: Byte if txType == TransactionType.ContendSlotsTransaction.id =>
         ContendSlotsTransaction.parseTail(data.tail)
 
