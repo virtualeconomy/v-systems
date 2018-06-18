@@ -156,6 +156,6 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     settings.fees(9).toSet should equal(Set(FeeSettings("WAVES", 100000)))
     settings.fees(10).toSet should equal(Set(FeeSettings("WAVES", 100000)))
     settings.fees(11).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(11).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(12).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
   }
 }
