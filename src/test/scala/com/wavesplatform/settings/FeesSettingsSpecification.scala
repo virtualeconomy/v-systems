@@ -139,6 +139,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  }
         |  contend-slots {
         |    WAVES = 10000000
+        |  }
         |  minting {
         |    WAVES = 100000
         |  }
