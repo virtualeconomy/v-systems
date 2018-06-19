@@ -6,7 +6,7 @@ import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
-import scorex.api.http.spos.ContendSlotsRequest
+import scorex.api.http.spos.{ContendSlotsRequest,ReleaseSlotsRequest}
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
@@ -69,6 +69,11 @@ object TransactionFactory {
   def contendSlots(request: ContendSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ContendSlotsTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
     tx <- ContendSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
+  } yield tx
+
+  def releaseSlots(request: ReleaseSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ReleaseSlotsTransaction] = for {
+    senderPrivateKey <- wallet.findWallet(request.sender)
+    tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {
