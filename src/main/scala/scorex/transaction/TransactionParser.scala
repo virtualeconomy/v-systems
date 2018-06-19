@@ -20,7 +20,8 @@ object TransactionParser {
     val LeaseTransaction = Value(8)
     val LeaseCancelTransaction = Value(9)
     val CreateAliasTransaction = Value(10)
-    val ContendSlotsTransaction = Value(11)
+    val ContendSlotsTransaction = Value(12)
+    val ReleaseSlotsTransaction = Value(13)
   }
 
   val TimestampLength = 8
@@ -66,6 +67,9 @@ object TransactionParser {
 
       case txType: Byte if txType == TransactionType.ContendSlotsTransaction.id =>
         ContendSlotsTransaction.parseTail(data.tail)
+
+      case txType: Byte if txType == TransactionType.ReleaseSlotsTransaction.id =>
+        ReleaseSlotsTransaction.parseTail(data.tail)
 
       case txType => Failure(new Exception(s"Invalid transaction type: $txType"))
     }
