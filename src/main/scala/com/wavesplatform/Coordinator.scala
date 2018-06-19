@@ -79,7 +79,8 @@ object Coordinator extends ScorexLogging {
       GenericError(s"Block ${block.uniqueId} at height ${history.height() + 1} is not valid w.r.t. checkpoint"))
     _ <- blockConsensusValidation(history, stateReader, settings, time.correctedTime())(block)
     _ <- blockchainUpdater.processBlock(block)
-  } yield utxStorage.removeAll(block.transactionData)
+  } yield utxStorage.removeAll(block.transactionData.map(_.transaction))
+  // TODO: change utxStorage to use ProcessedTransaction
 
   def processCheckpoint(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater)
                        (newCheckpoint: Checkpoint): Either[ValidationError, BigInt] =
@@ -124,7 +125,8 @@ object Coordinator extends ScorexLogging {
 
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
-      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd || block.transactionData.sorted(TransactionsOrdering.InBlock) == block.transactionData,
+      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
+        block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InBlock) == block.transactionData.map(_.transaction),
         (), "transactions are not sorted")
       parent <- history.parent(block).toRight(s"history does not contain parent ${block.reference}")
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")
@@ -153,6 +155,7 @@ object Coordinator extends ScorexLogging {
       //hit = calcHit(prevBlockData, generator)
       //target = calcTarget(parent, blockTime, effectiveBalance)
       //_ <- Either.cond(hit < target, (), s"calculated hit $hit >= calculated target $target")
+      _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1, (), s"Only one minting block allowd in a block" )
     } yield ()).left.map(e => GenericError(s"Block ${block.uniqueId} is invalid: $e"))
   }
 

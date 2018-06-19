@@ -20,6 +20,7 @@ object TransactionParser {
     val LeaseTransaction = Value(8)
     val LeaseCancelTransaction = Value(9)
     val CreateAliasTransaction = Value(10)
+    val MintingTransaction = Value(11)
     val ContendSlotsTransaction = Value(12)
     val ReleaseSlotsTransaction = Value(13)
   }
@@ -64,7 +65,10 @@ object TransactionParser {
 
       case txType: Byte if txType == TransactionType.CreateAliasTransaction.id =>
         CreateAliasTransaction.parseTail(data.tail)
-
+      
+      case txType: Byte if txType == TransactionType.MintingTransaction.id =>
+        MintingTransaction.parseTail(data.tail)
+      
       case txType: Byte if txType == TransactionType.ContendSlotsTransaction.id =>
         ContendSlotsTransaction.parseTail(data.tail)
 

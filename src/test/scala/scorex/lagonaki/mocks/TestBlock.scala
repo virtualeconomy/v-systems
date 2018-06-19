@@ -6,7 +6,7 @@ import scorex.block._
 import scorex.consensus.nxt.NxtLikeConsensusBlockData
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser._
-import scorex.transaction.{Transaction, TransactionParser}
+import scorex.transaction.{ProcessedTransaction, Transaction, TransactionParser, TransactionStatus}
 
 import scala.util.{Random, Try}
 
@@ -24,7 +24,7 @@ object TestBlock {
     reference = randomSignature(),
     signerData = SignerData(defaultSigner, ByteStr.empty),
     consensusData = NxtLikeConsensusBlockData(1L, Array.fill(SignatureLength)(0: Byte)),
-    transactionData = txs))
+    transactionData = txs.map(ProcessedTransaction(TransactionStatus.Success, 0, _))))
 
   def randomOfLength(length: Int): ByteStr = ByteStr(Array.fill(length)(random.nextInt().toByte))
 
