@@ -30,6 +30,7 @@ case class ContendSlotsTransaction private(sender: PublicKeyAccount,
   override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
+    //need to write more data here?
     "slotid" -> slotid,
     "fee" -> fee,
     "timestamp" -> timestamp
