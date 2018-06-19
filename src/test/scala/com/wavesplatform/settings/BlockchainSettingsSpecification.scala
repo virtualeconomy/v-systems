@@ -38,6 +38,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        reset-effective-balances-at-height = 15
         |        allow-contend-slots-transaction-after =16
         |        allow-leased-balance-transfer-until = 17
+        |        allow-release-slots-transaction-after =18
         |      }
         |      genesis {
         |        timestamp = 1460678400000
@@ -79,6 +80,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(15)
     settings.functionalitySettings.allowContendSlotsTransactionAfter should be(16)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(17)
+    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(18)
     settings.genesisSettings.blockTimestamp should be(1460678400000L)
     settings.genesisSettings.timestamp should be(1460678400000L)
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("BASE58BLKSGNATURE").toOption)
@@ -121,6 +123,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(51500)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1493596800000L)
+    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.genesisSettings.blockTimestamp should be(1528036610296763852L)
     settings.genesisSettings.timestamp should be(1528036610296763852L)
@@ -170,6 +173,8 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(462000)
     settings.functionalitySettings.requirePaymentUniqueIdAfter should be(1491192000000L)
     settings.functionalitySettings.allowExchangeTransactionAfter should be(1491192000000L)
+    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(1503914400000L)
+    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1503914400000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(Long.MaxValue)
     settings.genesisSettings.blockTimestamp should be(1460678400000L)
     settings.genesisSettings.timestamp should be(1465742577614L)
