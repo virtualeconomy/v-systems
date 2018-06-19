@@ -106,6 +106,7 @@ class UtxPool(time: Time,
   def packUnconfirmed(): Seq[Transaction] = write { implicit l =>
     val currentTs = time.correctedTime()
     removeExpired(currentTs)
+    var AddressList: Map[String, Int] = Map()
     val differ = TransactionDiffer(fs, history.lastBlock.map(_.timestamp), currentTs, stateReader.height) _
     val (invalidTxs, validTxs, _) = transactions()
       .values.toSeq
@@ -113,8 +114,17 @@ class UtxPool(time: Time,
       .foldLeft((Seq.empty[ByteStr], Seq.empty[Transaction], Monoid[Diff].empty)) {
         case ((invalid, valid, diff), tx) if valid.size < 100 =>
           differ(new CompositeStateReader(stateReader, diff.asBlockDiff), tx) match {
-            case Right(newDiff) =>
+            // DOUBLE CHECK: make sure change the same slotid's address at most Once in per block
+            // AND one address one contend/release transaction per block
+            case Right(newDiff) if newDiff.slotids.isEmpty =>
               (invalid, tx +: valid, Monoid.combine(diff, newDiff))
+            case Right(newDiff) if !(newDiff.slotids.keySet.exists(diff.slotids.keySet) && !AddressList.contains(newDiff.accountTransactionIds.headOption.get._1.address)) =>
+              AddressList += (newDiff.slotids.values.head->1)
+              (invalid, tx +: valid, Monoid.combine(diff, newDiff))
+            case Right(newDiff) =>
+              //println(AddressList.contains(newDiff.accountTransactionIds.headOption.get._1.address))
+              //println(newDiff.accountTransactionIds.headOption.get._1.address)
+              (invalid, valid, diff)
             case Left(e) =>
               log.debug(s"Removing invalid transaction ${tx.id} from UTX: $e")
               (tx.id +: invalid, valid, diff)
