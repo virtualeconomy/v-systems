@@ -23,6 +23,7 @@ case class FunctionalitySettings(allowTemporaryNegativeUntil: Long,
                                  allowInvalidReissueInSameBlockUntilTimestamp: Long,
                                  allowCreatealiasTransactionAfter: Long,
                                  allowContendSlotsTransactionAfter: Long,
+                                 allowReleaseSlotsTransactionAfter: Long,
                                  allowMultipleLeaseCancelTransactionUntilTimestamp: Long,
                                  resetEffectiveBalancesAtHeight: Long,
                                  allowLeasedBalanceTransferUntil: Long)
@@ -43,6 +44,7 @@ object FunctionalitySettings {
     allowInvalidReissueInSameBlockUntilTimestamp = 1492768800000L,
     allowCreatealiasTransactionAfter = 1503914400000L, // 2017-08-28T10:00:00Z
     allowContendSlotsTransactionAfter = 1503914400000L,
+    allowReleaseSlotsTransactionAfter = 1503914400000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492768800000L,
     resetEffectiveBalancesAtHeight = 462000,
     allowLeasedBalanceTransferUntil = Long.MaxValue)
@@ -62,6 +64,7 @@ object FunctionalitySettings {
     allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000000000L,
     allowCreatealiasTransactionAfter = 1493596800000L,
     allowContendSlotsTransactionAfter = 1493596800000L,
+    allowReleaseSlotsTransactionAfter = 1493596800000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000000000L,
     resetEffectiveBalancesAtHeight = 51500,
     allowLeasedBalanceTransferUntil = 1495238400000L)
