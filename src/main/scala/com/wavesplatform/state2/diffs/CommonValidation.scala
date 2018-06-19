@@ -75,6 +75,8 @@ object CommonValidation {
         Left(GenericError(s"must not appear before time=${settings.allowCreatealiasTransactionAfter}"))
       case tx: ContendSlotsTransaction if tx.timestamp <= settings.allowContendSlotsTransactionAfter =>
         Left(GenericError(s"must not appear before time=${settings.allowContendSlotsTransactionAfter}"))
+      case tx: ReleaseSlotsTransaction if tx.timestamp <= settings.allowReleaseSlotsTransactionAfter =>
+        Left(GenericError(s"must not appear before time=${settings.allowReleaseSlotsTransactionAfter}"))
       case _: BurnTransaction => Right(tx)
       case _: PaymentTransaction => Right(tx)
       case _: GenesisTransaction => Right(tx)
@@ -86,6 +88,7 @@ object CommonValidation {
       case _: LeaseCancelTransaction => Right(tx)
       case _: CreateAliasTransaction => Right(tx)
       case _: ContendSlotsTransaction => Right(tx)
+      case _: ReleaseSlotsTransaction => Right(tx)
       case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
     }
 
@@ -98,7 +101,7 @@ object CommonValidation {
 
   def disallowTxFromPast[T <: Transaction](prevBlockTime: Option[Long], tx: T): Either[ValidationError, T] =
     prevBlockTime match {
-      case Some(t) if (t - tx.timestamp) > MaxTimePrevBlockOverTransactionDiff.toMillis =>
+      case Some(t) if (t - tx.timestamp) > MaxTimePrevBlockOverTransactionDiff.toNanos =>
         Left(Mistiming(s"Transaction ts ${tx.timestamp} is too old. Previous block time: $prevBlockTime"))
       case _ => Right(tx)
     }
