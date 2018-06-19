@@ -122,8 +122,6 @@ class UtxPool(time: Time,
               AddressList += (newDiff.slotids.values.head->1)
               (invalid, tx +: valid, Monoid.combine(diff, newDiff))
             case Right(newDiff) =>
-              //println(AddressList.contains(newDiff.accountTransactionIds.headOption.get._1.address))
-              //println(newDiff.accountTransactionIds.headOption.get._1.address)
               (invalid, valid, diff)
             case Left(e) =>
               log.debug(s"Removing invalid transaction ${tx.id} from UTX: $e")
