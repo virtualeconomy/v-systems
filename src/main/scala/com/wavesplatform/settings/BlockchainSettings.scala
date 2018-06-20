@@ -108,7 +108,7 @@ object BlockchainSettings {
       stateFile = config.getAs[File](s"$configPath.state-file"),
       checkpointFile = config.getAs[File](s"$configPath.checkpoint-file"),
       addressSchemeCharacter = addressSchemeCharacter,
-      minimumInMemoryDiffSize = 1,//config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
+      minimumInMemoryDiffSize = config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
       functionalitySettings = functionalitySettings,
       genesisSettings = genesisSettings)
   }
