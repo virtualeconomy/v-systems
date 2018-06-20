@@ -4,7 +4,8 @@ import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.{ReleaseSlotsTransaction, ValidationError}
 import com.wavesplatform.settings.FunctionalitySettings
-import scala.util.Right
+
+import scala.util.{Left, Right}
 import scorex.transaction.ValidationError.GenericError
 
 object ReleaseSlotsTransactionDiff {
@@ -13,18 +14,23 @@ object ReleaseSlotsTransactionDiff {
     // check the slot list, make sure it is not the last miner (set a min num of miner)
     val isLastMiner = false
 
+    val isValidSlotID = tx.slotid < 5 && tx.slotid >=0
+
     val isInvalidEi = s.slotAddress(tx.slotid) match {
-      case Some(l) if (l == tx.sender.toAddress.address) => true
+      case Some(l) if l == tx.sender.toAddress.address => true
       case _ => false
     }
 
     // add more ValidationError
 
     val emptyAddress = ""
-    if (!isLastMiner && isInvalidEi) {
+    if (!isLastMiner && isInvalidEi && isValidSlotID) {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        slotids = Map(tx.slotid -> emptyAddress)))
+        slotids = Map(tx.slotid -> emptyAddress),slotNum = -1))
+    }
+    else if (!isValidSlotID){
+      Left(GenericError(s"${tx.slotid} invalid."))
     }
     else{
       Left(GenericError(s"${tx.sender.address} can not release the mint right of slot id: ${tx.slotid}"))
