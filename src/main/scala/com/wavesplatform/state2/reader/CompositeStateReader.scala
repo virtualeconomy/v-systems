@@ -31,12 +31,21 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   override def height: Int = inner.height + blockDiff.heightDiff
 
   override def slotAddress(id: Int): Option[String] =
-    inner.slotAddress(id).orElse(None)
+    txDiff.slotids.get(id).orElse(inner.slotAddress(id).orElse(None))
 
-  override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize
+  override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
 
-  override def addressToSlotID(add: String): Option[Int] =
-    inner.addressToSlotID(add).orElse(None)
+  override def addressToSlotID(add: String): Option[Int] = {
+    inner.addressToSlotID(add) match {
+      // headOption for one slot one address / one address one slot per block
+      case None => txDiff.slotids.filter(_._2 == add).keys.headOption
+      case id => txDiff.slotids.filter(_._1 == id.get).values.headOption match {
+        case None => id
+        case adx if adx.get == add => id
+        case _ => None
+      }
+    }
+  }
 
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = {
     val fromDiff = txDiff.accountTransactionIds.get(a).orEmpty
