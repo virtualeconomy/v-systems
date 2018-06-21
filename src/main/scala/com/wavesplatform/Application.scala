@@ -28,6 +28,7 @@ import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
 import scorex.api.http.spos.{SPOSApiRoute,SPOSBroadcastApiRoute}
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
+import scorex.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
 import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
@@ -95,7 +96,9 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       AliasApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
       AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels)
+      SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels)
     )
 
     val apiTypes = Seq(
@@ -117,7 +120,9 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       typeOf[AliasApiRoute],
       typeOf[AliasBroadcastApiRoute],
       typeOf[SPOSApiRoute],
-      typeOf[SPOSBroadcastApiRoute]
+      typeOf[SPOSBroadcastApiRoute],
+      typeOf[ContractApiRoute],
+      typeOf[ContractBroadcastApiRoute]
     )
 
     for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {

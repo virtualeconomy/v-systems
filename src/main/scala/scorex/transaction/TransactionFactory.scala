@@ -5,8 +5,10 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
+import scorex.api.http.contract.CreateContractRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import scorex.api.http.spos.ContendSlotsRequest
+import scorex.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
@@ -59,7 +61,6 @@ object TransactionFactory {
       tx <- LeaseCancelTransaction.create(pk, ByteStr.decodeBase58(request.txId).get, request.fee, time.getTimestamp())
     } yield tx
 
-
   def alias(request: CreateAliasRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateAliasTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
     alias <- Alias.buildWithCurrentNetworkByte(request.alias)
@@ -69,6 +70,12 @@ object TransactionFactory {
   def contendSlots(request: ContendSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ContendSlotsTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
     tx <- ContendSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
+  } yield tx
+
+  def contract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
+    senderPrivateKey <- wallet.findWallet(request.sender)
+    contract <- Contract.buildContract(request.content, request.name)
+    tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {

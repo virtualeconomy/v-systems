@@ -18,6 +18,7 @@ object LeasePatch {
       issuedAssets = Map.empty,
       aliases = Map.empty,
       slotids = Map.empty,
+      contracts = Map.empty,
       paymentTransactionIdsByHashes = Map.empty,
       orderFills = Map.empty,
       leaseState = s.activeLeases().map(_ -> false).toMap)

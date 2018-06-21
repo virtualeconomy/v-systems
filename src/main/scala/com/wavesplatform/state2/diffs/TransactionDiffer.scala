@@ -35,6 +35,7 @@ object TransactionDiffer {
         case atx: CreateAliasTransaction => CreateAliasTransactionDiff(currentBlockHeight)(atx)
         case mtx: MintingTransaction => MintingTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(mtx)
         case ctx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings,currentBlockHeight)(ctx)
+        case cctx: CreateContractTransaction => CreateContractTransactionDiff(currentBlockHeight)(cctx)
         case _ => Left(UnsupportedTransactionType)
       }
       positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp, settings)(diff)

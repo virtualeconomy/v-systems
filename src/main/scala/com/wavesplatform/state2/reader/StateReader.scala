@@ -37,6 +37,8 @@ trait StateReader extends Synchronized {
 
   def resolveAlias(a: Alias): Option[Address]
 
+  def contractContent(name: String): Option[String]
+
   def isLeaseActive(leaseTx: LeaseTransaction): Boolean
 
   def activeLeases(): Seq[ByteStr]
