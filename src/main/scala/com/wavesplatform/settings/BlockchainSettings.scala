@@ -26,7 +26,9 @@ case class FunctionalitySettings(allowTemporaryNegativeUntil: Long,
                                  allowReleaseSlotsTransactionAfter: Long,
                                  allowMultipleLeaseCancelTransactionUntilTimestamp: Long,
                                  resetEffectiveBalancesAtHeight: Long,
-                                 allowLeasedBalanceTransferUntil: Long)
+                                 allowLeasedBalanceTransferUntil: Long,
+                                 numOfSlots: Int,
+                                 mintingSpeed: Int)
 
 object FunctionalitySettings {
   //TODO, change the default settings
@@ -47,7 +49,9 @@ object FunctionalitySettings {
     allowReleaseSlotsTransactionAfter = 1503914400000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492768800000L,
     resetEffectiveBalancesAtHeight = 462000,
-    allowLeasedBalanceTransferUntil = Long.MaxValue)
+    allowLeasedBalanceTransferUntil = Long.MaxValue,
+    numOfSlots = 5,
+    mintingSpeed = 5)
 
   val TESTNET = FunctionalitySettings(
     allowTemporaryNegativeUntil = 1477958400000L,
@@ -67,7 +71,9 @@ object FunctionalitySettings {
     allowReleaseSlotsTransactionAfter = 1493596800000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000000000L,
     resetEffectiveBalancesAtHeight = 51500,
-    allowLeasedBalanceTransferUntil = 1495238400000L)
+    allowLeasedBalanceTransferUntil = 1495238400000L,
+    numOfSlots = 5,
+    mintingSpeed = 5)
 
   val configPath = "waves.blockchain.custom.functionality"
 }
