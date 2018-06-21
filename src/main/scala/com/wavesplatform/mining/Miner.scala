@@ -97,6 +97,9 @@ class Miner(
   private def generateBlockTask(account: PrivateKeyAccount): Task[Unit] = {
     val height = history.height()
     val lastBlock = history.lastBlock.get
+    val totalSlots = settings.blockchainSettings.functionalitySettings.numOfSlots
+    val mintingSpeed = settings.blockchainSettings.functionalitySettings.mintingSpeed
+    val timeOfOneRound = totalSlots * mintingSpeed
     val grandParent = history.parent(lastBlock, 2)
     (for {
       _ <- checkAge(height, lastBlock)
@@ -106,7 +109,7 @@ class Miner(
     } yield ts) match {
       case Right(ts) =>
         val offset = checkSlot(account) match {
-          case Right(id) => ((id*5000 + 25000 - System.currentTimeMillis%25000)%25000).millis
+          case Right(id) => ((id * mintingSpeed * 1000  + timeOfOneRound * 1000 - System.currentTimeMillis%(timeOfOneRound * 1000))%(timeOfOneRound * 1000)).millis
           case _ => 60000.millis
         }
         log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).getOrElse("Empty")}.")
