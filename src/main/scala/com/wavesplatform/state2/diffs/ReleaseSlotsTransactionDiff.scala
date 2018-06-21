@@ -14,9 +14,9 @@ object ReleaseSlotsTransactionDiff {
     // check the slot list, make sure it is not the last miner (set a min num of miner)
     val isLastMiner = false
 
-    val isValidSlotID = tx.slotid < 5 && tx.slotid >=0
+    val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
-    val isInvalidEi = s.slotAddress(tx.slotid) match {
+    val isValidAddress = s.slotAddress(tx.slotid) match {
       case Some(l) if l == tx.sender.toAddress.address => true
       case _ => false
     }
@@ -24,7 +24,7 @@ object ReleaseSlotsTransactionDiff {
     // add more ValidationError
 
     val emptyAddress = ""
-    if (!isLastMiner && isInvalidEi && isValidSlotID) {
+    if (!isLastMiner && isValidAddress && isValidSlotID) {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
         slotids = Map(tx.slotid -> emptyAddress),slotNum = -1))

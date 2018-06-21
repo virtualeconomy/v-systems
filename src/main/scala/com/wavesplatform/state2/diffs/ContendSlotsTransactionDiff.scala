@@ -15,7 +15,7 @@ object ContendSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ContendSlotsTransaction): Either[ValidationError, Diff] = {
 
     val MultiSlotsCheck = s.addressToSlotID(tx.sender.address).isDefined
-    val isValidSlotID = tx.slotid < 5 && tx.slotid >=0
+    val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
     if (!MultiSlotsCheck && isValidSlotID){
       val ContendGen = generatingBalance(s,fs,tx.sender,height)
