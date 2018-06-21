@@ -26,20 +26,20 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
 
   def setHeight(i: Int): Unit = variables.put(heightKey, i)
 
-  private val addressList: MVMap[String, String] = db.openMap("addressList")
+  private val addressList: MVMap[Int, String] = db.openMap("addressList")
 
   private val addressToID: MVMap[String, Int] = db.openMap("addressToID")
 
   def setSlotAddress(i: Int, add: String):Unit = {
-    addressList.put(slotId(i),add)
+    addressList.put(i,add)
     addressToID.put(add,i)
   }
 
-  def getSlotAddress(i: Int): Option[String] = Option(addressList.get(slotId(i)))
+  def getSlotAddress(i: Int): Option[String] = Option(addressList.get(i))
 
   def releaseSlotAddress(i: Int): Unit = {
-    addressToID.remove(addressList.get(slotId(i)))
-    addressList.remove(slotId(i))
+    addressToID.remove(addressList.get(i))
+    addressList.remove(i)
   }
 
   def addressToSlotID(add: String): Option[Int] = Option(addressToID.get(add))
@@ -98,8 +98,6 @@ object StateStorage {
 
   private val heightKey = "height"
   private val stateVersion = "stateVersion"
-
-  private val slotId = List("add1","add2","add3","add4","add5")
 
   private def validateVersion(ss: StateStorage): Boolean =
     ss.persistedVersion match {
