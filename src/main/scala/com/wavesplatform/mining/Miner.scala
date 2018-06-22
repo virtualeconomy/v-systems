@@ -58,7 +58,9 @@ class Miner(
     ))
 
   private def checkSlot(account:PrivateKeyAccount): Either[String,Int] =
-    Either.cond(stateReader.slotAddress(0).get == account.address, 0, s"Address ${account.address} is not in Slot List. List = ${stateReader.slotAddress(0).get}.")
+    Either.cond(stateReader.addressToSlotID(account.address).isDefined,
+      stateReader.addressToSlotID(account.address).get,
+      s"Address ${account.address} is not in Slot List.")
 
   private def generateOneBlockTask(account: PrivateKeyAccount, parentHeight: Int, parent: Block,
                                    greatGrandParent: Option[Block], balance: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
@@ -95,6 +97,9 @@ class Miner(
   private def generateBlockTask(account: PrivateKeyAccount): Task[Unit] = {
     val height = history.height()
     val lastBlock = history.lastBlock.get
+    val totalSlots = settings.blockchainSettings.functionalitySettings.numOfSlots
+    val mintingSpeed = settings.blockchainSettings.functionalitySettings.mintingSpeed
+    val timeOfOneRound = totalSlots * mintingSpeed
     val grandParent = history.parent(lastBlock, 2)
     (for {
       _ <- checkAge(height, lastBlock)
@@ -104,10 +109,10 @@ class Miner(
     } yield ts) match {
       case Right(ts) =>
         val offset = checkSlot(account) match {
-          case Right(id) => (5000-System.currentTimeMillis()%5000).millis
-          case Left(err) => 60000.millis
+          case Right(id) => ((id * mintingSpeed * 1000  + timeOfOneRound * 1000 - System.currentTimeMillis%(timeOfOneRound * 1000))%(timeOfOneRound * 1000)).millis
+          case _ => 60000.millis
         }
-        log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).get}.")
+        log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).getOrElse("Empty")}.")
         log.debug(s"Next attempt for acc=$account in $offset")
         val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
         generateOneBlockTask(account, height, lastBlock, grandParent, balance)(offset).flatMap {

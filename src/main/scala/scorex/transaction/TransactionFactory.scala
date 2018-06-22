@@ -7,7 +7,7 @@ import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
 import scorex.api.http.contract.CreateContractRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
-import scorex.api.http.spos.ContendSlotsRequest
+import scorex.api.http.spos.{ContendSlotsRequest,ReleaseSlotsRequest}
 import scorex.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
@@ -72,10 +72,15 @@ object TransactionFactory {
     tx <- ContendSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
   } yield tx
 
+  def releaseSlots(request: ReleaseSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ReleaseSlotsTransaction] = for {
+    senderPrivateKey <- wallet.findWallet(request.sender)
+    tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
+    
   def contract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
     contract <- Contract.buildContract(request.content, request.name)
     tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
+
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {

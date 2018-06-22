@@ -23,9 +23,12 @@ case class FunctionalitySettings(allowTemporaryNegativeUntil: Long,
                                  allowInvalidReissueInSameBlockUntilTimestamp: Long,
                                  allowCreatealiasTransactionAfter: Long,
                                  allowContendSlotsTransactionAfter: Long,
+                                 allowReleaseSlotsTransactionAfter: Long,
                                  allowMultipleLeaseCancelTransactionUntilTimestamp: Long,
                                  resetEffectiveBalancesAtHeight: Long,
-                                 allowLeasedBalanceTransferUntil: Long)
+                                 allowLeasedBalanceTransferUntil: Long,
+                                 numOfSlots: Int,
+                                 mintingSpeed: Int)
 
 object FunctionalitySettings {
   //TODO, change the default settings
@@ -43,9 +46,12 @@ object FunctionalitySettings {
     allowInvalidReissueInSameBlockUntilTimestamp = 1492768800000L,
     allowCreatealiasTransactionAfter = 1503914400000L, // 2017-08-28T10:00:00Z
     allowContendSlotsTransactionAfter = 1503914400000L,
+    allowReleaseSlotsTransactionAfter = 1503914400000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492768800000L,
     resetEffectiveBalancesAtHeight = 462000,
-    allowLeasedBalanceTransferUntil = Long.MaxValue)
+    allowLeasedBalanceTransferUntil = Long.MaxValue,
+    numOfSlots = 5,
+    mintingSpeed = 5)
 
   val TESTNET = FunctionalitySettings(
     allowTemporaryNegativeUntil = 1477958400000L,
@@ -62,9 +68,12 @@ object FunctionalitySettings {
     allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000000000L,
     allowCreatealiasTransactionAfter = 1493596800000L,
     allowContendSlotsTransactionAfter = 1493596800000L,
+    allowReleaseSlotsTransactionAfter = 1493596800000L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000000000L,
     resetEffectiveBalancesAtHeight = 51500,
-    allowLeasedBalanceTransferUntil = 1495238400000L)
+    allowLeasedBalanceTransferUntil = 1495238400000L,
+    numOfSlots = 5,
+    mintingSpeed = 5)
 
   val configPath = "waves.blockchain.custom.functionality"
 }
@@ -105,7 +114,7 @@ object BlockchainSettings {
       stateFile = config.getAs[File](s"$configPath.state-file"),
       checkpointFile = config.getAs[File](s"$configPath.checkpoint-file"),
       addressSchemeCharacter = addressSchemeCharacter,
-      minimumInMemoryDiffSize = 1,//config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
+      minimumInMemoryDiffSize = config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
       functionalitySettings = functionalitySettings,
       genesisSettings = genesisSettings)
   }
