@@ -194,6 +194,12 @@ case class AliasNotExists(aoa: AddressOrAlias) extends ApiError {
   override val message: String = s"alias $msgReason doesn't exist"
 }
 
+case class ContractNotExists(name: String) extends ApiError {
+  override val id: Int = 302
+  override val code = StatusCodes.NotFound
+  override val message: String = s"contract $name doesn't exist"
+}
+
 case class Mistiming(errorMessage: String) extends ApiError {
   override val id: Int = Mistiming.Id
   override val message: String = errorMessage

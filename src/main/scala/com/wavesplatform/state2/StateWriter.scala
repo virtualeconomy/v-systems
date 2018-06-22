@@ -100,6 +100,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       }
     }
 
+    measureSizeLog("contract creation")(blockDiff.txsDiff.contracts) {
+      _.foreach { case (name, content) =>
+        sp().contracts.put(name, content)
+      }
+    }
+
     measureSizeLog("lease info")(blockDiff.txsDiff.leaseState)(
       _.foreach { case (id, isActive) => sp().leaseState.put(id, isActive) })
 

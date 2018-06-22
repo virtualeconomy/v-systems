@@ -45,6 +45,7 @@ case class Diff(transactions: Map[ByteStr, (Int, Transaction, Set[Address])],
                 aliases: Map[Alias, Address],
                 slotids: Map[Int,String],
                 slotNum: Int,
+                contracts: Map[String, String],
                 paymentTransactionIdsByHashes: Map[ByteStr, ByteStr],
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
@@ -68,6 +69,7 @@ object Diff {
             aliases: Map[Alias, Address] = Map.empty,
             slotids: Map[Int,String] = Map.empty,
             slotNum: Int = 0,
+            contracts: Map[String, String] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
             paymentTransactionIdsByHashes: Map[ByteStr, ByteStr] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
@@ -77,11 +79,12 @@ object Diff {
     aliases = aliases,
     slotids = slotids,
     slotNum = slotNum,
+    contracts = contracts,
     paymentTransactionIdsByHashes = paymentTransactionIdsByHashes,
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, Map.empty, Map.empty, Map.empty)
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -97,6 +100,7 @@ object Diff {
       aliases = older.aliases ++ newer.aliases,
       slotids = older.slotids ++ newer.slotids,
       slotNum = older.slotNum + newer.slotNum,
+      contracts = older.contracts ++ newer.contracts,
       paymentTransactionIdsByHashes = older.paymentTransactionIdsByHashes ++ newer.paymentTransactionIdsByHashes,
       orderFills = older.orderFills.combine(newer.orderFills),
       leaseState = older.leaseState ++ newer.leaseState)

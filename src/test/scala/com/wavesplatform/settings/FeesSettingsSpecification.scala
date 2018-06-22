@@ -146,10 +146,13 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  minting {
         |    WAVES = 100000
         |  }
+        |  create-contract{
+        |    WAVES = 200000
+        |  }
         |}
       """.stripMargin).withFallback(defaultConfig).resolve()
     val settings = FeesSettings.fromConfig(config)
-    settings.fees.size should be(12)
+    settings.fees.size should be(13)
     settings.fees(2).toSet should equal(Set(FeeSettings("WAVES", 100000)))
     settings.fees(3).toSet should equal(Set(FeeSettings("WAVES", 100000000)))
     settings.fees(4).toSet should equal(Set(FeeSettings("WAVES", 100000), FeeSettings("6MPKrD5B7GrfbciHECg1MwdvRUhRETApgNZspreBJ8JL", 1)))
@@ -162,5 +165,6 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     settings.fees(11).toSet should equal(Set(FeeSettings("WAVES", 100000)))
     settings.fees(12).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
     settings.fees(13).toSet should equal(Set(FeeSettings("WAVES", 100000)))
+    settings.fees(14).toSet should equal(Set(FeeSettings("WAVES", 200000)))
   }
 }
