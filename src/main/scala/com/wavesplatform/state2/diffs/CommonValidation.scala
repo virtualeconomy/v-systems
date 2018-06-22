@@ -50,8 +50,6 @@ object CommonValidation {
             Left(GenericError(s"Attempt to transfer unavailable funds:" +
               s" Transaction application leads to negative asset '${negativeAsset.get._1}' balance to (at least) temporary negative state, current balance is ${negativeAsset.get._2}, spends equals ${negativeAsset.get._3}, result is ${negativeAsset.get._4}"))
           else Right(tx)
-        case mtx: MintingTransaction if mtx.amount != MintingTransaction.mintingReward || mtx.fee < MintingTransaction.mintingFee =>
-          Left(GenericError(s"Minting Transaction Reward/Fee invalid" ))
         case _ => Right(tx)
       } else Right(tx)
 
@@ -91,14 +89,14 @@ object CommonValidation {
 
   def disallowTxFromFuture[T <: Transaction](settings: FunctionalitySettings, time: Long, tx: T): Either[ValidationError, T] = {
     val allowTransactionsFromFutureByTimestamp = tx.timestamp < settings.allowTransactionsFromFutureUntil
-    if (!allowTransactionsFromFutureByTimestamp && (tx.timestamp - time).millis > MaxTimeTransactionOverBlockDiff)
+    if (!allowTransactionsFromFutureByTimestamp && tx.timestamp - time > MaxTimeTransactionOverBlockDiff.toNanos)
       Left(Mistiming(s"Transaction ts ${tx.timestamp} is from far future. BlockTime: $time"))
     else Right(tx)
   }
 
   def disallowTxFromPast[T <: Transaction](prevBlockTime: Option[Long], tx: T): Either[ValidationError, T] =
     prevBlockTime match {
-      case Some(t) if (t - tx.timestamp) > MaxTimePrevBlockOverTransactionDiff.toMillis =>
+      case Some(t) if (t - tx.timestamp) > MaxTimePrevBlockOverTransactionDiff.toNanos =>
         Left(Mistiming(s"Transaction ts ${tx.timestamp} is too old. Previous block time: $prevBlockTime"))
       case _ => Right(tx)
     }
