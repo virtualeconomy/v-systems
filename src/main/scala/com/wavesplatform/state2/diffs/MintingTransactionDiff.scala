@@ -13,17 +13,19 @@ object MintingTransactionDiff {
   def apply(stateReader: StateReader, height: Int, settings: FunctionalitySettings, blockTime: Long)
            (tx: MintingTransaction): Either[ValidationError, Diff] = {
 
-    stateReader.paymentTransactionIdByHash(ByteStr(tx.hash)) match {
-      case Some(existing) if blockTime >= settings.requirePaymentUniqueIdAfter => Left(GenericError(s"PaymentTx is already registered: $existing"))
-      case _ => Right(Diff(height = height,
+    if (tx.currentBlockHeight != height)
+      Left(GenericError(s"Invalid MintingTransaction, minting transaction height is different from the block height"))
+    else if (tx.amount != MintingTransaction.mintingReward || tx.fee < MintingTransaction.mintingFee)
+      Left(GenericError(s"Minting Transaction Reward/Fee invalid"))
+    else
+      Right(Diff(height = height,
         tx = tx,
         portfolios = Map(
-          tx.minter.toAddress-> Portfolio(
+          tx.sender.toAddress -> Portfolio(
             balance = tx.amount,
             LeaseInfo.empty,
-            assets = Map.empty)),
-      paymentTransactionIdsByHashes = Map(ByteStr(tx.hash) -> tx.id)
-      ))
-    }
+            assets = Map.empty))))
+
   }
 }
+
