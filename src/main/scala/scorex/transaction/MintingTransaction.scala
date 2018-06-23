@@ -10,6 +10,7 @@ import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
+
 import scorex.transaction.TransactionParser._
 
 import scala.util.{Failure, Success, Try}
@@ -59,6 +60,7 @@ object MintingTransaction {
   def create(minter: PrivateKeyAccount, amount: Long, fee: Long, timestamp: Long, currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
     create(minter, amount, fee, timestamp, currentBlockHeight, ByteStr.empty).right.map(unsigned => {
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(minter, unsigned.toSign)))
+
     })
   }
 
@@ -67,6 +69,7 @@ object MintingTransaction {
              fee: Long,
              timestamp: Long,
              currentBlockHeight: Int,
+
              signature: ByteStr): Either[ValidationError, MintingTransaction] = {
     if (amount <= 0) {
       Left(ValidationError.NegativeAmount) //CHECK IF AMOUNT IS POSITIVE

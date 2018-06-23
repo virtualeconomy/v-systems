@@ -21,6 +21,9 @@ object TransactionParser {
     val LeaseCancelTransaction = Value(9)
     val CreateAliasTransaction = Value(10)
     val MintingTransaction = Value(11)
+    val ContendSlotsTransaction = Value(12)
+    val ReleaseSlotsTransaction = Value(13)
+    val CreateContractTransaction = Value(14)
   }
 
   val TimestampLength = 8
@@ -29,6 +32,7 @@ object TransactionParser {
   val SignatureLength = 64
   val SignatureStringLength: Int = base58Length(SignatureLength)
   val KeyLength = 32
+  val SlotidLength = 4
   val KeyStringLength: Int = base58Length(KeyLength)
 
   def parseBytes(data: Array[Byte]): Try[Transaction] =
@@ -62,6 +66,18 @@ object TransactionParser {
 
       case txType: Byte if txType == TransactionType.CreateAliasTransaction.id =>
         CreateAliasTransaction.parseTail(data.tail)
+      
+      case txType: Byte if txType == TransactionType.MintingTransaction.id =>
+        MintingTransaction.parseTail(data.tail)
+      
+      case txType: Byte if txType == TransactionType.ContendSlotsTransaction.id =>
+        ContendSlotsTransaction.parseTail(data.tail)
+
+      case txType: Byte if txType == TransactionType.ReleaseSlotsTransaction.id =>
+        ReleaseSlotsTransaction.parseTail(data.tail)
+
+      case txType: Byte if txType == TransactionType.CreateContractTransaction.id =>
+        CreateContractTransaction.parseTail(data.tail)
 
       case txType: Byte if txType == TransactionType.MintingTransaction.id =>
         MintingTransaction.parseTail(data.tail)

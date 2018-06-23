@@ -26,7 +26,9 @@ import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
+import scorex.api.http.spos.{SPOSApiRoute,SPOSBroadcastApiRoute}
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
+import scorex.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
 import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
@@ -92,7 +94,11 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       LeaseApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       LeaseBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       AliasApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels)
+      AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels)
     )
 
     val apiTypes = Seq(
@@ -112,7 +118,11 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       typeOf[LeaseApiRoute],
       typeOf[LeaseBroadcastApiRoute],
       typeOf[AliasApiRoute],
-      typeOf[AliasBroadcastApiRoute]
+      typeOf[AliasBroadcastApiRoute],
+      typeOf[SPOSApiRoute],
+      typeOf[SPOSBroadcastApiRoute],
+      typeOf[ContractApiRoute],
+      typeOf[ContractBroadcastApiRoute]
     )
 
     for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {

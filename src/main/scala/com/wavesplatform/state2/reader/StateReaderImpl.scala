@@ -32,6 +32,12 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def height: Int = read { implicit l => sp().getHeight }
 
+  override def slotAddress(id: Int): Option[String] = read {implicit l => sp().getSlotAddress(id)}
+
+  override def effectiveSlotAddressSize: Int = read {implicit l=> sp().getEffectiveSlotAddressSize}
+
+  override def addressToSlotID(add: String): Option[Int] = read {implicit l=> sp().addressToSlotID(add)}
+
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = read { implicit l =>
     val totalRecords = sp().accountTransactionsLengths.getOrDefault(a.bytes, 0)
     Range(Math.max(0, totalRecords - limit), totalRecords)
@@ -53,6 +59,10 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   override def resolveAlias(a: Alias): Option[Address] = read { implicit l =>
     Option(sp().aliasToAddress.get(a.name))
       .map(b => Address.fromBytes(b.arr).explicitGet())
+  }
+
+  override def contractContent(name: String): Option[String] = read { implicit l =>
+    Option(sp().contracts.get(name))
   }
 
   override def accountPortfolios: Map[Address, Portfolio] = read { implicit l =>

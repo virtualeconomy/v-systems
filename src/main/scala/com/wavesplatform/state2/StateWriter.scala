@@ -13,6 +13,8 @@ trait StateWriter {
   def applyBlockDiff(blockDiff: BlockDiff): Unit
 
   def clear(): Unit
+
+  def setInitialSlots(): Unit
 }
 
 class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteLock)
@@ -98,9 +100,24 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       }
     }
 
+    measureSizeLog("contract creation")(blockDiff.txsDiff.contracts) {
+      _.foreach { case (name, content) =>
+        sp().contracts.put(name, content)
+      }
+    }
+
     measureSizeLog("lease info")(blockDiff.txsDiff.leaseState)(
       _.foreach { case (id, isActive) => sp().leaseState.put(id, isActive) })
 
+
+    // if the blockDiff has contend/release transaction issued, change the slot address
+    measureSizeLog("slotids_info")(blockDiff.txsDiff.slotids)(
+      _.foreach {
+        case (id, acc) => acc.length match {
+          case 0 => sp().releaseSlotAddress(id)
+          case _ => sp ().setSlotAddress (id, acc)
+        }
+      })
 
     sp().setHeight(sp().getHeight + blockDiff.heightDiff)
     sp().commit()
@@ -121,6 +138,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().leaseState.clear()
     sp().lastBalanceSnapshotHeight.clear()
     sp().setHeight(0)
+    sp().commit()
+  }
+
+  override def setInitialSlots(): Unit = write { implicit l =>
+    // set the initial slot address
+    sp().setSlotAddress(0,"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5")
     sp().commit()
   }
 }

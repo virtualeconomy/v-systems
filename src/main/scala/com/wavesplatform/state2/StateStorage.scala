@@ -26,6 +26,26 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
 
   def setHeight(i: Int): Unit = variables.put(heightKey, i)
 
+  private val addressList: MVMap[Int, String] = db.openMap("addressList")
+
+  private val addressToID: MVMap[String, Int] = db.openMap("addressToID")
+
+  def setSlotAddress(i: Int, add: String):Unit = {
+    addressList.put(i,add)
+    addressToID.put(add,i)
+  }
+
+  def getSlotAddress(i: Int): Option[String] = Option(addressList.get(i))
+
+  def releaseSlotAddress(i: Int): Unit = {
+    addressToID.remove(addressList.get(i))
+    addressList.remove(i)
+  }
+
+  def addressToSlotID(add: String): Option[Int] = Option(addressToID.get(add))
+
+  def getEffectiveSlotAddressSize: Int = addressList.size()
+
   val transactions: MVMap[ByteStr, (Int, Array[Byte])] = db.openMap("txs", new LogMVMapBuilder[ByteStr, (Int, Array[Byte])]
     .keyType(DataTypes.byteStr).valueType(DataTypes.transactions))
 
@@ -61,6 +81,8 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
 
   val lastBalanceSnapshotHeight: MVMap[ByteStr, Int] = db.openMap("lastUpdateHeight", new LogMVMapBuilder[ByteStr, Int]
     .keyType(DataTypes.byteStr))
+
+  val contracts: MVMap[String, String] = db.openMap("contracts")
 
   def commit(): Unit = {
      db.commit()

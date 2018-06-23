@@ -57,6 +57,11 @@ class Miner(
       s"BlockChain is too old (last block ${parent.uniqueId} generated $blockAge ago)"
     ))
 
+  private def checkSlot(account:PrivateKeyAccount): Either[String,Int] =
+    Either.cond(stateReader.addressToSlotID(account.address).isDefined,
+      stateReader.addressToSlotID(account.address).get,
+      s"Address ${account.address} is not in Slot List.")
+
   private def generateOneBlockTask(account: PrivateKeyAccount, parentHeight: Int, parent: Block,
                                    greatGrandParent: Option[Block], balance: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
     val pc = allChannels.size()
@@ -66,12 +71,15 @@ class Miner(
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
-    lazy val h = calcHit(lastBlockKernelData, account)
-    lazy val t = calcTarget(parent, currentTime, balance)
+    // in SPOS case, comparison between h and t is useless
+    //lazy val h = calcHit(lastBlockKernelData, account)
+    //lazy val t = calcTarget(parent, currentTime, balance)
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(h < t, (), s"${System.currentTimeMillis()} (in Millisecond): Hit $h was NOT less than target $t, not forging block with ${account.address}")
-      _ = log.debug(s"Forging with ${account.address}, H $h < T $t, balance $balance, prev block ${parent.uniqueId}")
+      _ <- Either.cond(balance >= 1000000, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target 1000000, not forging block with ${account.address}")
+      _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
+      _ <- checkSlot(account)
+      //target will not use in spos case
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with target ${lastBlockKernelData.baseTarget}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       btg = calcBaseTarget(avgBlockDelay, parentHeight, parent, greatGrandParent, currentTime)
@@ -88,13 +96,22 @@ class Miner(
   private def generateBlockTask(account: PrivateKeyAccount): Task[Unit] = {
     val height = history.height()
     val lastBlock = history.lastBlock.get
+    val totalSlots = settings.blockchainSettings.functionalitySettings.numOfSlots
+    val mintingSpeed = settings.blockchainSettings.functionalitySettings.mintingSpeed
+    val timeOfOneRound = totalSlots * mintingSpeed
     val grandParent = history.parent(lastBlock, 2)
     (for {
       _ <- checkAge(height, lastBlock)
-      ts <- nextBlockGenerationTime(height, stateReader, blockchainSettings.functionalitySettings, lastBlock, account)
+      //ts <- nextBlockGenerationTime(height, stateReader, blockchainSettings.functionalitySettings, lastBlock, account)
+      // useful to deal with the delay cases (so keep here for detail design)
+      ts = 1000000000L
     } yield ts) match {
       case Right(ts) =>
-        val offset = calcOffset(timeService, ts)
+        val offset = checkSlot(account) match {
+          case Right(id) => ((id * mintingSpeed * 1000  + timeOfOneRound * 1000 - System.currentTimeMillis%(timeOfOneRound * 1000))%(timeOfOneRound * 1000)).millis
+          case _ => 60000.millis
+        }
+        log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).getOrElse("Empty")}.")
         log.debug(s"Next attempt for acc=$account in $offset")
         val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
         generateOneBlockTask(account, height, lastBlock, grandParent, balance)(offset).flatMap {
@@ -132,6 +149,7 @@ object Miner extends ScorexLogging {
   val Version: Byte = 2
   val MinimalGenerationOffsetMillis: Long = 1001
 
+  //this function will not be called here
   def calcOffset(timeService: Time, calculatedTimestamp: Long): FiniteDuration = {
     // calculatedTimestamp in nanoseconds
     val calculatedGenerationTimestamp = (Math.ceil(calculatedTimestamp / 1000000000.0) * 1000000000L).toLong

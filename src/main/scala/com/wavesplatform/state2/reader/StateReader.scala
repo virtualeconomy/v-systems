@@ -27,6 +27,12 @@ trait StateReader extends Synchronized {
 
   def height: Int
 
+  def slotAddress(id: Int): Option[String]
+
+  def addressToSlotID(add: String): Option[Int]
+
+  def effectiveSlotAddressSize: Int
+
   def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr]
 
   def paymentTransactionIdByHash(hash: ByteStr): Option[ByteStr]
@@ -34,6 +40,8 @@ trait StateReader extends Synchronized {
   def aliasesOfAddress(a: Address): Seq[Alias]
 
   def resolveAlias(a: Alias): Option[Address]
+
+  def contractContent(name: String): Option[String]
 
   def isLeaseActive(leaseTx: LeaseTransaction): Boolean
 
