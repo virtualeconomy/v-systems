@@ -11,6 +11,7 @@ import play.api.libs.json.Json
 import scorex.BroadcastRoute
 import scorex.api.http._
 import scorex.transaction._
+import scorex.transaction.contract.ChangeContractStatusAction
 import scorex.utils.Time
 import scorex.wallet.Wallet
 
@@ -20,7 +21,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    create ~ contentFromName
+    create ~ contentFromName ~ enable ~ disable
   }
 
   @Path("/create")
@@ -39,7 +40,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
-  def create: Route = processRequest("create", (t: CreateContractRequest) => doBroadcast(TransactionFactory.contract(t, wallet, time)))
+  def create: Route = processRequest("create", (t: CreateContractRequest) => doBroadcast(TransactionFactory.createContract(t, wallet, time)))
 
 
   @Path("/by-name/{name}")
@@ -49,7 +50,45 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   ))
   def contentFromName: Route = (get & path("by-name" / Segment)) { contractName =>
     val content = state.contractContent(contractName)
-    val result = Either.cond(content.isDefined, Json.obj("content" -> content.get), ContractNotExists(contractName))
+    val result = Either.cond(content.isDefined, Json.obj("content" -> content.get._3, "enabled" -> content.get._1)
+      , ContractNotExists(contractName))
     complete(result)
   }
+
+  @Path("/enable")
+  @ApiOperation(value = "Enables a contract",
+    httpMethod = "POST",
+    produces = "application/json",
+    consumes = "application/json")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(
+      name = "body",
+      value = "Json with data",
+      required = true,
+      paramType = "body",
+      dataType = "scorex.api.http.contract.ChangeContractStatusRequest",
+      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+    )
+  ))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  def enable: Route = processRequest("enable", (t: ChangeContractStatusRequest) => doBroadcast(TransactionFactory.changeContractStatus(t, ChangeContractStatusAction.Enable, wallet, time)))
+
+  @Path("/disable")
+  @ApiOperation(value = "Enables a contract",
+    httpMethod = "POST",
+    produces = "application/json",
+    consumes = "application/json")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(
+      name = "body",
+      value = "Json with data",
+      required = true,
+      paramType = "body",
+      dataType = "scorex.api.http.contract.ChangeContractStatusRequest",
+      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+    )
+  ))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  def disable: Route = processRequest("disable", (t: ChangeContractStatusRequest) => doBroadcast(TransactionFactory.changeContractStatus(t, ChangeContractStatusAction.Disable, wallet, time)))
+
 }

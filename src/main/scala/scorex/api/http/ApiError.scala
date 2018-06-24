@@ -195,9 +195,21 @@ case class AliasNotExists(aoa: AddressOrAlias) extends ApiError {
 }
 
 case class ContractNotExists(name: String) extends ApiError {
-  override val id: Int = 302
+  override val id: Int = 401
   override val code = StatusCodes.NotFound
   override val message: String = s"contract $name doesn't exist"
+}
+
+case class ContractAlreadyEnabled(name: String) extends ApiError {
+  override val id: Int = 402
+  override val code = StatusCodes.NotFound
+  override val message: String = s"contract $name already enabled"
+}
+
+case class ContractAlreadyDisabled(name: String) extends ApiError {
+  override val id: Int = 403
+  override val code = StatusCodes.NotFound
+  override val message: String = s"contract $name already disabled"
 }
 
 case class Mistiming(errorMessage: String) extends ApiError {
