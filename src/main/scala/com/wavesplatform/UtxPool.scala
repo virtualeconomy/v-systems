@@ -106,7 +106,6 @@ class UtxPool(time: Time,
   def packUnconfirmed(): Seq[Transaction] = write { implicit l =>
     val currentTs = time.correctedTime()
     removeExpired(currentTs)
-    var AddressList: Map[String, Int] = Map()
     val differ = TransactionDiffer(fs, history.lastBlock.map(_.timestamp), currentTs, stateReader.height) _
     val (invalidTxs, validTxs, _) = transactions()
       .values.toSeq
@@ -114,26 +113,8 @@ class UtxPool(time: Time,
       .foldLeft((Seq.empty[ByteStr], Seq.empty[Transaction], Monoid[Diff].empty)) {
         case ((invalid, valid, diff), tx) if valid.size < 100 =>
           differ(new CompositeStateReader(stateReader, diff.asBlockDiff), tx) match {
-            // DOUBLE CHECK: make sure change the same slotid's address at most Once in per block
-            // AND one address one contend/release transaction per block
-
-            // Right(newDiff) means it is a valid diff
-            // case 1: newDiff.slotids.isEmpty = true, neither contend or release tx,
-            // then add it to valid list and combine the diff
-            case Right(newDiff) if newDiff.slotids.isEmpty =>
-              (invalid, tx +: valid, Monoid.combine(diff, newDiff))
-            // case 2: newDiff.slotids.isEmpty = false, it should be contend or release tx,
-            // if its soltid is not in diff.slotids map and its sender's address is not in address list map,
-            // in other words, one tx related with slotid = x, and one release or contend tx related with address = y,
-            // then add the used address to AddressList, and add the tx to valid list and combine the diff
-            case Right(newDiff) if !(newDiff.slotids.keySet.exists(diff.slotids.keySet) && !AddressList.contains(newDiff.accountTransactionIds.headOption.get._1.address)) =>
-              AddressList += (newDiff.slotids.values.head->1)
-              (invalid, tx +: valid, Monoid.combine(diff, newDiff))
-            // case 3: newDiff.slotids.isEmpty = false, it should be contend or release tx,
-            // but the slotid and address is already owned one contend or release tx in diff,
-            // we will not treat this tx invalid or valid, but just put it back to utx pool and keep the diff same
             case Right(newDiff) =>
-              (invalid, valid, diff)
+              (invalid, tx +: valid, Monoid.combine(diff, newDiff))
             case Left(e) =>
               log.debug(s"Removing invalid transaction ${tx.id} from UTX: $e")
               (tx.id +: invalid, valid, diff)
@@ -145,7 +126,8 @@ class UtxPool(time: Time,
     pessimisticPortfolios.mutate { p =>
       invalidTxs.foreach(p.remove)
     }
-    validTxs.sorted(TransactionsOrdering.InBlock)
+    //validTxs.sorted(TransactionsOrdering.InBlock)
+    validTxs.reverse
   }
 }
 
