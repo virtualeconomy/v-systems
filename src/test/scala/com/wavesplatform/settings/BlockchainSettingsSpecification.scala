@@ -47,7 +47,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        block-timestamp = 1460678400000
         |        signature = "BASE58BLKSGNATURE"
         |        initial-balance = 100000000000000
-        |        initial-base-target = 153722867
+        |        initial-mint-time = 1529885280000000000
         |        average-block-delay = 60s
         |        transactions = [
         |          {recipient = "BASE58ADDRESS1", amount = 50000000000001},
@@ -89,7 +89,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.genesisSettings.timestamp should be(1460678400000L)
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("BASE58BLKSGNATURE").toOption)
     settings.genesisSettings.initialBalance should be(100000000000000L)
-    settings.genesisSettings.initialBaseTarget should be(153722867)
+    settings.genesisSettings.initialMintTime should be(1529885280000000000L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
     settings.genesisSettings.transactions should be(Seq(
       GenesisTransactionSettings("BASE58ADDRESS1", 50000000000001L),
@@ -131,10 +131,10 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
-    settings.genesisSettings.blockTimestamp should be(1529453649838478871L)
-    settings.genesisSettings.timestamp should be(1529453649838478871L)
+    settings.genesisSettings.blockTimestamp should be(1529898440087220090L)
+    settings.genesisSettings.timestamp should be(1529898440087220090L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("wGRxbhejSQAMyacUKnzD4fPVwMVA9gWTQv37v2iYf6zLeEMPNwcYG5MxB6eUToman7YQrVgES1kJLten8mNpmgR").toOption)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("36uHjhrpSDuoC1zUkBsWyYKLwenTxykk5Bq2JcA3eBmop2anseJQDFBkAXWRgT828x8xyHVSQ4MuVCAqbKZt35ge").toOption)
     settings.genesisSettings.initialBalance should be(10000000000000000L)
 
     settings.genesisSettings.transactions should be(Seq(
