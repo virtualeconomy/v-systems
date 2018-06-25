@@ -54,7 +54,7 @@ object Coordinator extends ScorexLogging {
 
 
   private def updateBlockchainReadinessFlag(history: History, time: Time, blockchainReadiness: AtomicBoolean, maxBlockchainAge: Duration): Boolean = {
-    val expired = time.correctedTime() - history.lastBlock.get.timestamp < maxBlockchainAge.toMillis
+    val expired = time.correctedTime() - history.lastBlock.get.timestamp < maxBlockchainAge.toNanos
     blockchainReadiness.compareAndSet(expired, !expired)
   }
 
@@ -112,7 +112,7 @@ object Coordinator extends ScorexLogging {
     }
   }
 
-  val MaxTimeDrift: Long = Duration.ofSeconds(15).toMillis
+  val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {
@@ -125,19 +125,20 @@ object Coordinator extends ScorexLogging {
 
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
+      // use same ordering
       _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
-        block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InBlock) == block.transactionData.map(_.transaction),
+        block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction),
         (), "transactions are not sorted")
+      /*
+      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
+        block.transactionData.map(_.transaction).dropRight(1).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction).dropRight(1),
+        (), "transactions are not sorted")
+      */
       parent <- history.parent(block).toRight(s"history does not contain parent ${block.reference}")
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")
       prevBlockData = parent.consensusData
       blockData = block.consensusData
 
-      // will not check base target here in spos
-      //cbt = calcBaseTarget(bcs.genesisSettings.averageBlockDelay, parentHeight, parent, history.parent(parent, 2), blockTime)
-      //bbt = blockData.baseTarget
-      //_ <- Either.cond(cbt == bbt, (), s"declared baseTarget $bbt does not match calculated baseTarget $cbt")
-      // will remove this part later
       generator = block.signerData.generator
       calcGs = calcGeneratorSignature(prevBlockData, generator)
       blockGs = blockData.generationSignature
@@ -151,10 +152,9 @@ object Coordinator extends ScorexLogging {
       //check the generator's address for multi slots address case (VEE)
       //check generator.address
 
-      // not hit validation
-      //hit = calcHit(prevBlockData, generator)
-      //target = calcTarget(parent, blockTime, effectiveBalance)
-      //_ <- Either.cond(hit < target, (), s"calculated hit $hit >= calculated target $target")
+      //compare blockTime and mintTime
+      //compare mintTime and generator's slot id
+
       _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1, (), s"Only one minting block allowd in a block" )
     } yield ()).left.map(e => GenericError(s"Block ${block.uniqueId} is invalid: $e"))
   }
