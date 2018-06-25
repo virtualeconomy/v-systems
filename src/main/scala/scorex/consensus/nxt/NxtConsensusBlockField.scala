@@ -12,12 +12,12 @@ case class NxtConsensusBlockField(override val value: NxtLikeConsensusBlockData)
   override val name: String = "nxt-consensus"
 
   override def bytes: Array[Byte] =
-    Bytes.ensureCapacity(Longs.toByteArray(value.baseTarget), 8, 0) ++
+    Bytes.ensureCapacity(Longs.toByteArray(value.mintTime), 8, 0) ++
       value.generationSignature
 
 
   override def json: JsObject = Json.obj(name -> Json.obj(
-    "base-target" -> value.baseTarget,
+    "mint-time" -> value.mintTime,
     "generation-signature" -> Base58.encode(value.generationSignature)
   ))
 }
