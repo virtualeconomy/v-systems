@@ -43,16 +43,16 @@ class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHel
     }
   }
 
-  routePath("/basetarget") - {
+  routePath("/minttime") - {
     "for existed block" in {
       val block = history.blockAt(3).get
-      Get(routePath(s"/basetarget/${block.uniqueId.base58}")) ~> route ~> check {
-        (responseAs[JsObject] \ "baseTarget").as[Long] shouldEqual block.consensusData.baseTarget
+      Get(routePath(s"/minttime/${block.uniqueId.base58}")) ~> route ~> check {
+        (responseAs[JsObject] \ "mintTime").as[Long] shouldEqual block.consensusData.mintTime
       }
     }
 
     "for not existed block" in {
-      Get(routePath(s"/basetarget/brggwg4wg4g")) ~> route should produce(BlockNotExists)
+      Get(routePath(s"/minttime/brggwg4wg4g")) ~> route should produce(BlockNotExists)
     }
   }
 }

@@ -56,20 +56,23 @@ object GenesisBlockGenerator extends App {
     (ByteStr(seed), ByteStr(acc.seed), privateKey, publicKey, address)
   }
 
-  def generate(networkByte: Char, accountsTotal: Int, baseTraget: Long, averageBlockDelay: FiniteDuration) = {
+  def generate(networkByte: Char, accountsTotal: Int, mintTime: Long, averageBlockDelay: FiniteDuration) = {
     scorex.account.AddressScheme.current = new AddressScheme {
       override val chainId: Byte = networkByte.toByte
     }
+
     val timestamp = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
     val initialBalance = 1000000000000000L
 
+    val mt = if (mintTime < 0) timestamp/10000000000L*10000000000L else mintTime
+
     val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))
     val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), timestamp, ByteStr.empty) }
-    val genesisBlock = Block.buildAndSign(1, timestamp, reference, NxtLikeConsensusBlockData(baseTraget, Array.fill(DigestSize)(0: Byte)), genesisTxs, genesisSigner)
+    val genesisBlock = Block.buildAndSign(1, timestamp, reference, NxtLikeConsensusBlockData(mt, Array.fill(DigestSize)(0: Byte)), genesisTxs, genesisSigner)
     val signature = genesisBlock.signerData.signature
 
     (accounts, GenesisSettings(timestamp, timestamp, initialBalance, Some(signature),
-      genesisTxs.map(tx => GenesisTransactionSettings(tx.recipient.stringRepr, tx.amount)), baseTraget, averageBlockDelay))
+      genesisTxs.map(tx => GenesisTransactionSettings(tx.recipient.stringRepr, tx.amount)), mt, averageBlockDelay))
 
   }
 
@@ -94,13 +97,13 @@ object GenesisBlockGenerator extends App {
          | blockTimestamp: ${settings.blockTimestamp}
          | averageBlockDelay: ${settings.averageBlockDelay}
          | initialBalance: ${settings.initialBalance}
-         | initialBaseTarget: ${settings.initialBaseTarget}
+         | initialMintTime: ${settings.initialMintTime}
          | signature: ${settings.signature}
          | transactions: ${settings.transactions.mkString("\n   ", "\n   ", "")}
      """.stripMargin)
   }
 
-  val (a, s) = generate('T', 10, 153722867, 60.seconds)
+  val (a, s) = generate('T', 10, -1, 60.seconds)
   print(a, s)
 
 
