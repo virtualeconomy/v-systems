@@ -3,31 +3,36 @@ package scorex.transaction
 import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2.reader.StateReader
 import scorex.account.{Address, PublicKeyAccount}
-import scorex.block.Block
+//import scorex.block.Block
 import scorex.consensus.nxt.NxtLikeConsensusBlockData
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.crypto.hash.FastCryptographicHash.hash
 import scorex.utils.ScorexLogging
 
-import scala.concurrent.duration.FiniteDuration
+//import scala.concurrent.duration.FiniteDuration
 
 object PoSCalc extends ScorexLogging {
 
   val MinimalEffectiveBalanceForGenerator: Long = 1000000000000L
   val AvgBlockTimeDepth: Int = 3
 
+  /*
   def calcTarget(prevBlock: Block, timestamp: Long, balance: Long): BigInt = {
     //nanoseconds/1e-9
     val eta = (timestamp - prevBlock.timestamp) / 1000000000L
     BigInt(prevBlock.consensusData.baseTarget) * eta * balance
   }
+  */
 
+  /*
   def calcHit(lastBlockData: NxtLikeConsensusBlockData, generator: PublicKeyAccount): BigInt =
     BigInt(1, calcGeneratorSignature(lastBlockData, generator).take(8).reverse)
+  */
 
   def calcGeneratorSignature(lastBlockData: NxtLikeConsensusBlockData, generator: PublicKeyAccount): FastCryptographicHash.Digest =
     hash(lastBlockData.generationSignature ++ generator.publicKey)
 
+  /*
   def calcBaseTarget(avgBlockDelay: FiniteDuration, parentHeight: Int, parent: Block, greatGrandParent: Option[Block], timestamp: Long): Long = {
     val avgDelayInSeconds = avgBlockDelay.toSeconds
 
@@ -57,12 +62,14 @@ object PoSCalc extends ScorexLogging {
       prevBaseTarget
     }
   }
+  */
 
   def generatingBalance(state: StateReader, fs: FunctionalitySettings, account: Address, atHeight: Int): Long = {
     val generatingBalanceDepth = if (atHeight >= fs.generationBalanceDepthFrom50To1000AfterHeight) 1000 else 50
     state.effectiveBalanceAtHeightWithConfirmations(account, atHeight, generatingBalanceDepth)
   }
 
+  /*
   def nextBlockGenerationTime(
       height: Int,
       state: StateReader,
@@ -86,4 +93,5 @@ object PoSCalc extends ScorexLogging {
         }
       }
   }
+  */
 }
