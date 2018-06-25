@@ -98,6 +98,7 @@ class Miner(
     val totalSlots = settings.blockchainSettings.functionalitySettings.numOfSlots
     val mintingSpeed = settings.blockchainSettings.functionalitySettings.mintingSpeed
     val timeOfOneRound = totalSlots * mintingSpeed
+    val nextConnectTime = 60000000000L.nanos
     val grandParent = history.parent(lastBlock, 2)
     (for {
       _ <- checkAge(height, lastBlock)
@@ -108,7 +109,7 @@ class Miner(
       case Right(ts) =>
         val offset = checkSlot(account) match {
           case Right(id) => ((id * mintingSpeed * 1000000000L  + timeOfOneRound * 1000000000L - ts%(timeOfOneRound * 1000000000L))%(timeOfOneRound * 1000000000L)).nanos
-          case _ => 60000000000L.nanos
+          case _ => nextConnectTime
         }
         log.debug(s"Current time $ts")
         //log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).getOrElse("Empty")}.")
