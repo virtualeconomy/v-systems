@@ -18,11 +18,11 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
     val reference = Array.fill(Block.BlockIdLength)(Random.nextInt(100).toByte)
     val gen = PrivateKeyAccount(reference)
 
-    val mt = System.currentTimeMillis()/10000*10000000000000L
+    val mt = System.currentTimeMillis() / 10000 * 10000000000000L
     val gs = Array.fill(Block.GeneratorSignatureLength)(Random.nextInt(100).toByte)
 
 
-    val ts = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L - 5000000000L
+    val ts = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L - 5000000000L
     val sender = PrivateKeyAccount(reference.dropRight(2))
     val tx: Transaction = PaymentTransaction.create(sender, gen, 5, 1000, ts).right.get
     val tr: TransferTransaction = TransferTransaction.create(None, sender, gen, 5, ts + 1, None, 2, Array()).right.get
@@ -33,8 +33,7 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
     val cbd = NxtLikeConsensusBlockData(mt, gs)
 
     List(1, 2).foreach { version =>
-      val timestamp = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
-
+      val timestamp = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L
       val block = Block.buildAndSign(version.toByte, timestamp, ByteStr(reference), cbd, tbd, gen)
       val parsedBlock = Block.parseBytes(block.bytes).get
       assert(Signed.validateSignatures(block).isRight)

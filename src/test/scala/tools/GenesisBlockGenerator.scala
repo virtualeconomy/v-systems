@@ -61,10 +61,10 @@ object GenesisBlockGenerator extends App {
       override val chainId: Byte = networkByte.toByte
     }
 
-    val timestamp = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
+    val timestamp = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L
     val initialBalance = 1000000000000000L
 
-    val mt = if (mintTime < 0) timestamp/10000000000L*10000000000L else mintTime
+    val mt = if (mintTime < 0) timestamp / 10000000000L * 10000000000L else mintTime
 
     val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))
     val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), timestamp, ByteStr.empty) }
