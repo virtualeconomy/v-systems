@@ -126,7 +126,6 @@ class UtxPool(time: Time,
     pessimisticPortfolios.mutate { p =>
       invalidTxs.foreach(p.remove)
     }
-    //validTxs.sorted(TransactionsOrdering.InBlock)
     validTxs.reverse
   }
 }
