@@ -75,19 +75,18 @@ object TransactionFactory {
   def releaseSlots(request: ReleaseSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ReleaseSlotsTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
     tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
+  } yield tx
     
   def contract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
     contract <- Contract.buildContract(request.content, request.name)
     tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
-
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {
     pk <- wallet.findWallet(request.sender)
     tx <- ReissueTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.reissuable, request.fee, time.getTimestamp())
   } yield tx
-
 
   def burnAsset(request: BurnRequest, wallet: Wallet, time: Time): Either[ValidationError, BurnTransaction] = for {
     pk <- wallet.findWallet(request.sender)

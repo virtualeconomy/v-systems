@@ -58,7 +58,6 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
   }
 
   override def processBlock(block: Block): Either[ValidationError, Unit] = write { implicit l =>
-    //some problem?
     if (topMemoryDiff().heightDiff >= minimumInMemoryDiffSize) {
       persisted.applyBlockDiff(bottomMemoryDiff())
       bottomMemoryDiff.set(topMemoryDiff())

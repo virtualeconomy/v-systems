@@ -34,7 +34,7 @@ package object history {
       timestamp = 0L,
       reference = refTo,
       consensusData = NxtLikeConsensusBlockData(
-        baseTarget = 1L,
+        mintTime = 0L,
         generationSignature = generationSignature),
       transactionData = txs,
       signer = defaultSigner)

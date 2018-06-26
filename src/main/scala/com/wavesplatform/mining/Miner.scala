@@ -63,28 +63,23 @@ class Miner(
       s"Address ${account.address} is not in Slot List.")
 
   private def generateOneBlockTask(account: PrivateKeyAccount, parentHeight: Int, parent: Block,
-                                   greatGrandParent: Option[Block], balance: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
+                                   greatGrandParent: Option[Block], balance: Long, mintTime: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
     val pc = allChannels.size()
+    val minimalMintBalance = 100000000000L
     lazy val lastBlockKernelData = parent.consensusData
-    // will use as timestamp, should in nanoseonds
     val currentTime = timeService.correctedTime()
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
-    // in SPOS case, comparison between h and t is useless
-    //lazy val h = calcHit(lastBlockKernelData, account)
-    //lazy val t = calcTarget(parent, currentTime, balance)
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(balance >= 1000000, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target 1000000, not forging block with ${account.address}")
+      _ <- Either.cond(balance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ <- checkSlot(account)
-      //target will not use in spos case
-      _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with target ${lastBlockKernelData.baseTarget}")
+      _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
-      btg = calcBaseTarget(avgBlockDelay, parentHeight, parent, greatGrandParent, currentTime)
       gs = calcGeneratorSignature(lastBlockKernelData, account)
-      consensusData = NxtLikeConsensusBlockData(btg, gs)
+      consensusData = NxtLikeConsensusBlockData(mintTime, gs)
       unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, MintingTransaction.mintingReward, MintingTransaction.mintingFee, currentTime, parentHeight+1).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
@@ -99,22 +94,23 @@ class Miner(
     val totalSlots = settings.blockchainSettings.functionalitySettings.numOfSlots
     val mintingSpeed = settings.blockchainSettings.functionalitySettings.mintingSpeed
     val timeOfOneRound = totalSlots * mintingSpeed
+    val nextConnectTime = 60000000000L.nanos
     val grandParent = history.parent(lastBlock, 2)
     (for {
       _ <- checkAge(height, lastBlock)
-      //ts <- nextBlockGenerationTime(height, stateReader, blockchainSettings.functionalitySettings, lastBlock, account)
       // useful to deal with the delay cases (so keep here for detail design)
-      ts = 1000000000L
+      // timeService unstable?
+      ts = timeService.correctedTime()
     } yield ts) match {
       case Right(ts) =>
         val offset = checkSlot(account) match {
-          case Right(id) => ((id * mintingSpeed * 1000  + timeOfOneRound * 1000 - System.currentTimeMillis%(timeOfOneRound * 1000))%(timeOfOneRound * 1000)).millis
-          case _ => 60000.millis
+          case Right(id) => ((id * mintingSpeed * 1000000000L  + timeOfOneRound * 1000000000L - ts % (timeOfOneRound * 1000000000L)) % (timeOfOneRound * 1000000000L)).nanos
+          case _ => nextConnectTime
         }
-        log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).getOrElse("Empty")}.")
-        log.debug(s"Next attempt for acc=$account in $offset")
+        log.debug(s"Current time $ts")
+        log.debug(s"Next attempt for acc = $account in $offset")
         val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
-        generateOneBlockTask(account, height, lastBlock, grandParent, balance)(offset).flatMap {
+        generateOneBlockTask(account, height, lastBlock, grandParent, balance, ts + offset.toNanos)(offset).flatMap {
           case Right(block) => Task.now {
             processBlock(block, true) match {
               case Left(err) => log.warn(err.toString)

@@ -14,7 +14,10 @@ import scala.util.Left
 object ContendSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ContendSlotsTransaction): Either[ValidationError, Diff] = {
 
-    val MultiSlotsCheck = s.addressToSlotID(tx.sender.address).isDefined
+    val MultiSlotsCheck = s.addressToSlotID(tx.sender.address) match {
+      case None => false
+      case _ => true
+    }
     val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
     if (!MultiSlotsCheck && isValidSlotID){

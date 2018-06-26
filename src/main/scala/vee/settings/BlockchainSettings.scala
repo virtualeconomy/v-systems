@@ -14,7 +14,7 @@ case class GenesisSettings(
   initialBalance: Long,
   signature: Option[ByteStr],
   transactions: Seq[GenesisTransactionSettings],
-  initialBaseTarget: Long,
+  initialMintTime: Long,
   averageBlockDelay: FiniteDuration)
 
 object GenesisSettings {
@@ -27,10 +27,10 @@ object GenesisSettings {
       GenesisTransactionSettings("3P9o3ZYwtHkaU1KxsKkFjJqJKS3dLHLC9oF", Constants.UnitsInWave),
       GenesisTransactionSettings("3PJaDyprvekvPXPuAtxrapacuDJopgJRaU3", Constants.UnitsInWave),
       GenesisTransactionSettings("3PBWXDFUc86N2EQxKJmW8eFco65xTyMZx6J", Constants.UnitsInWave)),
-    153722867L, 60.seconds)
+    1529885280000000000L, 60.seconds)
 
-  val TESTNET = GenesisSettings(1529453649838478871L, 1529453649838478871L, Constants.UnitsInWave * Constants.TotalWaves,
-    ByteStr.decodeBase58("wGRxbhejSQAMyacUKnzD4fPVwMVA9gWTQv37v2iYf6zLeEMPNwcYG5MxB6eUToman7YQrVgES1kJLten8mNpmgR").toOption,
+  val TESTNET = GenesisSettings(1529898440087220090L, 1529898440087220090L, Constants.UnitsInWave * Constants.TotalWaves,
+    ByteStr.decodeBase58("36uHjhrpSDuoC1zUkBsWyYKLwenTxykk5Bq2JcA3eBmop2anseJQDFBkAXWRgT828x8xyHVSQ4MuVCAqbKZt35ge").toOption,
     List(
       GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", (Constants.UnitsInWave * Constants.TotalWaves * 0.30).toLong),
       GenesisTransactionSettings("3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr", (Constants.UnitsInWave * Constants.TotalWaves * 0.20).toLong),
@@ -42,5 +42,5 @@ object GenesisSettings {
       GenesisTransactionSettings("3MpZ718ivTCaRbra6JpABGV9Hdk75QAvpbj", (Constants.UnitsInWave * Constants.TotalWaves * 0.06).toLong),
       GenesisTransactionSettings("3N3SZdKP5qWv7AsKXDC1Vk7unWg81oQ3ynK", (Constants.UnitsInWave * Constants.TotalWaves * 0.04).toLong),
       GenesisTransactionSettings("3N15meHNxRzmfRYJJqrWA7p5NN2yd4CF62v", (Constants.UnitsInWave * Constants.TotalWaves * 0.02).toLong)),
-    153722867L, 60.seconds)
+    1529898440000000000L, 60.seconds)
 }

@@ -22,7 +22,7 @@ case class NxtConsensusApiRoute(
 
   override val route: Route =
     pathPrefix("consensus") {
-      algo ~ basetarget ~ baseTargetId ~ generationSignature ~ generationSignatureId ~ generatingBalance
+      algo ~ minttime ~ minttimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
     }
 
   @Path("/generatingbalance/{address}")
@@ -57,21 +57,21 @@ case class NxtConsensusApiRoute(
     complete(Json.obj("generationSignature" -> Base58.encode(history.lastBlock.get.consensusData.generationSignature)))
   }
 
-  @Path("/basetarget/{blockId}")
-  @ApiOperation(value = "Base target", notes = "base target of a block with specified id", httpMethod = "GET")
+  @Path("/minttime/{blockId}")
+  @ApiOperation(value = "Mint time", notes = "Mint time of a block with specified id", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "blockId", value = "Block id ", required = true, dataType = "string", paramType = "path")
   ))
-  def baseTargetId: Route = (path("basetarget" / Segment) & get) { encodedSignature =>
+  def minttimeId: Route = (path("minttime" / Segment) & get) { encodedSignature =>
     withBlock(history, encodedSignature) { block =>
-      complete(Json.obj("baseTarget" -> block.consensusData.baseTarget))
+      complete(Json.obj("mintTime" -> block.consensusData.mintTime))
     }
   }
 
-  @Path("/basetarget")
-  @ApiOperation(value = "Base target last", notes = "Base target of a last block", httpMethod = "GET")
-  def basetarget: Route = (path("basetarget") & get) {
-    complete(Json.obj("baseTarget" -> history.lastBlock.get.consensusData.baseTarget))
+  @Path("/minttime")
+  @ApiOperation(value = "Mint time last", notes = "Mint time of a last block", httpMethod = "GET")
+  def minttime: Route = (path("minttime") & get) {
+    complete(Json.obj("mintTime" -> history.lastBlock.get.consensusData.mintTime))
   }
 
   @Path("/algo")
