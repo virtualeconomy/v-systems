@@ -68,7 +68,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   lazy val bytesWithoutSignature: Array[Byte] = bytes.dropRight(SignatureLength)
 
   // set blockScore to constant, this parameter is useless NOW
-  lazy val blockScore: BigInt = consensusData.mintTime/1000000000//BigInt("18446744073709551616") // until we make smart-constructor validate consensusData.baseTarget to be positive
+  lazy val blockScore: BigInt = BigInt("1")//BigInt("18446744073709551616") // until we make smart-constructor validate consensusData.baseTarget to be positive
 
   lazy val feesDistribution: Diff = Monoid[Diff].combineAll({
     val generator = signerData.generator
