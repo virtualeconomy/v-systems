@@ -67,14 +67,10 @@ class Miner(
     val pc = allChannels.size()
     val minimalMintBalance = 100000000000L
     lazy val lastBlockKernelData = parent.consensusData
-    // will use as timestamp, should in nanoseonds
     val currentTime = timeService.correctedTime()
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
-    // in SPOS case, comparison between h and t is useless
-    //lazy val h = calcHit(lastBlockKernelData, account)
-    //lazy val t = calcTarget(parent, currentTime, balance)
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
       _ <- Either.cond(balance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
@@ -108,12 +104,11 @@ class Miner(
     } yield ts) match {
       case Right(ts) =>
         val offset = checkSlot(account) match {
-          case Right(id) => ((id * mintingSpeed * 1000000000L  + timeOfOneRound * 1000000000L - ts%(timeOfOneRound * 1000000000L))%(timeOfOneRound * 1000000000L)).nanos
+          case Right(id) => ((id * mintingSpeed * 1000000000L  + timeOfOneRound * 1000000000L - ts % (timeOfOneRound * 1000000000L)) % (timeOfOneRound * 1000000000L)).nanos
           case _ => nextConnectTime
         }
         log.debug(s"Current time $ts")
-        //log.debug(s"Current Slot List. List = ${stateReader.slotAddress(0).getOrElse("Empty")}.")
-        log.debug(s"Next attempt for acc=$account in $offset")
+        log.debug(s"Next attempt for acc = $account in $offset")
         val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
         generateOneBlockTask(account, height, lastBlock, grandParent, balance, ts + offset.toNanos)(offset).flatMap {
           case Right(block) => Task.now {
