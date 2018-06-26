@@ -65,6 +65,7 @@ class Miner(
   private def generateOneBlockTask(account: PrivateKeyAccount, parentHeight: Int, parent: Block,
                                    greatGrandParent: Option[Block], balance: Long, mintTime: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
     val pc = allChannels.size()
+    val minimalMintBalance = 100000000000L
     lazy val lastBlockKernelData = parent.consensusData
     // will use as timestamp, should in nanoseonds
     val currentTime = timeService.correctedTime()
@@ -76,7 +77,7 @@ class Miner(
     //lazy val t = calcTarget(parent, currentTime, balance)
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(balance >= 1000000, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target 1000000, not forging block with ${account.address}")
+      _ <- Either.cond(balance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ <- checkSlot(account)
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
