@@ -126,14 +126,16 @@ object Coordinator extends ScorexLogging {
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
       // use same ordering
+      /*
       _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
         block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction),
         (), "transactions are not sorted")
-      /*
+      */
+      // if minting tx is the last tx in block, just drop it
       _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
         block.transactionData.map(_.transaction).dropRight(1).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction).dropRight(1),
         (), "transactions are not sorted")
-      */
+      
       parent <- history.parent(block).toRight(s"history does not contain parent ${block.reference}")
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")
       prevBlockData = parent.consensusData
@@ -148,14 +150,15 @@ object Coordinator extends ScorexLogging {
       effectiveBalance = generatingBalance(state, fs, generator, parentHeight)
       _ <- Either.cond(blockTime < fs.minimalGeneratingBalanceAfter || effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
+
       //TODO
       //check the generator's address for multi slots address case (VEE)
       //check generator.address
-
       //compare blockTime and mintTime
       //compare mintTime and generator's slot id
 
-      _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1, (), s"Only one minting block allowd in a block" )
+      _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1,
+           (), s"One and only one minting transaction allowed per block" )
     } yield ()).left.map(e => GenericError(s"Block ${block.uniqueId} is invalid: $e"))
   }
 

@@ -5,49 +5,46 @@ import java.util
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
-import scorex.account.PublicKeyAccount._
-import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
+import scorex.account._
+import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
-import scorex.transaction.MintingTransaction.signatureData
+
 import scorex.transaction.TransactionParser._
 
 import scala.util.{Failure, Success, Try}
 
-case class MintingTransaction private(minter: PublicKeyAccount,
+case class MintingTransaction private(sender: PublicKeyAccount,
                                       amount: Long,
                                       fee: Long,
                                       timestamp: Long,
-                                      signature: ByteStr) extends Transaction {
+                                      currentBlockHeight: Int,
+                                      signature: ByteStr) extends SignedTransaction {
   override val transactionType = TransactionType.MintingTransaction
   override val assetFee: (Option[AssetId], Long) = (None, fee)
-  override val id: ByteStr = signature
-  val minterAddress: Address = minter.toAddress
 
-  override lazy val json: JsObject =
-    Json.obj("type" -> transactionType.id,
-      "id" -> id.base58,
-      "fee" -> fee,
-      "timestamp" -> timestamp,
-      "signature" -> this.signature.base58,
-      "minterPublicKey" -> Base58.encode(minter.publicKey),
-      "minterAddress" -> minterAddress.address,
-      "amount" -> amount)
-
-  lazy val hashBytes: Array[Byte] = {
+  lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
     val amountBytes = Longs.toByteArray(amount)
     val feeBytes = Longs.toByteArray(fee)
-    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, minter.publicKey, amountBytes, feeBytes)
+    val currentBlockHeightBytes = Ints.toByteArray(currentBlockHeight)
+    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, sender.publicKey, amountBytes, feeBytes, currentBlockHeightBytes)
   }
 
-  lazy val hash = FastCryptographicHash(hashBytes)
+  override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
 
-  override lazy val bytes: Array[Byte] = Bytes.concat(hashBytes, signature.arr)
+  override lazy val json: JsObject = jsonBase() ++ Json.obj(
+      "fee" -> fee,
+      "timestamp" -> timestamp,
+      "signature" -> this.signature.base58,
+      "minterPublicKey" -> Base58.encode(sender.publicKey),
+      "minterAddress" -> sender.toAddress.address,
+      "amount" -> amount,
+      "currentBlockHeight" -> currentBlockHeight)
 
-  override lazy val signatureValid: Boolean = EllipticCurveImpl.verify(signature.arr,
-    signatureData(minterAddress, amount, fee, timestamp), minter.publicKey)
+  override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
+
 }
 
 object MintingTransaction {
@@ -57,11 +54,13 @@ object MintingTransaction {
 
   private val minterLength = 32
   private val FeeLength = 8
-  private val BaseLength = TimestampLength + minterLength + AmountLength + FeeLength + SignatureLength
+  private val currentBlockHeightLength = 4
+  private val BaseLength = TimestampLength + minterLength + AmountLength + FeeLength + currentBlockHeightLength + SignatureLength
 
-  def create(minter: PrivateKeyAccount, amount: Long, fee: Long, timestamp: Long): Either[ValidationError, MintingTransaction] = {
-    create(minter, amount, fee, timestamp, ByteStr.empty).right.map(unsigned => {
-      unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(minter, signatureData(minter.toAddress, amount, fee, timestamp))))
+  def create(minter: PrivateKeyAccount, amount: Long, fee: Long, timestamp: Long, currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
+    create(minter, amount, fee, timestamp, currentBlockHeight, ByteStr.empty).right.map(unsigned => {
+      unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(minter, unsigned.toSign)))
+
     })
   }
 
@@ -69,6 +68,8 @@ object MintingTransaction {
              amount: Long,
              fee: Long,
              timestamp: Long,
+             currentBlockHeight: Int,
+
              signature: ByteStr): Either[ValidationError, MintingTransaction] = {
     if (amount <= 0) {
       Left(ValidationError.NegativeAmount) //CHECK IF AMOUNT IS POSITIVE
@@ -77,7 +78,7 @@ object MintingTransaction {
     } else if (Try(Math.addExact(amount, 0)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
     } else {
-      Right(MintingTransaction(minter, amount, fee, timestamp, signature))
+      Right(MintingTransaction(minter, amount, fee, timestamp, currentBlockHeight, signature))
     }
   }
 
@@ -106,20 +107,17 @@ object MintingTransaction {
     val fee = Longs.fromByteArray(feeBytes)
     position += FeeLength
 
+    //READ CURRENTBLOCKHEIGHT
+    val currentBlockHeightBytes = util.Arrays.copyOfRange(data, position, position + currentBlockHeightLength)
+    val currentBlockHeight = Ints.fromByteArray(currentBlockHeightBytes)
+    position += currentBlockHeightLength
+
     //READ SIGNATURE
     val signatureBytes = util.Arrays.copyOfRange(data, position, position + SignatureLength)
 
     MintingTransaction
-      .create(minter, amount, fee, timestamp, ByteStr(signatureBytes))
+      .create(minter, amount, fee, timestamp, currentBlockHeight, ByteStr(signatureBytes))
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
-  private def signatureData(recipient: Address, amount: Long, fee: Long, timestamp: Long): Array[Byte] = {
-    val typeBytes = Ints.toByteArray(TransactionType.MintingTransaction.id)
-    val timestampBytes = Longs.toByteArray(timestamp)
-    val amountBytes = Longs.toByteArray(amount)
-    val feeBytes = Longs.toByteArray(fee)
-
-    Bytes.concat(typeBytes, timestampBytes, recipient.bytes.arr, amountBytes, feeBytes)
-  }
 }

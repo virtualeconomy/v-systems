@@ -96,6 +96,7 @@ object CommonValidation {
 
   def disallowTxFromFuture[T <: Transaction](settings: FunctionalitySettings, time: Long, tx: T): Either[ValidationError, T] = {
     val allowTransactionsFromFutureByTimestamp = tx.timestamp < settings.allowTransactionsFromFutureUntil
+
     if (!allowTransactionsFromFutureByTimestamp && (tx.timestamp - time) > MaxTimeTransactionOverBlockDiff.toNanos)
       Left(Mistiming(s"Transaction ts ${tx.timestamp} is from far future. BlockTime: $time"))
     else Right(tx)
