@@ -5,12 +5,13 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
-import scorex.api.http.contract.CreateContractRequest
+import scorex.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest}
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
-import scorex.api.http.spos.{ContendSlotsRequest,ReleaseSlotsRequest}
+import scorex.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
 import scorex.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
+import scorex.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
 import scorex.wallet.Wallet
@@ -77,10 +78,15 @@ object TransactionFactory {
     tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
   } yield tx
     
-  def contract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
+  def createContract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
     senderPrivateKey <- wallet.findWallet(request.sender)
-    contract <- Contract.buildContract(request.content, request.name)
+    contract <- Contract.buildContract(request.content, request.name, true)
     tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
+  } yield tx
+
+  def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
+    senderPrivateKey <- wallet.findWallet(request.sender)
+    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {

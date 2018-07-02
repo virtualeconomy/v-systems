@@ -6,7 +6,8 @@ import scorex.account.PublicKeyAccount
 import scorex.api.http.BroadcastRequest
 import scorex.contract.Contract
 import scorex.transaction.TransactionParser.SignatureStringLength
-import scorex.transaction.{CreateContractTransaction, ValidationError}
+import scorex.transaction.ValidationError
+import scorex.transaction.contract.CreateContractTransaction
 
 case class SignedCreateContractRequest (@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                         senderPublicKey: String,
@@ -23,7 +24,7 @@ case class SignedCreateContractRequest (@ApiModelProperty(value = "Base58 encode
   def toTx: Either[ValidationError, CreateContractTransaction] = for {
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
-    _contract <- Contract.buildContract(content, name)
+    _contract <- Contract.buildContract(content, name, true)
     _t <- CreateContractTransaction.create(_sender, _contract, fee, timestamp, _signature)
   } yield _t
 }

@@ -9,6 +9,7 @@ import scorex.transaction.ValidationError.{GenericError, Mistiming}
 import scorex.transaction._
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
+import scorex.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
 import scala.concurrent.duration._
@@ -91,6 +92,7 @@ object CommonValidation {
       case _: ContendSlotsTransaction => Right(tx)
       case _: ReleaseSlotsTransaction => Right(tx)
       case _: CreateContractTransaction => Right(tx)
+      case _: ChangeContractStatusTransaction => Right(tx)
       case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
     }
 

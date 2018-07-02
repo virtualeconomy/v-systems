@@ -8,6 +8,7 @@ import scorex.transaction.ValidationError.UnsupportedTransactionType
 import scorex.transaction._
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
+import scorex.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
 object TransactionDiffer {
@@ -36,7 +37,8 @@ object TransactionDiffer {
         case mtx: MintingTransaction => MintingTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(mtx)
         case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings,currentBlockHeight)(cstx)
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
-        case cctx: CreateContractTransaction => CreateContractTransactionDiff(currentBlockHeight)(cctx)
+        case cctx: CreateContractTransaction => ContractTransactionDiff.create(s, currentBlockHeight)(cctx)
+        case ccstx: ChangeContractStatusTransaction => ContractTransactionDiff.changeStatus(s, currentBlockHeight)(ccstx)
         case _ => Left(UnsupportedTransactionType)
       }
       positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp, settings)(diff)
