@@ -1,4 +1,4 @@
-package scorex.transaction
+package scorex.transaction.contract
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.wavesplatform.state2.ByteStr
@@ -9,6 +9,7 @@ import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser._
+import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
 
 import scala.util.{Failure, Success, Try}
 
@@ -21,7 +22,7 @@ case class CreateContractTransaction private(sender: PublicKeyAccount,
 
   override val transactionType: TransactionType.Value = TransactionType.CreateContractTransaction
 
-  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(transactionType.id.toByte +: contract.bytes.arr))
+  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(transactionType.id.toByte +: contract.name.getBytes("UTF-8")))
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
@@ -31,7 +32,7 @@ case class CreateContractTransaction private(sender: PublicKeyAccount,
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
-    "contract" -> (Json.obj("name" -> contract.name, "content"->contract.content)),
+    "contract" -> (Json.obj("name" -> contract.name, "content"->contract.content, "enabled"->contract.enabled)),
     "fee" -> fee,
     "timestamp" -> timestamp
   )

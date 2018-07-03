@@ -3,6 +3,7 @@ package scorex.transaction
 import com.wavesplatform.utils.base58Length
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
+import scorex.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction}
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
 import scala.util.{Failure, Try}
@@ -24,6 +25,7 @@ object TransactionParser {
     val ContendSlotsTransaction = Value(12)
     val ReleaseSlotsTransaction = Value(13)
     val CreateContractTransaction = Value(14)
+    val ChangeContractStatusTransaction = Value(15)
   }
 
   val TimestampLength = 8
@@ -78,6 +80,9 @@ object TransactionParser {
 
       case txType: Byte if txType == TransactionType.CreateContractTransaction.id =>
         CreateContractTransaction.parseTail(data.tail)
+
+      case txType: Byte if txType == TransactionType.ChangeContractStatusTransaction.id =>
+        ChangeContractStatusTransaction.parseTail(data.tail)
 
       case txType: Byte if txType == TransactionType.MintingTransaction.id =>
         MintingTransaction.parseTail(data.tail)

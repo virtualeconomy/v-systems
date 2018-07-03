@@ -45,7 +45,7 @@ case class Diff(transactions: Map[ByteStr, (Int, Transaction, Set[Address])],
                 aliases: Map[Alias, Address],
                 slotids: Map[Int,String],
                 slotNum: Int,
-                contracts: Map[String, String],
+                contracts: Map[String, (Boolean, Address, String)],
                 paymentTransactionIdsByHashes: Map[ByteStr, ByteStr],
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
@@ -69,7 +69,7 @@ object Diff {
             aliases: Map[Alias, Address] = Map.empty,
             slotids: Map[Int,String] = Map.empty,
             slotNum: Int = 0,
-            contracts: Map[String, String] = Map.empty,
+            contracts: Map[String, (Boolean, Address, String)] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
             paymentTransactionIdsByHashes: Map[ByteStr, ByteStr] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(

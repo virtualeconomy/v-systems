@@ -73,7 +73,10 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
 
-  override def contractContent(name: String): Option[String] = txDiff.contracts.get(name).orElse(inner.contractContent(name))
+  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
+    txDiff.contracts.get(name)
+      .map(t=>(t._1, t._2.bytes, t._3))
+      .orElse(inner.contractContent(name))
 
   override def accountPortfolios: Map[Address, Portfolio] = Monoid.combine(inner.accountPortfolios, txDiff.portfolios)
 
@@ -119,7 +122,7 @@ object CompositeStateReader {
     override def resolveAlias(a: Alias): Option[Address] =
       new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
 
-    override def contractContent(name: String): Option[String] =
+    override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
       new CompositeStateReader(inner, blockDiff()).contractContent(name)
 
     override def assetInfo(id: ByteStr): Option[AssetInfo] =
