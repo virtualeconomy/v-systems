@@ -1,12 +1,12 @@
-# VEE [![Build Status](https://travis-ci.org/wavesplatform/Waves.svg?branch=master)](https://travis-ci.org/wavesplatform/Waves) [![](https://images.microbadger.com/badges/version/wavesplatform/waves-testnet.svg)](http://microbadger.com/images/wavesplatform/waves-testnet "Testnet Node Docker image")
+# VEE [![Build Status]
 
-In the master branch there is a code with functions that is under development. The latest release for each network can be found in the [Releases section](https://github.com/wavesplatform/Waves/releases), you can switch to the corresponding tag and build the application.
+The code in master branch is under development. The latest release for each network can be found in the [Releases section](https://github.com/VEE/releases), you can switch to the corresponding tag and build the application.
 
-[How to configure VEE node](https://github.com/wavesplatform/Waves/wiki/How-to-install-Waves-node)
+[How to configure VEE node](https://github.com/VEE/wiki/How-to-install-VEE-node)
 
 # Installation
 
-Please read [repo wiki article](https://github.com/wavesplatform/Waves/wiki/How-to-install-Waves-node).
+Please read [repo wiki article](https://github.com/VEE/wiki/How-to-install-VEE-node).
 
 ## Compiling Packages from source
 
@@ -76,7 +76,7 @@ options to `javaOptions` in `IntegrationTest` configuration:
 javaOptions in IntegrationTest += "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
 ```
 
-Debugging a node inside a container is a little more complicated: you will need to modify the `WAVES_OPTS` environment
+Debugging a node inside a container is a little more complicated: you will need to modify the `VEE_OPTS` environment
 variable before starting a container.
 
 ### Running Tests from IDE
@@ -87,11 +87,11 @@ have `docker.imageId` system property defined for the run configuration. The eas
 
 ```
 ...
-[info] Step 5/5 : ENTRYPOINT /opt/waves/start-waves.sh
+[info] Step 5/5 : ENTRYPOINT /opt/vee/start-vee.sh
 [info]  ---> Using cache
 [info]  ---> e243fa08d496
 [info] Successfully built e243fa08d496
-[info] Tagging image e243fa08d496 with name: com.wavesplatform/root
+[info] Tagging image e243fa08d496 with name: vee/root
 [success] Total time: 4 s, completed Mar 22, 2017 12:36:34 PM
 ```
 
@@ -113,11 +113,11 @@ this automatically.
     -Dkamon.modules.kamon-statsd.auto-start=yes \
     -Dkamon.modules.kamon-system-metrics.auto-start=yes \
     -Dkamon.statsd.hostname=localhost \
-    -Dkamon.statsd.port=9999" sbt waves-testnet.conf
+    -Dkamon.statsd.port=9999" sbt vee-testnet.conf
     ``` 
 
     Here:
     * `-Dkamon.modules.kamon-statsd.auto-start=yes` enables custom metrics;
     * `-Dkamon.modules.kamon-system-metrics.auto-start=yes` enables metrics of _CPU_, _Memory_ and others;
-    * See [application.conf](https://github.com/wavesplatform/Waves/blob/master/src/main/resources/application.conf)
+    * See [application.conf](https://github.com/excelsia/VEE/blob/master/src/main/resources/application.conf)
       for more options.
