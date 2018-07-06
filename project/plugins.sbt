@@ -1,21 +1,24 @@
 resolvers ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
   "Artima Maven Repository" at "http://repo.artima.com/releases",
-  "JBoss" at "https://repository.jboss.org"
+  "JBoss" at "https://repository.jboss.org",
+  Resolver.sbtPluginRepo("releases")
 )
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.3")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M8")
-
-addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
-
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
-
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.3")
-
-addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.1")
+Seq(
+  "com.eed3si9n"       % "sbt-assembly"             % "0.14.5",
+  "com.typesafe.sbt"   % "sbt-native-packager"      % "1.3.2",
+  "org.scalastyle"     %% "scalastyle-sbt-plugin"   % "1.0.0",
+  "org.scoverage"      % "sbt-scoverage"            % "1.5.1",
+  "se.marcuslonnberg"  % "sbt-docker"               % "1.4.1",
+  "com.typesafe.sbt"   % "sbt-git"                  % "0.9.3",
+  "org.scala-js"       % "sbt-scalajs"              % "0.6.22",
+  "org.portable-scala" % "sbt-crossproject"         % "0.3.1",
+  "org.portable-scala" % "sbt-scalajs-crossproject" % "0.3.1",
+  "com.lucidchart"     % "sbt-scalafmt"             % "1.15",
+  "pl.project13.scala" % "sbt-jmh"                  % "0.3.3"
+).map(addSbtPlugin)
 
 libraryDependencies ++= Seq(
-  "com.typesafe" % "config" % "1.3.0",
-  "org.vafer" % "jdeb" % "1.5" artifacts Artifact("jdeb", "jar", "jar"))
+  "org.vafer" % "jdeb" % "1.5" artifacts Artifact("jdeb", "jar", "jar")
+)
