@@ -14,13 +14,13 @@ import scorex.transaction.assets._
 import scorex.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 import scorex.waves.transaction.SignedPaymentRequest
 
 object TransactionFactory {
 
   def createPayment(request: PaymentRequest, wallet: Wallet, time: Time): Either[ValidationError, PaymentTransaction] = for {
-    pk <- wallet.findWallet(request.sender)
+    pk <- wallet.findPrivateKey(request.sender)
     rec <- Address.fromString(request.recipient)
     tx <- PaymentTransaction.create(pk, rec, request.amount, request.fee, time.getTimestamp())
   } yield tx
@@ -28,7 +28,7 @@ object TransactionFactory {
 
   def transferAsset(request: TransferRequest, wallet: Wallet, time: Time): Either[ValidationError, TransferTransaction] =
     for {
-      senderPrivateKey <- wallet.findWallet(request.sender)
+      senderPrivateKey <- wallet.findPrivateKey(request.sender)
       recipientAcc <- AddressOrAlias.fromString(request.recipient)
       tx <- TransferTransaction
         .create(request.assetId.map(s => ByteStr.decodeBase58(s).get),
@@ -43,7 +43,7 @@ object TransactionFactory {
 
   def issueAsset(request: IssueRequest, wallet: Wallet, time: Time): Either[ValidationError, IssueTransaction] =
     for {
-      senderPrivateKey <- wallet.findWallet(request.sender)
+      senderPrivateKey <- wallet.findPrivateKey(request.sender)
       tx <- IssueTransaction.create(senderPrivateKey,
         request.name.getBytes(Charsets.UTF_8),
         request.description.getBytes(Charsets.UTF_8),
@@ -51,51 +51,51 @@ object TransactionFactory {
     } yield tx
 
   def lease(request: LeaseRequest, wallet: Wallet, time: Time): Either[ValidationError, LeaseTransaction] = for {
-    senderPrivateKey <- wallet.findWallet(request.sender)
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
     recipientAcc <- AddressOrAlias.fromString(request.recipient)
     tx <- LeaseTransaction.create(senderPrivateKey, request.amount, request.fee, time.getTimestamp(), recipientAcc)
   } yield tx
 
   def leaseCancel(request: LeaseCancelRequest, wallet: Wallet, time: Time): Either[ValidationError, LeaseCancelTransaction] =
     for {
-      pk <- wallet.findWallet(request.sender)
+      pk <- wallet.findPrivateKey(request.sender)
       tx <- LeaseCancelTransaction.create(pk, ByteStr.decodeBase58(request.txId).get, request.fee, time.getTimestamp())
     } yield tx
 
   def alias(request: CreateAliasRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateAliasTransaction] = for {
-    senderPrivateKey <- wallet.findWallet(request.sender)
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
     alias <- Alias.buildWithCurrentNetworkByte(request.alias)
     tx <- CreateAliasTransaction.create(senderPrivateKey, alias, request.fee, time.getTimestamp())
   } yield tx
 
   def contendSlots(request: ContendSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ContendSlotsTransaction] = for {
-    senderPrivateKey <- wallet.findWallet(request.sender)
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
     tx <- ContendSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
   } yield tx
 
   def releaseSlots(request: ReleaseSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ReleaseSlotsTransaction] = for {
-    senderPrivateKey <- wallet.findWallet(request.sender)
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
     tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
   } yield tx
     
   def createContract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
-    senderPrivateKey <- wallet.findWallet(request.sender)
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
     contract <- Contract.buildContract(request.content, request.name, true)
     tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
   } yield tx
 
   def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
-    senderPrivateKey <- wallet.findWallet(request.sender)
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
     tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {
-    pk <- wallet.findWallet(request.sender)
+    pk <- wallet.findPrivateKey(request.sender)
     tx <- ReissueTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.reissuable, request.fee, time.getTimestamp())
   } yield tx
 
   def burnAsset(request: BurnRequest, wallet: Wallet, time: Time): Either[ValidationError, BurnTransaction] = for {
-    pk <- wallet.findWallet(request.sender)
+    pk <- wallet.findPrivateKey(request.sender)
     tx <- BurnTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.fee, time.getTimestamp())
   } yield tx
 

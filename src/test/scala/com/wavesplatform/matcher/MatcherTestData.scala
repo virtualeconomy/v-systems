@@ -26,7 +26,7 @@ trait MatcherTestData {
 
   val assetPairGen = Gen.zip(assetIdGen, assetIdGen).
     suchThat(p => p._1 != p._2).
-    map(p => AssetPair(p._1.map(ByteStr(_)), p._2.map(ByteStr(_))))
+    map(p => AssetPair(p._1.map(com.wavesplatform.state2.ByteStr(_)), p._2.map(com.wavesplatform.state2.ByteStr(_))))
 
   val maxTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val createdTimeGen: Gen[Long] = Gen.choose(0L, 10000L).map(NTP.correctedTime() - _)

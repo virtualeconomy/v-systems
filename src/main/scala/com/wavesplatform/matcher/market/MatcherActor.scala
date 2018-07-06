@@ -16,7 +16,7 @@ import scorex.transaction.assets.exchange.Validation.booleanOperators
 import scorex.transaction.assets.exchange.{AssetPair, Order, Validation}
 import scorex.transaction.{AssetId, History}
 import scorex.utils._
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 import scala.collection.{immutable, mutable}
 import scala.language.reflectiveCalls
@@ -112,7 +112,7 @@ class MatcherActor(orderHistory: ActorRef, storedState: StateReader, wallet: Wal
   }
 
   def getMatcherPublicKey: Array[Byte] = {
-    wallet.findWallet(settings.account).map(_.publicKey).getOrElse(Array())
+    wallet.findPrivateKey(settings.account).map(_.publicKey).getOrElse(Array())
   }
 
   def forwardToOrderBook: Receive = {

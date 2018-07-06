@@ -13,7 +13,7 @@ import scorex.account.{Address, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.transaction.PoSCalc
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 import scala.util.{Failure, Success, Try}
 
@@ -40,7 +40,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
       if (Address.fromString(address).isLeft) {
         complete(InvalidAddress)
       } else {
-        val deleted = wallet.findWallet(address).exists(account =>
+        val deleted = wallet.findPrivateKey(address).exists(account =>
           wallet.deleteAccount(account))
         complete(Json.obj("deleted" -> deleted))
       }
@@ -179,7 +179,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   def seed: Route = {
     (path("seed" / Segment) & get & withAuth) { address =>
       complete(for {
-        pk <- wallet.findWallet(address)
+        pk <- wallet.findPrivateKey(address)
         seed <- wallet.exportAccountSeed(pk)
       } yield Json.obj("address" -> address, "seed" -> Base58.encode(seed))
       )
@@ -198,7 +198,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   @Path("/")
   @ApiOperation(value = "Addresses", notes = "Get wallet accounts addresses", httpMethod = "GET")
   def root: Route = (path("addresses") & get) {
-    val accounts = wallet.privateKeyAccounts()
+    val accounts = wallet.privateKeyAccounts
     val json = JsArray(accounts.map(a => JsString(a.address)))
     complete(json)
   }
@@ -213,7 +213,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
     (path("seq" / IntNumber / IntNumber) & get) { case (start, end) =>
       if (start >= 0 && end >= 0 && start - end < MaxAddressesPerRequest) {
         val json = JsArray(
-          wallet.privateKeyAccounts().map(a => JsString(a.address)).slice(start, end)
+          wallet.privateKeyAccounts.map(a => JsString(a.address)).slice(start, end)
         )
 
         complete(json)
@@ -272,7 +272,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
 
   private def signPath(address: String, encode: Boolean) = (post & entity(as[String])) { message =>
     withAuth {
-      val res = wallet.findWallet(address).map(pk => {
+      val res = wallet.findPrivateKey(address).map(pk => {
         val messageBytes = message.getBytes(StandardCharsets.UTF_8)
         val signature = EllipticCurveImpl.sign(pk, messageBytes)
         val msg = if (encode) Base58.encode(messageBytes) else message

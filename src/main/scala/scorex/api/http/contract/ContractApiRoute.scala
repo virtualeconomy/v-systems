@@ -13,7 +13,7 @@ import scorex.api.http._
 import scorex.transaction._
 import scorex.transaction.contract.ChangeContractStatusAction
 import scorex.utils.Time
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 @Path("/contract")
 @Api(value = "/contract")

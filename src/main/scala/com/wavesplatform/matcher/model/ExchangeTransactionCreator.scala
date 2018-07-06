@@ -7,7 +7,7 @@ import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError
 import scorex.transaction.assets.exchange.{ExchangeTransaction, Order}
 import scorex.utils.{NTP, ScorexLogging}
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 trait ExchangeTransactionCreator extends ScorexLogging {
   val functionalitySettings: FunctionalitySettings
