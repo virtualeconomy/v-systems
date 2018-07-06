@@ -10,8 +10,10 @@ with GeneratorDrivenPropertyChecks
 with Matchers {
 
   property("convert byte to DataType") {
-    DataType(1) should be (DataType.ByteArray)
-    DataType(2) should be (DataType.NoType)
+    DataType.fromByte(1) should be (Some(DataType.ByteArray))
+    DataType.fromByte(2) should be (Some(DataType.NoType))
+    DataType.fromByte(0) should be (None)
+    DataType.fromByte(3) should be (None)
   }
 
   property("convert DataType to byte") {

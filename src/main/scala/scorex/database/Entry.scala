@@ -26,14 +26,15 @@ object Entry {
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Entry] = {
     val (nameBytes, nameEnd) = Deser.parseArraySize(bytes, 0)
 
-    val dataTypeValue = bytes.slice(nameEnd, nameEnd + 1).head
-    if (dataTypeValue < DataType.ByteArray.id || dataTypeValue > DataType.NoType.id)
-      Left(ValidationError.InvalidDataType)
-    else
-      buildEntry(
-        new String(bytes.slice(nameEnd+1, bytes.length), "UTF-8"),
-        new String(nameBytes, "UTF-8"),
-        DataType(dataTypeValue)
-      )
+    DataType.fromByte(bytes.slice(nameEnd, nameEnd + 1).head) match {
+      case None =>
+        Left(ValidationError.InvalidDataType)
+      case Some(dataType) =>
+        buildEntry(
+          new String(bytes.slice(nameEnd+1, bytes.length), "UTF-8"),
+          new String(nameBytes, "UTF-8"),
+          dataType
+        )
+    }
   }
 }
