@@ -14,7 +14,7 @@ import scorex.api.http.assets.PaymentRequest
 import scorex.crypto.encode.Base58
 import scorex.transaction.{PaymentTransaction, TransactionFactory}
 import scorex.utils.Time
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 import scorex.waves.transaction.SignedPaymentRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -82,7 +82,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   def signPayment: Route = (post & path("payment" / "signature")) {
     json[PaymentRequest] { payment =>
       (for {
-        sender <- wallet.findWallet(payment.sender)
+        sender <- wallet.findPrivateKey(payment.sender)
         recipient <- Address.fromString(payment.recipient)
         pt <- PaymentTransaction.create(sender, recipient, payment.amount, payment.fee, time.correctedTime())
       } yield pt)

@@ -11,7 +11,7 @@ import scorex.BroadcastRoute
 import scorex.api.http.assets.TransferRequest
 import scorex.transaction.TransactionFactory
 import scorex.utils.Time
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 @Path("/payment")
 @Api(value = "/payment")

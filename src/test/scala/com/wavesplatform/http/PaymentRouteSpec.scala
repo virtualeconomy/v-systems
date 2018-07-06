@@ -28,7 +28,7 @@ class PaymentRouteSpec extends RouteSpec("/payment")
         val time = mock[Time]
         (time.getTimestamp _).expects().returns(timestamp).anyNumberOfTimes()
 
-        val sender = testWallet.privateKeyAccounts().head
+        val sender = testWallet.privateKeyAccounts.head
         val tx = TransferTransaction.create(None, sender, recipient, amount, timestamp, None, fee, Array())
 
         val route = PaymentApiRoute(restAPISettings, testWallet, utx, allChannels, time).route

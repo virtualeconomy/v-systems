@@ -23,7 +23,7 @@ class AddressRouteSpec
 
   implicit val noShrink: Shrink[String] = Shrink.shrinkAny
 
-  private val allAccounts = testWallet.privateKeyAccounts()
+  private val allAccounts = testWallet.privateKeyAccounts
   private val allAddresses = allAccounts.map(_.address)
 
   private val route = AddressApiRoute(restAPISettings, testWallet, mock[StateReader], mock[FunctionalitySettings]).route

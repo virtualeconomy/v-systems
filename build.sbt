@@ -1,13 +1,14 @@
 import com.typesafe.sbt.packager.archetypes.TemplateWriter
 import sbt.Keys._
 import sbt._
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, SystemdPlugin)
 
 name := "waves"
 organization := "com.wavesplatform"
 version := "0.7.9"
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
 publishArtifact in (Compile, packageDoc) := false
 publishArtifact in (Compile, packageSrc) := false
@@ -39,7 +40,7 @@ libraryDependencies ++=
   Dependencies.matcher ++
   Dependencies.kamon ++
   Seq(
-    "com.iheart" %% "ficus" % "1.4.1",
+    "com.iheart" %% "ficus" % "1.4.3",
     ("org.scorexfoundation" %% "scrypto" % "1.2.2")
       .exclude("org.slf4j", "slf4j-api"),
     "commons-net" % "commons-net" % "3.+",

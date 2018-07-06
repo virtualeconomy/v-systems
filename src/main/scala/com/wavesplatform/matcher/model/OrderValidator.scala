@@ -11,7 +11,7 @@ import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.assets.exchange.Validation.booleanOperators
 import scorex.transaction.assets.exchange.{AssetPair, Order, Validation}
 import scorex.utils.NTP
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 trait OrderValidator {
   val orderHistory: OrderHistory
@@ -19,7 +19,7 @@ trait OrderValidator {
   val settings: MatcherSettings
   val wallet: Wallet
 
-  lazy val matcherPubKey: PublicKeyAccount = wallet.findWallet(settings.account).right.get
+  lazy val matcherPubKey: PublicKeyAccount = wallet.findPrivateKey(settings.account).right.get
   //should in nanoseconds
   val MinExpiration = 60 * 1000000000L
 

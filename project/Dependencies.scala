@@ -5,7 +5,7 @@ object Dependencies {
   def akkaModule(module: String) = "com.typesafe.akka" %% s"akka-$module" % "2.4.19"
   def swaggerModule(module: String) = "io.swagger" % s"swagger-$module" % "1.5.16"
   def akkaHttpModule(module: String) = "com.typesafe.akka" %% module % "10.0.9"
-  def nettyModule(module: String) = "io.netty" % s"netty-$module" % "4.1.13.Final"
+  def nettyModule(module: String) = "io.netty" % s"netty-$module" % "4.1.24.Final"
   def kamonModule(module: String) = "io.kamon" %% s"kamon-$module" % "0.6.7"
 
   lazy val network = Seq("handler", "buffer", "codec").map(nettyModule) ++ Seq(
@@ -22,6 +22,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck" % "1.13.5",
     "org.mockito" % "mockito-all" % "1.10.19",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0",
+    ("org.iq80.leveldb" % "leveldb" % "0.9").exclude("com.google.guava", "guava"),
     akkaHttpModule("akka-http-testkit")
   )) map (_ % "test")
 
@@ -34,7 +35,7 @@ object Dependencies {
 
   lazy val serialization = Seq(
     "com.google.guava" % "guava" % "21.0",
-    "com.typesafe.play" %% "play-json" % "2.6.2"
+    "com.typesafe.play" %% "play-json" % "2.6.9"
   )
   lazy val akka = Seq("actor", "slf4j").map(akkaModule)
 
@@ -44,7 +45,9 @@ object Dependencies {
 
   lazy val logging = Seq(
     "ch.qos.logback" % "logback-classic" % "1.2.3",
-    "org.slf4j" % "slf4j-api" % "1.7.25"
+    "org.slf4j" % "slf4j-api" % "1.7.25",
+    "org.slf4j"            % "jul-to-slf4j"             % "1.7.25",
+    "net.logstash.logback" % "logstash-logback-encoder" % "4.11"
   )
 
   lazy val http = Seq("core", "annotations", "models", "jaxrs").map(swaggerModule) ++ Seq(

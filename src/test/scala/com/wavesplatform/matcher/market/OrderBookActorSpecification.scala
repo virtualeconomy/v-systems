@@ -23,7 +23,7 @@ import scorex.transaction._
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
 import scorex.utils.ScorexLogging
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 import scala.concurrent.duration._
 

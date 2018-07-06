@@ -24,7 +24,7 @@ import scorex.crypto.encode.Base58
 import scorex.transaction.assets.exchange.OrderJson._
 import scorex.transaction.assets.exchange.{AssetPair, Order}
 import scorex.utils.NTP
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -53,7 +53,7 @@ case class MatcherApiRoute(wallet: Wallet,storedState: StateReader,
   @Path("/")
   @ApiOperation(value = "Matcher Public Key", notes = "Get matcher public key", httpMethod = "GET")
   def matcherPublicKey: Route = (pathEndOrSingleSlash & get) {
-    complete(wallet.findWallet(matcherSettings.account)
+    complete(wallet.findPrivateKey(matcherSettings.account)
       .map(a => JsString(Base58.encode(a.publicKey)))
       .getOrElse[JsValue](JsString("")))
   }

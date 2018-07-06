@@ -34,7 +34,7 @@ import scorex.block.Block
 import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 import scorex.waves.http.{DebugApiRoute, WavesApiRoute}
 
 import scala.concurrent.Await
@@ -47,7 +47,14 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
   private val checkpointService = new CheckpointServiceImpl(settings.blockchainSettings.checkpointFile, settings.checkpointsSettings)
   private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
-  private val wallet: Wallet = Wallet(settings.walletSettings)
+
+  private val wallet: Wallet = try {
+    Wallet(settings.walletSettings)
+  } catch {
+    case e: IllegalStateException =>
+      log.error(s"Failed to open wallet file '${settings.walletSettings.file.get.getAbsolutePath}")
+      throw e
+  }
 
   def run(): Unit = {
     log.debug(s"Available processors: ${Runtime.getRuntime.availableProcessors}")
@@ -55,7 +62,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
 
     checkGenesis()
 
-    if (wallet.privateKeyAccounts().isEmpty)
+    if (wallet.privateKeyAccounts.isEmpty)
       wallet.generateNewAccounts(1)
 
     val feeCalculator = new FeeCalculator(settings.feesSettings)
@@ -179,7 +186,6 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       Try(Await.result(actorSystem.terminate(), 60.seconds))
         .failed.map(e => log.error("Failed to terminate actor system: " + e.getMessage))
       log.debug("Closing storage")
-      wallet.close()
       stateWriter.close()
       history.close()
       log.info("Shutdown complete")

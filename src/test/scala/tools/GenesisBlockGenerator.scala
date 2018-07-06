@@ -8,7 +8,7 @@ import scorex.consensus.nxt.NxtLikeConsensusBlockData
 import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.GenesisTransaction
 import scorex.transaction.TransactionParser.SignatureLength
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 import scala.concurrent.duration._
 
 object GenesisBlockGenerator extends App {
