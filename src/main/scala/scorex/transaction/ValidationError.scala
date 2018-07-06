@@ -9,6 +9,8 @@ object ValidationError {
 
   case object InvalidAddress extends ValidationError
   case object InvalidDataType extends ValidationError
+  case object InvalidDataLength extends ValidationError
+  case object InvalidDataEntry extends ValidationError
   case object NegativeAmount extends ValidationError
   case object InsufficientFee extends ValidationError
   case object TooBigArray extends ValidationError
