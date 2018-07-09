@@ -78,6 +78,10 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       .map(t=>(t._1, t._2.bytes, t._3))
       .orElse(inner.contractContent(name))
 
+  override def dbGet(key: ByteStr): Option[ByteStr] =
+    txDiff.dbEntries.get(key).map(v=>v.bytes)
+      .orElse(inner.dbGet(key))
+
   override def accountPortfolios: Map[Address, Portfolio] = Monoid.combine(inner.accountPortfolios, txDiff.portfolios)
 
   override def isLeaseActive(leaseTx: LeaseTransaction): Boolean =
@@ -124,6 +128,9 @@ object CompositeStateReader {
 
     override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
       new CompositeStateReader(inner, blockDiff()).contractContent(name)
+
+    override def dbGet(key: ByteStr): Option[ByteStr] =
+      new CompositeStateReader(inner, blockDiff()).dbGet(key)
 
     override def assetInfo(id: ByteStr): Option[AssetInfo] =
       new CompositeStateReader(inner, blockDiff()).assetInfo(id)

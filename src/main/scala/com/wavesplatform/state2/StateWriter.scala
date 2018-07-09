@@ -106,6 +106,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       }
     }
 
+    measureSizeLog("dbEntries")(blockDiff.txsDiff.dbEntries) {
+      _.foreach { case (key, value) =>
+        sp().dbEntries.put(key, value.bytes)
+      }
+    }
+
     measureSizeLog("lease info")(blockDiff.txsDiff.leaseState)(
       _.foreach { case (id, isActive) => sp().leaseState.put(id, isActive) })
 

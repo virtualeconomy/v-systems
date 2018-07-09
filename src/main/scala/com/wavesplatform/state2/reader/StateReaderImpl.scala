@@ -65,6 +65,10 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     Option(sp().contracts.get(name))
   }
 
+  override def dbGet(key: ByteStr): Option[ByteStr] = read { implicit l =>
+    Option(sp().dbEntries.get(key))
+  }
+
   override def accountPortfolios: Map[Address, Portfolio] = read { implicit l =>
     sp().portfolios.asScala.map {
       case (acc, (b, (i, o), as)) => Address.fromBytes(acc.arr).explicitGet() -> Portfolio(b, LeaseInfo(i, o), as.map {

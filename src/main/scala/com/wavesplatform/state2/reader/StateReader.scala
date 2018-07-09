@@ -43,6 +43,8 @@ trait StateReader extends Synchronized {
 
   def contractContent(name: String): Option[(Boolean, ByteStr, String)]
 
+  def dbGet(key: ByteStr): Option[ByteStr]
+
   def isLeaseActive(leaseTx: LeaseTransaction): Boolean
 
   def activeLeases(): Seq[ByteStr]

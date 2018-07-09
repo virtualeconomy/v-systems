@@ -3,6 +3,7 @@ package com.wavesplatform.state2
 import cats.Monoid
 import cats.implicits._
 import scorex.account.{Address, Alias}
+import scorex.database.Entry
 import scorex.transaction.Transaction
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long)
@@ -46,6 +47,7 @@ case class Diff(transactions: Map[ByteStr, (Int, Transaction, Set[Address])],
                 slotids: Map[Int,String],
                 slotNum: Int,
                 contracts: Map[String, (Boolean, Address, String)],
+                dbEntries: Map[ByteStr, Entry],
                 paymentTransactionIdsByHashes: Map[ByteStr, ByteStr],
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
@@ -70,6 +72,7 @@ object Diff {
             slotids: Map[Int,String] = Map.empty,
             slotNum: Int = 0,
             contracts: Map[String, (Boolean, Address, String)] = Map.empty,
+            dbEntries: Map[ByteStr, Entry] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
             paymentTransactionIdsByHashes: Map[ByteStr, ByteStr] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
@@ -80,11 +83,12 @@ object Diff {
     slotids = slotids,
     slotNum = slotNum,
     contracts = contracts,
+    dbEntries = dbEntries,
     paymentTransactionIdsByHashes = paymentTransactionIdsByHashes,
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, Map.empty, Map.empty, Map.empty, Map.empty)
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -101,6 +105,7 @@ object Diff {
       slotids = older.slotids ++ newer.slotids,
       slotNum = older.slotNum + newer.slotNum,
       contracts = older.contracts ++ newer.contracts,
+      dbEntries = older.dbEntries ++ newer.dbEntries,
       paymentTransactionIdsByHashes = older.paymentTransactionIdsByHashes ++ newer.paymentTransactionIdsByHashes,
       orderFills = older.orderFills.combine(newer.orderFills),
       leaseState = older.leaseState ++ newer.leaseState)

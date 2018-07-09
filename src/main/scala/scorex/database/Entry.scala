@@ -1,6 +1,7 @@
 package scorex.database
 
 import com.wavesplatform.state2.ByteStr
+import play.api.libs.json.{JsObject, Json}
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.ValidationError
 
@@ -14,6 +15,10 @@ sealed trait Entry {
   val name: String
   val data: String
   val dataType: DataType.Value
+
+  lazy val json: JsObject = Json.obj(
+    "name" -> name, "data"->data, "type"->dataType
+  )
 }
 
 object Entry {
