@@ -89,9 +89,10 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     measureSizeLog("effectiveBalanceSnapshots")(blockDiff.snapshots)(
       _.foreach { case (acc, snapshotsByHeight) =>
         snapshotsByHeight.foreach { case (h, snapshot) =>
-          sp().balanceSnapshots.put(accountIndexKey(acc, h), (snapshot.prevHeight, snapshot.balance, snapshot.effectiveBalance))
+          sp().balanceSnapshots.put(accountIndexKey(acc, h), (snapshot.prevHeight, snapshot.balance, snapshot.effectiveBalance, snapshot.weightedBalance))
         }
         sp().lastBalanceSnapshotHeight.put(acc.bytes, snapshotsByHeight.keys.max)
+        sp().lastBalanceSnapshotWeightedBalance.put(acc.bytes, snapshotsByHeight(snapshotsByHeight.keys.max).weightedBalance)
       })
 
     measureSizeLog("aliases")(blockDiff.txsDiff.aliases) {
@@ -137,6 +138,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().aliasToAddress.clear()
     sp().leaseState.clear()
     sp().lastBalanceSnapshotHeight.clear()
+    sp().lastBalanceSnapshotWeightedBalance.clear()
     sp().setHeight(0)
     sp().commit()
   }

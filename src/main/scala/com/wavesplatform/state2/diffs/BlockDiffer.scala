@@ -42,10 +42,24 @@ object BlockDiffer extends ScorexLogging {
       val newSnapshots = diff.portfolios
         .collect { case (acc, portfolioDiff) if portfolioDiff.balance != 0 || portfolioDiff.effectiveBalance != 0 =>
           val oldPortfolio = s.accountPortfolio(acc)
+          val lastHeight = s.lastUpdateHeight(acc).getOrElse(0)
+          val lastWeightedBalance = s.lastUpdateWeightedBalance(acc).getOrElse(0L)
+          val newBalance = oldPortfolio.balance + portfolioDiff.balance
+          val newEffectiveBalance = oldPortfolio.effectiveBalance + portfolioDiff.effectiveBalance
+          // this number should be confirmed later
+          val maxUpdateBlocks = (24 * 60 * 60 / settings.mintingSpeed)*1L
+          val newWeightedBalance = portfolioDiff.effectiveBalance == 0 && currentBlockHeight == lastHeight match {
+            case true => lastWeightedBalance
+            case _ => math.min(oldPortfolio.effectiveBalance/maxUpdateBlocks * math.min(maxUpdateBlocks, currentBlockHeight - lastHeight)
+              + lastWeightedBalance/maxUpdateBlocks * (maxUpdateBlocks - math.min(maxUpdateBlocks, currentBlockHeight - lastHeight)),
+              newEffectiveBalance)
+          }
           acc -> SortedMap(currentBlockHeight -> Snapshot(
-            prevHeight = s.lastUpdateHeight(acc).getOrElse(0),
-            balance = oldPortfolio.balance + portfolioDiff.balance,
-            effectiveBalance = oldPortfolio.effectiveBalance + portfolioDiff.effectiveBalance))
+            prevHeight = lastHeight,
+            balance = newBalance,
+            effectiveBalance = newEffectiveBalance,
+            weightedBalance = newWeightedBalance)
+          )
         }
       BlockDiff(diff, heightDiff, newSnapshots)
     }

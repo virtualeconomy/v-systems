@@ -62,8 +62,8 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
   val accountTransactionsLengths: MVMap[ByteStr, Int] = db.openMap("accountTransactionsLengths",
     new LogMVMapBuilder[ByteStr, Int].keyType(DataTypes.byteStr))
 
-  val balanceSnapshots: MVMap[AccountIdxKey, (Int, Long, Long)] = db.openMap("balanceSnapshots",
-    new LogMVMapBuilder[AccountIdxKey, (Int, Long, Long)].valueType(DataTypes.balanceSnapshots))
+  val balanceSnapshots: MVMap[AccountIdxKey, (Int, Long, Long, Long)] = db.openMap("balanceSnapshots",
+    new LogMVMapBuilder[AccountIdxKey, (Int, Long, Long, Long)].valueType(DataTypes.balanceSnapshots))
 
   val paymentTransactionHashes: MVMap[ByteStr, ByteStr] = db.openMap("paymentTransactionHashes",
     new LogMVMapBuilder[ByteStr, ByteStr]
@@ -80,6 +80,9 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
     .keyType(DataTypes.byteStr))
 
   val lastBalanceSnapshotHeight: MVMap[ByteStr, Int] = db.openMap("lastUpdateHeight", new LogMVMapBuilder[ByteStr, Int]
+    .keyType(DataTypes.byteStr))
+
+  val lastBalanceSnapshotWeightedBalance: MVMap[ByteStr, Long] = db.openMap("lastUpdateWeightedBalance", new LogMVMapBuilder[ByteStr, Long]
     .keyType(DataTypes.byteStr))
 
   val contracts: MVMap[String, (Boolean, ByteStr, String)] = db.openMap("contracts", new LogMVMapBuilder[String, (Boolean, ByteStr, String)])
