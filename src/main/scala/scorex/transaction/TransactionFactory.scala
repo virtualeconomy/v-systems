@@ -99,8 +99,8 @@ object TransactionFactory {
       case Some(x) => Right(x)
       case None =>Left(DbDataTypeError(request.dataType))
     }
-    dbEntry <- Entry.buildEntry(request.data, request.key, datatype) //DataType.withName(request.dataType))
-    tx <- DbPutTransaction.create(senderPrivateKey, request.key, dbEntry, request.fee, time.getTimestamp())
+    dbEntry <- Entry.buildEntry(request.data, datatype)
+    tx <- DbPutTransaction.create(senderPrivateKey, request.name, dbEntry, request.fee, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {

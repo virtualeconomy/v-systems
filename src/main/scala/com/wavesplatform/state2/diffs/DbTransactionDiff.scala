@@ -12,7 +12,7 @@ object DbTransactionDiff {
     // any validation needed? maybe later access control?
     Right(Diff(height = height, tx = tx,
       portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-      dbEntries = Map(tx.storageKey -> tx.dbEntry)
+      dbEntries = Map(tx.storageKey -> tx.entry)
     ))
   }
 

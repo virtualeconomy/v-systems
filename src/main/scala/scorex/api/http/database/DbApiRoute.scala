@@ -38,25 +38,25 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       required = true,
       paramType = "body",
       dataType = "scorex.api.http.database.DbPutRequest",
-      defaultValue = "{\n\t\"key\": \"dbkey\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+      defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def putKV: Route = processRequest("put", (t: DbPutRequest) => doBroadcast(TransactionFactory.dbPut(t, wallet, time)))
 
-  @Path("/get/{nameSpace}/{key}")
+  @Path("/get/{nameSpace}/{name}")
   @ApiOperation(value = "get", notes = "Get db entry", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "nameSpace", value = "Address", required = true, dataType = "String", paramType = "path"),
-    new ApiImplicitParam(name = "key", value = "dbKey", required = true, dataType = "String", paramType = "path")
+    new ApiImplicitParam(name = "name", value = "name", required = true, dataType = "String", paramType = "path")
   ))
   def getKV: Route = {
-    (path("get" / Segment / Segment) & get) { case (addr, key) => {
+    (path("get" / Segment / Segment) & get) { case (addr, name) => {
       val dbEntryByteToResult = (dbEntryBytes: ByteStr) =>
         Entry.fromBytes(dbEntryBytes.arr).left.map[ApiError](ve1 => invalidDbEntry).map(entry=>entry.json)
       val addrKeyToResult = (addr1: Address) =>
-        state.dbGet(DbPutTransaction.generateKey(addr1, key))
-        .toRight(dbKeyNotExist(key, addr))
+        state.dbGet(DbPutTransaction.generateKey(addr1, name))
+        .toRight(dbEntryNotExist(name, addr))
         .flatMap(dbEntryByteToResult)
 
       complete(Address.fromString(addr).left.map[ApiError](ve => invalidDbNameSpace(addr))

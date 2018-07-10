@@ -219,10 +219,10 @@ case class invalidDbNameSpace(nameSpace: String) extends ApiError {
   override val message: String = s"nameSpace $nameSpace is not valid"
 }
 
-case class dbKeyNotExist(key: String, nameSpace: String) extends ApiError {
+case class dbEntryNotExist(name: String, nameSpace: String) extends ApiError {
   override val id: Int = 502
   override val code = StatusCodes.BadRequest
-  override val message: String = s"the key $key does not exist for the nameSpace $nameSpace"
+  override val message: String = s"the entry for $name does not exist for the nameSpace $nameSpace"
 }
 
 case object invalidDbEntry extends ApiError {
