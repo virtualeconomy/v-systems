@@ -31,7 +31,7 @@ import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
 import scorex.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
-import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
+import vee.consensus.spos.api.http.SposConsensusApiRoute
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
 import vee.wallet.Wallet
@@ -87,7 +87,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
     val apiRoutes = Seq(
       BlocksApiRoute(settings.restAPISettings, settings.checkpointsSettings, history, allChannels, checkpointService, blockchainUpdater),
       TransactionsApiRoute(settings.restAPISettings, stateReader, history, utxStorage),
-      NxtConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
+      SposConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
       WalletApiRoute(settings.restAPISettings, wallet),
       PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
       UtilsApiRoute(settings.restAPISettings),
@@ -111,7 +111,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
     val apiTypes = Seq(
       typeOf[BlocksApiRoute],
       typeOf[TransactionsApiRoute],
-      typeOf[NxtConsensusApiRoute],
+      typeOf[SposConsensusApiRoute],
       typeOf[WalletApiRoute],
       typeOf[PaymentApiRoute],
       typeOf[UtilsApiRoute],

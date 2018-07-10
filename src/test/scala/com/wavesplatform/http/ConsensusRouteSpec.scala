@@ -12,7 +12,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.JsObject
 import scorex.api.http.BlockNotExists
-import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
+import vee.consensus.spos.api.http.SposConsensusApiRoute
 import scorex.crypto.encode.Base58
 
 class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHelper with PropertyChecks with MockFactory with BlockGen with HistoryTest {
@@ -22,7 +22,7 @@ class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHel
   appendGenesisBlock(history)
   for (i <- 1 to 10) appendTestBlock(history)
 
-  private val route = NxtConsensusApiRoute(restAPISettings, state, history, FunctionalitySettings.TESTNET).route
+  private val route = SposConsensusApiRoute(restAPISettings, state, history, FunctionalitySettings.TESTNET).route
 
   routePath("/generationsignature") - {
     "for last block" in {
