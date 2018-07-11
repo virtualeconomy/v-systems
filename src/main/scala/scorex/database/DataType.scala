@@ -1,8 +1,5 @@
 package scorex.database
 
-import java.awt.geom.NoninvertibleTransformException
-
-
 object DataType extends Enumeration {
   val ByteArray = Value(1)
   val NoType = Value(2)

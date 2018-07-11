@@ -152,10 +152,13 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  change-contract-status{
         |    WAVES = 100000
         |  }
+        |  db-put{
+        |    WAVES = 100000
+        |  }
         |}
       """.stripMargin).withFallback(defaultConfig).resolve()
     val settings = FeesSettings.fromConfig(config)
-    settings.fees.size should be(14)
+    settings.fees.size should be(15)
 
     settings.fees(2).toSet should equal(Set(FeeSettings("WAVES", 100000)))
     settings.fees(3).toSet should equal(Set(FeeSettings("WAVES", 100000000)))
@@ -171,5 +174,6 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     settings.fees(13).toSet should equal(Set(FeeSettings("WAVES", 100000)))
     settings.fees(14).toSet should equal(Set(FeeSettings("WAVES", 200000)))
     settings.fees(15).toSet should equal(Set(FeeSettings("WAVES", 100000)))
+    settings.fees(16).toSet should equal(Set(FeeSettings("WAVES", 100000)))
   }
 }
