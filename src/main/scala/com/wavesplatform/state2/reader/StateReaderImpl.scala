@@ -88,9 +88,13 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     Option(sp().lastBalanceSnapshotHeight.get(acc.bytes))
   }
 
+  override def lastUpdateWeightedBalance(acc: Address): Option[Long] = read {implicit l =>
+    Option(sp().lastBalanceSnapshotWeightedBalance.get(acc.bytes))
+  }
+
   override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] = read { implicit l =>
     Option(sp().balanceSnapshots.get(StateStorage.accountIndexKey(acc, h)))
-      .map { case (ph, b, eb) => Snapshot(ph, b, eb) }
+      .map { case (ph, b, eb, wb) => Snapshot(ph, b, eb, wb) }
   }
 
   override def containsTransaction(id: ByteStr): Boolean = read { implicit l =>
