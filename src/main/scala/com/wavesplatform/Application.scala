@@ -26,12 +26,13 @@ import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
-import scorex.api.http.spos.{SPOSApiRoute,SPOSBroadcastApiRoute}
+import scorex.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
 import scorex.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
+import scorex.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
-import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
+import vee.consensus.spos.api.http.SposConsensusApiRoute
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
 import vee.wallet.Wallet
@@ -87,7 +88,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
     val apiRoutes = Seq(
       BlocksApiRoute(settings.restAPISettings, settings.checkpointsSettings, history, allChannels, checkpointService, blockchainUpdater),
       TransactionsApiRoute(settings.restAPISettings, stateReader, history, utxStorage),
-      NxtConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
+      SposConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
       WalletApiRoute(settings.restAPISettings, wallet),
       PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
       UtilsApiRoute(settings.restAPISettings),
@@ -105,13 +106,14 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
       SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels)
+      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      DbApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader)
     )
 
     val apiTypes = Seq(
       typeOf[BlocksApiRoute],
       typeOf[TransactionsApiRoute],
-      typeOf[NxtConsensusApiRoute],
+      typeOf[SposConsensusApiRoute],
       typeOf[WalletApiRoute],
       typeOf[PaymentApiRoute],
       typeOf[UtilsApiRoute],
@@ -129,7 +131,8 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       typeOf[SPOSApiRoute],
       typeOf[SPOSBroadcastApiRoute],
       typeOf[ContractApiRoute],
-      typeOf[ContractBroadcastApiRoute]
+      typeOf[ContractBroadcastApiRoute],
+      typeOf[DbApiRoute]
     )
 
     for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {
