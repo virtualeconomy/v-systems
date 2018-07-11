@@ -11,7 +11,8 @@ object SPoSCalc extends ScorexLogging {
   val MinimalEffectiveBalanceForGenerator: Long = 1000000000000L
 
   def weightedBalaceCalc(heightDiff: Int, lastEffectiveBalance: Long, lastWeightedBalance: Long, cntEffectiveBalance: Long, fs: FunctionalitySettings): Long = {
-    val maxUpdateBlocks = 24 * 60 * 60 / fs.mintingSpeed * 1L
+    // mintingSpeed should be larger than 0
+    val maxUpdateBlocks = 24 * 60 * 60 / math.max(fs.mintingSpeed, 1) * 1L
     val weightedBalance = math.min(lastEffectiveBalance/maxUpdateBlocks * math.min(maxUpdateBlocks, heightDiff)
       + lastWeightedBalance/maxUpdateBlocks * (maxUpdateBlocks - math.min(maxUpdateBlocks, heightDiff)),
       cntEffectiveBalance)
