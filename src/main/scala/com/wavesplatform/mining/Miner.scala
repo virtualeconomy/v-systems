@@ -20,6 +20,7 @@ import scorex.transaction.PoSCalc._
 import scorex.transaction.{BlockchainUpdater, CheckpointService, History, MintingTransaction}
 import scorex.utils.{ScorexLogging, Time}
 import vee.wallet.Wallet
+import vee.spos.SPoSCalc._
 
 import scala.concurrent.duration._
 import scala.math.Ordering.Implicits._
@@ -79,7 +80,7 @@ class Miner(
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       gs = calcGeneratorSignature(lastBlockKernelData, account)
-      consensusData = NxtLikeConsensusBlockData(mintTime, gs)
+      consensusData = NxtLikeConsensusBlockData(mintTime, balance, gs)
       unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, MintingTransaction.mintingReward, MintingTransaction.mintingFee, currentTime, parentHeight+1).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
@@ -109,7 +110,7 @@ class Miner(
         }
         log.debug(s"Current time $ts")
         log.debug(s"Next attempt for acc = $account in $offset")
-        val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
+        val balance = mintingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
         generateOneBlockTask(account, height, lastBlock, grandParent, balance, ts + offset.toNanos)(offset).flatMap {
           case Right(block) => Task.now {
             processBlock(block, true) match {

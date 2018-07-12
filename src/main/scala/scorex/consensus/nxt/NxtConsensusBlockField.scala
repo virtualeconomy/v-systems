@@ -13,7 +13,9 @@ case class NxtConsensusBlockField(override val value: NxtLikeConsensusBlockData)
 
   override def bytes: Array[Byte] =
     Bytes.ensureCapacity(Longs.toByteArray(value.mintTime), 8, 0) ++
+      Bytes.ensureCapacity(Longs.toByteArray(value.mintBalance), 8, 0) ++
       value.generationSignature
+
 
 
   override def json: JsObject = Json.obj(name -> Json.obj(
