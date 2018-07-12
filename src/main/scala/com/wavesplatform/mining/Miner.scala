@@ -17,8 +17,9 @@ import scorex.account.PrivateKeyAccount
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
 import scorex.transaction.PoSCalc._
-import scorex.transaction.{BlockchainUpdater, CheckpointService, History, MintingTransaction}
+import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
 import scorex.utils.{ScorexLogging, Time}
+import vee.transaction.MintingTransaction
 import vee.wallet.Wallet
 
 import scala.concurrent.duration._
