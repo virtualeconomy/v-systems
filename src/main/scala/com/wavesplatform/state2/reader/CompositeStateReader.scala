@@ -8,7 +8,6 @@ import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.Transaction
 import scorex.transaction.lease.LeaseTransaction
-import scorex.utils.Synchronized
 
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {
 
