@@ -5,9 +5,9 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, SystemdPlugin)
 
-name := "waves"
-organization := "com.wavesplatform"
-version := "0.7.9"
+name := "vee"
+organization := "vee"
+version := "0.0.1"
 scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
 publishArtifact in (Compile, packageDoc) := false
@@ -21,7 +21,7 @@ scalacOptions ++= Seq(
 logBuffered := false
 
 //assembly settings
-assemblyJarName in assembly := s"waves-all-${version.value}.jar"
+assemblyJarName in assembly := s"vee-all-${version.value}.jar"
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.concat
   case other => (assemblyMergeStrategy in assembly).value(other)
@@ -81,14 +81,14 @@ inConfig(IntegrationTest)(Seq(
 
 dockerfile in docker := {
   val configTemplate = (resourceDirectory in IntegrationTest).value / "template.conf"
-  val startWaves = (sourceDirectory in IntegrationTest).value / "container" / "start-waves.sh"
+  val startVee = (sourceDirectory in IntegrationTest).value / "container" / "start-vee.sh"
 
   new Dockerfile {
     from("anapsix/alpine-java:8_server-jre")
-    add(assembly.value, "/opt/waves/waves.jar")
-    add(Seq(configTemplate, startWaves), "/opt/waves/")
-    run("chmod", "+x", "/opt/waves/start-waves.sh")
-    entryPoint("/opt/waves/start-waves.sh")
+    add(assembly.value, "/opt/vee/vee.jar")
+    add(Seq(configTemplate, startVee), "/opt/vee/")
+    run("chmod", "+x", "/opt/vee/start-vee.sh")
+    entryPoint("/opt/vee/start-vee.sh")
   }
 }
 
@@ -105,9 +105,9 @@ commands += Command.command("packageAll") { state =>
 }
 
 inConfig(Linux)(Seq(
-  maintainer := "wavesplatform.com",
-  packageSummary := "Waves node",
-  packageDescription := "Waves node"
+  maintainer := "vee.tech",
+  packageSummary := "VEE full node",
+  packageDescription := "VEE full node"
 ))
 
 network := Network(sys.props.get("network"))
@@ -130,7 +130,7 @@ javaOptions in Universal ++= Seq(
   "-J-XX:+ParallelRefProcEnabled",
   "-J-XX:+UseStringDeduplication")
 
-mappings in Universal += (baseDirectory.value / s"waves-${network.value}.conf" -> "doc/waves.conf.sample")
+mappings in Universal += (baseDirectory.value / s"vee-${network.value}.conf" -> "doc/vee.conf.sample")
 packageSource := sourceDirectory.value / "package"
 upstartScript := {
   val src = packageSource.value / "upstart.conf"
