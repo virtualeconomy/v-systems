@@ -9,7 +9,7 @@ import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.{JsObject, Json}
 import scorex.api.http.{ApiKeyNotValid, PaymentApiRoute}
 import scorex.transaction.Transaction
-import scorex.transaction.assets.TransferTransaction
+import scorex.transaction.PaymentTransaction
 import scorex.utils.Time
 
 class PaymentRouteSpec extends RouteSpec("/payment")
@@ -21,7 +21,7 @@ class PaymentRouteSpec extends RouteSpec("/payment")
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   "accepts payments" in {
-    forAll(accountOrAliasGen.label("recipient"), positiveLongGen.label("amount"), smallFeeGen.label("fee")) {
+    forAll(accountGen.label("recipient"), positiveLongGen.label("amount"), smallFeeGen.label("fee")) {
       case (recipient, amount, fee) =>
 
         val timestamp = System.currentTimeMillis()
@@ -29,7 +29,7 @@ class PaymentRouteSpec extends RouteSpec("/payment")
         (time.getTimestamp _).expects().returns(timestamp).anyNumberOfTimes()
 
         val sender = testWallet.privateKeyAccounts.head
-        val tx = TransferTransaction.create(None, sender, recipient, amount, timestamp, None, fee, Array())
+        val tx = PaymentTransaction.create(sender, recipient, amount, fee, timestamp)
 
         val route = PaymentApiRoute(restAPISettings, testWallet, utx, allChannels, time).route
 
@@ -42,7 +42,7 @@ class PaymentRouteSpec extends RouteSpec("/payment")
           (resp \ "id").as[String] shouldEqual tx.right.get.id.toString
           (resp \ "assetId").asOpt[String] shouldEqual None
           (resp \ "feeAsset").asOpt[String] shouldEqual None
-          (resp \ "type").as[Int] shouldEqual 4
+          (resp \ "type").as[Int] shouldEqual 2
           (resp \ "fee").as[Int] shouldEqual fee
           (resp \ "amount").as[Long] shouldEqual amount
           (resp \ "timestamp").as[Long] shouldEqual tx.right.get.timestamp

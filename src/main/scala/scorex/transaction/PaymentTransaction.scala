@@ -23,7 +23,21 @@ case class PaymentTransaction private(sender: PublicKeyAccount,
                                       signature: ByteStr) extends Transaction {
   override val transactionType = TransactionType.PaymentTransaction
   override val assetFee: (Option[AssetId], Long) = (None, fee)
-  override val id: ByteStr = signature
+
+  lazy val toSign: Array[Byte] = {
+    val timestampBytes = Longs.toByteArray(timestamp)
+    val amountBytes = Longs.toByteArray(amount)
+    val feeBytes = Longs.toByteArray(fee)
+
+    Bytes.concat(Array(transactionType.id.toByte),
+      sender.publicKey,
+      timestampBytes,
+      amountBytes,
+      feeBytes,
+      recipient.bytes.arr)
+  }
+
+  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
   override lazy val json: JsObject =
     Json.obj("type" -> transactionType.id,

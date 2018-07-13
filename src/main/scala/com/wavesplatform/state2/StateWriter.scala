@@ -151,7 +151,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
   override def setInitialSlots(): Unit = write { implicit l =>
     // set the initial slot address
-    sp().setSlotAddress(0,"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5")
+    sp().setSlotAddress(0,"3MpZ718ivTCaRbra6JpABGV9Hdk75QAvpbj")
     sp().commit()
   }
 }
