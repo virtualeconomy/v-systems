@@ -103,20 +103,22 @@ object DataTypes {
     }
   }
 
-  // (Int, Long, Long)
+  // (Int, Long, Long, Long)
   val balanceSnapshots: DataType = new DTTemplate {
     override def compare(a: scala.Any, b: scala.Any) =
-      implicitly[Ordering[(Int, Long, Long)]].compare(a.asInstanceOf[(Int, Long, Long)], b.asInstanceOf[(Int, Long, Long)])
+      implicitly[Ordering[(Int, Long, Long, Long)]].compare(a.asInstanceOf[(Int, Long, Long, Long)], b.asInstanceOf[(Int, Long, Long, Long)])
 
-    override def read(buff: ByteBuffer) = (readVarInt(buff), readVarLong(buff), readVarLong(buff))
+    override def read(buff: ByteBuffer) = (readVarInt(buff), readVarLong(buff), readVarLong(buff), readVarLong(buff))
 
-    override def getMemory(obj: scala.Any) = 23
+    // Long = 9, Int = 5
+    override def getMemory(obj: scala.Any) = 32
 
     override def write(buff: WriteBuffer, obj: scala.Any) = {
-      val (v1, v2, v3) = obj.asInstanceOf[(Int, Long, Long)]
+      val (v1, v2, v3, v4) = obj.asInstanceOf[(Int, Long, Long, Long)]
       buff.putVarInt(v1)
       buff.putVarLong(v2)
       buff.putVarLong(v3)
+      buff.putVarLong(v4)
     }
   }
 
