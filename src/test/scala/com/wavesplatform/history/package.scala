@@ -4,7 +4,7 @@ import com.wavesplatform.settings.BlockchainSettings
 import com.wavesplatform.state2._
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import scorex.consensus.nxt.NxtLikeConsensusBlockData
+import vee.consensus.spos.SposConsensusBlockData
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.{Transaction, TransactionParser}
@@ -33,7 +33,7 @@ package object history {
       version = 1: Byte,
       timestamp = 0L,
       reference = refTo,
-      consensusData = NxtLikeConsensusBlockData(
+      consensusData = SposConsensusBlockData(
         mintTime = 0L,
         mintBalance = 0L,
         generationSignature = generationSignature),

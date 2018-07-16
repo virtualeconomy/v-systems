@@ -4,7 +4,7 @@ import com.wavesplatform.state2.ByteStr
 import org.scalacheck.Gen
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import scorex.consensus.nxt.NxtLikeConsensusBlockData
+import vee.consensus.spos.SposConsensusBlockData
 import scorex.transaction.{SignedTransaction, Transaction}
 
 trait BlockGen extends TransactionGen {
@@ -22,7 +22,7 @@ trait BlockGen extends TransactionGen {
     mintTime <- Gen.posNum[Long]
     mintBalance <- Gen.posNum[Long]
     generationSignature <- byteArrayGen(Block.GeneratorSignatureLength)
-  } yield Block.buildAndSign(1, txs.map(_.timestamp).max, ByteStr(reference), NxtLikeConsensusBlockData(mintTime, mintBalance, generationSignature), txs, signer)
+  } yield Block.buildAndSign(1, txs.map(_.timestamp).max, ByteStr(reference), SposConsensusBlockData(mintTime, mintBalance, generationSignature), txs, signer)
 
   val randomSignerBlockGen: Gen[Block] = for {
     (transactions, signer) <- blockParamGen

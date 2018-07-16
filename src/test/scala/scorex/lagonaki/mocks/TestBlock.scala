@@ -3,7 +3,7 @@ package scorex.lagonaki.mocks
 import com.wavesplatform.state2.ByteStr
 import scorex.account.PrivateKeyAccount
 import scorex.block._
-import scorex.consensus.nxt.NxtLikeConsensusBlockData
+import vee.consensus.spos.SposConsensusBlockData
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser._
 import scorex.transaction.{ProcessedTransaction, Transaction, TransactionParser, TransactionStatus}
@@ -23,7 +23,7 @@ object TestBlock {
     version = 2,
     reference = randomSignature(),
     signerData = SignerData(defaultSigner, ByteStr.empty),
-    consensusData = NxtLikeConsensusBlockData(0L, 0L, Array.fill(SignatureLength)(0: Byte)),
+    consensusData = SposConsensusBlockData(0L, 0L, Array.fill(SignatureLength)(0: Byte)),
     transactionData = txs.map(ProcessedTransaction(TransactionStatus.Success, 0, _))))
 
   def randomOfLength(length: Int): ByteStr = ByteStr(Array.fill(length)(random.nextInt().toByte))
@@ -31,7 +31,7 @@ object TestBlock {
   def randomSignature(): ByteStr = randomOfLength(SignatureLength)
 
   def withReference(ref: ByteStr): Block = sign(Block(0, 1, ref, SignerData(defaultSigner, ByteStr.empty),
-    NxtLikeConsensusBlockData(0L, 0L, randomSignature().arr), Seq.empty))
+    SposConsensusBlockData(0L, 0L, randomSignature().arr), Seq.empty))
 
   private def sign(nonSignedBlock: Block): Block = {
     val toSign = nonSignedBlock.bytes

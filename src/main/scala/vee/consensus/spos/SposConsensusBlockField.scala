@@ -1,4 +1,4 @@
-package scorex.consensus.nxt
+package vee.consensus.spos
 
 import com.google.common.primitives.{Bytes, Longs}
 import play.api.libs.json.{JsObject, Json}
@@ -6,10 +6,10 @@ import scorex.block.BlockField
 import scorex.crypto.encode.Base58
 
 
-case class NxtConsensusBlockField(override val value: NxtLikeConsensusBlockData)
-  extends BlockField[NxtLikeConsensusBlockData] {
+case class SposConsensusBlockField(override val value: SposConsensusBlockData)
+  extends BlockField[SposConsensusBlockData] {
 
-  override val name: String = "nxt-consensus"
+  override val name: String = "spos-consensus"
 
   override def bytes: Array[Byte] =
     Bytes.ensureCapacity(Longs.toByteArray(value.mintTime), 8, 0) ++

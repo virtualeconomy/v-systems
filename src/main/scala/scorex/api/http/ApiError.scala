@@ -39,6 +39,7 @@ object ApiError {
     case ValidationError.AccountBalanceError(errs) => CustomValidationError(errs.values.mkString(", "))
     case ValidationError.OrderValidationError(_, m) => CustomValidationError(m)
     case ValidationError.Mistiming(err) => Mistiming(err)
+    case ValidationError.DbDataTypeError(err) => InvalidDbDataType(err)
     case TransactionValidationError(error, tx) => error match {
       case ValidationError.Mistiming(errorMessage) => Mistiming(errorMessage)
       case _ => StateCheckFailed(tx, fromValidationError(error).message)
@@ -202,14 +203,38 @@ case class ContractNotExists(name: String) extends ApiError {
 
 case class ContractAlreadyEnabled(name: String) extends ApiError {
   override val id: Int = 402
-  override val code = StatusCodes.NotFound
+  override val code = StatusCodes.BadRequest
   override val message: String = s"contract $name already enabled"
 }
 
 case class ContractAlreadyDisabled(name: String) extends ApiError {
   override val id: Int = 403
-  override val code = StatusCodes.NotFound
+  override val code = StatusCodes.BadRequest
   override val message: String = s"contract $name already disabled"
+}
+
+case class invalidDbNameSpace(nameSpace: String) extends ApiError {
+  override val id: Int = 501
+  override val code = StatusCodes.BadRequest
+  override val message: String = s"nameSpace $nameSpace is not valid"
+}
+
+case class dbEntryNotExist(name: String, nameSpace: String) extends ApiError {
+  override val id: Int = 502
+  override val code = StatusCodes.BadRequest
+  override val message: String = s"the entry for $name does not exist for the nameSpace $nameSpace"
+}
+
+case object invalidDbEntry extends ApiError {
+  override val id: Int = 503
+  override val code = StatusCodes.BadRequest
+  override val message: String = s"invalid database entry, this entry might be corruptted"
+}
+
+case class InvalidDbDataType(datatype: String) extends ApiError {
+  override val id: Int = 504
+  override val code = StatusCodes.BadRequest
+  override val message: String = s"invalid database datatype $datatype"
 }
 
 case class Mistiming(errorMessage: String) extends ApiError {

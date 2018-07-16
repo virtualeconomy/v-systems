@@ -5,7 +5,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSuite, Matchers}
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import scorex.consensus.nxt.NxtLikeConsensusBlockData
+import vee.consensus.spos.SposConsensusBlockData
 import scorex.transaction._
 import scorex.transaction.assets.TransferTransaction
 
@@ -31,7 +31,7 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
     val tr2: TransferTransaction = TransferTransaction.create(assetId, sender, gen, 5, ts + 2, None, 2, Array()).right.get
 
     val tbd = Seq(tx, tr, tr2)
-    val cbd = NxtLikeConsensusBlockData(mt, mb, gs)
+    val cbd = SposConsensusBlockData(mt, mb, gs)
 
     List(1, 2).foreach { version =>
       val timestamp = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L

@@ -6,16 +6,20 @@ import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
 import scorex.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest}
+import scorex.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import scorex.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
 import scorex.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import scorex.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
+import scorex.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
 import vee.wallet.Wallet
 import scorex.waves.transaction.SignedPaymentRequest
+import scorex.database.{DataType, Entry}
+import scorex.transaction.ValidationError.DbDataTypeError
 
 object TransactionFactory {
 
@@ -87,6 +91,16 @@ object TransactionFactory {
   def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, time.getTimestamp())
+  } yield tx
+
+  def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {
+    senderPrivateKey <- wallet.findPrivateKey(request.sender)
+    datatype <- DataType.values.find(_.toString == request.dataType) match {
+      case Some(x) => Right(x)
+      case None =>Left(DbDataTypeError(request.dataType))
+    }
+    dbEntry <- Entry.buildEntry(request.data, datatype)
+    tx <- DbPutTransaction.create(senderPrivateKey, request.name, dbEntry, request.fee, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {
