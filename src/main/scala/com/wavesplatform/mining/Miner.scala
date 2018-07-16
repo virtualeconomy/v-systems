@@ -68,13 +68,15 @@ class Miner(
     val pc = allChannels.size()
     val minimalMintBalance = 100000000000L
     lazy val lastBlockKernelData = parent.consensusData
+    val effectiveBalance = stateReader.effectiveBalance(account)
     val currentTime = timeService.correctedTime()
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(balance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
+      // initial mint Balance = 0 now, should be modified later
+      _ <- Either.cond(effectiveBalance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Effective Balance $effectiveBalance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ <- checkSlot(account)
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
