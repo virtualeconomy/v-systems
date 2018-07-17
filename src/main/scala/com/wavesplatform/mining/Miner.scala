@@ -15,11 +15,12 @@ import monix.execution._
 import monix.execution.cancelables.{CompositeCancelable, SerialCancelable}
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import scorex.consensus.nxt.NxtLikeConsensusBlockData
+import vee.consensus.spos.SposConsensusBlockData
 import scorex.transaction.PoSCalc._
-import scorex.transaction.{BlockchainUpdater, CheckpointService, History, MintingTransaction}
+import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
 import scorex.utils.{ScorexLogging, Time}
-import scorex.wallet.Wallet
+import vee.transaction.MintingTransaction
+import vee.wallet.Wallet
 
 import scala.concurrent.duration._
 import scala.math.Ordering.Implicits._
@@ -79,7 +80,7 @@ class Miner(
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       gs = calcGeneratorSignature(lastBlockKernelData, account)
-      consensusData = NxtLikeConsensusBlockData(mintTime, gs)
+      consensusData = SposConsensusBlockData(mintTime, gs)
       unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, MintingTransaction.mintingReward, MintingTransaction.mintingFee, currentTime, parentHeight+1).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
@@ -132,7 +133,7 @@ class Miner(
   def lastBlockChanged(): Unit = if (settings.minerSettings.enable) {
     log.debug("Miner notified of new block, restarting all mining tasks")
     scheduledAttempts := CompositeCancelable.fromSet(
-      wallet.privateKeyAccounts().map(generateBlockTask).map(_.runAsync).toSet)
+      wallet.privateKeyAccounts.map(generateBlockTask).map(_.runAsync).toSet)
   } else {
     log.debug("Miner is disabled, ignoring last block change")
   }

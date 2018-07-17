@@ -8,6 +8,9 @@ trait ValidationError
 object ValidationError {
 
   case object InvalidAddress extends ValidationError
+  case object InvalidDataType extends ValidationError
+  case object InvalidDataLength extends ValidationError
+  case object InvalidDataEntry extends ValidationError
   case object NegativeAmount extends ValidationError
   case object InsufficientFee extends ValidationError
   case object TooBigArray extends ValidationError
@@ -22,5 +25,6 @@ object ValidationError {
   case class OrderValidationError(order: Order, err: String) extends ValidationError
   case class AccountBalanceError(errs: Map[Address, String]) extends ValidationError
   case class GenericError(err: String) extends ValidationError
+  case class DbDataTypeError(err: String) extends ValidationError
   case class Mistiming(err: String) extends ValidationError
 }

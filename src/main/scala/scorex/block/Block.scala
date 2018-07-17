@@ -6,7 +6,7 @@ import vee.settings.GenesisSettings
 import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
-import scorex.consensus.nxt.{NxtConsensusBlockField, NxtLikeConsensusBlockData}
+import vee.consensus.spos.{SposConsensusBlockField, SposConsensusBlockData}
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.TransactionParser._
@@ -17,13 +17,13 @@ import scorex.utils.ScorexLogging
 import scala.util.{Failure, Try}
 
 case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData: SignerData,
-                 consensusData: NxtLikeConsensusBlockData, transactionData: Seq[ProcessedTransaction]) extends Signed {
+                 consensusData: SposConsensusBlockData, transactionData: Seq[ProcessedTransaction]) extends Signed {
 
   private lazy val versionField: ByteBlockField = ByteBlockField("version", version)
   private lazy val timestampField: LongBlockField = LongBlockField("timestamp", timestamp)
   private lazy val referenceField: BlockIdField = BlockIdField("reference", reference.arr)
   private lazy val signerDataField: SignerDataBlockField = SignerDataBlockField("signature", signerData)
-  private lazy val consensusDataField = NxtConsensusBlockField(consensusData)
+  private lazy val consensusDataField = SposConsensusBlockField(consensusData)
   private lazy val transactionDataField = TransactionsBlockField(version.toInt, transactionData)
   private lazy val transactionMerkleField = MerkleRootBlockField("TransactionMerkleRoot", transactionData)
 
@@ -140,7 +140,7 @@ object Block extends ScorexLogging {
     val cBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
     position += 4
     val cBytes = bytes.slice(position, position + cBytesLength)
-    val consData = NxtLikeConsensusBlockData(Longs.fromByteArray(cBytes.take(Block.MintTimeLength)), cBytes.takeRight(Block.GeneratorSignatureLength))
+    val consData = SposConsensusBlockData(Longs.fromByteArray(cBytes.take(Block.MintTimeLength)), cBytes.takeRight(Block.GeneratorSignatureLength))
     position += cBytesLength
 
     position += TransactionMerkleRootLength
@@ -165,7 +165,7 @@ object Block extends ScorexLogging {
   def buildAndSign(version: Byte,
                    timestamp: Long,
                    reference: ByteStr,
-                   consensusData: NxtLikeConsensusBlockData,
+                   consensusData: SposConsensusBlockData,
                    transactionData: Seq[Transaction],
                    signer: PrivateKeyAccount): Block = {
     val nonSignedBlock = Block(timestamp, version, reference, SignerData(signer, ByteStr.empty), consensusData,
@@ -194,8 +194,8 @@ object Block extends ScorexLogging {
       ProcessedTransaction(TransactionStatus.Success, 0, _)
     )
     val transactionGenesisDataField = TransactionsBlockFieldVersion1or2(transactionGenesisData)
-    val consensusGenesisData = NxtLikeConsensusBlockData(genesisSettings.initialMintTime, Array.fill(DigestSize)(0: Byte))
-    val consensusGenesisDataField = NxtConsensusBlockField(consensusGenesisData)
+    val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, Array.fill(DigestSize)(0: Byte))
+    val consensusGenesisDataField = SposConsensusBlockField(consensusGenesisData)
     val txBytesSize = transactionGenesisDataField.bytes.length
     val txBytes = Bytes.ensureCapacity(Ints.toByteArray(txBytesSize), 4, 0) ++ transactionGenesisDataField.bytes
     val cBytesSize = consensusGenesisDataField.bytes.length

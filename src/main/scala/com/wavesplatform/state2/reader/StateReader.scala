@@ -43,11 +43,15 @@ trait StateReader extends Synchronized {
 
   def contractContent(name: String): Option[(Boolean, ByteStr, String)]
 
+  def dbGet(key: ByteStr): Option[ByteStr]
+
   def isLeaseActive(leaseTx: LeaseTransaction): Boolean
 
   def activeLeases(): Seq[ByteStr]
 
   def lastUpdateHeight(acc: Address): Option[Int]
+
+  def lastUpdateWeightedBalance(acc: Address): Option[Long]
 
   def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot]
 
@@ -148,7 +152,7 @@ object StateReader {
             case Some(genesisSnapshot) =>
               genesisSnapshot +: list
             case None =>
-              Snapshot(0, 0, 0) +: list
+              Snapshot(0, 0, 0, 0) +: list
           }
         } else {
           s.snapshotAtHeight(acc, deeperHeight) match {
@@ -170,10 +174,10 @@ object StateReader {
       }
 
       val snapshots: Seq[Snapshot] = s.lastUpdateHeight(acc) match {
-        case None => Seq(Snapshot(0, 0, 0))
+        case None => Seq(Snapshot(0, 0, 0, 0))
         case Some(h) if h < bottomNotIncluded =>
           val pf = s.accountPortfolio(acc)
-          Seq(Snapshot(h, pf.balance, pf.effectiveBalance))
+          Seq(Snapshot(h, pf.balance, pf.effectiveBalance, s.lastUpdateWeightedBalance(acc).getOrElse(0)))
         case Some(h) => loop(h, Seq.empty)
       }
 
@@ -186,12 +190,30 @@ object StateReader {
     def balanceWithConfirmations(acc: Address, confirmations: Int): Long =
       minBySnapshot(acc, s.height, confirmations)(_.balance)
 
+    def weightedBalanceWithConfirmations(acc: Address, confirmations: Int): Long =
+      minBySnapshot(acc, s.height, confirmations)(_.weightedBalance)
+
     def balanceAtHeight(acc: Address, height: Int): Long = s.read { _ =>
 
       @tailrec
       def loop(lookupHeight: Int): Long = s.snapshotAtHeight(acc, lookupHeight) match {
         case None if lookupHeight == 0 => 0
         case Some(snapshot) if lookupHeight <= height => snapshot.balance
+        case Some(snapshot) => loop(snapshot.prevHeight)
+        case None =>
+          throw new Exception(s"Cannot lookup account $acc for height $height(current=${s.height}). " +
+            s"No history found at requested lookupHeight=$lookupHeight")
+      }
+
+      loop(s.lastUpdateHeight(acc).getOrElse(0))
+    }
+
+    def weightedBalanceAtHeight(acc: Address, height: Int): Long = s.read { _ =>
+
+      @tailrec
+      def loop(lookupHeight: Int): Long = s.snapshotAtHeight(acc, lookupHeight) match {
+        case None if lookupHeight == 0 => 0
+        case Some(snapshot) if lookupHeight <= height => snapshot.weightedBalance
         case Some(snapshot) => loop(snapshot.prevHeight)
         case None =>
           throw new Exception(s"Cannot lookup account $acc for height $height(current=${s.height}). " +

@@ -65,6 +65,10 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     Option(sp().contracts.get(name))
   }
 
+  override def dbGet(key: ByteStr): Option[ByteStr] = read { implicit l =>
+    Option(sp().dbEntries.get(key))
+  }
+
   override def accountPortfolios: Map[Address, Portfolio] = read { implicit l =>
     sp().portfolios.asScala.map {
       case (acc, (b, (i, o), as)) => Address.fromBytes(acc.arr).explicitGet() -> Portfolio(b, LeaseInfo(i, o), as.map {
@@ -88,9 +92,13 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     Option(sp().lastBalanceSnapshotHeight.get(acc.bytes))
   }
 
+  override def lastUpdateWeightedBalance(acc: Address): Option[Long] = read {implicit l =>
+    Option(sp().lastBalanceSnapshotWeightedBalance.get(acc.bytes))
+  }
+
   override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] = read { implicit l =>
     Option(sp().balanceSnapshots.get(StateStorage.accountIndexKey(acc, h)))
-      .map { case (ph, b, eb) => Snapshot(ph, b, eb) }
+      .map { case (ph, b, eb, wb) => Snapshot(ph, b, eb, wb) }
   }
 
   override def containsTransaction(id: ByteStr): Boolean = read { implicit l =>

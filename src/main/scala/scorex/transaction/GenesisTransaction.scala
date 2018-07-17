@@ -5,6 +5,7 @@ import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.Address
 import scorex.crypto.hash.FastCryptographicHash._
+import scorex.crypto.hash.FastCryptographicHash
 import scorex.transaction.TransactionParser._
 
 import scala.util.{Failure, Success, Try}
@@ -13,8 +14,17 @@ case class GenesisTransaction private(recipient: Address, amount: Long, timestam
 
   import GenesisTransaction._
 
+  lazy val toSign: Array[Byte] = {
+    val timestampBytes = Longs.toByteArray(timestamp)
+    val amountBytes = Longs.toByteArray(amount)
+
+    Bytes.concat(Array(transactionType.id.toByte),
+      timestampBytes,
+      amountBytes,
+      recipient.bytes.arr)
+  }
   override val assetFee: (Option[AssetId], Long) = (None, 0)
-  override val id: ByteStr = signature
+  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
   val transactionType = TransactionType.GenesisTransaction
 

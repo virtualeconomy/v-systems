@@ -12,7 +12,7 @@ import scorex.BroadcastRoute
 import scorex.api.http._
 import scorex.transaction._
 import scorex.utils.Time
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 @Path("/spos")
 @Api(value = "/spos")

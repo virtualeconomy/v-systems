@@ -10,7 +10,9 @@ import scorex.transaction._
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
 import scorex.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
+import scorex.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vee.transaction.MintingTransaction
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -93,6 +95,7 @@ object CommonValidation {
       case _: ReleaseSlotsTransaction => Right(tx)
       case _: CreateContractTransaction => Right(tx)
       case _: ChangeContractStatusTransaction => Right(tx)
+      case _: DbPutTransaction => Right(tx)
       case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
     }
 

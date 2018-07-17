@@ -4,11 +4,11 @@ import vee.settings.{GenesisSettings, GenesisTransactionSettings}
 import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
-import scorex.consensus.nxt.NxtLikeConsensusBlockData
+import vee.consensus.spos.SposConsensusBlockData
 import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.GenesisTransaction
 import scorex.transaction.TransactionParser.SignatureLength
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 import scala.concurrent.duration._
 
 object GenesisBlockGenerator extends App {
@@ -68,7 +68,7 @@ object GenesisBlockGenerator extends App {
 
     val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))
     val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), timestamp, ByteStr.empty) }
-    val genesisBlock = Block.buildAndSign(1, timestamp, reference, NxtLikeConsensusBlockData(mt, Array.fill(DigestSize)(0: Byte)), genesisTxs, genesisSigner)
+    val genesisBlock = Block.buildAndSign(1, timestamp, reference, SposConsensusBlockData(mt, Array.fill(DigestSize)(0: Byte)), genesisTxs, genesisSigner)
     val signature = genesisBlock.signerData.signature
 
     (accounts, GenesisSettings(timestamp, timestamp, initialBalance, Some(signature),

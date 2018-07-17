@@ -9,6 +9,7 @@ import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
 import scorex.block.Block
 import scorex.transaction.{Signed, Transaction, ValidationError}
 import scorex.utils.ScorexLogging
+import vee.spos.SPoSCalc
 
 import scala.collection.SortedMap
 
@@ -42,10 +43,21 @@ object BlockDiffer extends ScorexLogging {
       val newSnapshots = diff.portfolios
         .collect { case (acc, portfolioDiff) if portfolioDiff.balance != 0 || portfolioDiff.effectiveBalance != 0 =>
           val oldPortfolio = s.accountPortfolio(acc)
+          val lastHeight = s.lastUpdateHeight(acc).getOrElse(0)
+          val lastWeightedBalance = s.lastUpdateWeightedBalance(acc).getOrElse(0L)
+          val newBalance = oldPortfolio.balance + portfolioDiff.balance
+          val newEffectiveBalance = oldPortfolio.effectiveBalance + portfolioDiff.effectiveBalance
+          val newWeightedBalance = portfolioDiff.effectiveBalance == 0 && currentBlockHeight == lastHeight match {
+            case true => lastWeightedBalance
+            case _ => SPoSCalc.weightedBalaceCalc(currentBlockHeight - lastHeight, oldPortfolio.effectiveBalance,
+              lastWeightedBalance, newEffectiveBalance, settings)
+          }
           acc -> SortedMap(currentBlockHeight -> Snapshot(
-            prevHeight = s.lastUpdateHeight(acc).getOrElse(0),
-            balance = oldPortfolio.balance + portfolioDiff.balance,
-            effectiveBalance = oldPortfolio.effectiveBalance + portfolioDiff.effectiveBalance))
+            prevHeight = lastHeight,
+            balance = newBalance,
+            effectiveBalance = newEffectiveBalance,
+            weightedBalance = newWeightedBalance)
+          )
         }
       BlockDiff(diff, heightDiff, newSnapshots)
     }

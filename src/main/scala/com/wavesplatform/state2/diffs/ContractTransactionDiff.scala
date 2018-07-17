@@ -12,9 +12,10 @@ object ContractTransactionDiff {
   def create(s: StateReader, height: Int)(tx: CreateContractTransaction): Either[ValidationError, Diff] = {
     //no need to validate the name duplication coz that will create a duplicate transacion and
     // will fail with duplicated transaction id
+    val contractInfo = (tx.contract.enabled, tx.sender.toAddress, tx.contract.content)
     Right(Diff(height = height, tx = tx,
       portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-      contracts = Map(tx.contract.name -> (tx.contract.enabled, tx.sender.toAddress, tx.contract.content))
+      contracts = Map(tx.contract.name -> contractInfo)
     ))
   }
 
@@ -28,6 +29,7 @@ object ContractTransactionDiff {
       originalAddr = contract._2
       originalEnabled = contract._1
       originalContent = contract._3
+      newContractInfo = (!originalEnabled, tx.sender.toAddress, originalContent)
       validation <- if (!originalAddr.equals(tx.sender.toAddress.bytes)) {
         Left(GenericError(s"Only the creater of the contract can change contract status"))
       } else if (originalEnabled && (tx.action == ChangeContractStatusAction.Enable)) {
@@ -37,7 +39,7 @@ object ContractTransactionDiff {
       } else Right(())
     } yield Diff(height = height, tx = tx,
       portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-      contracts = Map(tx.contractName -> (!originalEnabled, tx.sender.toAddress, originalContent))
+      contracts = Map(tx.contractName -> newContractInfo)
     )
   }
 }

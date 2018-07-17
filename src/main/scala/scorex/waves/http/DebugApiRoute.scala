@@ -21,7 +21,7 @@ import scorex.api.http._
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.transaction.{BlockchainUpdater, History}
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

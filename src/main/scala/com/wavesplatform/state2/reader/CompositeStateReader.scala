@@ -41,7 +41,6 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def addressToSlotID(add: String): Option[Int] = {
     inner.addressToSlotID(add) match {
-      // headOption for one slot one address / one address one slot per block
       case None => txDiff.slotids.filter(_._2 == add).keys.headOption
       case id => txDiff.slotids.filter(_._1 == id.get).values.headOption match {
         case None => id
@@ -78,6 +77,10 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       .map(t=>(t._1, t._2.bytes, t._3))
       .orElse(inner.contractContent(name))
 
+  override def dbGet(key: ByteStr): Option[ByteStr] =
+    txDiff.dbEntries.get(key).map(v=>v.bytes)
+      .orElse(inner.dbGet(key))
+
   override def accountPortfolios: Map[Address, Portfolio] = Monoid.combine(inner.accountPortfolios, txDiff.portfolios)
 
   override def isLeaseActive(leaseTx: LeaseTransaction): Boolean =
@@ -88,6 +91,8 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   }
 
   override def lastUpdateHeight(acc: Address): Option[Int] = blockDiff.snapshots.get(acc).map(_.lastKey).orElse(inner.lastUpdateHeight(acc))
+
+  override def lastUpdateWeightedBalance(acc: Address): Option[Long] = blockDiff.snapshots.get(acc).map(_.last._2.weightedBalance).orElse(inner.lastUpdateWeightedBalance(acc))
 
   override def containsTransaction(id: ByteStr): Boolean = blockDiff.txsDiff.transactions.contains(id) || inner.containsTransaction(id)
 
@@ -125,6 +130,9 @@ object CompositeStateReader {
     override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
       new CompositeStateReader(inner, blockDiff()).contractContent(name)
 
+    override def dbGet(key: ByteStr): Option[ByteStr] =
+      new CompositeStateReader(inner, blockDiff()).dbGet(key)
+
     override def assetInfo(id: ByteStr): Option[AssetInfo] =
       new CompositeStateReader(inner, blockDiff()).assetInfo(id)
 
@@ -148,6 +156,9 @@ object CompositeStateReader {
 
     override def lastUpdateHeight(acc: Address): Option[Int] =
       new CompositeStateReader(inner, blockDiff()).lastUpdateHeight(acc)
+
+    override def lastUpdateWeightedBalance(acc: Address): Option[Long] =
+      new CompositeStateReader(inner, blockDiff()).lastUpdateWeightedBalance(acc)
 
     override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] =
       new CompositeStateReader(inner, blockDiff()).snapshotAtHeight(acc, h)

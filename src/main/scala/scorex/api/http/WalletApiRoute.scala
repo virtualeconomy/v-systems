@@ -6,7 +6,7 @@ import com.wavesplatform.settings.RestAPISettings
 import io.swagger.annotations._
 import play.api.libs.json.Json
 import scorex.crypto.encode.Base58
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 @Path("/wallet")
 @Api(value = "/wallet")

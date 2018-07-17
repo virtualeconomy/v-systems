@@ -9,7 +9,9 @@ import scorex.transaction._
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
 import scorex.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
+import scorex.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vee.transaction.MintingTransaction
 
 object TransactionDiffer {
 
@@ -39,6 +41,7 @@ object TransactionDiffer {
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
         case cctx: CreateContractTransaction => ContractTransactionDiff.create(s, currentBlockHeight)(cctx)
         case ccstx: ChangeContractStatusTransaction => ContractTransactionDiff.changeStatus(s, currentBlockHeight)(ccstx)
+        case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }
       positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp, settings)(diff)

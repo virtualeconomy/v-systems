@@ -11,7 +11,7 @@ import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 import scorex.transaction.assets.exchange.AssetPair
 import scorex.utils.{NTP, ScorexLogging}
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 class OrderHistoryActorSpecification extends TestKit(ActorSystem("MatcherTest"))
   with WordSpecLike

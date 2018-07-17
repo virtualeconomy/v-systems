@@ -20,7 +20,7 @@ import scorex.transaction.ValidationError.{AccountBalanceError, GenericError, Or
 import scorex.transaction.assets.exchange._
 import scorex.transaction.{History, ValidationError}
 import scorex.utils.{NTP, ScorexLogging}
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global

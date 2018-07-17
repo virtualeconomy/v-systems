@@ -25,7 +25,7 @@ import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
 import scorex.transaction.{AssetId, History}
 import scorex.utils.{NTP, ScorexLogging}
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"))
   with WordSpecLike

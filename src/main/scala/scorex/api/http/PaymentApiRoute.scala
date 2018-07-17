@@ -8,22 +8,22 @@ import com.wavesplatform.settings.RestAPISettings
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import scorex.BroadcastRoute
-import scorex.api.http.assets.TransferRequest
+import scorex.api.http.assets.PaymentRequest
 import scorex.transaction.TransactionFactory
 import scorex.utils.Time
-import scorex.wallet.Wallet
+import vee.wallet.Wallet
 
 @Path("/payment")
 @Api(value = "/payment")
-@Deprecated
+//@Deprecated
 case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time)
   extends ApiRoute with BroadcastRoute {
 
   override lazy val route = payment
 
-  @Deprecated
-  @ApiOperation(value = "Send payment. Deprecated: use /assets/transfer instead",
-    notes = "Send payment to another wallet. Deprecated: use /assets/transfer instead",
+//  @Deprecated
+  @ApiOperation(value = "Send payment.",
+    notes = "Send payment to another wallet.",
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json")
@@ -41,8 +41,8 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
     new ApiResponse(code = 200, message = "Json with response or error")
   ))
   def payment: Route = (path("payment") & post & withAuth) {
-    json[TransferRequest] { p =>
-      doBroadcast(TransactionFactory.transferAsset(p, wallet, time))
+    json[PaymentRequest] { p =>
+      doBroadcast(TransactionFactory.createPayment(p, wallet, time))
     }
   }
 }

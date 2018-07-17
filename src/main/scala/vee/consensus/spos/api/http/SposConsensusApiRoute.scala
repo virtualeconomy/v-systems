@@ -1,4 +1,4 @@
-package scorex.consensus.nxt.api.http
+package vee.consensus.spos.api.http
 
 import javax.ws.rs.Path
 
@@ -14,7 +14,7 @@ import scorex.transaction.{History, PoSCalc}
 
 @Path("/consensus")
 @Api(value = "/consensus")
-case class NxtConsensusApiRoute(
+case class SposConsensusApiRoute(
     settings: RestAPISettings,
     state: StateReader,
     history: History,

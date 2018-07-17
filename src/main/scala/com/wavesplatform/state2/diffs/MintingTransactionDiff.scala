@@ -2,9 +2,10 @@ package com.wavesplatform.state2.diffs
 
 import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
+import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError.GenericError
-import scorex.transaction.{MintingTransaction, ValidationError}
+import scorex.transaction.ValidationError
+import vee.transaction.MintingTransaction
 
 import scala.util.{Left, Right}
 

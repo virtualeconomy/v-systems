@@ -1,4 +1,4 @@
-package scorex.transaction
+package vee.transaction
 
 import java.util
 
@@ -11,6 +11,7 @@ import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
 
+import scorex.transaction._
 import scorex.transaction.TransactionParser._
 
 import scala.util.{Failure, Success, Try}
