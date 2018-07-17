@@ -11,6 +11,7 @@ import scorex.account.Address
 import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress}
 import scorex.crypto.encode.Base58
 import scorex.transaction.{History, PoSCalc}
+import vee.spos.SPoSCalc
 
 @Path("/consensus")
 @Api(value = "/consensus")
@@ -37,6 +38,21 @@ case class SposConsensusApiRoute(
         complete(Json.obj(
           "address" -> account.address,
           "balance" -> PoSCalc.generatingBalance(state, fs, account, state.height)))
+    }
+  }
+
+  @Path("/mintingbalance/{address}")
+  @ApiOperation(value = "Minting balance", notes = "Account's minting balance", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
+  ))
+  def mintingBalance: Route = (path("mintingbalance" / Segment) & get) { address =>
+    Address.fromString(address) match {
+      case Left(_) => complete(InvalidAddress)
+      case Right(account) =>
+        complete(Json.obj(
+          "address" -> account.address,
+          "balance" -> SPoSCalc.mintingBalance(state, fs, account, state.height)))
     }
   }
 
