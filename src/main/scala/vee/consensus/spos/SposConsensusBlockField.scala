@@ -20,6 +20,7 @@ case class SposConsensusBlockField(override val value: SposConsensusBlockData)
 
   override def json: JsObject = Json.obj(name -> Json.obj(
     "mint-time" -> value.mintTime,
+    "mint-balance" -> value.mintBalance,
     "generation-signature" -> Base58.encode(value.generationSignature)
   ))
 }
