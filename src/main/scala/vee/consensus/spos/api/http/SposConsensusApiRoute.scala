@@ -52,7 +52,8 @@ case class SposConsensusApiRoute(
       case Right(account) =>
         complete(Json.obj(
           "address" -> account.address,
-          "balance" -> SPoSCalc.mintingBalance(state, fs, account, state.height)))
+          "balance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
+          "height" -> state.height))
     }
   }
 
