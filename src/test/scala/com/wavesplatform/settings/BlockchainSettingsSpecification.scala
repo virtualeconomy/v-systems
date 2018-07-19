@@ -131,10 +131,10 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
-    settings.genesisSettings.blockTimestamp should be(1529898440087220090L)
-    settings.genesisSettings.timestamp should be(1529898440087220090L)
+    settings.genesisSettings.blockTimestamp should be(1531711111334278489L)
+    settings.genesisSettings.timestamp should be(1531711111334278489L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("36uHjhrpSDuoC1zUkBsWyYKLwenTxykk5Bq2JcA3eBmop2anseJQDFBkAXWRgT828x8xyHVSQ4MuVCAqbKZt35ge").toOption)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("z8pYunYEKyd39WihwVG6jM7tTKocEsQhLbFUZMDiNBfxSpV1s5cEgimPJg8S4EzCmMGYiuJkRvgsepjE5zgfe4j").toOption)
     settings.genesisSettings.initialBalance should be(10000000000000000L)
 
     settings.genesisSettings.transactions should be(Seq(

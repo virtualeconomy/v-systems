@@ -67,8 +67,9 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
 
   lazy val bytesWithoutSignature: Array[Byte] = bytes.dropRight(SignatureLength)
 
-  // set blockScore to constant, this parameter is useless NOW
-  lazy val blockScore: BigInt = BigInt("1")//BigInt("18446744073709551616") // until we make smart-constructor validate consensusData.baseTarget to be positive
+  // set blockScore to minting Balance / 100000000
+  val sc = consensusData.mintBalance / 100000000L
+  lazy val blockScore: BigInt = BigInt(sc.toString)//BigInt("18446744073709551616") // until we make smart-constructor validate consensusData.baseTarget to be positive
 
   lazy val feesDistribution: Diff = Monoid[Diff].combineAll({
     val generator = signerData.generator
@@ -99,6 +100,7 @@ object Block extends ScorexLogging {
   val MaxTransactionsPerBlockVer1: Int = 100
   val MaxTransactionsPerBlockVer2: Int = 65535
   val MintTimeLength: Int = 8
+  val MintBalanceLength: Int = 8
   val GeneratorSignatureLength: Int = 32
 
   val BlockIdLength = SignatureLength
@@ -140,7 +142,9 @@ object Block extends ScorexLogging {
     val cBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
     position += 4
     val cBytes = bytes.slice(position, position + cBytesLength)
-    val consData = SposConsensusBlockData(Longs.fromByteArray(cBytes.take(Block.MintTimeLength)), cBytes.takeRight(Block.GeneratorSignatureLength))
+    val mintTimeBytes = cBytes.slice(0, Block.MintTimeLength)
+    val mintBalanceBytes = cBytes.slice(Block.MintTimeLength, Block.MintTimeLength + Block.MintBalanceLength)
+    val consData = SposConsensusBlockData(Longs.fromByteArray(mintTimeBytes), Longs.fromByteArray(mintBalanceBytes), cBytes.takeRight(Block.GeneratorSignatureLength))
     position += cBytesLength
 
     position += TransactionMerkleRootLength
@@ -194,7 +198,8 @@ object Block extends ScorexLogging {
       ProcessedTransaction(TransactionStatus.Success, 0, _)
     )
     val transactionGenesisDataField = TransactionsBlockFieldVersion1or2(transactionGenesisData)
-    val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, Array.fill(DigestSize)(0: Byte))
+    // initial minting Balance set as 0
+    val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, 0L, Array.fill(DigestSize)(0: Byte))
     val consensusGenesisDataField = SposConsensusBlockField(consensusGenesisData)
     val txBytesSize = transactionGenesisDataField.bytes.length
     val txBytes = Bytes.ensureCapacity(Ints.toByteArray(txBytesSize), 4, 0) ++ transactionGenesisDataField.bytes

@@ -35,6 +35,7 @@ package object history {
       reference = refTo,
       consensusData = SposConsensusBlockData(
         mintTime = 0L,
+        mintBalance = 0L,
         generationSignature = generationSignature),
       transactionData = txs,
       signer = defaultSigner)

@@ -13,11 +13,14 @@ case class SposConsensusBlockField(override val value: SposConsensusBlockData)
 
   override def bytes: Array[Byte] =
     Bytes.ensureCapacity(Longs.toByteArray(value.mintTime), 8, 0) ++
+      Bytes.ensureCapacity(Longs.toByteArray(value.mintBalance), 8, 0) ++
       value.generationSignature
+
 
 
   override def json: JsObject = Json.obj(name -> Json.obj(
     "mint-time" -> value.mintTime,
+    "mint-balance" -> value.mintBalance,
     "generation-signature" -> Base58.encode(value.generationSignature)
   ))
 }

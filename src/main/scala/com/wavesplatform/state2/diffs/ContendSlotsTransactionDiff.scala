@@ -3,7 +3,7 @@ package com.wavesplatform.state2.diffs
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.{ContendSlotsTransaction, ValidationError}
-import scorex.transaction.PoSCalc._
+import vee.spos.SPoSCalc._
 import scorex.account.Address
 import com.wavesplatform.settings.FunctionalitySettings
 import scorex.transaction.ValidationError.GenericError
@@ -21,10 +21,10 @@ object ContendSlotsTransactionDiff {
     val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
     if (!MultiSlotsCheck && isValidSlotID){
-      val ContendGen = generatingBalance(s,fs,tx.sender,height)
+      val ContendGen = mintingBalance(s,fs,tx.sender,height)
       val SlotGen = s.slotAddress(tx.slotid) match {
         //if the slot is occupied, return the generating balance, else return 0
-        case Some(l) => Address.fromString(l).right.map( arr => generatingBalance(s,fs,arr,height)).getOrElse(0L)
+        case Some(l) => Address.fromString(l).right.map( arr => mintingBalance(s,fs,arr,height)).getOrElse(0L)
         case None => 0L //here 0 can be changed to min contend cost
       }
       if (ContendGen > SlotGen){
