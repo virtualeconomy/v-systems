@@ -16,6 +16,7 @@ import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
 import scorex.utils.Time
 
 import scala.concurrent.duration._
+import vee.transaction.MintingTransaction
 
 class UtxPoolSpecification extends FreeSpec
   with Matchers
@@ -54,6 +55,10 @@ class UtxPoolSpecification extends FreeSpec
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
   } yield TransferTransaction.create(None, sender, recipient, amount, time.getTimestamp(), None, fee, Array.empty[Byte]).right.get)
     .label("transferWithRecipient")
+
+  private def mintingTransaction(sender: PrivateKeyAccount, amount: Long, time: Time, height: Int) = {
+    MintingTransaction.create(sender, amount, amount, time.getTimestamp(), height).right.get
+  }
 
   private val stateGen = for {
     sender <- accountGen.label("sender")
@@ -95,6 +100,17 @@ class UtxPoolSpecification extends FreeSpec
     txs.foreach(utxPool.putIfNew)
     (sender, state, utxPool, time, settings)
   }).label("withValidPayments")
+
+  private val withMintingTransaction = (for {
+    (sender, senderBalance, state, history) <- stateGen
+    time = new TestTime()
+    tx = mintingTransaction(sender, senderBalance, time, history.height())
+  } yield {
+    val settings = UtxSettings(10, 1.minute)
+    val utxPool = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, settings)
+    val result = utxPool.putIfNew(tx.asInstanceOf[Transaction])
+    (sender, state, utxPool, result)
+  }).label("withMintingTransaction")
 
   private def utxTest(utxSettings: UtxSettings = UtxSettings(20, 5.seconds), txCount: Int = 10)
                      (f: (Seq[TransferTransaction], UtxPool, TestTime) => Unit): Unit = forAll(
@@ -214,6 +230,11 @@ class UtxPoolSpecification extends FreeSpec
           count should be >= utxPortfolioBefore.assets.getOrElse(assetId, count)
         }
       }
+    }
+
+    "ignore minting transaction" in forAll(withMintingTransaction) { case (sender, state, utxPool, result) =>
+      utxPool.size shouldEqual 0
+      result.toString should include ("Cannot add MintingTransaction to transaction pool")
     }
   }
 }
