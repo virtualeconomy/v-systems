@@ -173,7 +173,7 @@ object Block extends ScorexLogging {
                    transactionData: Seq[Transaction],
                    signer: PrivateKeyAccount): Block = {
     val nonSignedBlock = Block(timestamp, version, reference, SignerData(signer, ByteStr.empty), consensusData,
-      transactionData.map(ProcessedTransaction(TransactionStatus.Success, 0, _)))
+      transactionData.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)})
     val toSign = nonSignedBlock.bytes
     val signature = EllipticCurveImpl.sign(signer, toSign)
     require(reference.arr.length == SignatureLength, "Incorrect reference")
@@ -194,9 +194,9 @@ object Block extends ScorexLogging {
 
     val genesisSigner = PrivateKeyAccount(Array.empty)
 
-    val transactionGenesisData = genesisTransactions(genesisSettings).map(
-      ProcessedTransaction(TransactionStatus.Success, 0, _)
-    )
+    val transactionGenesisData = genesisTransactions(genesisSettings).map {
+      tx => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)
+    }
     val transactionGenesisDataField = TransactionsBlockFieldVersion1or2(transactionGenesisData)
     // initial minting Balance set as 0
     val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, 0L, Array.fill(DigestSize)(0: Byte))
