@@ -13,6 +13,7 @@ import scorex.transaction.TransactionParser._
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{AssetAcc, _}
 import scorex.utils.ScorexLogging
+import vee.fee.{ResourcePricingBlockField, ResourcePricingBlockData}
 
 import scala.util.{Failure, Try}
 
@@ -26,6 +27,9 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   private lazy val consensusDataField = SposConsensusBlockField(consensusData)
   private lazy val transactionDataField = TransactionsBlockField(version.toInt, transactionData)
   private lazy val transactionMerkleField = MerkleRootBlockField("TransactionMerkleRoot", transactionData)
+
+  private val resourcePricingData = ResourcePricingBlockData(0L, 0L, 0L, 0L, 0L)
+  private lazy val resourcePricingDataField = ResourcePricingBlockField(resourcePricingData)
 
   lazy val uniqueId: ByteStr = signerData.signature
 
@@ -41,6 +45,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
       timestampField.json ++
       referenceField.json ++
       consensusDataField.json ++
+      resourcePricingDataField.json ++
       transactionMerkleField.json ++
       transactionDataField.json ++
       signerDataField.json ++
@@ -56,10 +61,14 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
     val cBytesSize = consensusDataField.bytes.length
     val cBytes = Bytes.ensureCapacity(Ints.toByteArray(cBytesSize), 4, 0) ++ consensusDataField.bytes
 
+    val fBytesSize = resourcePricingDataField.bytes.length
+    val fBytes = Bytes.ensureCapacity(Ints.toByteArray(fBytesSize), 4, 0) ++ resourcePricingDataField.bytes
+
     versionField.bytes ++
       timestampField.bytes ++
       referenceField.bytes ++
       cBytes ++
+      fBytes ++
       transactionMerkleField.bytes ++
       txBytes ++
       signerDataField.bytes
@@ -69,7 +78,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
 
   // set blockScore to minting Balance / 100000000
   val sc = consensusData.mintBalance / 100000000L
-  lazy val blockScore: BigInt = BigInt(sc.toString)//BigInt("18446744073709551616") // until we make smart-constructor validate consensusData.baseTarget to be positive
+  lazy val blockScore: BigInt = BigInt(sc.toString)
 
   lazy val feesDistribution: Diff = Monoid[Diff].combineAll({
     val generator = signerData.generator
@@ -79,6 +88,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
       .groupBy(a => a._1)
       .mapValues((records: Seq[(AssetAcc, Long)]) => records.map(_._2).sum)
   }.toList.map {
+    // need to destroy transaction fee here
     case (AssetAcc(account, maybeAssetId), feeVolume) =>
       account -> (maybeAssetId match {
         case None => Portfolio(feeVolume, LeaseInfo.empty, Map.empty)
@@ -147,6 +157,10 @@ object Block extends ScorexLogging {
     val consData = SposConsensusBlockData(Longs.fromByteArray(mintTimeBytes), Longs.fromByteArray(mintBalanceBytes), cBytes.takeRight(Block.GeneratorSignatureLength))
     position += cBytesLength
 
+    val fBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
+    position += 4
+    position += fBytesLength
+
     position += TransactionMerkleRootLength
 
     val tBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
@@ -201,10 +215,14 @@ object Block extends ScorexLogging {
     // initial minting Balance set as 0
     val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, 0L, Array.fill(DigestSize)(0: Byte))
     val consensusGenesisDataField = SposConsensusBlockField(consensusGenesisData)
+    val feeGenesisData = ResourcePricingBlockData(0L, 0L, 0L, 0L, 0L)
+    val feeGenesisDataField = ResourcePricingBlockField(feeGenesisData)
     val txBytesSize = transactionGenesisDataField.bytes.length
     val txBytes = Bytes.ensureCapacity(Ints.toByteArray(txBytesSize), 4, 0) ++ transactionGenesisDataField.bytes
     val cBytesSize = consensusGenesisDataField.bytes.length
     val cBytes = Bytes.ensureCapacity(Ints.toByteArray(cBytesSize), 4, 0) ++ consensusGenesisDataField.bytes
+    val fBytesSize = feeGenesisDataField.bytes.length
+    val fBytes = Bytes.ensureCapacity(Ints.toByteArray(fBytesSize), 4, 0) ++ feeGenesisDataField.bytes
     val genesisTransactionMerkleBytes = MerkleRootBlockField("TransactionMerkleRoot", transactionGenesisData).bytes
 
     val reference = Array.fill(SignatureLength)(-1: Byte)
@@ -214,6 +232,7 @@ object Block extends ScorexLogging {
       Bytes.ensureCapacity(Longs.toByteArray(timestamp), 8, 0) ++
       reference ++
       cBytes ++
+      fBytes ++
       genesisTransactionMerkleBytes ++
       txBytes ++
       genesisSigner.publicKey

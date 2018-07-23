@@ -9,7 +9,7 @@ import scorex.crypto.encode.Base58
 case class SposConsensusBlockField(override val value: SposConsensusBlockData)
   extends BlockField[SposConsensusBlockData] {
 
-  override val name: String = "spos-consensus"
+  override val name: String = "SPOSConsensus"
 
   override def bytes: Array[Byte] =
     Bytes.ensureCapacity(Longs.toByteArray(value.mintTime), 8, 0) ++
@@ -19,8 +19,8 @@ case class SposConsensusBlockField(override val value: SposConsensusBlockData)
 
 
   override def json: JsObject = Json.obj(name -> Json.obj(
-    "mint-time" -> value.mintTime,
-    "mint-balance" -> value.mintBalance,
-    "generation-signature" -> Base58.encode(value.generationSignature)
+    "mintTime" -> value.mintTime,
+    "mintBalance" -> value.mintBalance,
+    "generationSignature" -> Base58.encode(value.generationSignature)
   ))
 }

@@ -29,8 +29,8 @@ object GenesisSettings {
       GenesisTransactionSettings("3PBWXDFUc86N2EQxKJmW8eFco65xTyMZx6J", Constants.UnitsInWave)),
     1529885280000000000L, 60.seconds)
 
-  val TESTNET = GenesisSettings(1531711111334278489L, 1531711111334278489L, Constants.UnitsInWave * Constants.TotalWaves,
-    ByteStr.decodeBase58("z8pYunYEKyd39WihwVG6jM7tTKocEsQhLbFUZMDiNBfxSpV1s5cEgimPJg8S4EzCmMGYiuJkRvgsepjE5zgfe4j").toOption,
+  val TESTNET = GenesisSettings(1531981402583219447L, 1531981402583219447L, Constants.UnitsInWave * Constants.TotalWaves,
+    ByteStr.decodeBase58("67fcui4nNFTDgFBbaAJy9vquCBj2BVj3D892nr4iE9QVrG1H1RGVq6ALZjA8DM5ZXnoeGekc573uS8zQHc9TdLpo").toOption,
     List(
       GenesisTransactionSettings("3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS", (Constants.UnitsInWave * Constants.TotalWaves * 0.30).toLong),
       GenesisTransactionSettings("3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr", (Constants.UnitsInWave * Constants.TotalWaves * 0.20).toLong),
@@ -42,5 +42,5 @@ object GenesisSettings {
       GenesisTransactionSettings("3MpZ718ivTCaRbra6JpABGV9Hdk75QAvpbj", (Constants.UnitsInWave * Constants.TotalWaves * 0.06).toLong),
       GenesisTransactionSettings("3N3SZdKP5qWv7AsKXDC1Vk7unWg81oQ3ynK", (Constants.UnitsInWave * Constants.TotalWaves * 0.04).toLong),
       GenesisTransactionSettings("3N15meHNxRzmfRYJJqrWA7p5NN2yd4CF62v", (Constants.UnitsInWave * Constants.TotalWaves * 0.02).toLong)),
-    1531711110000000000L, 60.seconds)
+    1531981400000000000L, 60.seconds)
 }
