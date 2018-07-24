@@ -32,6 +32,14 @@ package object utils {
     r
   }
 
+  def randomString(howMany: Int = 32): String = {
+    val alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+    var sr = new SecureRandom()
+    val tmpList = List.range(0, howMany)
+    val charList = tmpList.map(e => alphanum(sr.nextInt(alphanum.length)))
+    charList.mkString
+  }
+
   def objectFromString[T](fullClassName: String): Try[T] = Try {
     val runtimeMirror = universe.runtimeMirror(getClass.getClassLoader)
     val module = runtimeMirror.staticModule(fullClassName)
