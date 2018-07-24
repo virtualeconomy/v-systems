@@ -87,7 +87,7 @@ object Wallet extends ScorexLogging {
       }
 
     private lazy val actualSeed = maybeSeedFromConfig.getOrElse {
-      val randomSeed = randomString(64)
+      val randomSeed = ByteStr(randomBytes(64)).toString
       log.info(s"Your randomly generated seed is ${randomSeed}")
       randomSeed
     }
