@@ -8,7 +8,7 @@ import com.wavesplatform.settings.WalletSettings
 import com.wavesplatform.state2.ByteStr
 import vee.utils.JsonFileStorage
 import play.api.libs.json._
-import scorex.account.{Address, PrivateKeyAccount}
+import scorex.account.{Address, PrivateKeyAccount, AddressScheme}
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.MissingSenderPrivateKey
 import scorex.utils.{ScorexLogging, randomBytes}
@@ -46,7 +46,10 @@ object Wallet extends ScorexLogging {
     def exportAccountSeed(account: Address): Either[ValidationError, Array[Byte]] = w.privateKeyAccount(account).map(_.seed)
   }
 
-  private case class WalletData(seed: ByteStr, accountSeeds: Set[ByteStr], nonce: Int)
+  private val chainName = if(AddressScheme.current.chainId == 'T') "testnet" else "mainnet"
+  private val agentString = "VEE wallet:0.0.1/VEE full node:0.0.1/" + chainName
+
+  private case class WalletData(seed: ByteStr, accountSeeds: Set[ByteStr] = Set.empty, nonce: Int = 0, agent: String = agentString)
 
   private implicit val walletFormat: Format[WalletData] = Json.format
 
@@ -69,7 +72,7 @@ object Wallet extends ScorexLogging {
     val oldNonce = oldWallet.nonce()
     oldWallet.close()
 
-    val WD = WalletData(oldSeed,oldAccountSeeds,oldNonce)
+    val WD = WalletData(seed = oldSeed, accountSeeds = oldAccountSeeds, nonce = oldNonce)
 
     JsonFileStorage.save(WD, newPath, Option(JsonFileStorage.prepareKey("")))
   }
@@ -93,7 +96,7 @@ object Wallet extends ScorexLogging {
 
     private var walletData: WalletData = {
       if (maybeFile.isEmpty)
-        WalletData(actualSeed, Set.empty, 0)
+        WalletData(seed = actualSeed)
       else {
         val file = maybeFile.get
         if (file.exists() && file.length() > 0) {
@@ -102,7 +105,7 @@ object Wallet extends ScorexLogging {
           else {
             throw new IllegalStateException(s"Failed to open existing wallet file '${maybeFile.get}' maybe provided password is incorrect")
           }
-        } else WalletData(actualSeed, Set.empty, 0)
+        } else WalletData(seed = actualSeed)
       }
     }
 
