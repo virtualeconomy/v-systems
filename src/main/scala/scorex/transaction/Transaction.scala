@@ -20,6 +20,11 @@ trait Transaction extends BytesSerializable with JsonSerializable with Signed {
   }
 
   override def hashCode(): Int = id.hashCode()
+
+  def transactionFee: Long = assetFee._1 match {
+    case Some(_) => 0
+    case None => assetFee._2
+  }
 }
 
 trait Signed {

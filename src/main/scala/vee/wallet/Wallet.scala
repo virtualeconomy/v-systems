@@ -11,7 +11,8 @@ import play.api.libs.json._
 import scorex.account.{Address, PrivateKeyAccount, AddressScheme}
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.MissingSenderPrivateKey
-import scorex.utils.{ScorexLogging, randomBytes}
+import scorex.utils.{ScorexLogging, randomString}
+import scorex.crypto.encode.Base58
 
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
@@ -67,7 +68,7 @@ object Wallet extends ScorexLogging {
     val oldFilePath = new File(oldPath)
     val oldWallet = new WalletObsolete(Option(oldFilePath), "".toCharArray, None)
 
-    val oldSeed = ByteStr(oldWallet.seed)
+    val oldSeed = new String(Base58.decode(oldWallet.seed), StandardCharsets.UTF_8)
     val oldAccountSeeds = oldWallet.privateKeyAccounts().map(a => ByteStr(a.seed)).toSet
     val oldNonce = oldWallet.nonce()
     oldWallet.close()
@@ -77,7 +78,7 @@ object Wallet extends ScorexLogging {
     JsonFileStorage.save(WD, newPath, Option(JsonFileStorage.prepareKey("")))
   }
 
-  private class WalletImpl(maybeFile: Option[File], password: String, maybeSeedFromConfig: Option[ByteStr]) extends ScorexLogging with Wallet {
+  private class WalletImpl(maybeFile: Option[File], password: String, maybeSeedFromConfig: Option[String]) extends ScorexLogging with Wallet {
 
     private val key = JsonFileStorage.prepareKey(password)
 
@@ -89,8 +90,8 @@ object Wallet extends ScorexLogging {
       }
 
     private lazy val actualSeed = maybeSeedFromConfig.getOrElse {
-      val randomSeed = ByteStr(randomBytes(64))
-      log.info(s"Your randomly generated seed is ${randomSeed.base58}")
+      val randomSeed = ByteStr(randomBytes(64)).toString
+      log.info(s"Your randomly generated seed is ${randomSeed}")
       randomSeed
     }
 

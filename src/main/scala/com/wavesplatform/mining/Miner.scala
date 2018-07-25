@@ -146,7 +146,7 @@ class Miner(
 
 object Miner extends ScorexLogging {
 
-  val Version: Byte = 2
+  val Version: Byte = 1
   val MinimalGenerationOffsetMillis: Long = 1001
 
   //this function will not be called here

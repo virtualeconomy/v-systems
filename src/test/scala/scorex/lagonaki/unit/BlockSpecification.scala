@@ -42,6 +42,13 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
       assert(parsedBlock.consensusData.generationSignature.sameElements(gs))
       assert(parsedBlock.version.toInt == version)
       assert(parsedBlock.signerData.generator.publicKey.sameElements(gen.publicKey))
+      assert(parsedBlock.transactionData.size == 3)
+      assert(parsedBlock.transactionData(0).status == TransactionStatus.Success)
+      assert(parsedBlock.transactionData(0).feeCharged == 1000)
+      assert(parsedBlock.transactionData(1).status == TransactionStatus.Success)
+      assert(parsedBlock.transactionData(1).feeCharged == 2)
+      assert(parsedBlock.transactionData(2).status == TransactionStatus.Success)
+      assert(parsedBlock.transactionData(2).feeCharged == 2)
     }
   }
 }
