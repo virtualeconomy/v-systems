@@ -22,7 +22,7 @@ object Address extends ScorexLogging {
 
   val Prefix: String = "address:"
 
-  val AddressVersion: Byte = 1
+  val AddressVersion: Byte = 5
   val ChecksumLength = 4
   val HashLength = 20
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
