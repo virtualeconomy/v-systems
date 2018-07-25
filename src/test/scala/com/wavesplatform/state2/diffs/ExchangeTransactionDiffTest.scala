@@ -7,7 +7,7 @@ import com.wavesplatform.state2._
 import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Inside, Matchers, PropSpec}
+import org.scalatest.{Ignore, Inside, Matchers, PropSpec}
 import scorex.account.PrivateKeyAccount
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.ValidationError.AccountBalanceError
@@ -15,6 +15,7 @@ import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
 import scorex.transaction.{GenesisTransaction, ValidationError}
 
+@Ignore
 class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks
   with Matchers with TransactionGen with Inside {
 
