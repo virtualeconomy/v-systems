@@ -10,42 +10,43 @@ import scorex.transaction.GenesisTransaction
 import scorex.transaction.TransactionParser.SignatureLength
 import vee.wallet.Wallet
 import scala.concurrent.duration._
+import scorex.crypto.encode.Base58
 
 object GenesisBlockGenerator extends App {
 
   val genesisSigner = PrivateKeyAccount(Array.empty)
   val reference = ByteStr(Array.fill(SignatureLength)(-1: Byte))
   val distributions = Map(
-    1 -> Seq(1000000000000000L),
-    2 -> Seq(800000000000000L, 200000000000000L),
-    3 -> Seq(650000000000000L, 200000000000000L, 150000000000000L),
-    4 -> Seq(600000000000000L, 200000000000000L, 150000000000000L, 50000000000000L),
-    5 -> Seq(480000000000000L, 200000000000000L, 150000000000000L, 50000000000000L, 120000000000000L),
-    6 -> Seq(300000000000000L, 200000000000000L, 150000000000000L, 50000000000000L, 120000000000000L, 180000000000000L),
-    7 -> Seq(300000000000000L, 200000000000000L, 150000000000000L, 50000000000000L, 120000000000000L, 120000000000000L, 60000000000000L),
-    8 -> Seq(300000000000000L, 200000000000000L, 150000000000000L, 50000000000000L, 120000000000000L, 60000000000000L, 60000000000000L, 60000000000000L),
-    9 -> Seq(300000000000000L, 200000000000000L, 150000000000000L, 50000000000000L, 60000000000000L, 60000000000000L, 60000000000000L, 60000000000000L, 60000000000000L),
-    10 -> Seq(300000000000000L, 200000000000000L, 150000000000000L, 50000000000000L, 60000000000000L, 60000000000000L, 60000000000000L, 60000000000000L, 40000000000000L, 20000000000000L)
+    1 -> Seq(1000000000000000000L),
+    2 -> Seq(800000000000000000L, 200000000000000000L),
+    3 -> Seq(650000000000000000L, 200000000000000000L, 150000000000000000L),
+    4 -> Seq(600000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L),
+    5 -> Seq(480000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L),
+    6 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L, 180000000000000000L),
+    7 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L, 120000000000000000L, 60000000000000000L),
+    8 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L),
+    9 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L),
+    10 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 40000000000000000L, 20000000000000000L)
   )
 
   // add test use wallet address
   val test_wallet_addresses = Array (
-      "3N1YJ6RaYDkmh1fiy8ww7qCXDnySqyxceDS",
-      "3NCorpZy4JhrtXtKeqLTft7Li79vehDssvr",
-      "3MvRSHqRtn4sWgwr3EnDrP6VjphnQrrEB6t",
-      "3MxPwccKXAp9bT9edNLRZHBvJhuEgrdJ61K",
-      "3MzgaPu93fkmCqgkPZHLHgGt3pUZapuU3jM",
-      "3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5",
-      "3MxYTgmMWiaKT82y4jfZaSPDqEDN1JbETvp",
-      "3MpZ718ivTCaRbra6JpABGV9Hdk75QAvpbj",
-      "3N3SZdKP5qWv7AsKXDC1Vk7unWg81oQ3ynK",
-      "3N15meHNxRzmfRYJJqrWA7p5NN2yd4CF62v",
+    "ATxpELPa3yhE5h4XELxtPrW9TfXPrmYE7ze",
+    "ATtRykARbyJS1RwNsA6Rn1Um3S7FuVSovHK",
+    "ATtchuwHVQmNTsRA8ba19juGK9m1gNsUS1V",
+    "AU4AoB2WzeXiJvgDhCZmr6B7uDqAzGymG3L",
+    "AUBHchRBY4mVNktgCgJdGNcYbwvmzPKgBgN",
+    "AU6qstXoazCHDK5dmuCqEnnTWgTqRugHwzm",
+    "AU9HYFXuPZPbFVw8vmp7mFmHb7qiaMmgEYE",
+    "AUBLPMpHVV74fHQD8D6KosA76nusw4FqRr1",
+    "AUBbpPbymsrM8QiXqS3NU7CrD1vy1EyonCa",
+    "AU7nJLcT1mThXGTT1KDkoAtfPzc82Sgay1V",
   )
 
   def generateFullAddressInfo(n: Int) = {
     println("n=" + n + ", address = " + test_wallet_addresses(n))
 
-    val seed = Array.fill(32)((scala.util.Random.nextInt(256)).toByte)
+    val seed = ByteStr(Array.fill(32)((scala.util.Random.nextInt(256)).toByte)).toString
     val acc = Wallet.generateNewAccount(seed, 0)
     val privateKey = ByteStr(acc.privateKey)
     val publicKey = ByteStr(acc.publicKey)
@@ -53,7 +54,7 @@ object GenesisBlockGenerator extends App {
     //    val address = acc.toAddress
     val address = Address.fromString(test_wallet_addresses(n)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
 
-    (ByteStr(seed), ByteStr(acc.seed), privateKey, publicKey, address)
+    (seed, ByteStr(acc.seed), privateKey, publicKey, address)
   }
 
   def generate(networkByte: Char, accountsTotal: Int, mintTime: Long, averageBlockDelay: FiniteDuration) = {
@@ -62,7 +63,7 @@ object GenesisBlockGenerator extends App {
     }
 
     val timestamp = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L
-    val initialBalance = 1000000000000000L
+    val initialBalance = 1000000000000000000L
 
     val mt = if (mintTime < 0) timestamp / 10000000000L * 10000000000L else mintTime
 
@@ -77,7 +78,7 @@ object GenesisBlockGenerator extends App {
 
   }
 
-  def print(accs: Seq[(Int, (ByteStr, ByteStr, ByteStr, ByteStr, Address))], settings: GenesisSettings): Unit = {
+  def print(accs: Seq[(Int, (String, ByteStr, ByteStr, ByteStr, Address))], settings: GenesisSettings): Unit = {
 
     println("Addresses:")
     accs.foreach { case (n, (seed, accSeed, priv, pub, addess)) =>
@@ -106,6 +107,5 @@ object GenesisBlockGenerator extends App {
 
   val (a, s) = generate('T', 10, -1, 60.seconds)
   print(a, s)
-
 
 }
