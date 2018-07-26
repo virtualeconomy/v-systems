@@ -88,11 +88,11 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
       .groupBy(a => a._1)
       .mapValues((records: Seq[(AssetAcc, Long)]) => records.map(_._2).sum)
   }.toList.map {
-    // need to destroy transaction fee here
+    // destroy transaction fee here
     case (AssetAcc(account, maybeAssetId), feeVolume) =>
       account -> (maybeAssetId match {
-        case None => Portfolio(feeVolume, LeaseInfo.empty, Map.empty)
-        case Some(assetId) => Portfolio(0L, LeaseInfo.empty, Map(assetId -> feeVolume))
+        case None => Portfolio(0L, LeaseInfo.empty, Map.empty)
+        case Some(assetId) => Portfolio(0L, LeaseInfo.empty, Map(assetId -> 0L))
       })
   }.map { case (acc, p) =>
     Diff.empty.copy(portfolios = Map(acc -> p))
