@@ -77,7 +77,7 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
   property("Transfer transaction with fee in asset") {
     val feeCalculator = new FeeCalculator(mySettings)
     val sender = PrivateKeyAccount(Array.emptyByteArray)
-    val recipient = Address.fromString("3NBVqYXrapgJP9atQccdBPAgJPwHDKkh6A8").right.get
+    val recipient = Address.fromString("AU3AorwRqQhYpRUR3ednaWFvuxAjYCNWd26").right.get
     val tx1: TransferTransaction = TransferTransaction.create(Some(WhitelistedAsset), sender, recipient, 1000000, 100000000,
       Some(WhitelistedAsset), 2, Array.emptyByteArray).right.get
     val tx2: TransferTransaction = TransferTransaction.create(Some(WhitelistedAsset), sender, recipient, 1000000, 100000000,

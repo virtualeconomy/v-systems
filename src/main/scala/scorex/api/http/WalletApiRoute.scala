@@ -5,7 +5,6 @@ import akka.http.scaladsl.server.Route
 import com.wavesplatform.settings.RestAPISettings
 import io.swagger.annotations._
 import play.api.libs.json.Json
-import scorex.crypto.encode.Base58
 import vee.wallet.Wallet
 
 @Path("/wallet")
@@ -17,6 +16,6 @@ case class WalletApiRoute(settings: RestAPISettings, wallet: Wallet) extends Api
   @Path("/seed")
   @ApiOperation(value = "Seed", notes = "Export wallet seed", httpMethod = "GET")
   def seed: Route = (path("wallet" / "seed") & get & withAuth) {
-    complete(Json.obj("seed" -> Base58.encode(wallet.seed)))
+    complete(Json.obj("seed" -> wallet.seed))
   }
 }
