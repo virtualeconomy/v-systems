@@ -106,7 +106,6 @@ object MintingTransaction {
     position += currentBlockHeightLength
 
     //READ SIGNATURE
-//    val signatureBytes = util.Arrays.copyOfRange(data, position, position + SignatureLength)
 
     MintingTransaction
       .create(minter, amount, fee, timestamp, currentBlockHeight)
