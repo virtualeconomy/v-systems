@@ -11,6 +11,7 @@ import scorex.account.Address
 import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress}
 import scorex.crypto.encode.Base58
 import scorex.transaction.{History, PoSCalc}
+import vee.spos.SPoSCalc
 
 @Path("/consensus")
 @Api(value = "/consensus")
@@ -22,7 +23,7 @@ case class SposConsensusApiRoute(
 
   override val route: Route =
     pathPrefix("consensus") {
-      algo ~ minttime ~ minttimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
+      algo ~ mintingBalance ~ mintingBalanceId ~ minttime ~ minttimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
     }
 
   @Path("/generatingbalance/{address}")
@@ -37,6 +38,46 @@ case class SposConsensusApiRoute(
         complete(Json.obj(
           "address" -> account.address,
           "balance" -> PoSCalc.generatingBalance(state, fs, account, state.height)))
+    }
+  }
+
+  @Path("/mintingbalance/{address}")
+  @ApiOperation(value = "Minting balance", notes = "Account's minting balance", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
+  ))
+  def mintingBalance: Route = (path("mintingbalance" / Segment) & get) { address =>
+    Address.fromString(address) match {
+      case Left(_) => complete(InvalidAddress)
+      case Right(account) =>
+        complete(Json.obj(
+          "address" -> account.address,
+          "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
+          "height" -> state.height))
+    }
+  }
+
+  @Path("/slotinfo/{slotId}")
+  @ApiOperation(value = "Minting balance with slot ID", notes = "Account of supernode's minting balance", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "slotId", value = "Slot Id", required = true, dataType = "integer", paramType = "path")
+  ))
+  def mintingBalanceId: Route = (path("slotinfo" / IntNumber) & get) { slotId =>
+    state.slotAddress(slotId) match {
+      case None =>
+        complete(Json.obj(
+          "address" -> "None",
+          "mintingBalance" -> "0",
+          "height" -> state.height))
+      case Some(address) =>
+        Address.fromString(address) match {
+          case Left(_) => complete(InvalidAddress)
+          case Right(account) =>
+            complete(Json.obj(
+              "address" -> account.address,
+              "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
+              "height" -> state.height))
+        }
     }
   }
 
@@ -77,6 +118,6 @@ case class SposConsensusApiRoute(
   @Path("/algo")
   @ApiOperation(value = "Consensus algo", notes = "Shows which consensus algo being using", httpMethod = "GET")
   def algo: Route = (path("algo") & get) {
-    complete(Json.obj("consensusAlgo" -> "proof-of-stake (PoS)"))
+    complete(Json.obj("consensusAlgo" -> "supernode-proof-of-stake (SPoS)"))
   }
 }

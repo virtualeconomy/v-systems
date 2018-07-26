@@ -21,6 +21,7 @@ import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
 import scorex.utils.{ScorexLogging, Time}
 import vee.transaction.MintingTransaction
 import vee.wallet.Wallet
+import vee.spos.SPoSCalc._
 
 import scala.concurrent.duration._
 import scala.math.Ordering.Implicits._
@@ -68,19 +69,21 @@ class Miner(
     val pc = allChannels.size()
     val minimalMintBalance = 100000000000L
     lazy val lastBlockKernelData = parent.consensusData
+    val effectiveBalance = stateReader.effectiveBalance(account)
     val currentTime = timeService.correctedTime()
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      _ <- Either.cond(balance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Balance $balance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
+      // initial mint Balance = 0 now, should be modified later
+      _ <- Either.cond(effectiveBalance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Effective Balance $effectiveBalance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ <- checkSlot(account)
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       gs = calcGeneratorSignature(lastBlockKernelData, account)
-      consensusData = SposConsensusBlockData(mintTime, gs)
+      consensusData = SposConsensusBlockData(mintTime, balance, gs)
       unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, MintingTransaction.mintingReward, MintingTransaction.mintingFee, currentTime, parentHeight+1).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
@@ -110,7 +113,7 @@ class Miner(
         }
         log.debug(s"Current time $ts")
         log.debug(s"Next attempt for acc = $account in $offset")
-        val balance = generatingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
+        val balance = mintingBalance(stateReader, blockchainSettings.functionalitySettings, account, height)
         generateOneBlockTask(account, height, lastBlock, grandParent, balance, ts + offset.toNanos)(offset).flatMap {
           case Right(block) => Task.now {
             processBlock(block, true) match {
@@ -143,7 +146,7 @@ class Miner(
 
 object Miner extends ScorexLogging {
 
-  val Version: Byte = 2
+  val Version: Byte = 1
   val MinimalGenerationOffsetMillis: Long = 1001
 
   //this function will not be called here

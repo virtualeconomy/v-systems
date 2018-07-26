@@ -12,6 +12,7 @@ import com.wavesplatform.state2.{ByteStr, Diff, Portfolio}
 import kamon.Kamon
 import scorex.account.Address
 import scorex.consensus.TransactionsOrdering
+import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Synchronized, Time}
@@ -64,6 +65,8 @@ class UtxPool(time: Time,
         case None =>
           val res = for {
             _ <- Either.cond(transactions().size < utxSettings.maxSize, (), GenericError("Transaction pool size limit is reached"))
+            _ <- Either.cond(tx.transactionType != TransactionType.MintingTransaction, (),
+              GenericError("Cannot add MintingTransaction to transaction pool"))
             _ <- feeCalculator.enoughFee(tx)
             diff <- TransactionDiffer(fs, history.lastBlock.map(_.timestamp), time.correctedTime(), stateReader.height)(stateReader, tx)
           } yield {

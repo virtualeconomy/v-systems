@@ -15,8 +15,8 @@ trait MatcherTestData {
   private val signatureSize = 32
 
   val bytes32gen: Gen[Array[Byte]] = Gen.listOfN(signatureSize, Arbitrary.arbitrary[Byte]).map(_.toArray)
-  val WalletSeed = ByteStr("Matcher".getBytes())
-  val MatcherSeed = SecureCryptographicHash(Bytes.concat(Ints.toByteArray(0), WalletSeed.arr))
+  val WalletSeed = ByteStr("Matcher".getBytes()).toString
+  val MatcherSeed = SecureCryptographicHash((0.toString + WalletSeed).getBytes("UTF-8"))
   val MatcherAccount = PrivateKeyAccount(MatcherSeed)
   val accountGen: Gen[PrivateKeyAccount] = bytes32gen.map(seed => PrivateKeyAccount(seed))
   val positiveLongGen: Gen[Long] = Gen.choose(1, Long.MaxValue)

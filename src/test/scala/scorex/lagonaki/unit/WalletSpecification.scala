@@ -8,14 +8,13 @@ import vee.wallet.Wallet
 class WalletSpecification extends FunSuite with Matchers {
 
   private val walletSize = 10
-  val w = Wallet(WalletSettings(None, "cookies", ByteStr.decodeBase58("FQgbSAm6swGbtqA3NE8PttijPhT4N3Ufh4bHFAkyVnQz").toOption))
+  val w = Wallet(WalletSettings(None, "cookies", Option("FQgbSAm6swGbtqA3NE8PttijPhT4N3Ufh4bHFAkyVnQz")))
 
   test("wallet - acc creation") {
     w.generateNewAccounts(walletSize)
 
     w.privateKeyAccounts.size shouldBe walletSize
-    w.privateKeyAccounts.map(_.address) shouldBe Seq("3MqMwwHW4v2nSEDHVWoh8RCQL8QrsWLkkeB", "3MuwVgJA8EXHukxo6rcakT5tD6FpvACtitG", "3MuAvUG4EAsG9RP9jaWjewCVmggaQD2t39B", "3MqoX4A3UGBYU7cX2JPs6BCzntNC8K8FBR4", "3N1Q9VVVQtY3GqhwHtJDEyHb3oWBcerZL8X", "3NARifVFHthMDnCwBacXijPB2szAgNTeBCz", "3N6dsnfD88j5yKgpnEavaaJDzAVSRBRVbMY", "3MufvXKZxLuNn5SHcEgGc2Vo7nLWnKVskfJ", "3Myt4tocZmj7o3d1gnuWRrnQWcoxvx5G7Ac", "3N3keodUiS8WLEw9W4BKDNxgNdUpwSnpb3K")
-
+    w.privateKeyAccounts.map(_.address) shouldBe Seq("AU1LeG5cWjFz6jRtZHUkGGENr9fBAQgTUen", "ATzbvcgTUc57YCeHZvcGJGvPXRxHt42w9Tt", "AU2qzimWpe7e78vksS4ufZ8exGzY6o7fYZJ", "ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt", "AU3AorwRqQhYpRUR3ednaWFvuxAjYCNWd26", "AUCMSjySunvAHLfBMRDeKJZJSaq2zrEq6UH", "AU31hWDRTGCfHuSUxMfnzxJrzdQRdFgTPKM", "AU8oJ1QhnqcNo7qUjaWi1qHcbuEJEDXWSe5", "ATuYeyAT3HBkMQkbZRoyjR75Ajxd1ppWBYV", "AU6vdNHSWJtYCvqj1hNNb4HQxwdkKGCJ55R")
   }
 
   test("wallet - acc deletion") {
@@ -36,7 +35,7 @@ class WalletSpecification extends FunSuite with Matchers {
 
     val walletFile = Some(scorex.createTestTemporaryFile("wallet", ".dat"))
 
-    val w = Wallet(WalletSettings(walletFile, "cookies", ByteStr.decodeBase58("FQgbSAm6swGbtqA3NE8PttijPhT4N3Ufh4bHFAkyVnQz").toOption))
+    val w = Wallet(WalletSettings(walletFile, "cookies", Option("FQgbSAm6swGbtqA3NE8PttijPhT4N3Ufh4bHFAkyVnQz")))
     w.generateNewAccounts(10)
     val nonce = w.nonce
 

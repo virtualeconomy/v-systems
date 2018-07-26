@@ -16,6 +16,7 @@ import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
 import scorex.utils.Time
 
 import scala.concurrent.duration._
+import vee.transaction.MintingTransaction
 
 class UtxPoolSpecification extends FreeSpec
   with Matchers
@@ -42,18 +43,41 @@ class UtxPoolSpecification extends FreeSpec
     (state, history)
   }
 
-  private def transfer(sender: PrivateKeyAccount, maxAmount: Long, time: Time) = (for {
+  /* this function is replaced by payment(). The reason is that we disabled transfer transaction
+   * for the first release so this test will fail.
+   */
+  //private def transfer(sender: PrivateKeyAccount, maxAmount: Long, time: Time) = (for {
+  //  amount <- chooseNum(1, (maxAmount * 0.9).toLong)
+  //  recipient <- accountGen
+  //  fee <- chooseNum(1, (maxAmount * 0.1).toLong)
+  //} yield TransferTransaction.create(None, sender, recipient, amount, time.getTimestamp(), None, fee, Array.empty[Byte]).right.get)
+  //  .label("transferTransaction")
+
+  private def payment(sender: PrivateKeyAccount, maxAmount: Long, time: Time) = (for {
     amount <- chooseNum(1, (maxAmount * 0.9).toLong)
     recipient <- accountGen
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
-  } yield TransferTransaction.create(None, sender, recipient, amount, time.getTimestamp(), None, fee, Array.empty[Byte]).right.get)
-    .label("transferTransaction")
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, time.getTimestamp()).right.get)
+    .label("paymentTransaction")
 
-  private def transferWithRecipient(sender: PrivateKeyAccount, recipient: PublicKeyAccount, maxAmount: Long, time: Time) = (for {
+  /* this function is replaced by paymentWithRecipent(). The reason is that we disabled transfer transaction
+   * for the first release so this test will fail.
+   */
+  //private def transferWithRecipient(sender: PrivateKeyAccount, recipient: PublicKeyAccount, maxAmount: Long, time: Time) = (for {
+  //  amount <- chooseNum(1, (maxAmount * 0.9).toLong)
+  //  fee <- chooseNum(1, (maxAmount * 0.1).toLong)
+  //} yield TransferTransaction.create(None, sender, recipient, amount, time.getTimestamp(), None, fee, Array.empty[Byte]).right.get)
+  //  .label("transferWithRecipient")
+
+  private def paymentWithRecipient(sender: PrivateKeyAccount, recipient: PublicKeyAccount, maxAmount: Long, time: Time) = (for {
     amount <- chooseNum(1, (maxAmount * 0.9).toLong)
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
-  } yield TransferTransaction.create(None, sender, recipient, amount, time.getTimestamp(), None, fee, Array.empty[Byte]).right.get)
-    .label("transferWithRecipient")
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, time.getTimestamp()).right.get)
+    .label("paymentWithRecipient")
+
+  private def mintingTransaction(sender: PrivateKeyAccount, amount: Long, time: Time, height: Int) = {
+    MintingTransaction.create(sender, amount, amount, time.getTimestamp(), height).right.get
+  }
 
   private val stateGen = for {
     sender <- accountGen.label("sender")
@@ -88,7 +112,7 @@ class UtxPoolSpecification extends FreeSpec
     (sender, senderBalance, state, history) <- stateGen
     recipient <- accountGen
     time = new TestTime()
-    txs <- Gen.nonEmptyListOf(transferWithRecipient(sender, recipient, senderBalance / 10, time))
+    txs <- Gen.nonEmptyListOf(paymentWithRecipient(sender, recipient, senderBalance / 10, time))
   } yield {
     val settings = UtxSettings(10, 1.minute)
     val utxPool = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, settings)
@@ -96,13 +120,23 @@ class UtxPoolSpecification extends FreeSpec
     (sender, state, utxPool, time, settings)
   }).label("withValidPayments")
 
+  private val withMintingTransaction = (for {
+    (sender, senderBalance, state, history) <- stateGen
+    time = new TestTime()
+    tx = mintingTransaction(sender, senderBalance, time, history.height())
+  } yield {
+    val settings = UtxSettings(10, 1.minute)
+    val utxPool = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, settings)
+    val result = utxPool.putIfNew(tx.asInstanceOf[Transaction])
+    (sender, state, utxPool, result)
+  }).label("withMintingTransaction")
+
   private def utxTest(utxSettings: UtxSettings = UtxSettings(20, 5.seconds), txCount: Int = 10)
-                     (f: (Seq[TransferTransaction], UtxPool, TestTime) => Unit): Unit = forAll(
+                     (f: (Seq[PaymentTransaction], UtxPool, TestTime) => Unit): Unit = forAll(
     stateGen,
     chooseNum(2, txCount).label("txCount")) { case ((sender, senderBalance, state, history), count) =>
     val time = new TestTime()
-
-    forAll(listOfN(count, transfer(sender, senderBalance / 2, time))) { txs =>
+    forAll(listOfN(count, payment(sender, senderBalance / 2, time))) { txs =>
       val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, utxSettings)
       f(txs, utx, time)
     }
@@ -113,9 +147,9 @@ class UtxPoolSpecification extends FreeSpec
       (sender, senderBalance, state, history) <- stateGen
       ts = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
       count1 <- chooseNum(5, 10)
-      tx1 <- listOfN(count1, transfer(sender, senderBalance / 2, new TestTime(ts)))
+      tx1 <- listOfN(count1, payment(sender, senderBalance / 2, new TestTime(ts)))
       offset <- chooseNum(5000000000L, 10000000000L)
-      tx2 <- listOfN(count1, transfer(sender, senderBalance / 2, new TestTime(ts + offset + 1000000000L)))
+      tx2 <- listOfN(count1, payment(sender, senderBalance / 2, new TestTime(ts + offset + 1000000000L)))
     } yield {
       val time = new TestTime()
       val history = HistoryWriterImpl(None, new ReentrantReadWriteLock()).get
@@ -214,6 +248,11 @@ class UtxPoolSpecification extends FreeSpec
           count should be >= utxPortfolioBefore.assets.getOrElse(assetId, count)
         }
       }
+    }
+
+    "ignore minting transaction" in forAll(withMintingTransaction) { case (sender, state, utxPool, result) =>
+      utxPool.size shouldEqual 0
+      result.toString should include ("Cannot add MintingTransaction to transaction pool")
     }
   }
 }

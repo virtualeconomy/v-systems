@@ -19,6 +19,7 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
     val gen = PrivateKeyAccount(reference)
 
     val mt = System.currentTimeMillis() / 10000 * 10000000000000L
+    val mb = 100000000000L
     val gs = Array.fill(Block.GeneratorSignatureLength)(Random.nextInt(100).toByte)
 
 
@@ -30,7 +31,7 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
     val tr2: TransferTransaction = TransferTransaction.create(assetId, sender, gen, 5, ts + 2, None, 2, Array()).right.get
 
     val tbd = Seq(tx, tr, tr2)
-    val cbd = SposConsensusBlockData(mt, gs)
+    val cbd = SposConsensusBlockData(mt, mb, gs)
 
     List(1, 2).foreach { version =>
       val timestamp = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L
@@ -41,6 +42,13 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
       assert(parsedBlock.consensusData.generationSignature.sameElements(gs))
       assert(parsedBlock.version.toInt == version)
       assert(parsedBlock.signerData.generator.publicKey.sameElements(gen.publicKey))
+      assert(parsedBlock.transactionData.size == 3)
+      assert(parsedBlock.transactionData(0).status == TransactionStatus.Success)
+      assert(parsedBlock.transactionData(0).feeCharged == 1000)
+      assert(parsedBlock.transactionData(1).status == TransactionStatus.Success)
+      assert(parsedBlock.transactionData(1).feeCharged == 2)
+      assert(parsedBlock.transactionData(2).status == TransactionStatus.Success)
+      assert(parsedBlock.transactionData(2).feeCharged == 2)
     }
   }
 }
