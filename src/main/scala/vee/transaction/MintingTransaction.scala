@@ -5,9 +5,7 @@ import java.util
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
-import scorex.account._
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.crypto.EllipticCurveImpl
+import scorex.account.PublicKeyAccount
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
 
@@ -20,8 +18,8 @@ case class MintingTransaction private(sender: PublicKeyAccount,
                                       amount: Long,
                                       fee: Long,
                                       timestamp: Long,
-                                      currentBlockHeight: Int,
-                                      signature: ByteStr) extends SignedTransaction {
+                                      currentBlockHeight: Int) extends Transaction {
+  override lazy val signatureValid = true
   override val transactionType = TransactionType.MintingTransaction
   override val assetFee: (Option[AssetId], Long) = (None, fee)
 
@@ -35,16 +33,19 @@ case class MintingTransaction private(sender: PublicKeyAccount,
 
   override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
 
-  override lazy val json: JsObject = jsonBase() ++ Json.obj(
+  override lazy val json: JsObject = Json.obj(
+      "id" -> id.base58,
+      "sender" -> sender.address,
+      "senderPublicKey" -> Base58.encode(sender.publicKey),
+      "type" -> transactionType.id,
       "fee" -> fee,
       "timestamp" -> timestamp,
-      "signature" -> this.signature.base58,
       "minterPublicKey" -> Base58.encode(sender.publicKey),
       "minterAddress" -> sender.toAddress.address,
       "amount" -> amount,
       "currentBlockHeight" -> currentBlockHeight)
 
-  override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
+  override lazy val bytes: Array[Byte] = Bytes.concat(toSign)
 
 }
 
@@ -56,22 +57,13 @@ object MintingTransaction {
   private val minterLength = 32
   private val FeeLength = 8
   private val currentBlockHeightLength = 4
-  private val BaseLength = TimestampLength + minterLength + AmountLength + FeeLength + currentBlockHeightLength + SignatureLength
-
-  def create(minter: PrivateKeyAccount, amount: Long, fee: Long, timestamp: Long, currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
-    create(minter, amount, fee, timestamp, currentBlockHeight, ByteStr.empty).right.map(unsigned => {
-      unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(minter, unsigned.toSign)))
-
-    })
-  }
+  private val BaseLength = TimestampLength + minterLength + AmountLength + FeeLength + currentBlockHeightLength
 
   def create(minter: PublicKeyAccount,
              amount: Long,
              fee: Long,
              timestamp: Long,
-             currentBlockHeight: Int,
-
-             signature: ByteStr): Either[ValidationError, MintingTransaction] = {
+             currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
     if (amount <= 0) {
       Left(ValidationError.NegativeAmount) //CHECK IF AMOUNT IS POSITIVE
     } else if (fee <= 0) {
@@ -79,7 +71,7 @@ object MintingTransaction {
     } else if (Try(Math.addExact(amount, 0)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
     } else {
-      Right(MintingTransaction(minter, amount, fee, timestamp, currentBlockHeight, signature))
+      Right(MintingTransaction(minter, amount, fee, timestamp, currentBlockHeight))
     }
   }
 
@@ -114,10 +106,10 @@ object MintingTransaction {
     position += currentBlockHeightLength
 
     //READ SIGNATURE
-    val signatureBytes = util.Arrays.copyOfRange(data, position, position + SignatureLength)
+//    val signatureBytes = util.Arrays.copyOfRange(data, position, position + SignatureLength)
 
     MintingTransaction
-      .create(minter, amount, fee, timestamp, currentBlockHeight, ByteStr(signatureBytes))
+      .create(minter, amount, fee, timestamp, currentBlockHeight)
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
