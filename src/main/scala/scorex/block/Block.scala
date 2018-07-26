@@ -80,23 +80,8 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   val sc = consensusData.mintBalance / 100000000L
   lazy val blockScore: BigInt = BigInt(sc.toString)
 
-  lazy val feesDistribution: Diff = Monoid[Diff].combineAll({
-    val generator = signerData.generator
-    val assetFees: Seq[(Option[AssetId], Long)] = transactionData.map(_.transaction.assetFee)
-    assetFees
-      .map { case (maybeAssetId, vol) => AssetAcc(generator, maybeAssetId) -> vol }
-      .groupBy(a => a._1)
-      .mapValues((records: Seq[(AssetAcc, Long)]) => records.map(_._2).sum)
-  }.toList.map {
-    // destroy transaction fee here
-    case (AssetAcc(account, maybeAssetId), feeVolume) =>
-      account -> (maybeAssetId match {
-        case None => Portfolio(0L, LeaseInfo.empty, Map.empty)
-        case Some(assetId) => Portfolio(0L, LeaseInfo.empty, Map(assetId -> 0L))
-      })
-  }.map { case (acc, p) =>
-    Diff.empty.copy(portfolios = Map(acc -> p))
-  })
+  // destroy transaction fee
+  lazy val feesDistribution: Diff = Diff.empty
 
   override lazy val signatureValid: Boolean = EllipticCurveImpl.verify(signerData.signature.arr, bytesWithoutSignature, signerData.generator.publicKey)
   override lazy val signedDescendants: Seq[Signed] = transactionData.map(_.transaction)
