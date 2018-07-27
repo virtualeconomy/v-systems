@@ -26,7 +26,7 @@ import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
-import scorex.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
+import vee.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
 import scorex.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import scorex.api.http.database.DbApiRoute

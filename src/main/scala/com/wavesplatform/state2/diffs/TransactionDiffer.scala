@@ -12,6 +12,7 @@ import scorex.transaction.assets._
 import scorex.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.MintingTransaction
+import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 object TransactionDiffer {
 

@@ -1,11 +1,12 @@
-package scorex.api.http.spos
+package vee.api.http.spos
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
 import scorex.account.PublicKeyAccount
 import scorex.api.http.BroadcastRequest
 import scorex.transaction.TransactionParser.SignatureStringLength
-import scorex.transaction.{ReleaseSlotsTransaction, ValidationError}
+import scorex.transaction.ValidationError
+import vee.transaction.spos.ReleaseSlotsTransaction
 
 case class SignedReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                     senderPublicKey: String,

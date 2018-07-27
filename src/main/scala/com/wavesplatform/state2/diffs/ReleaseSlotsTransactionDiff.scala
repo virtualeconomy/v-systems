@@ -2,7 +2,8 @@ package com.wavesplatform.state2.diffs
 
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
-import scorex.transaction.{ReleaseSlotsTransaction, ValidationError}
+import scorex.transaction.ValidationError
+import vee.transaction.spos.ReleaseSlotsTransaction
 import com.wavesplatform.settings.FunctionalitySettings
 
 import scala.util.{Left, Right}
