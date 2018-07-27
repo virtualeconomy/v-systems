@@ -25,20 +25,20 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
   property("can lease/cancel lease preserving waves invariant") {
 
-    val sunnyDayLeaseLeaseCancel: Gen[(GenesisTransaction, LeaseTransaction, LeaseCancelTransaction)] = for {
+    val sunnyDayLeaseLeaseCancel: Gen[(GenesisTransaction, LeaseTransaction, LeaseCancelTransaction, Long, Long)] = for {
       master <- accountGen
       recipient <- accountGen suchThat (_ != master)
       ts <- positiveIntGen
       genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
       (lease, unlease) <- leaseAndCancelGeneratorP(master, recipient, master)
-    } yield (genesis, lease, unlease)
+    } yield (genesis, lease, unlease, lease.fee, unlease.fee)
 
-    forAll(sunnyDayLeaseLeaseCancel) { case ((genesis, lease, leaseCancel)) =>
+    forAll(sunnyDayLeaseLeaseCancel) { case ((genesis, lease, leaseCancel, feeLease, feeLeaseCancel)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(lease))) { case (totalDiff, newState) =>
         val totalPortfolioDiff = Monoid.combineAll(totalDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe 0
+        totalPortfolioDiff.balance shouldBe -feeLease
         total(totalPortfolioDiff.leaseInfo) shouldBe 0
-        totalPortfolioDiff.effectiveBalance shouldBe 0
+        totalPortfolioDiff.effectiveBalance shouldBe -feeLease
         totalPortfolioDiff.assets.values.foreach(_ shouldBe 0)
 
         totalDiff.snapshots(lease.recipient.asInstanceOf[Address]) shouldBe Map(2 -> Snapshot(0, 0, lease.amount, 0))
@@ -46,9 +46,9 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis, lease))), TestBlock.create(Seq(leaseCancel))) { case (totalDiff, newState) =>
         val totalPortfolioDiff = Monoid.combineAll(totalDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe 0
+        totalPortfolioDiff.balance shouldBe -feeLeaseCancel
         total(totalPortfolioDiff.leaseInfo) shouldBe 0
-        totalPortfolioDiff.effectiveBalance shouldBe 0
+        totalPortfolioDiff.effectiveBalance shouldBe -feeLeaseCancel
         totalPortfolioDiff.assets.values.foreach(_ shouldBe 0)
 
         totalDiff.snapshots(lease.recipient.asInstanceOf[Address]) shouldBe Map(2 -> Snapshot(1, 0, 0, 0))

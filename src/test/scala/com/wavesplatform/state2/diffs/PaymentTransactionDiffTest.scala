@@ -13,21 +13,21 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  val preconditionsAndPayment: Gen[(GenesisTransaction, PaymentTransaction)] = for {
+  val preconditionsAndPayment: Gen[(GenesisTransaction, PaymentTransaction, Long)] = for {
     master <- accountGen
     recipient <- otherAccountGen(candidate = master)
     ts <- positiveIntGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
     transfer: PaymentTransaction <- paymentGeneratorP(master, recipient)
-  } yield (genesis, transfer)
+  } yield (genesis, transfer, transfer.fee)
 
 
   property("Diff doesn't break invariant") {
-    forAll(preconditionsAndPayment) { case ((genesis, payment)) =>
+    forAll(preconditionsAndPayment) { case ((genesis, payment, feePayment)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(payment))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe 0
-        totalPortfolioDiff.effectiveBalance shouldBe 0
+        totalPortfolioDiff.balance shouldBe -feePayment
+        totalPortfolioDiff.effectiveBalance shouldBe -feePayment
         newState.accountTransactionIds(payment.sender, 2).size shouldBe 2 // genesis and payment
       }
     }
