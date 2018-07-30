@@ -8,10 +8,11 @@ import scorex.api.http.assets._
 import scorex.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest}
 import scorex.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
-import scorex.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
+import vee.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
 import scorex.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
+import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import scorex.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
 import scorex.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}

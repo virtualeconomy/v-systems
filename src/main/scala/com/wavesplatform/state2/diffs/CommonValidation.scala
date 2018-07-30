@@ -13,6 +13,7 @@ import scorex.transaction.contract.{ChangeContractStatusTransaction, CreateContr
 import scorex.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.MintingTransaction
+import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}

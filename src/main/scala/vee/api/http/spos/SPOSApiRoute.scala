@@ -1,4 +1,4 @@
-package scorex.api.http.spos
+package vee.api.http.spos
 
 import javax.ws.rs.Path
 
