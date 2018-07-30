@@ -159,7 +159,7 @@ object Coordinator extends ScorexLogging {
       //check generator.address, compare mintTime and generator's slot id
       minterAddress = PublicKeyAccount.toAddress(generator)
       mintTime = block.consensusData.mintTime
-      slotid = (mintTime/1000000000L % fs.numOfSlots) / Math.max(fs.mintingSpeed, 1L)
+      slotid = (mintTime/1000000000L % (fs.numOfSlots * Math.max(fs.mintingSpeed, 1L))) / Math.max(fs.mintingSpeed, 1L)
       slotAddress = state.slotAddress(slotid.toInt)
       _ <- Either.cond(minterAddress == slotAddress, (), s"Minting address ${minterAddress} does not match the slot address ${slotAddress} of slot ${slotid}")
       //compare cntTime and mintTime
