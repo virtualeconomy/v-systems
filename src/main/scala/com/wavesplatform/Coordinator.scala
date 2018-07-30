@@ -8,6 +8,7 @@ import com.wavesplatform.network.{BlockCheckpoint, Checkpoint}
 import com.wavesplatform.settings.{BlockchainSettings, WavesSettings}
 import com.wavesplatform.state2.ByteStr
 import com.wavesplatform.state2.reader.StateReader
+import scorex.account.PublicKeyAccount
 import scorex.block.Block
 import scorex.consensus.TransactionsOrdering
 import scorex.transaction.ValidationError.GenericError
@@ -113,6 +114,7 @@ object Coordinator extends ScorexLogging {
   }
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
+  val MaxBlockTimeRange: Long = Duration.ofMillis(500).toNanos
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {
@@ -135,7 +137,7 @@ object Coordinator extends ScorexLogging {
       _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
         block.transactionData.map(_.transaction).dropRight(1).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction).dropRight(1),
         (), "transactions are not sorted")
-      
+
       parent <- history.parent(block).toRight(s"history does not contain parent ${block.reference}")
       parentHeight <- history.heightOf(parent.uniqueId).toRight(s"history does not contain parent ${block.reference}")
       prevBlockData = parent.consensusData
@@ -153,10 +155,16 @@ object Coordinator extends ScorexLogging {
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
 
       //TODO
-      //check the generator's address for multi slots address case (VEE)
-      //check generator.address
-      //compare blockTime and mintTime
-      //compare mintTime and generator's slot id
+      //check the generator's address for multi slots address case (VEE), checked by diff
+      //check generator.address, compare mintTime and generator's slot id
+      minterAddress = PublicKeyAccount.toAddress(generator)
+      mintTime = block.consensusData.mintTime
+      slotid = (mintTime/1000000000L % fs.numOfSlots)/fs.mintingSpeed
+      slotAddress = state.slotAddress(slotid.toInt)
+      _ <- Either.cond(minterAddress == slotAddress, (), s"Minting address ${minterAddress} does not match the slot address ${slotAddress} of slot ${slotid}")
+      //compare cntTime and mintTime
+      _ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
+
 
       _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1,
            (), s"One and only one minting transaction allowed per block" )
