@@ -28,8 +28,8 @@ import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
 import vee.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
-import scorex.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
-import scorex.api.http.database.DbApiRoute
+import vee.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
+import vee.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
 import vee.consensus.spos.api.http.SposConsensusApiRoute

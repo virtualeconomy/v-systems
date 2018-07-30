@@ -1,4 +1,4 @@
-package scorex.api.http.contract
+package vee.api.http.contract
 
 import javax.ws.rs.Path
 import akka.http.scaladsl.server.Route

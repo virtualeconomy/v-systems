@@ -1,4 +1,4 @@
-package scorex.database
+package vee.database
 
 object DataType extends Enumeration {
   val ByteArray = Value(1)

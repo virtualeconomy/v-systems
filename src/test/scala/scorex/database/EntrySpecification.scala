@@ -1,4 +1,4 @@
-package scorex.database
+package vee.database
 
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}

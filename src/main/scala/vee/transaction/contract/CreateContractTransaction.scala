@@ -1,4 +1,4 @@
-package scorex.transaction.contract
+package vee.transaction.contract
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.wavesplatform.state2.ByteStr

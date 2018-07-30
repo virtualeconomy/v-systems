@@ -3,7 +3,7 @@ package com.wavesplatform.state2.diffs
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError
-import scorex.transaction.database.DbPutTransaction
+import vee.transaction.database.DbPutTransaction
 
 import scala.util.Right
 

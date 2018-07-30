@@ -8,8 +8,8 @@ import scorex.transaction.ValidationError.UnsupportedTransactionType
 import scorex.transaction._
 import scorex.transaction.assets._
 //import scorex.transaction.assets.exchange.ExchangeTransaction
-//import scorex.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
-import scorex.transaction.database.DbPutTransaction
+//import vee.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
+import vee.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.MintingTransaction
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}

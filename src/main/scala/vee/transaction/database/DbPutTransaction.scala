@@ -1,11 +1,11 @@
-package scorex.transaction.database
+package vee.transaction.database
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
-import scorex.database.Entry
+import vee.database.Entry
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser.{KeyLength, TransactionType}
 import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
