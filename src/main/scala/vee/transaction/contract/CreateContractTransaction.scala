@@ -4,7 +4,7 @@ import com.google.common.primitives.{Bytes, Longs}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
-import scorex.contract.Contract
+import vee.contract.Contract
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.serialization.{BytesSerializable, Deser}

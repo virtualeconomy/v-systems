@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
 import scorex.account.PublicKeyAccount
 import scorex.api.http.BroadcastRequest
-import scorex.contract.Contract
+import vee.contract.Contract
 import scorex.transaction.TransactionParser.SignatureStringLength
 import scorex.transaction.ValidationError
 import vee.transaction.contract.CreateContractTransaction

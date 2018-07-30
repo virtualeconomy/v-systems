@@ -9,7 +9,7 @@ import vee.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest
 import vee.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vee.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
-import scorex.contract.Contract
+import vee.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
