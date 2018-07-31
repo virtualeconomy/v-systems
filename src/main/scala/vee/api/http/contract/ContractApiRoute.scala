@@ -1,4 +1,4 @@
-package scorex.api.http.contract
+package vee.api.http.contract
 
 import javax.ws.rs.Path
 import akka.http.scaladsl.server.Route
@@ -11,7 +11,7 @@ import play.api.libs.json.Json
 import scorex.BroadcastRoute
 import scorex.api.http._
 import scorex.transaction._
-import scorex.transaction.contract.ChangeContractStatusAction
+import vee.transaction.contract.ChangeContractStatusAction
 import scorex.utils.Time
 import vee.wallet.Wallet
 

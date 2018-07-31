@@ -1,9 +1,8 @@
 package scorex.block
 
-import cats._
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import vee.settings.GenesisSettings
-import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
+import com.wavesplatform.state2.{ByteStr, Diff}
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import vee.consensus.spos.{SposConsensusBlockField, SposConsensusBlockData}

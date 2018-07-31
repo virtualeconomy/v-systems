@@ -1,4 +1,4 @@
-package scorex.api.http.contract
+package vee.api.http.contract
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}

@@ -1,4 +1,4 @@
-package scorex.api.http.database
+package vee.api.http.database
 
 import javax.ws.rs.Path
 import akka.http.scaladsl.server.Route
@@ -11,9 +11,9 @@ import io.swagger.annotations._
 import scorex.BroadcastRoute
 import scorex.account.Address
 import scorex.api.http._
-import scorex.database.Entry
+import vee.database.Entry
 import scorex.transaction._
-import scorex.transaction.database.DbPutTransaction
+import vee.transaction.database.DbPutTransaction
 import scorex.utils.Time
 import vee.wallet.Wallet
 

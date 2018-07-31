@@ -1,13 +1,13 @@
-package scorex.api.http.contract
+package vee.api.http.contract
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
 import scorex.account.PublicKeyAccount
 import scorex.api.http.BroadcastRequest
-import scorex.contract.Contract
+import vee.contract.Contract
 import scorex.transaction.TransactionParser.SignatureStringLength
 import scorex.transaction.ValidationError
-import scorex.transaction.contract.CreateContractTransaction
+import vee.transaction.contract.CreateContractTransaction
 
 case class SignedCreateContractRequest (@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                         senderPublicKey: String,

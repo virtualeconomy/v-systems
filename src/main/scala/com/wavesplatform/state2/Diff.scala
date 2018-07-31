@@ -3,7 +3,7 @@ package com.wavesplatform.state2
 import cats.Monoid
 import cats.implicits._
 import scorex.account.{Address, Alias}
-import scorex.database.Entry
+import vee.database.Entry
 import scorex.transaction.Transaction
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)

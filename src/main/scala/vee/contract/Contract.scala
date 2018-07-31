@@ -1,4 +1,4 @@
-package scorex.contract
+package vee.contract
 
 import com.wavesplatform.state2.ByteStr
 import scorex.serialization.{BytesSerializable, Deser}

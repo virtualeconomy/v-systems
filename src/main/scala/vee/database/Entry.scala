@@ -1,4 +1,4 @@
-package scorex.database
+package vee.database
 
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}

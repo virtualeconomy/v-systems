@@ -1,4 +1,4 @@
-package scorex.transaction.contract
+package vee.transaction.contract
 
 
 object ChangeContractStatusAction extends Enumeration {
