@@ -96,7 +96,7 @@ class Miner(
     val height = history.height()
     val lastBlock = history.lastBlock.get
     val totalSlots = settings.blockchainSettings.functionalitySettings.numOfSlots
-    val mintingSpeed = settings.blockchainSettings.functionalitySettings.mintingSpeed
+    val mintingSpeed = Math.max(settings.blockchainSettings.functionalitySettings.mintingSpeed, 1L)
     val timeOfOneRound = totalSlots * mintingSpeed
     val nextConnectTime = 60000000000L.nanos
     val grandParent = history.parent(lastBlock, 2)
