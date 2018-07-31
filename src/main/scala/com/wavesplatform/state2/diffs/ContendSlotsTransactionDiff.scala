@@ -46,7 +46,7 @@ object ContendSlotsTransactionDiff {
       Left(GenericError(s"${tx.sender.address} already own one slot."))
     }
     else{
-      Left(GenericError(s"${tx.slotid} invalid."))
+      Left(GenericError(s"slot id: ${tx.slotid} invalid."))
     }
   }
 }

@@ -31,7 +31,10 @@ object ReleaseSlotsTransactionDiff {
         slotids = Map(tx.slotid -> emptyAddress),slotNum = -1))
     }
     else if (!isValidSlotID){
-      Left(GenericError(s"${tx.slotid} invalid."))
+      Left(GenericError(s"slot id: ${tx.slotid} invalid."))
+    }
+    else if (!hasEnoughMiner){
+      Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
     }
     else if (!hasEnoughMiner){
       Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
