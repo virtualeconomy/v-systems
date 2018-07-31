@@ -25,11 +25,11 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     settings.fees.size should be(6)
 
     settings.fees(2) should be(List(FeeSettings("WAVES", 100000)))
-    settings.fees(3) should be(List(FeeSettings("WAVES", 100000000)))
-    settings.fees(4) should be(List(FeeSettings("WAVES", 100000)))
-    settings.fees(5) should be(List(FeeSettings("WAVES", 100000)))
-    settings.fees(6) should be(List(FeeSettings("WAVES", 100000)))
-    settings.fees(7) should be(List(FeeSettings("WAVES", 100000)))
+    settings.fees(11) should be(List(FeeSettings("WAVES", 100000000)))
+    settings.fees(12) should be(List(FeeSettings("WAVES", 100000)))
+    settings.fees(13) should be(List(FeeSettings("WAVES", 100000)))
+    settings.fees(14) should be(List(FeeSettings("WAVES", 100000)))
+    settings.fees(15) should be(List(FeeSettings("WAVES", 100000)))
   }
 
   it should "combine read few fees for one transaction type" in {
@@ -52,8 +52,8 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     val settings = FeesSettings.fromConfig(config)
     settings.fees.size should be(3)
     settings.fees(2).toSet should equal(Set(FeeSettings("WAVES0", 0)))
-    settings.fees(3).toSet should equal(Set(FeeSettings("WAVES1", 111), FeeSettings("WAVES2", 222), FeeSettings("WAVES3", 333)))
-    settings.fees(4).toSet should equal(Set(FeeSettings("WAVES4", 444)))
+    settings.fees(11).toSet should equal(Set(FeeSettings("WAVES1", 111), FeeSettings("WAVES2", 222), FeeSettings("WAVES3", 333)))
+    settings.fees(12).toSet should equal(Set(FeeSettings("WAVES4", 444)))
   }
 
   it should "allow empty list" in {
@@ -85,7 +85,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     val settings = FeesSettings.fromConfig(config)
     settings.fees.size should be(6)
     settings.fees(2).toSet should equal(Set(FeeSettings("WAVES", 100000), FeeSettings("WAVES1", 1111)))
-    settings.fees(5).toSet should equal(Set(FeeSettings("WAVES", 100000), FeeSettings("WAVES5", 0)))
+    settings.fees(13).toSet should equal(Set(FeeSettings("WAVES", 100000), FeeSettings("WAVES5", 0)))
   }
 
   it should "fail on incorrect long values" in {
@@ -110,70 +110,71 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
       """
         |waves.fees {
         |  payment {
-        |    WAVES = 100000
+        |    WAVES = 10000000
         |  }
         |  issue {
         |    WAVES = 100000000
         |  }
         |  transfer {
-        |    WAVES = 100000,
+        |    WAVES = 10000000,
         |    "6MPKrD5B7GrfbciHECg1MwdvRUhRETApgNZspreBJ8JL" = 1
         |  }
         |  reissue {
-        |    WAVES = 100000
-        |  }
-        |  burn {
-        |    WAVES = 100000
-        |  }
-        |  exchange {
-        |    WAVES = 100000
-        |  }
-        |  lease {
-        |    WAVES = 100000
-        |  }
-        |  lease-cancel {
-        |    WAVES = 100000
-        |  }
-        |  create-alias {
-        |    WAVES = 100000
-        |  }
-        |  contend-slots {
         |    WAVES = 10000000
         |  }
+        |  burn {
+        |    WAVES = 10000000
+        |  }
+        |  exchange {
+        |    WAVES = 10000000
+        |  }
+        |  lease {
+        |    WAVES = 10000000
+        |  }
+        |  lease-cancel {
+        |    WAVES = 10000000
+        |  }
+        |  create-alias {
+        |    WAVES = 10000000
+        |  }
+        |  contend-slots {
+        |    WAVES = 100000000000
+        |  }
         |  release-slots {
-        |    WAVES = 100000
+        |    WAVES = 10000000
         |  }
         |  minting {
         |    WAVES = 100000
         |  }
         |  create-contract{
-        |    WAVES = 200000
+        |    WAVES = 20000000
         |  }
         |  change-contract-status{
-        |    WAVES = 100000
+        |    WAVES = 10000000
         |  }
         |  db-put{
-        |    WAVES = 100000
+        |    WAVES = 100000000
         |  }
         |}
       """.stripMargin).withFallback(defaultConfig).resolve()
     val settings = FeesSettings.fromConfig(config)
     settings.fees.size should be(15)
 
-    settings.fees(2).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(3).toSet should equal(Set(FeeSettings("WAVES", 100000000)))
-    settings.fees(4).toSet should equal(Set(FeeSettings("WAVES", 100000), FeeSettings("6MPKrD5B7GrfbciHECg1MwdvRUhRETApgNZspreBJ8JL", 1)))
+    settings.fees(2).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(3).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(4).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
     settings.fees(5).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(6).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(7).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(8).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(9).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(10).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(11).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(12).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
-    settings.fees(13).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(14).toSet should equal(Set(FeeSettings("WAVES", 200000)))
-    settings.fees(15).toSet should equal(Set(FeeSettings("WAVES", 100000)))
-    settings.fees(16).toSet should equal(Set(FeeSettings("WAVES", 100000)))
+    settings.fees(6).toSet should equal(Set(FeeSettings("WAVES", 100000000000L)))
+    settings.fees(7).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(8).toSet should equal(Set(FeeSettings("WAVES", 20000000)))
+    settings.fees(9).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(10).toSet should equal(Set(FeeSettings("WAVES", 100000000)))
+    settings.fees(11).toSet should equal(Set(FeeSettings("WAVES", 100000000)))
+    settings.fees(12).toSet should equal(Set(FeeSettings("WAVES", 10000000), FeeSettings("6MPKrD5B7GrfbciHECg1MwdvRUhRETApgNZspreBJ8JL", 1)))
+    settings.fees(13).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(14).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(15).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+    settings.fees(16).toSet should equal(Set(FeeSettings("WAVES", 10000000)))
+
   }
 }

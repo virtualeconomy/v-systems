@@ -11,7 +11,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import scorex.block.Block
-import scorex.transaction.assets.TransferTransaction
+//import scorex.transaction.assets.TransferTransaction
 import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
 import scorex.utils.Time
 
