@@ -91,9 +91,6 @@ object TransactionParser {
       case txType: Byte if txType == TransactionType.DbPutTransaction.id =>
         DbPutTransaction.parseTail(data.tail)
 
-      case txType: Byte if txType == TransactionType.MintingTransaction.id =>
-        MintingTransaction.parseTail(data.tail)    // extra line, this is same as 75 & 76
-
       case txType => Failure(new Exception(s"Invalid transaction type: $txType"))
     }
 }
