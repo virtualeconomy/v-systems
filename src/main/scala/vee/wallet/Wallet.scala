@@ -46,7 +46,7 @@ object Wallet extends ScorexLogging {
   }
 
   private val chainName = if(AddressScheme.current.chainId == 'T') "testnet" else "mainnet"
-  private val agentString = "VEE wallet:0.0.1/VEE full node:0.0.1/" + chainName
+  private val agentString = "VEE wallet:1.0rc1/VEE full node:0.0.2/" + chainName
 
   private case class WalletData(seed: String, accountSeeds: Set[ByteStr] = Set.empty, nonce: Long = 0, agent: String = agentString)
 
