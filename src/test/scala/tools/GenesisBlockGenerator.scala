@@ -10,7 +10,6 @@ import scorex.transaction.GenesisTransaction
 import scorex.transaction.TransactionParser.SignatureLength
 import vee.wallet.Wallet
 import scala.concurrent.duration._
-import scorex.crypto.encode.Base58
 
 object GenesisBlockGenerator extends App {
 

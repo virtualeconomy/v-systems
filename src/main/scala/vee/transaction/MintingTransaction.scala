@@ -52,7 +52,7 @@ case class MintingTransaction private(sender: PublicKeyAccount,
 object MintingTransaction {
 
   val mintingFee = 100000
-  val mintingReward = 100000000
+  val mintingReward = 900000000
 
   private val minterLength = 32
   private val FeeLength = 8

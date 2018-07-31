@@ -6,7 +6,7 @@ import com.wavesplatform.state2.Diff
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError.UnsupportedTransactionType
 import scorex.transaction._
-import scorex.transaction.assets._
+//import scorex.transaction.assets._
 //import scorex.transaction.assets.exchange.ExchangeTransaction
 //import vee.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
 import vee.transaction.database.DbPutTransaction

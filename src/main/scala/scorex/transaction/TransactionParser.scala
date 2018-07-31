@@ -16,20 +16,20 @@ object TransactionParser {
   object TransactionType extends Enumeration {
     val GenesisTransaction = Value(1)
     val PaymentTransaction = Value(2)
-    val IssueTransaction = Value(3)
-    val TransferTransaction = Value(4)
-    val ReissueTransaction = Value(5)
-    val BurnTransaction = Value(6)
-    val ExchangeTransaction = Value(7)
-    val LeaseTransaction = Value(8)
-    val LeaseCancelTransaction = Value(9)
-    val CreateAliasTransaction = Value(10)
-    val MintingTransaction = Value(11)
-    val ContendSlotsTransaction = Value(12)
-    val ReleaseSlotsTransaction = Value(13)
-    val CreateContractTransaction = Value(14)
-    val ChangeContractStatusTransaction = Value(15)
-    val DbPutTransaction = Value(16)
+    val LeaseTransaction = Value(3)
+    val LeaseCancelTransaction = Value(4)
+    val MintingTransaction = Value(5)
+    val ContendSlotsTransaction = Value(6)
+    val ReleaseSlotsTransaction = Value(7)
+    val CreateContractTransaction = Value(8)
+    val ChangeContractStatusTransaction = Value(9)
+    val DbPutTransaction = Value(10)
+    val IssueTransaction = Value(11)
+    val TransferTransaction = Value(12)
+    val ReissueTransaction = Value(13)
+    val BurnTransaction = Value(14)
+    val ExchangeTransaction = Value(15)
+    val CreateAliasTransaction = Value(16)
   }
 
   val TimestampLength = 8
@@ -90,9 +90,6 @@ object TransactionParser {
 
       case txType: Byte if txType == TransactionType.DbPutTransaction.id =>
         DbPutTransaction.parseTail(data.tail)
-
-      case txType: Byte if txType == TransactionType.MintingTransaction.id =>
-        MintingTransaction.parseTail(data.tail)    // extra line, this is same as 75 & 76
 
       case txType => Failure(new Exception(s"Invalid transaction type: $txType"))
     }

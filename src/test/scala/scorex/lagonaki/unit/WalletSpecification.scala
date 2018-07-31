@@ -1,7 +1,6 @@
 package scorex.lagonaki.unit
 
 import com.wavesplatform.settings.WalletSettings
-import com.wavesplatform.state2.ByteStr
 import org.scalatest.{FunSuite, Matchers}
 import vee.wallet.Wallet
 

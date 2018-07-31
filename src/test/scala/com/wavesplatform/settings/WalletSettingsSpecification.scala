@@ -3,7 +3,6 @@ package com.wavesplatform.settings
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
-import com.wavesplatform.state2.ByteStr
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import org.scalatest.{FlatSpec, Matchers}
