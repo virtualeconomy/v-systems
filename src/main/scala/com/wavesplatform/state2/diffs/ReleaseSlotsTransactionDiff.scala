@@ -13,7 +13,7 @@ object ReleaseSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ReleaseSlotsTransaction): Either[ValidationError, Diff] = {
     // check the slot list, make sure it is not the last miner (set a min num of miner)
     // set the min num to half of total num of slots
-    val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots / 2 + 1)
+    val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots + 1) / 2
 
     val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
