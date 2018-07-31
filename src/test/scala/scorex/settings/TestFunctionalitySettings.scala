@@ -15,7 +15,7 @@ object TestFunctionalitySettings {
     allowLeasedBalanceTransferUntil = 0L,
     allowContendSlotsTransactionAfter = 0L,
     allowReleaseSlotsTransactionAfter = 0L,
-    numOfSlots = 1,
+    numOfSlots = 2, // easy to test the release case later
     mintingSpeed = 1
   )
 }

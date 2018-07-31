@@ -13,7 +13,7 @@ object ReleaseSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ReleaseSlotsTransaction): Either[ValidationError, Diff] = {
     // check the slot list, make sure it is not the last miner (set a min num of miner)
     // set the min num to half of total num of slots
-    val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots + 1) / 2
+    val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots + 1) / 2 && s.effectiveSlotAddressSize > 1
 
     val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
@@ -31,7 +31,7 @@ object ReleaseSlotsTransactionDiff {
         slotids = Map(tx.slotid -> emptyAddress),slotNum = -1))
     }
     else if (!isValidSlotID){
-      Left(GenericError(s"${tx.slotid} invalid."))
+      Left(GenericError(s"slot id: ${tx.slotid} invalid."))
     }
     else if (!hasEnoughMiner){
       Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
