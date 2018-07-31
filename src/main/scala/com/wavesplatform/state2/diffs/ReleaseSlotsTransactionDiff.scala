@@ -11,9 +11,9 @@ import scorex.transaction.ValidationError.GenericError
 
 object ReleaseSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ReleaseSlotsTransaction): Either[ValidationError, Diff] = {
-    // TODO
     // check the slot list, make sure it is not the last miner (set a min num of miner)
-    val isLastMiner = false
+    // set the min num to half of total num of slots
+    val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots / 2 + 1)
 
     val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
 
@@ -25,7 +25,7 @@ object ReleaseSlotsTransactionDiff {
     // add more ValidationError
 
     val emptyAddress = ""
-    if (!isLastMiner && isValidAddress && isValidSlotID) {
+    if (hasEnoughMiner && isValidAddress && isValidSlotID) {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
         slotids = Map(tx.slotid -> emptyAddress),slotNum = -1))
@@ -33,8 +33,11 @@ object ReleaseSlotsTransactionDiff {
     else if (!isValidSlotID){
       Left(GenericError(s"${tx.slotid} invalid."))
     }
+    else if (!hasEnoughMiner){
+      Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
+    }
     else{
-      Left(GenericError(s"${tx.sender.address} can not release the mint right of slot id: ${tx.slotid}"))
+      Left(GenericError(s"${tx.sender.address} can not release the minting right of slot id: ${tx.slotid}"))
     }
   }
 }
