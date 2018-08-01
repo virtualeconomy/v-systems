@@ -18,7 +18,7 @@ class PeerDatabaseImpl(settings: NetworkSettings) extends PeerDatabase with Auto
   private val blacklist = database.openMap("blacklist", new LogMVMapBuilder[InetAddress, Long])
   private val unverifiedPeers = EvictingQueue.create[InetSocketAddress](settings.maxUnverifiedPeers)
 
-  for (a <- settings.knownPeers.view.map(inetSocketAddress(_, 6863))) {
+  for (a <- settings.knownPeers.view.map(inetSocketAddress(_, 9923))) {
     // add peers from config with max timestamp so they never get evicted from the list of known peers
     doTouch(a, Long.MaxValue)
   }

@@ -37,7 +37,7 @@ trait MatcherTestData {
       |    enable: yes
       |    account: ""
       |    bind-address: "127.0.0.1"
-      |    port: 6886
+      |    port: 9925
       |    order-history-file: null
       |    min-order-fee: 100000
       |    order-match-tx-fee: 100000
