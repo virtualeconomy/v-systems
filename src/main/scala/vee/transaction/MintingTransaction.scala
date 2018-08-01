@@ -13,7 +13,7 @@ import scorex.transaction.TransactionParser._
 
 import scala.util.{Failure, Success, Try}
 
-case class MintingTransaction private(sender: PublicKeyAccount,
+case class MintingTransaction private(recipient: PublicKeyAccount,
                                       amount: Long,
                                       timestamp: Long,
                                       currentBlockHeight: Int) extends Transaction {
@@ -25,14 +25,14 @@ case class MintingTransaction private(sender: PublicKeyAccount,
     val timestampBytes = Longs.toByteArray(timestamp)
     val amountBytes = Longs.toByteArray(amount)
     val currentBlockHeightBytes = Ints.toByteArray(currentBlockHeight)
-    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, sender.publicKey, amountBytes, currentBlockHeightBytes)
+    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, recipient.publicKey, amountBytes, currentBlockHeightBytes)
   }
 
   override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
 
   override lazy val json: JsObject = Json.obj(
       "id" -> id.base58,
-      "sender" -> sender.address,
+      "recipient" -> recipient.address,
       "type" -> transactionType.id,
       "timestamp" -> timestamp,
       "amount" -> amount,
