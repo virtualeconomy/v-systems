@@ -15,7 +15,7 @@ import scorex.crypto.encode.Base58
 import scorex.transaction.{PaymentTransaction, TransactionFactory}
 import scorex.utils.Time
 import vee.wallet.Wallet
-import scorex.waves.transaction.SignedPaymentRequest
+import vee.api.http.vee.SignedPaymentRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -136,7 +136,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.waves.transaction.SignedPaymentRequest",
+      dataType = "vee.api.http.vee.SignedPaymentRequest",
       defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
     )
   ))
@@ -154,7 +154,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.waves.transaction.SignedPaymentRequest",
+      dataType = "vee.api.http.vee.SignedPaymentRequest",
       defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"senderAddress\":\"senderAddress\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
     )
   ))

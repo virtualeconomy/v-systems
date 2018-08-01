@@ -37,7 +37,7 @@ import vee.consensus.spos.api.http.SposConsensusApiRoute
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
 import vee.wallet.Wallet
-import scorex.waves.http.{DebugApiRoute, WavesApiRoute}
+import scorex.waves.http.DebugApiRoute
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -96,7 +96,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       PeersApiRoute(settings.restAPISettings, network.connect, peerDatabase, establishedConnections),
       AddressApiRoute(settings.restAPISettings, wallet, stateReader, settings.blockchainSettings.functionalitySettings),
       DebugApiRoute(settings.restAPISettings, wallet, stateReader, history, peerDatabase, establishedConnections, blockchainUpdater, allChannels, utxStorage),
-      WavesApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
+      //WavesApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
       AssetsApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       NodeApiRoute(settings.restAPISettings, () => this.shutdown()),
       AssetsBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
@@ -121,7 +121,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
       typeOf[PeersApiRoute],
       typeOf[AddressApiRoute],
       typeOf[DebugApiRoute],
-      typeOf[WavesApiRoute],
+      //typeOf[WavesApiRoute],
       typeOf[AssetsApiRoute],
       typeOf[NodeApiRoute],
       typeOf[AssetsBroadcastApiRoute],
