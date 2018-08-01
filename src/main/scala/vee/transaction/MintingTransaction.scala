@@ -6,7 +6,6 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.PublicKeyAccount
-import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
 
 import scorex.transaction._
@@ -16,19 +15,17 @@ import scala.util.{Failure, Success, Try}
 
 case class MintingTransaction private(sender: PublicKeyAccount,
                                       amount: Long,
-                                      fee: Long,
                                       timestamp: Long,
                                       currentBlockHeight: Int) extends Transaction {
   override lazy val signatureValid = true
   override val transactionType = TransactionType.MintingTransaction
-  override val assetFee: (Option[AssetId], Long) = (None, fee)
+  override val assetFee: (Option[AssetId], Long) = (None, 0)
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
     val amountBytes = Longs.toByteArray(amount)
-    val feeBytes = Longs.toByteArray(fee)
     val currentBlockHeightBytes = Ints.toByteArray(currentBlockHeight)
-    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, sender.publicKey, amountBytes, feeBytes, currentBlockHeightBytes)
+    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, sender.publicKey, amountBytes, currentBlockHeightBytes)
   }
 
   override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
@@ -36,12 +33,8 @@ case class MintingTransaction private(sender: PublicKeyAccount,
   override lazy val json: JsObject = Json.obj(
       "id" -> id.base58,
       "sender" -> sender.address,
-      "senderPublicKey" -> Base58.encode(sender.publicKey),
       "type" -> transactionType.id,
-      "fee" -> fee,
       "timestamp" -> timestamp,
-      "minterPublicKey" -> Base58.encode(sender.publicKey),
-      "minterAddress" -> sender.toAddress.address,
       "amount" -> amount,
       "currentBlockHeight" -> currentBlockHeight)
 
@@ -55,23 +48,19 @@ object MintingTransaction {
   val mintingReward = 900000000
 
   private val minterLength = 32
-  private val FeeLength = 8
   private val currentBlockHeightLength = 4
-  private val BaseLength = TimestampLength + minterLength + AmountLength + FeeLength + currentBlockHeightLength
+  private val BaseLength = TimestampLength + minterLength + AmountLength + currentBlockHeightLength
 
   def create(minter: PublicKeyAccount,
              amount: Long,
-             fee: Long,
              timestamp: Long,
              currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
     if (amount <= 0) {
       Left(ValidationError.NegativeAmount) //CHECK IF AMOUNT IS POSITIVE
-    } else if (fee <= 0) {
-      Left(ValidationError.InsufficientFee) //CHECK IF FEE IS POSITIVE
     } else if (Try(Math.addExact(amount, 0)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
     } else {
-      Right(MintingTransaction(minter, amount, fee, timestamp, currentBlockHeight))
+      Right(MintingTransaction(minter, amount, timestamp, currentBlockHeight))
     }
   }
 
@@ -95,20 +84,14 @@ object MintingTransaction {
     val amount = Longs.fromByteArray(amountBytes)
     position += AmountLength
 
-    //READ FEE
-    val feeBytes = util.Arrays.copyOfRange(data, position, position + FeeLength)
-    val fee = Longs.fromByteArray(feeBytes)
-    position += FeeLength
-
     //READ CURRENTBLOCKHEIGHT
     val currentBlockHeightBytes = util.Arrays.copyOfRange(data, position, position + currentBlockHeightLength)
     val currentBlockHeight = Ints.fromByteArray(currentBlockHeightBytes)
     position += currentBlockHeightLength
 
     //READ SIGNATURE
-
     MintingTransaction
-      .create(minter, amount, fee, timestamp, currentBlockHeight)
+      .create(minter, amount, timestamp, currentBlockHeight)
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
