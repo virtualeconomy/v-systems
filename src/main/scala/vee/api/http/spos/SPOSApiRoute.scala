@@ -34,7 +34,7 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.spos.ContendSlotsRequest",
+      dataType = "vee.api.http.spos.ContendSlotsRequest",
       defaultValue = "{\n\t\"slotids\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 10000000\n}"
     )
   ))
@@ -52,7 +52,7 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.spos.ReleaseSlotsRequest",
+      dataType = "vee.api.http.spos.ReleaseSlotsRequest",
       defaultValue = "{\n\t\"slotids\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 100000\n}"
     )
   ))

@@ -35,7 +35,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.contract.CreateContractRequest",
+      dataType = "vee.api.http.contract.CreateContractRequest",
       defaultValue = "{\n\t\"contract\": \"contractcontract\",\n\t\"name\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
     )
   ))
@@ -66,7 +66,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.contract.ChangeContractStatusRequest",
+      dataType = "vee.api.http.contract.ChangeContractStatusRequest",
       defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
     )
   ))
@@ -84,7 +84,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.contract.ChangeContractStatusRequest",
+      dataType = "vee.api.http.contract.ChangeContractStatusRequest",
       defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
     )
   ))

@@ -37,7 +37,7 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.database.DbPutRequest",
+      dataType = "vee.api.http.database.DbPutRequest",
       defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
     )
   ))
