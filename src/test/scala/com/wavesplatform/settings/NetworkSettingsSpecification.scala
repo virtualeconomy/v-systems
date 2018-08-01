@@ -16,11 +16,11 @@ class NetworkSettingsSpecification extends FlatSpec with Matchers {
       """waves.network {
         |  file: /waves/peers.dat
         |  bind-address: "127.0.0.1"
-        |  port: 6868
+        |  port: 9921
         |  node-name: "default-node-name"
-        |  declared-address: "127.0.0.1:6868"
+        |  declared-address: "127.0.0.1:9921"
         |  nonce: 0
-        |  known-peers = ["8.8.8.8:6868", "4.4.8.8:6868"]
+        |  known-peers = ["8.8.8.8:9921", "4.4.8.8:9921"]
         |  local-only: no
         |  peers-data-residence-time: 1d
         |  black-list-residence-time: 10m
@@ -43,11 +43,11 @@ class NetworkSettingsSpecification extends FlatSpec with Matchers {
     val networkSettings = config.as[NetworkSettings]("waves.network")
 
     networkSettings.file should be(Some(new File("/waves/peers.dat")))
-    networkSettings.bindAddress should be(new InetSocketAddress("127.0.0.1", 6868))
+    networkSettings.bindAddress should be(new InetSocketAddress("127.0.0.1", 9921))
     networkSettings.nodeName should be("default-node-name")
-    networkSettings.declaredAddress should be(Some(new InetSocketAddress("127.0.0.1", 6868)))
+    networkSettings.declaredAddress should be(Some(new InetSocketAddress("127.0.0.1", 9921)))
     networkSettings.nonce should be(0)
-    networkSettings.knownPeers should be(List("8.8.8.8:6868", "4.4.8.8:6868"))
+    networkSettings.knownPeers should be(List("8.8.8.8:9921", "4.4.8.8:9921"))
     networkSettings.peersDataResidenceTime should be(1.day)
     networkSettings.blackListResidenceTime should be(10.minutes)
     networkSettings.maxInboundConnections should be(30)

@@ -15,7 +15,7 @@ class MatcherSettingsSpecification extends FlatSpec with Matchers {
         |    enable: yes
         |    account: "BASE58MATCHERACCOUNT"
         |    bind-address: "127.0.0.1"
-        |    port: 6886
+        |    port: 9925
         |    min-order-fee: 100000
         |    order-match-tx-fee: 100000
         |    snapshots-interval: 1d
@@ -40,7 +40,7 @@ class MatcherSettingsSpecification extends FlatSpec with Matchers {
     settings.enable should be(true)
     settings.account should be("BASE58MATCHERACCOUNT")
     settings.bindAddress should be("127.0.0.1")
-    settings.port should be(6886)
+    settings.port should be(9925)
     settings.minOrderFee should be(100000)
     settings.orderMatchTxFee should be(100000)
     settings.journalDataDir should be("/waves/matcher/journal")
