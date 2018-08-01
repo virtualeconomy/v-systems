@@ -77,7 +77,7 @@ class Miner(
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
       // initial mint Balance = 0 now, should be modified later
-      _ <- Either.cond(effectiveBalance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): Effective Balance $effectiveBalance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
+      _ <- Either.cond(effectiveBalance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): ${account.address}'s effective Balance $effectiveBalance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ <- checkSlot(account)
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")

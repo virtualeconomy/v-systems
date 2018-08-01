@@ -150,7 +150,7 @@ object Coordinator extends ScorexLogging {
         s"declared generation signature ${blockGs.mkString} does not match calculated generation signature ${calcGs.mkString}")
 
       // the validation here need to be discussed
-      effectiveBalance = generatingBalance(state, fs, generator, parentHeight)
+      effectiveBalance = state.effectiveBalance(generator)
       _ <- Either.cond(blockTime < fs.minimalGeneratingBalanceAfter || effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
 
