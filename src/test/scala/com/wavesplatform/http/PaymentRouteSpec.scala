@@ -7,12 +7,13 @@ import org.scalacheck.Shrink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.{JsObject, Json}
-import scorex.api.http.{ApiKeyNotValid, PaymentApiRoute}
+import scorex.api.http.ApiKeyNotValid
+import vee.api.http.vee.PaymentApiRoute
 import scorex.transaction.Transaction
 import scorex.transaction.PaymentTransaction
 import scorex.utils.Time
 
-class PaymentRouteSpec extends RouteSpec("/payment")
+class PaymentRouteSpec extends RouteSpec("/vee/payment")
   with MockFactory with PropertyChecks with RestAPISettingsHelper with TestWallet with TransactionGen {
 
   private val utx = stub[UtxPool]

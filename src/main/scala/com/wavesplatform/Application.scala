@@ -27,6 +27,7 @@ import scorex.account.AddressScheme
 import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
 import vee.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
+import vee.api.http.vee._
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
 import vee.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import vee.api.http.database.DbApiRoute

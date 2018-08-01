@@ -80,12 +80,6 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       }
     }
 
-    measureSizeLog("paymentTransactionIdsByHashes")(blockDiff.txsDiff.paymentTransactionIdsByHashes) {
-      _.foreach { case (hash, id) =>
-        sp().paymentTransactionHashes.put(hash, id)
-      }
-    }
-
     measureSizeLog("effectiveBalanceSnapshots")(blockDiff.snapshots)(
       _.foreach { case (acc, snapshotsByHeight) =>
         snapshotsByHeight.foreach { case (h, snapshot) =>
@@ -139,7 +133,6 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().accountTransactionIds.clear()
     sp().accountTransactionsLengths.clear()
     sp().balanceSnapshots.clear()
-    sp().paymentTransactionHashes.clear()
     sp().orderFills.clear()
     sp().aliasToAddress.clear()
     sp().leaseState.clear()
