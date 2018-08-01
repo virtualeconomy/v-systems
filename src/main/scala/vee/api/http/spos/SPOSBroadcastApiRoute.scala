@@ -32,7 +32,7 @@ case class SPOSBroadcastApiRoute(
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.spos.SignedContendSlotsRequest",
+      dataType = "vee.api.http.spos.SignedContendSlotsRequest",
       defaultValue = "{\n\t\"slotid\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
@@ -54,7 +54,7 @@ case class SPOSBroadcastApiRoute(
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.spos.SignedReleaseSlotsRequest",
+      dataType = "vee.api.http.spos.SignedReleaseSlotsRequest",
       defaultValue = "{\n\t\"slotid\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))

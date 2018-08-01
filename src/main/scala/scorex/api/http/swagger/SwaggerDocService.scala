@@ -14,12 +14,12 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
   extends SwaggerHttpService with HasActorSystem {
 
   override val host: String = settings.bindAddress + ":" + settings.port
-  override val info: Info = Info("The Web Interface to the Waves Full Node API",
+  override val info: Info = Info("The Web Interface to the VEE Full Node API",
     Version.VersionString,
-    "Waves Full Node",
+    "VEE Full Node",
     "License: Apache License, Version 2.0",
     None,
-    Some(License("Apache License, Version 2.0", "https://github.com/wavesplatform/Waves/blob/master/LICENSE"))
+    Some(License("Apache License, Version 2.0", "https://github.com/excelsia/VEE/blob/master/LICENSE"))
   )
 
   //Let swagger-ui determine the host and port

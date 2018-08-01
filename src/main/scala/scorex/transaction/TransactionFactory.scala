@@ -18,7 +18,7 @@ import vee.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
 import vee.wallet.Wallet
-import scorex.waves.transaction.SignedPaymentRequest
+import vee.api.http.vee.SignedPaymentRequest
 import vee.database.{DataType, Entry}
 import scorex.transaction.ValidationError.DbDataTypeError
 

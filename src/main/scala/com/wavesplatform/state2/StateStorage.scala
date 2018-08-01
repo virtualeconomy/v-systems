@@ -65,11 +65,6 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
   val balanceSnapshots: MVMap[AccountIdxKey, (Int, Long, Long, Long)] = db.openMap("balanceSnapshots",
     new LogMVMapBuilder[AccountIdxKey, (Int, Long, Long, Long)].valueType(DataTypes.balanceSnapshots))
 
-  val paymentTransactionHashes: MVMap[ByteStr, ByteStr] = db.openMap("paymentTransactionHashes",
-    new LogMVMapBuilder[ByteStr, ByteStr]
-      .keyType(DataTypes.byteStr)
-      .valueType(DataTypes.byteStr))
-
   val aliasToAddress: MVMap[String, ByteStr] = db.openMap("aliasToAddress", new LogMVMapBuilder[String, ByteStr]
     .valueType(DataTypes.byteStr))
 

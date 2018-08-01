@@ -31,7 +31,7 @@ case class ContractBroadcastApiRoute(
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.contract.SignedCreateContractRequest",
+      dataType = "vee.api.http.contract.SignedCreateContractRequest",
       defaultValue = "{\n\t\"content\": \"contractcontent\",\n\t\"name\": \"contractname\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))

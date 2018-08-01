@@ -150,7 +150,7 @@ object Coordinator extends ScorexLogging {
         s"declared generation signature ${blockGs.mkString} does not match calculated generation signature ${calcGs.mkString}")
 
       // the validation here need to be discussed
-      effectiveBalance = generatingBalance(state, fs, generator, parentHeight)
+      effectiveBalance = state.effectiveBalance(generator)
       _ <- Either.cond(blockTime < fs.minimalGeneratingBalanceAfter || effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
 
@@ -161,7 +161,7 @@ object Coordinator extends ScorexLogging {
       mintTime = block.consensusData.mintTime
       slotid = (mintTime / 1000000000L / Math.max(fs.mintingSpeed, 1L)) % fs.numOfSlots
       slotAddress = state.slotAddress(slotid.toInt)
-      _ <- Either.cond(minterAddress == slotAddress, (), s"Minting address ${minterAddress} does not match the slot address ${slotAddress} of slot ${slotid}")
+      _ <- Either.cond(minterAddress.address == slotAddress.get, (), s"Minting address ${minterAddress.address} does not match the slot address ${slotAddress.get} of slot ${slotid}")
       //compare cntTime and mintTime
       _ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
 

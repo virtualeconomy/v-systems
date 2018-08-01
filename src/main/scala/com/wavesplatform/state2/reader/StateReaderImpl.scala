@@ -45,10 +45,6 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .reverse
   }
 
-  override def paymentTransactionIdByHash(hash: ByteStr): Option[ByteStr] = read { implicit l =>
-    Option(sp().paymentTransactionHashes.get(hash))
-  }
-
   override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>
     sp().aliasToAddress.asScala
       .collect { case (aliasName, addressBytes) if addressBytes == a.bytes =>
