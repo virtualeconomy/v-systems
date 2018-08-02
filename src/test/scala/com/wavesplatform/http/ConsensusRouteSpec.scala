@@ -24,35 +24,35 @@ class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHel
 
   private val route = SposConsensusApiRoute(restAPISettings, state, history, FunctionalitySettings.TESTNET).route
 
-  routePath("/generationsignature") - {
+  routePath("/generationSignature") - {
     "for last block" in {
-      Get(routePath("/generationsignature")) ~> route ~> check {
+      Get(routePath("/generationSignature")) ~> route ~> check {
         (responseAs[JsObject] \ "generationSignature").as[String] shouldEqual Base58.encode(history.lastBlock.get.consensusData.generationSignature)
       }
     }
 
     "for existed block" in {
       val block = history.blockAt(3).get
-      Get(routePath(s"/generationsignature/${block.uniqueId.base58}")) ~> route ~> check {
+      Get(routePath(s"/generationSignature/${block.uniqueId.base58}")) ~> route ~> check {
         (responseAs[JsObject] \ "generationSignature").as[String] shouldEqual Base58.encode(block.consensusData.generationSignature)
       }
     }
 
     "for not existed block" in {
-      Get(routePath(s"/generationsignature/brggwg4wg4g")) ~> route should produce(BlockNotExists)
+      Get(routePath(s"/generationSignature/brggwg4wg4g")) ~> route should produce(BlockNotExists)
     }
   }
 
-  routePath("/minttime") - {
+  routePath("/mintTime") - {
     "for existed block" in {
       val block = history.blockAt(3).get
-      Get(routePath(s"/minttime/${block.uniqueId.base58}")) ~> route ~> check {
+      Get(routePath(s"/mintTime/${block.uniqueId.base58}")) ~> route ~> check {
         (responseAs[JsObject] \ "mintTime").as[Long] shouldEqual block.consensusData.mintTime
       }
     }
 
     "for not existed block" in {
-      Get(routePath(s"/minttime/brggwg4wg4g")) ~> route should produce(BlockNotExists)
+      Get(routePath(s"/mintTime/brggwg4wg4g")) ~> route should produce(BlockNotExists)
     }
   }
 }
