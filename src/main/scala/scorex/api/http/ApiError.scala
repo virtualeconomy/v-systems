@@ -173,6 +173,12 @@ case object MissingSenderPrivateKey extends ApiError {
   override val code: StatusCode = StatusCodes.BadRequest
 }
 
+case object InvalidSlotid extends ApiError {
+  override val id = 116
+  override val code = StatusCodes.BadRequest
+  override val message = "invalid slot id"
+}
+
 case class CustomValidationError(errorMessage: String) extends ApiError {
   override val id: Int = 199
   override val message: String = errorMessage

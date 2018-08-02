@@ -1,14 +1,13 @@
 package vee.consensus.spos.api.http
 
 import javax.ws.rs.Path
-
 import akka.http.scaladsl.server.Route
 import com.wavesplatform.settings.{FunctionalitySettings, RestAPISettings}
 import com.wavesplatform.state2.reader.StateReader
 import io.swagger.annotations._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import scorex.account.Address
-import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress}
+import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress, InvalidSlotid}
 import scorex.crypto.encode.Base58
 import scorex.transaction.{History, PoSCalc}
 import vee.spos.SPoSCalc
@@ -23,7 +22,7 @@ case class SposConsensusApiRoute(
 
   override val route: Route =
     pathPrefix("consensus") {
-      algo ~ mintingBalance ~ mintingBalanceId ~ minttime ~ minttimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
+      algo ~ allslotsinfo ~ mintingBalance ~ mintingBalanceId ~ minttime ~ minttimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
     }
 
   @Path("/generatingbalance/{address}")
@@ -57,6 +56,34 @@ case class SposConsensusApiRoute(
     }
   }
 
+  @Path("/allslotsinfo")
+  @ApiOperation(value = "Get all slots' info", notes = "Get all slots' information", httpMethod = "GET")
+  def allslotsinfo: Route = (path("allslotsinfo") & get) {
+    val h = state.height
+    val ret = Json.arr(Json.obj("height" -> h)) ++ JsArray(
+      (0 until fs.numOfSlots).map{
+        f => state.slotAddress(f) match {
+          case None => Json.obj(
+            "slotid"-> f,
+            "address" -> "None",
+            "mintingBalance" -> 0)
+          case Some(address) => Address.fromString(address) match {
+            case Left(_) => Json.obj(
+              "slotid"-> f,
+              "address" -> "Error address",
+              "mintingBalance" -> 0)
+            case Right(account) =>
+              Json.obj(
+                "slotid"-> f,
+                "address" -> account.address,
+                "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, h))
+          }
+        }
+      }
+    )
+    complete(ret)
+  }
+
   @Path("/slotinfo/{slotId}")
   @ApiOperation(value = "Minting balance with slot ID", notes = "Account of supernode's minting balance", httpMethod = "GET")
   @ApiImplicitParams(Array(
@@ -64,20 +91,23 @@ case class SposConsensusApiRoute(
   ))
   def mintingBalanceId: Route = (path("slotinfo" / IntNumber) & get) { slotId =>
     state.slotAddress(slotId) match {
-      case None =>
+      case None if slotId >= 0 && slotId < fs.numOfSlots =>
         complete(Json.obj(
+          "slotid"-> slotId,
           "address" -> "None",
-          "mintingBalance" -> "0",
+          "mintingBalance" -> 0,
           "height" -> state.height))
       case Some(address) =>
         Address.fromString(address) match {
           case Left(_) => complete(InvalidAddress)
           case Right(account) =>
             complete(Json.obj(
+              "slotid"-> slotId,
               "address" -> account.address,
               "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
               "height" -> state.height))
         }
+      case _ => complete(InvalidSlotid)
     }
   }
 
