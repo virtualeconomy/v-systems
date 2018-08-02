@@ -22,7 +22,7 @@ case class SposConsensusApiRoute(
 
   override val route: Route =
     pathPrefix("consensus") {
-      algo ~ allslotsinfo ~ mintingBalance ~ mintingBalanceId ~ minttime ~ minttimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
+      algo ~ allSlotsInfo ~ mintingBalance ~ mintingBalanceId ~ mintTime ~ mintTimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
     }
 
   @Path("/generatingBalance/{address}")
@@ -58,7 +58,7 @@ case class SposConsensusApiRoute(
 
   @Path("/allSlotsInfo")
   @ApiOperation(value = "Get all slots' info", notes = "Get all slots' information", httpMethod = "GET")
-  def allslotsinfo: Route = (path("allSlotsInfo") & get) {
+  def allSlotsInfo: Route = (path("allSlotsInfo") & get) {
     val h = state.height
     val ret = Json.arr(Json.obj("height" -> h)) ++ JsArray(
       (0 until fs.numOfSlots).map{
@@ -133,7 +133,7 @@ case class SposConsensusApiRoute(
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "blockId", value = "Block id ", required = true, dataType = "string", paramType = "path")
   ))
-  def minttimeId: Route = (path("mintTime" / Segment) & get) { encodedSignature =>
+  def mintTimeId: Route = (path("mintTime" / Segment) & get) { encodedSignature =>
     withBlock(history, encodedSignature) { block =>
       complete(Json.obj("mintTime" -> block.consensusData.mintTime))
     }
@@ -141,7 +141,7 @@ case class SposConsensusApiRoute(
 
   @Path("/mintTime")
   @ApiOperation(value = "Mint time last", notes = "Mint time of a last block", httpMethod = "GET")
-  def minttime: Route = (path("mintTime") & get) {
+  def mintTime: Route = (path("mintTime") & get) {
     complete(Json.obj("mintTime" -> history.lastBlock.get.consensusData.mintTime))
   }
 
