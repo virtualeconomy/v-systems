@@ -36,9 +36,6 @@ object ReleaseSlotsTransactionDiff {
     else if (!hasEnoughMiner){
       Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
     }
-    else if (!hasEnoughMiner){
-      Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
-    }
     else{
       Left(GenericError(s"${tx.sender.address} can not release the minting right of slot id: ${tx.slotid}"))
     }
