@@ -114,7 +114,7 @@ object Coordinator extends ScorexLogging {
   }
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
-  val MaxBlockTimeRange: Long = Duration.ofMillis(500).toNanos
+  val MaxBlockTimeRange: Long = Duration.ofMillis(5000).toNanos
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {

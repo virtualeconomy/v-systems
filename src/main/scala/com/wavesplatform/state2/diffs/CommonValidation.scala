@@ -45,11 +45,11 @@ object CommonValidation {
           val spendings = Monoid.combine(amountDiff, feeDiff)
 
           lazy val negativeAsset = spendings.assets.find { case (id, amt) => (accountPortfolio.assets.getOrElse(id, 0L) + amt) < 0L }.map { case (id, amt) => (id, accountPortfolio.assets.getOrElse(id, 0L), amt, accountPortfolio.assets.getOrElse(id, 0L) + amt) }
-          lazy val newWavesBalance = accountPortfolio.balance + spendings.balance
-          lazy val negativeWaves = newWavesBalance < 0
-          if (negativeWaves)
+          lazy val newVEEBalance = accountPortfolio.balance + spendings.balance
+          lazy val negativeVEE = newVEEBalance < 0
+          if (negativeVEE)
             Left(GenericError(s"Attempt to transfer unavailable funds:" +
-              s" Transaction application leads to negative vee balance to (at least) temporary negative state, current balance equals ${accountPortfolio.balance}, spends equals ${spendings.balance}, result is $newWavesBalance"))
+              s" Transaction application leads to negative vee balance to (at least) temporary negative state, current balance equals ${accountPortfolio.balance}, spends equals ${spendings.balance}, result is $newVEEBalance"))
           else if (negativeAsset.nonEmpty)
             Left(GenericError(s"Attempt to transfer unavailable funds:" +
               s" Transaction application leads to negative asset '${negativeAsset.get._1}' balance to (at least) temporary negative state, current balance is ${negativeAsset.get._2}, spends equals ${negativeAsset.get._3}, result is ${negativeAsset.get._4}"))

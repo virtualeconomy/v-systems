@@ -233,7 +233,7 @@ object Application extends ScorexLogging {
         if (!cfg.hasPath("waves")) {
           log.error("Malformed configuration file was provided! Aborting!")
           log.error("Please, read following article about configuration file format:")
-          log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file")
+          log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file") // need to be replaced by vee wiki
           forceStopApplication()
         }
         loadConfig(cfg)
