@@ -76,7 +76,7 @@ class UtxPoolSpecification extends FreeSpec
     .label("paymentWithRecipient")
 
   private def mintingTransaction(sender: PrivateKeyAccount, amount: Long, time: Time, height: Int) = {
-    MintingTransaction.create(sender, amount, amount, time.getTimestamp(), height).right.get
+    MintingTransaction.create(sender, amount, time.getTimestamp(), height).right.get
   }
 
   private val stateGen = for {

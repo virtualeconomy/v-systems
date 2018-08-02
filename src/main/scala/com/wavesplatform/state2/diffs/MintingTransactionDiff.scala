@@ -16,13 +16,13 @@ object MintingTransactionDiff {
 
     if (tx.currentBlockHeight != height)
       Left(GenericError(s"Invalid MintingTransaction, minting transaction height is different from the block height"))
-    else if (tx.amount != MintingTransaction.mintingReward || tx.fee < MintingTransaction.mintingFee)
+    else if (tx.amount != MintingTransaction.mintingReward)
       Left(GenericError(s"Minting Transaction Reward/Fee invalid"))
     else
       Right(Diff(height = height,
         tx = tx,
         portfolios = Map(
-          tx.sender.toAddress -> Portfolio(
+          tx.recipient -> Portfolio(
             balance = tx.amount,
             LeaseInfo.empty,
             assets = Map.empty))))
