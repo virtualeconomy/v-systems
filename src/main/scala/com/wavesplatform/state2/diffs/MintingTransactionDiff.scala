@@ -22,7 +22,7 @@ object MintingTransactionDiff {
       Right(Diff(height = height,
         tx = tx,
         portfolios = Map(
-          tx.sender.toAddress -> Portfolio(
+          tx.recipient -> Portfolio(
             balance = tx.amount,
             LeaseInfo.empty,
             assets = Map.empty))))

@@ -5,15 +5,14 @@ import java.util
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
-import scorex.account.PublicKeyAccount
+import scorex.account.Address
 import scorex.crypto.hash.FastCryptographicHash
-
 import scorex.transaction._
 import scorex.transaction.TransactionParser._
 
 import scala.util.{Failure, Success, Try}
 
-case class MintingTransaction private(recipient: PublicKeyAccount,
+case class MintingTransaction private(recipient: Address,
                                       amount: Long,
                                       timestamp: Long,
                                       currentBlockHeight: Int) extends Transaction {
@@ -25,7 +24,7 @@ case class MintingTransaction private(recipient: PublicKeyAccount,
     val timestampBytes = Longs.toByteArray(timestamp)
     val amountBytes = Longs.toByteArray(amount)
     val currentBlockHeightBytes = Ints.toByteArray(currentBlockHeight)
-    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, recipient.publicKey, amountBytes, currentBlockHeightBytes)
+    Bytes.concat(Array(transactionType.id.toByte), timestampBytes, recipient.bytes.arr, amountBytes, currentBlockHeightBytes)
   }
 
   override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
@@ -47,11 +46,11 @@ object MintingTransaction {
   val mintingFee = 100000
   val mintingReward = 900000000
 
-  private val minterLength = 32
+  private val recipientLength = Address.AddressLength
   private val currentBlockHeightLength = 4
-  private val BaseLength = TimestampLength + minterLength + AmountLength + currentBlockHeightLength
+  private val BaseLength = TimestampLength + recipientLength + AmountLength + currentBlockHeightLength
 
-  def create(minter: PublicKeyAccount,
+  def create(recipient: Address,
              amount: Long,
              timestamp: Long,
              currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
@@ -60,7 +59,7 @@ object MintingTransaction {
     } else if (Try(Math.addExact(amount, 0)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
     } else {
-      Right(MintingTransaction(minter, amount, timestamp, currentBlockHeight))
+      Right(MintingTransaction(recipient, amount, timestamp, currentBlockHeight))
     }
   }
 
@@ -74,10 +73,10 @@ object MintingTransaction {
     val timestamp = Longs.fromByteArray(timestampBytes)
     position += TimestampLength
 
-    //READ MINTER
-    val minterBytes = util.Arrays.copyOfRange(data, position, position + minterLength)
-    val minter = PublicKeyAccount(minterBytes)
-    position += minterLength
+    //READ RECIPIENT
+    val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + recipientLength)
+    val recipient = Address.fromBytes(recipientBytes).right.get
+    position += recipientLength
 
     //READ AMOUNT
     val amountBytes = util.Arrays.copyOfRange(data, position, position + AmountLength)
@@ -91,7 +90,7 @@ object MintingTransaction {
 
     //READ SIGNATURE
     MintingTransaction
-      .create(minter, amount, timestamp, currentBlockHeight)
+      .create(recipient, amount, timestamp, currentBlockHeight)
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 

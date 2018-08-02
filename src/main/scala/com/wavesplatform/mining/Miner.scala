@@ -84,7 +84,12 @@ class Miner(
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       gs = calcGeneratorSignature(lastBlockKernelData, account)
       consensusData = SposConsensusBlockData(mintTime, balance, gs)
-      unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(account, MintingTransaction.mintingReward, currentTime, parentHeight+1).right.get
+      unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(
+        account.toAddress,  //minter can set any address here
+        MintingTransaction.mintingReward,
+        currentTime,
+        parentHeight + 1
+      ).right.get
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
       // call currentTimeMillis to record the duration
