@@ -19,9 +19,13 @@ sealed trait Entry {
 
 object Entry {
 
+  val maxLength: Int= 16384 //16k
   def buildEntry(data: String, dataType: DataType.Value): Either[ValidationError, Entry] = {
     case class EntryImpl(data: String, dataType: DataType.Value) extends Entry
-    Right(EntryImpl(data, dataType))
+    if(data != null && data.length > maxLength)
+      Left(ValidationError.TooLongDbEntry(data.length, maxLength))
+    else
+      Right(EntryImpl(data, dataType))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Entry] = {

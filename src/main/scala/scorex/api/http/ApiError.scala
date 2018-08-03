@@ -40,6 +40,7 @@ object ApiError {
     case ValidationError.OrderValidationError(_, m) => CustomValidationError(m)
     case ValidationError.Mistiming(err) => Mistiming(err)
     case ValidationError.DbDataTypeError(err) => InvalidDbDataType(err)
+    case ValidationError.TooLongDbEntry(actualLength, maxLength) => TooLongDbEntry(actualLength, maxLength)
     case TransactionValidationError(error, tx) => error match {
       case ValidationError.Mistiming(errorMessage) => Mistiming(errorMessage)
       case _ => StateCheckFailed(tx, fromValidationError(error).message)
@@ -241,6 +242,13 @@ case class InvalidDbDataType(datatype: String) extends ApiError {
   override val id: Int = 504
   override val code = StatusCodes.BadRequest
   override val message: String = s"invalid database datatype $datatype"
+}
+
+case class TooLongDbEntry(actualLength: Int, maxLength: Int) extends ApiError {
+  override val id: Int = 505
+  override val code = StatusCodes.BadRequest
+  override val message: String = s"The data is too long for database put, the actual length " +
+    s"is $actualLength, the maximun length supported for now is $maxLength"
 }
 
 case class Mistiming(errorMessage: String) extends ApiError {
