@@ -10,6 +10,7 @@ object ValidationError {
   case object InvalidAddress extends ValidationError
   case object InvalidDataType extends ValidationError
   case object InvalidDataLength extends ValidationError
+  case class TooLongDbEntry(actualLength: Int, maxLength: Int) extends ValidationError
   case object InvalidDataEntry extends ValidationError
   case object NegativeAmount extends ValidationError
   case object InsufficientFee extends ValidationError
