@@ -40,6 +40,7 @@ object ApiError {
     case ValidationError.OrderValidationError(_, m) => CustomValidationError(m)
     case ValidationError.Mistiming(err) => Mistiming(err)
     case ValidationError.DbDataTypeError(err) => InvalidDbDataType(err)
+    case ValidationError.WrongFeeScale(errFeeScale) => InvalidFeeScale(errFeeScale)
     case TransactionValidationError(error, tx) => error match {
       case ValidationError.Mistiming(errorMessage) => Mistiming(errorMessage)
       case _ => StateCheckFailed(tx, fromValidationError(error).message)

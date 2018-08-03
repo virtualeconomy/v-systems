@@ -19,11 +19,11 @@ object ContendSlotsTransactionDiff {
       case None => false
       case _ => true
     }
-    val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
+    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0
 
     if (!MultiSlotsCheck && isValidSlotID){
       val ContendGen = mintingBalance(s,fs,tx.sender,height)
-      val SlotGen = s.slotAddress(tx.slotid) match {
+      val SlotGen = s.slotAddress(tx.slotId) match {
         //if the slot is occupied, return the generating balance, else return 0
         case Some(l) => Address.fromString(l).right.map( arr => mintingBalance(s,fs,arr,height)).getOrElse(0L)
         case None => 0L //here 0 can be changed to min contend cost
@@ -32,7 +32,7 @@ object ContendSlotsTransactionDiff {
         // charge transaction fee and contend the slot
         Right(Diff(height = height, tx = tx,
           portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-          slotids = Map(tx.slotid -> tx.sender.toAddress.address),
+          slotids = Map(tx.slotId -> tx.sender.toAddress.address),
           slotNum = 1))
       }
       else {
@@ -46,7 +46,7 @@ object ContendSlotsTransactionDiff {
       Left(GenericError(s"${tx.sender.address} already own one slot."))
     }
     else{
-      Left(GenericError(s"slot id: ${tx.slotid} invalid."))
+      Left(GenericError(s"slot id: ${tx.slotId} invalid."))
     }
   }
 }

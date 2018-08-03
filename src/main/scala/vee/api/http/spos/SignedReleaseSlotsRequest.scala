@@ -13,7 +13,9 @@ case class SignedReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded s
                                     @ApiModelProperty(required = true)
                                     fee: Long,
                                     @ApiModelProperty(required = true)
-                                    slotids: Int,
+                                    feeScale: Short,
+                                    @ApiModelProperty(required = true)
+                                    slotId: Int,
                                     @ApiModelProperty(required = true)
                                     timestamp: Long,
                                     @ApiModelProperty(required = true)
@@ -21,7 +23,7 @@ case class SignedReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded s
   def toTx: Either[ValidationError, ReleaseSlotsTransaction] = for {
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
-    _t <- ReleaseSlotsTransaction.create(_sender, slotids, fee, timestamp, _signature)
+    _t <- ReleaseSlotsTransaction.create(_sender, slotId, fee, feeScale, timestamp, _signature)
   } yield _t
 }
 

@@ -114,7 +114,7 @@ object Coordinator extends ScorexLogging {
   }
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
-  val MaxBlockTimeRange: Long = Duration.ofMillis(5000).toNanos
+  val MaxBlockTimeRange: Long = Duration.ofMillis(10000).toNanos
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {
@@ -162,8 +162,11 @@ object Coordinator extends ScorexLogging {
       slotid = (mintTime / 1000000000L / Math.max(fs.mintingSpeed, 1L)) % fs.numOfSlots
       slotAddress = state.slotAddress(slotid.toInt)
       _ <- Either.cond(minterAddress.address == slotAddress.get, (), s"Minting address ${minterAddress.address} does not match the slot address ${slotAddress.get} of slot ${slotid}")
-      //compare cntTime and mintTime
-      _ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
+      // TODO
+      // set a better duration here
+      // compare cntTime and mintTime
+      // commit this validation first
+      //_ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
 
 
       _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1,

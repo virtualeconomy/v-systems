@@ -75,12 +75,12 @@ object TransactionFactory {
 
   def contendSlots(request: ContendSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ContendSlotsTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    tx <- ContendSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
+    tx <- ContendSlotsTransaction.create(senderPrivateKey, request.slotId, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
 
   def releaseSlots(request: ReleaseSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ReleaseSlotsTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotids, request.fee, time.getTimestamp())
+    tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotId, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
     
   def createContract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {

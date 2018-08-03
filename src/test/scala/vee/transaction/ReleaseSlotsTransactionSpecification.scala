@@ -28,7 +28,8 @@ class ReleaseSlotsTransactionSpecification extends PropSpec with PropertyChecks 
     first.sender.address shouldEqual second.sender.address
     first.timestamp shouldEqual second.timestamp
     first.fee shouldEqual second.fee
-    first.slotid shouldEqual second.slotid
+    first.feeScale shouldEqual second.feeScale
+    first.slotId shouldEqual second.slotId
     first.bytes shouldEqual second.bytes
   }
 }

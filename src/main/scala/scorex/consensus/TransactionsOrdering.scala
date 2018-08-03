@@ -5,15 +5,16 @@ import scorex.transaction.Transaction
 object TransactionsOrdering {
   trait WavesOrdering extends Ordering[Transaction] {
     def txTimestampOrder(ts: Long): Long
-    private def orderBy(t: Transaction): (Long, Long, String) = {
+    private def orderBy(t: Transaction): (Short, Long, Long, String) = {
+      val byFeeScale: Short = (-t.assetFee._3).toShort
       val byFee = if (t.assetFee._1.nonEmpty) 0 else -t.assetFee._2
       val byTimestamp = txTimestampOrder(t.timestamp)
       val byTxId = t.id.base58
 
-      (byFee, byTimestamp, byTxId)
+      (byFeeScale, byFee, byTimestamp, byTxId)
     }
     override def compare(first: Transaction, second: Transaction): Int = {
-      implicitly[Ordering[(Long, Long, String)]].compare(orderBy(first), orderBy(second))
+      implicitly[Ordering[(Short, Long, Long, String)]].compare(orderBy(first), orderBy(second))
     }
   }
 

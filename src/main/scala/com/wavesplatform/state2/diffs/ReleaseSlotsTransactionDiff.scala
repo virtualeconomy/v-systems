@@ -15,9 +15,9 @@ object ReleaseSlotsTransactionDiff {
     // set the min num to half of total num of slots
     val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots + 1) / 2 && s.effectiveSlotAddressSize > 1
 
-    val isValidSlotID = tx.slotid < fs.numOfSlots && tx.slotid >=0
+    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0
 
-    val isValidAddress = s.slotAddress(tx.slotid) match {
+    val isValidAddress = s.slotAddress(tx.slotId) match {
       case Some(l) if l == tx.sender.toAddress.address => true
       case _ => false
     }
@@ -28,16 +28,16 @@ object ReleaseSlotsTransactionDiff {
     if (hasEnoughMiner && isValidAddress && isValidSlotID) {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        slotids = Map(tx.slotid -> emptyAddress),slotNum = -1))
+        slotids = Map(tx.slotId -> emptyAddress),slotNum = -1))
     }
     else if (!isValidSlotID){
-      Left(GenericError(s"slot id: ${tx.slotid} invalid."))
+      Left(GenericError(s"slot id: ${tx.slotId} invalid."))
     }
     else if (!hasEnoughMiner){
       Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))
     }
     else{
-      Left(GenericError(s"${tx.sender.address} can not release the minting right of slot id: ${tx.slotid}"))
+      Left(GenericError(s"${tx.sender.address} can not release the minting right of slot id: ${tx.slotId}"))
     }
   }
 }

@@ -9,7 +9,7 @@ trait Transaction extends BytesSerializable with JsonSerializable with Signed {
   val id: ByteStr
 
   val transactionType: TransactionType.Value
-  val assetFee: (Option[AssetId], Long)
+  val assetFee: (Option[AssetId], Long, Short)
   val timestamp: Long
 
   override def toString: String = json.toString()

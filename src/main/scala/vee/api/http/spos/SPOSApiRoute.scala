@@ -35,7 +35,7 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
       required = true,
       paramType = "body",
       dataType = "vee.api.http.spos.ContendSlotsRequest",
-      defaultValue = "{\n\t\"slotids\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 10000000\n}"
+      defaultValue = "{\n\t\"slotId\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 10000000\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -53,7 +53,7 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
       required = true,
       paramType = "body",
       dataType = "vee.api.http.spos.ReleaseSlotsRequest",
-      defaultValue = "{\n\t\"slotids\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 100000\n}"
+      defaultValue = "{\n\t\"slotId\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 100000\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
