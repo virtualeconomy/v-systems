@@ -7,7 +7,7 @@ import com.wavesplatform.state2.reader.StateReader
 import io.swagger.annotations._
 import play.api.libs.json.{JsArray, Json}
 import scorex.account.Address
-import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress, InvalidSlotid}
+import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress, InvalidSlotId}
 import scorex.crypto.encode.Base58
 import scorex.transaction.{History, PoSCalc}
 import vee.spos.SPoSCalc
@@ -107,7 +107,7 @@ case class SposConsensusApiRoute(
               "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
               "height" -> state.height))
         }
-      case _ => complete(InvalidSlotid)
+      case _ => complete(InvalidSlotId)
     }
   }
 
