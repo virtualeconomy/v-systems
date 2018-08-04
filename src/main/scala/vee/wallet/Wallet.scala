@@ -5,6 +5,7 @@ import java.io.File
 import scorex.crypto.hash.SecureCryptographicHash
 import com.wavesplatform.settings.WalletSettings
 import com.wavesplatform.state2.ByteStr
+import com.wavesplatform.Version
 import vee.utils.JsonFileStorage
 import play.api.libs.json._
 import scorex.account.{Address, PrivateKeyAccount, AddressScheme}
@@ -46,7 +47,7 @@ object Wallet extends ScorexLogging {
   }
 
   private val chainName = if(AddressScheme.current.chainId == 'T') "testnet" else "mainnet"
-  private val agentString = "VEE wallet:1.0rc1/VEE full node:0.0.2/" + chainName
+  private val agentString = s"VEE Wallet:1.0rc1/VEE Core:${Version.VersionString}/${chainName}"
 
   private case class WalletData(seed: String, accountSeeds: Set[ByteStr] = Set.empty, nonce: Long = 0, agent: String = agentString)
 
