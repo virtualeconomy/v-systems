@@ -23,7 +23,9 @@ case class IssueTransaction private(sender: PublicKeyAccount,
                                     signature: ByteStr)
   extends AssetIssuance {
 
-  override val assetFee: (Option[AssetId], Long) = (None, fee)
+  // TODO
+  // add feeScale in assetFee, need to change 100 later
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
   override val transactionType: TransactionType.Value = TransactionType.IssueTransaction
 
   override lazy val assetId = id

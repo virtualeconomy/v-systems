@@ -23,7 +23,7 @@ case class GenesisTransaction private(recipient: Address, amount: Long, timestam
       amountBytes,
       recipient.bytes.arr)
   }
-  override val assetFee: (Option[AssetId], Long) = (None, 0)
+  override val assetFee: (Option[AssetId], Long, Short) = (None, 0, 100)
   override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
   val transactionType = TransactionType.GenesisTransaction

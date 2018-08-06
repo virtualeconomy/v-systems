@@ -18,7 +18,9 @@ case class ExchangeTransaction private(buyOrder: Order, sellOrder: Order, price:
 
   override val transactionType: TransactionType.Value = TransactionType.ExchangeTransaction
 
-  override val assetFee: (Option[AssetId], Long) = (None, fee)
+  // TODO
+  // add feeScale in assetFee, need to change 100 later
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
 
   @ApiModelProperty(hidden = true)
   override val sender: PublicKeyAccount = buyOrder.matcherPublicKey

@@ -114,6 +114,14 @@ object CommonValidation {
         Left(Mistiming(s"Transaction ts ${tx.timestamp} is too old. Previous block time: $prevBlockTime"))
       case _ => Right(tx)
     }
+
+  def disallowInvalidFeeScale[T <: Transaction](tx: T) : Either[ValidationError, T] = {
+    if (tx.assetFee._3 != 100){
+      Left(ValidationError.WrongFeeScale(tx.assetFee._3))
+    } else{
+      Right(tx)
+    }
+  }
 }
 
 

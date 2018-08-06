@@ -36,7 +36,9 @@ case class CreateAliasTransaction private(sender: PublicKeyAccount,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long) = (None, fee)
+  // TODO
+  // add feeScale in assetFee, need to change 100 later
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
 
 }

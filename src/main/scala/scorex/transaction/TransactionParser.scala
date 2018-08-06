@@ -38,7 +38,7 @@ object TransactionParser {
   val SignatureLength = 64
   val SignatureStringLength: Int = base58Length(SignatureLength)
   val KeyLength = 32
-  val SlotidLength = 4
+  val SlotIdLength = 4
   val KeyStringLength: Int = base58Length(KeyLength)
 
   def parseBytes(data: Array[Byte]): Try[Transaction] =

@@ -17,7 +17,9 @@ case class PaymentTransaction private(sender: PublicKeyAccount,
                                       timestamp: Long,
                                       signature: ByteStr) extends SignedTransaction {
   override val transactionType = TransactionType.PaymentTransaction
-  override val assetFee: (Option[AssetId], Long) = (None, fee)
+  // TODO
+  // add feeScale in assetFee, need to change 100 later
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)

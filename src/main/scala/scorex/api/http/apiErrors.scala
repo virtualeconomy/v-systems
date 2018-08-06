@@ -75,3 +75,9 @@ case class WrongTransactionJson(err: JsError) extends ApiError {
     err.errors.map(e => s"Validation failed for field '${e._1}', errors:${e._2}. ").mkString("\n")
   override val code: StatusCode = StatusCodes.UnprocessableEntity
 }
+
+case class InvalidFeeScale(feeScale: Short) extends ApiError {
+  override val id: Int = 114
+  override val message: String = s"Validation failed for wrong fee scale ${feeScale}."
+  override val code: StatusCode = StatusCodes.BadRequest
+}

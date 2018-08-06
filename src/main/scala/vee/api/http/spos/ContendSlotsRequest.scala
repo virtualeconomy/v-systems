@@ -6,9 +6,11 @@ import play.api.libs.json.{Format, Json}
 case class ContendSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                               sender: String,
                               @ApiModelProperty(required = true)
-                              slotids: Int,
+                              slotId: Int,
                               @ApiModelProperty(required = true)
-                              fee: Long)
+                              fee: Long,
+                              @ApiModelProperty(required = true)
+                              feeScale: Short)
 
 object ContendSlotsRequest {
   implicit val aliasRequestFormat: Format[ContendSlotsRequest] = Json.format

@@ -33,7 +33,7 @@ case class SPOSBroadcastApiRoute(
       required = true,
       paramType = "body",
       dataType = "vee.api.http.spos.SignedContendSlotsRequest",
-      defaultValue = "{\n\t\"slotid\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      defaultValue = "{\n\t\"slotId\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -55,7 +55,7 @@ case class SPOSBroadcastApiRoute(
       required = true,
       paramType = "body",
       dataType = "vee.api.http.spos.SignedReleaseSlotsRequest",
-      defaultValue = "{\n\t\"slotid\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      defaultValue = "{\n\t\"slotId\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))

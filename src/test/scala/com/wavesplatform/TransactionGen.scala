@@ -60,6 +60,7 @@ trait TransactionGen {
 
   val positiveLongGen: Gen[Long] = Gen.choose(1, Long.MaxValue / 100)
   val positiveIntGen: Gen[Int] = Gen.choose(1, Int.MaxValue / 100)
+  val positiveShortGen: Gen[Short] = Gen.choose(1, Short.MaxValue)
   val smallFeeGen: Gen[Long] = Gen.choose(1, 100000000)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
 
@@ -178,28 +179,32 @@ trait TransactionGen {
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
-    slotid: Int <- slotidGen
-  } yield ContendSlotsTransaction.create(sender, slotid, MinIssueFee, timestamp).right.get
+    slotId: Int <- slotidGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+  } yield ContendSlotsTransaction.create(sender, slotId, MinIssueFee, 100, timestamp).right.get
 
-  def contendGeneratorP(sender: PrivateKeyAccount, slotid: Int): Gen[ContendSlotsTransaction] =
-    timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotid))
+  def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
+    timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
 
-  def contendGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotid: Int): Gen[ContendSlotsTransaction] = for {
+  def contendGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] = for {
     fee: Long <- smallFeeGen
-  } yield ContendSlotsTransaction.create(sender, slotid, fee, timestamp).right.get
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+  } yield ContendSlotsTransaction.create(sender, slotId, fee, 100, timestamp).right.get
 
   val releaseSlotsGen: Gen[ReleaseSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
-    slotid: Int <- slotidGen
-  } yield  ReleaseSlotsTransaction.create(sender, slotid, MinIssueFee, timestamp).right.get
+    slotId: Int <- slotidGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+  } yield  ReleaseSlotsTransaction.create(sender, slotId, MinIssueFee, 100, timestamp).right.get
 
-  def releaseGeneratorP(sender: PrivateKeyAccount, slotid: Int): Gen[ReleaseSlotsTransaction] =
-    timestampGen.flatMap(ts => releaseGeneratorP(ts, sender, slotid))
+  def releaseGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] =
+    timestampGen.flatMap(ts => releaseGeneratorP(ts, sender, slotId))
 
-  def releaseGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotid: Int): Gen[ReleaseSlotsTransaction] = for {
+  def releaseGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] = for {
     fee: Long <- smallFeeGen
-  } yield ReleaseSlotsTransaction.create(sender, slotid, fee, timestamp).right.get
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+  } yield ReleaseSlotsTransaction.create(sender, slotId, fee, 100, timestamp).right.get
 
 
   val issueParamGen = for {

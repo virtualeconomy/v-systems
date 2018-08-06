@@ -28,4 +28,5 @@ object ValidationError {
   case class GenericError(err: String) extends ValidationError
   case class DbDataTypeError(err: String) extends ValidationError
   case class Mistiming(err: String) extends ValidationError
+  case class WrongFeeScale(errFeeScale: Short) extends ValidationError
 }

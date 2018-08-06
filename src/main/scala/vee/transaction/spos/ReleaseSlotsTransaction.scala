@@ -1,6 +1,6 @@
 package vee.transaction.spos
 
-import com.google.common.primitives.{Bytes, Longs, Ints}
+import com.google.common.primitives.{Bytes, Longs, Ints, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
@@ -13,8 +13,9 @@ import scala.util.{Failure, Success, Try}
 
 
 case class ReleaseSlotsTransaction private(sender: PublicKeyAccount,
-                                           slotid: Int,
+                                           slotId: Int,
                                            fee: Long,
+                                           feeScale: Short,
                                            timestamp: Long,
                                            signature: ByteStr)
   extends SignedTransaction {
@@ -24,19 +25,21 @@ case class ReleaseSlotsTransaction private(sender: PublicKeyAccount,
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     sender.publicKey,
-    Ints.toByteArray(slotid),
+    Ints.toByteArray(slotId),
     Longs.toByteArray(fee),
+    Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
-    "slotid" -> slotid,
+    "slotId" -> slotId,
     "fee" -> fee,
+    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long) = (None, fee)
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
 
 }
@@ -46,32 +49,37 @@ object ReleaseSlotsTransaction {
   def parseTail(bytes: Array[Byte]): Try[ReleaseSlotsTransaction] = Try {
     import EllipticCurveImpl._
     val sender = PublicKeyAccount(bytes.slice(0, KeyLength))
-    val (slotBytes, slotidEnd) = (bytes.slice(KeyLength, KeyLength + SlotidLength), KeyLength + SlotidLength)
-    val slotid = Ints.fromByteArray(slotBytes)
-    val fee = Longs.fromByteArray(bytes.slice(slotidEnd, slotidEnd + 8))
-    val timestamp = Longs.fromByteArray(bytes.slice(slotidEnd + 8, slotidEnd + 16))
-    val signature = ByteStr(bytes.slice(slotidEnd + 16, slotidEnd + 16 + SignatureLength))
+    val (slotBytes, slotIdEnd) = (bytes.slice(KeyLength, KeyLength + SlotIdLength), KeyLength + SlotIdLength)
+    val slotId = Ints.fromByteArray(slotBytes)
+    val fee = Longs.fromByteArray(bytes.slice(slotIdEnd, slotIdEnd + 8))
+    val feeScale = Shorts.fromByteArray(bytes.slice(slotIdEnd + 8, slotIdEnd + 10))
+    val timestamp = Longs.fromByteArray(bytes.slice(slotIdEnd + 10, slotIdEnd + 18))
+    val signature = ByteStr(bytes.slice(slotIdEnd + 18, slotIdEnd + 18 + SignatureLength))
     ReleaseSlotsTransaction
-      .create(sender, slotid, fee, timestamp, signature)
+      .create(sender, slotId, fee, feeScale, timestamp, signature)
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(sender: PublicKeyAccount,
-             slotid: Int,
+             slotId: Int,
              fee: Long,
+             feeScale: Short,
              timestamp: Long,
              signature: ByteStr): Either[ValidationError, ReleaseSlotsTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
+    } else if (feeScale != 100){
+      Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(ReleaseSlotsTransaction(sender, slotid, fee, timestamp, signature))
+      Right(ReleaseSlotsTransaction(sender, slotId, fee, feeScale, timestamp, signature))
     }
 
   def create(sender: PrivateKeyAccount,
-             slotid: Int,
+             slotId: Int,
              fee: Long,
+             feeScale: Short,
              timestamp: Long): Either[ValidationError, ReleaseSlotsTransaction] = {
-    create(sender, slotid, fee, timestamp, ByteStr.empty).right.map { unsigned =>
+    create(sender, slotId, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }

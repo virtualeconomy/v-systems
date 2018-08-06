@@ -18,7 +18,7 @@ case class MintingTransaction private(recipient: Address,
                                       currentBlockHeight: Int) extends Transaction {
   override lazy val signatureValid = true
   override val transactionType = TransactionType.MintingTransaction
-  override val assetFee: (Option[AssetId], Long) = (None, 0)
+  override val assetFee: (Option[AssetId], Long, Short) = (None, 0, 100) // no fee charged here
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
