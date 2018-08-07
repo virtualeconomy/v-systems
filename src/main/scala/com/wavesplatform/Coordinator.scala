@@ -117,7 +117,7 @@ object Coordinator extends ScorexLogging {
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
   val MaxBlockTimeRange: Long = Duration.ofMillis(10000).toNanos
-  private val blockReceiveGapStats = Kamon.metrics.histogram("block-receive-gap", instrument.Time.Nanoseconds)
+  private val blockReceiveGapStats = Kamon.metrics.histogram("block-receive-gap", instrument.Time.Milliseconds)
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {
@@ -129,7 +129,7 @@ object Coordinator extends ScorexLogging {
     val blockTime = block.timestamp
     val mt = block.consensusData.mintTime
 
-    blockReceiveGapStats.record(Math.abs(currentTs - mt))
+    blockReceiveGapStats.record(Math.abs(currentTs - mt) / 1000000L)
 
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
