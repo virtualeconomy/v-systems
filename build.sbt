@@ -6,7 +6,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, SystemdPlugin)
 
 name := "vee"
-organization := "tech.vee"
+organization := "vee.tech"
 version := "0.0.3"
 scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
