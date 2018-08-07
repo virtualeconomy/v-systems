@@ -14,6 +14,8 @@ import scorex.consensus.TransactionsOrdering
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time}
+import kamon.Kamon
+import kamon.metric.instrument
 
 object Coordinator extends ScorexLogging {
   def processFork(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater, stateReader: StateReader,
@@ -115,6 +117,7 @@ object Coordinator extends ScorexLogging {
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
   val MaxBlockTimeRange: Long = Duration.ofMillis(10000).toNanos
+  private val blockReceiveGapStats = Kamon.metrics.histogram("block-receive-gap", instrument.Time.Nanoseconds)
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {
@@ -124,6 +127,9 @@ object Coordinator extends ScorexLogging {
     val fs = bcs.functionalitySettings
     val (sortStart, sortEnd) = (fs.requireSortedTransactionsAfter, Long.MaxValue)
     val blockTime = block.timestamp
+    val mt = block.consensusData.mintTime
+
+    blockReceiveGapStats.record(Math.abs(currentTs - mt))
 
     (for {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
