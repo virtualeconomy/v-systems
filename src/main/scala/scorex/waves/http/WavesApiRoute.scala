@@ -54,7 +54,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
           f.map { t =>
             val tx = t.asInstanceOf[PaymentTransaction]
             SignedPaymentRequest(tx.timestamp, tx.amount, tx.fee, tx.recipient.address,
-              Base58.encode(tx.sender.publicKey), tx.sender.address, tx.signature.base58)
+              Base58.encode(tx.sender.publicKey), tx.signature.base58)
           }
         }
       }
@@ -88,7 +88,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       } yield pt)
         .left.map(ApiError.fromValidationError)
         .map { t =>
-          SignedPaymentRequest(t.timestamp, t.amount, t.fee, t.recipient.address, Base58.encode(t.sender.publicKey), t.sender.address, t.signature.base58)
+          SignedPaymentRequest(t.timestamp, t.amount, t.fee, t.recipient.address, Base58.encode(t.sender.publicKey), t.signature.base58)
         }
     }
   }
@@ -122,7 +122,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
           _tx <- PaymentTransaction.create(senderAccount, recipientAccount, payment.amount, payment.fee, payment.timestamp)
             .left.map(ApiError.fromValidationError)
         } yield SignedPaymentRequest(_tx.timestamp, _tx.amount, _tx.fee, _tx.recipient.address, Base58.encode(_tx.sender.publicKey),
-          _tx.sender.address, _tx.signature.base58)
+           _tx.signature.base58)
       }
     }
   }
@@ -155,7 +155,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       required = true,
       paramType = "body",
       dataType = "vee.api.http.vee.SignedPaymentRequest",
-      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"senderAddress\":\"senderAddress\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
+      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
