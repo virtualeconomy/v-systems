@@ -8,7 +8,6 @@ case class SignedPaymentRequest(
     fee: Long,
     recipient: String,
     senderPublicKey: String,
-    sender: String,
     signature: String)
 
 object SignedPaymentRequest {
