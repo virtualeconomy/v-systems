@@ -11,12 +11,12 @@ import scala.io.{BufferedSource, Source}
 
 object JsonFileStorage {
   private val encoding          = "UTF-8"
-  private val keySalt           = "0495c728-1614-41f6-8ac3-966c22b4a62d"
+  private val keySalt           = "0ba950e1-828b-4bae-9e06-faf078eb33ec"
   private val aes               = "AES"
   private val algorithm         = aes + "/ECB/PKCS5Padding"
   private val hashing           = "PBKDF2WithHmacSHA512"
   private val hashingIterations = 999999
-  private val keyLength         = 128
+  private val keyLength         = 256
 
   import java.security.NoSuchAlgorithmException
   import java.security.spec.InvalidKeySpecException
