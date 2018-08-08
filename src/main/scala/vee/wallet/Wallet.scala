@@ -14,6 +14,7 @@ import scorex.transaction.ValidationError.MissingSenderPrivateKey
 import scorex.utils.{ScorexLogging, randomBytes}
 
 import scala.collection.concurrent.TrieMap
+import scala.collection.mutable.LinkedHashSet
 import scala.util.control.NonFatal
 
 trait Wallet {
@@ -49,7 +50,7 @@ object Wallet extends ScorexLogging {
   private val chainName = if(AddressScheme.current.chainId == 'T') "testnet" else "mainnet"
   private val agentString = s"VEE Wallet:1.0rc1/VEE Core:${Version.VersionString}/${chainName}"
 
-  private case class WalletData(seed: String, accountSeeds: Set[ByteStr] = Set.empty, nonce: Long = 0, agent: String = agentString)
+  private case class WalletData(seed: String, accountSeeds: LinkedHashSet[ByteStr] = LinkedHashSet.empty, nonce: Long = 0, agent: String = agentString)
 
   private implicit val walletFormat: Format[WalletData] = Json.format
 
