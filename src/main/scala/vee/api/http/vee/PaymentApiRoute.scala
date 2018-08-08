@@ -19,7 +19,7 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
   extends ApiRoute with BroadcastRoute {
 
   override lazy val route = pathPrefix("vee") {
-    payment~broadcastSignedPayment
+    payment ~ broadcastPayment
   }
 
   @Path("/payment")
@@ -58,13 +58,11 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       required = true,
       paramType = "body",
       dataType = "vee.api.http.vee.SignedPaymentRequest",
-      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"senderAddress\":\"senderAddress\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
+      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
-  def broadcastSignedPayment: Route = broadcastPaymentRoute("broadcast-payment")
-
-  private def broadcastPaymentRoute(suffix: String): Route = (path(suffix) & post) {
+  def broadcastPayment: Route = (path("broadcast" / "payment") & post) {
     json[SignedPaymentRequest] { payment =>
       doBroadcast(TransactionFactory.broadcastPayment(payment))
     }
