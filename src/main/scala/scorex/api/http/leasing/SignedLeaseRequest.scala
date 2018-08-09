@@ -15,6 +15,8 @@ case class SignedLeaseRequest(@ApiModelProperty(value = "Base58 encoded sender p
                               @ApiModelProperty(required = true)
                               fee: Long,
                               @ApiModelProperty(value = "Recipient address", required = true)
+                              feeScale: Short,
+                              @ApiModelProperty(required = true)
                               recipient: String,
                               @ApiModelProperty(required = true)
                               timestamp: Long,
@@ -24,7 +26,7 @@ case class SignedLeaseRequest(@ApiModelProperty(value = "Base58 encoded sender p
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
     _recipient <- AddressOrAlias.fromString(recipient)
-    _t <- LeaseTransaction.create(_sender, amount, fee, timestamp, _recipient, _signature)
+    _t <- LeaseTransaction.create(_sender, amount, fee, feeScale, timestamp, _recipient, _signature)
   } yield _t
 }
 
