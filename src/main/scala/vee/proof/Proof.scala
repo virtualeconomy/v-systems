@@ -9,10 +9,15 @@ import scorex.crypto.EllipticCurveImpl
 
 sealed trait Proof {
 
-  lazy val bytes: ByteStr = ByteStr(BytesSerializable.arrayWithSize(pk.get.publicKey) ++
+  lazy val bytes: ByteStr = ByteStr(BytesSerializable.arrayWithSize(pkBytes) ++
     Array(proofType.id.asInstanceOf[Byte]) ++
     signature.arr
   )
+
+  private lazy val (pkBytes, pkAddress): (Array[Byte], String) = pk match {
+    case Some(key) => (key.publicKey, PublicKeyAccount.toAddress(key).address)
+    case None => (Array.emptyByteArray, "None")
+  }
 
   val pk: Option[PublicKeyAccount]
   val proofType: ProofType.Value
@@ -20,7 +25,7 @@ sealed trait Proof {
 
   lazy val json: JsObject = Json.obj(
     "proofType" -> proofType,
-    "publicKey" -> PublicKeyAccount.toAddress(pk.get).address,
+    "publicKey" -> pkAddress,
     "signature" -> signature.base58
   )
 }
@@ -46,6 +51,10 @@ object Proof {
 
   def fromBytesWithValidLength(bytes: Array[Byte]): Either[ValidationError, Proof] = {
     val (pkBytes, pkEnd) = Deser.parseArraySize(bytes, 0)
+    val getPk: Option[PublicKeyAccount] = pkBytes.length match {
+      case 0 => None
+      case _ => Option(PublicKeyAccount(pkBytes))
+    }
     bytes.slice(pkEnd, pkEnd + 1).headOption match {
       case None =>
         Left (ValidationError.InvalidProofBytes)
@@ -55,7 +64,7 @@ object Proof {
             Left (ValidationError.InvalidProofType)
           case Some(proofType) =>
             buildProof (
-              Option (PublicKeyAccount (pkBytes) ),
+              getPk,
               proofType,
               ByteStr (bytes.slice (pkEnd + 1, bytes.length) )
             )
