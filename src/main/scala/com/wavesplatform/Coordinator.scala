@@ -116,7 +116,7 @@ object Coordinator extends ScorexLogging {
   }
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
-  val MaxBlockTimeRange: Long = Duration.ofMillis(10000).toNanos
+  val MaxMintTimeFromFuture: Long = Duration.ofMillis(500).toNanos
   private val blockReceiveGapStats = Kamon.metrics.histogram("block-receive-gap", instrument.Time.Milliseconds)
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
@@ -167,13 +167,18 @@ object Coordinator extends ScorexLogging {
       mintTime = block.consensusData.mintTime
       slotid = (mintTime / 1000000000L / Math.max(fs.mintingSpeed, 1L)) % fs.numOfSlots
       slotAddress = state.slotAddress(slotid.toInt)
-      _ <- Either.cond(minterAddress.address == slotAddress.get, (), s"Minting address ${minterAddress.address} does not match the slot address ${slotAddress.get} of slot ${slotid}")
+      _ <- Either.cond(minterAddress.address == slotAddress.get, (), s"Minting address ${minterAddress.address} does not match the slot address ${slotAddress.get} of slot $slotid")
       // TODO
       // set a better duration here
       // compare cntTime and mintTime
       // commit this validation first
       //_ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
 
+      // check mint time is larger than parent block mint time
+      _ <- Either.cond(mintTime > prevBlockData.mintTime, (), s"Block mint time $mintTime does not larger than parent mint time ${prevBlockData.mintTime}")
+
+      // mint time should not greater than current time + 1s(error)
+      // _ <- Either.cond(currentTs + MaxMintTimeFromFuture >= mintTime, (), s"Block from future, current time $currentTs, mint time $mintTime")
 
       _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1,
            (), s"One and only one minting transaction allowed per block" )
