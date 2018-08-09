@@ -58,7 +58,7 @@ object TransactionFactory {
   def lease(request: LeaseRequest, wallet: Wallet, time: Time): Either[ValidationError, LeaseTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     recipientAcc <- AddressOrAlias.fromString(request.recipient)
-    tx <- LeaseTransaction.create(senderPrivateKey, request.amount, request.fee, time.getTimestamp(), recipientAcc)
+    tx <- LeaseTransaction.create(senderPrivateKey, request.amount, request.fee, request.feeScale, time.getTimestamp(), recipientAcc)
   } yield tx
 
   def leaseCancel(request: LeaseCancelRequest, wallet: Wallet, time: Time): Either[ValidationError, LeaseCancelTransaction] =
