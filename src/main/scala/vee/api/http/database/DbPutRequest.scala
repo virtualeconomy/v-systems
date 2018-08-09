@@ -12,7 +12,9 @@ case class DbPutRequest (@ApiModelProperty(value = "Base58 encoded sender public
                          @ApiModelProperty(value = "data")
                          data: String,
                          @ApiModelProperty(required = true)
-                         fee: Long)
+                         fee: Long,
+                         @ApiModelProperty(value = "Fee Scale (default 100)", required = true)
+                         feeScale: Short)
 
 object DbPutRequest {
   implicit val dbPutRequestFormat: Format[DbPutRequest] = Json.format

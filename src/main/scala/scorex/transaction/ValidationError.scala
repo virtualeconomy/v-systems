@@ -14,6 +14,7 @@ object ValidationError {
   case object InvalidDataEntry extends ValidationError
   case object NegativeAmount extends ValidationError
   case object InsufficientFee extends ValidationError
+  case object InvalidFeeScale extends ValidationError
   case object TooBigArray extends ValidationError
   case object InvalidName extends ValidationError
   case object OverflowError extends ValidationError
