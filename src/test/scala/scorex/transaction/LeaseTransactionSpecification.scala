@@ -37,6 +37,7 @@ class LeaseTransactionSpecification extends PropSpec with PropertyChecks with Ma
     first.recipient.stringRepr shouldEqual second.recipient.stringRepr
     first.amount shouldEqual second.amount
     first.fee shouldEqual second.fee
+    first.feeScale shouldEqual second.feeScale
     first.signature shouldEqual second.signature
     first.bytes shouldEqual second.bytes
   }
