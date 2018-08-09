@@ -19,7 +19,8 @@ object Proofs {
   val Version            = 1: Byte
   val MaxProofs          = 8
   val MaxProofSize       = 64
-  val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(1)
+  // signature length = 64, publickey length = 32 + 1, proof type length = 1
+  val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(2)
 
   lazy val empty = create(Seq.empty).explicitGet()
 
