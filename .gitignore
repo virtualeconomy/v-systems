@@ -36,3 +36,6 @@ Dockerfile
 package
 !src/package
 native
+
+.DS_Store
+minter_target
