@@ -8,7 +8,6 @@ import scorex.crypto.EllipticCurveImpl
 import vee.database.Entry
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser.{KeyLength, TransactionType}
-import scorex.transaction.ValidationError.WrongFeeScale
 import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
 
 import scala.util.{Failure, Success, Try}
@@ -77,7 +76,7 @@ object DbPutTransaction {
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale <= 100) {
-      Left(ValidationError.InvalidFeeScale)
+      Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(DbPutTransaction(sender, dbKey, dbEntry, fee, feeScale, timestamp, signature))
     }
