@@ -1,6 +1,6 @@
 package scorex.transaction
 
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import com.wavesplatform.utils.base58Length
 import play.api.libs.json.{JsObject, Json}
@@ -14,23 +14,26 @@ case class PaymentTransaction private(sender: PublicKeyAccount,
                                       recipient: Address,
                                       amount: Long,
                                       fee: Long,
+                                      feeScale: Short,
                                       timestamp: Long,
                                       signature: ByteStr) extends SignedTransaction {
   override val transactionType = TransactionType.PaymentTransaction
   // TODO
   // add feeScale in assetFee, need to change 100 later
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
     val amountBytes = Longs.toByteArray(amount)
     val feeBytes = Longs.toByteArray(fee)
+    val feeScaleBytes = Shorts.toByteArray(feeScale)
 
     Bytes.concat(Array(transactionType.id.toByte),
       sender.publicKey,
       timestampBytes,
       amountBytes,
       feeBytes,
+      feeScaleBytes,
       recipient.bytes.arr)
   }
 
@@ -60,9 +63,10 @@ object PaymentTransaction {
     val timestamp = Longs.fromByteArray(bytes.slice(s1, s1 + 8))
     val amount = Longs.fromByteArray(bytes.slice(s1 + 8, s1 + 16))
     val feeAmount = Longs.fromByteArray(bytes.slice(s1 + 16, s1 + 24))
-    val recipient = Address.fromBytes(bytes.slice(s1 + 24, s1 + 24 + RecipientLength)).right.get
+    val feeScale = Shorts.fromByteArray(bytes.slice(s1 + 24, s1 + 26))
+    val recipient = Address.fromBytes(bytes.slice(s1 + 26, s1 + 26 + RecipientLength)).right.get
     PaymentTransaction
-      .create(sender, recipient, amount, feeAmount, timestamp, signature)
+      .create(sender, recipient, amount, feeAmount, feeScale, timestamp, signature)
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
@@ -70,6 +74,7 @@ object PaymentTransaction {
              recipient: Address,
              amount: Long,
              feeAmount: Long,
+             feeScale: Short,
              timestamp: Long,
              signature: ByteStr): Either[ValidationError, PaymentTransaction] = {
     if (amount <= 0) {
@@ -78,8 +83,10 @@ object PaymentTransaction {
       Left(ValidationError.InsufficientFee)
     } else if (Try(Math.addExact(amount, feeAmount)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
+    } else if (feeScale != 100) {
+      Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(PaymentTransaction(sender, recipient, amount, feeAmount, timestamp, signature))
+      Right(PaymentTransaction(sender, recipient, amount, feeAmount, feeScale, timestamp, signature))
     }
   }
 
@@ -87,8 +94,9 @@ object PaymentTransaction {
              recipient: Address,
              amount: Long,
              feeAmount: Long,
+             feeScale: Short,
              timestamp: Long): Either[ValidationError, PaymentTransaction] = {
-    create( sender, recipient, amount, feeAmount, timestamp, ByteStr.empty).right.map { unsigned =>
+    create( sender, recipient, amount, feeAmount, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }

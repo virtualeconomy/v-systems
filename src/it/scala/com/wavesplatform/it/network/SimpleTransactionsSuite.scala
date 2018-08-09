@@ -33,6 +33,7 @@ class SimpleTransactionsSuite extends FunSuite with BeforeAndAfterAll with Match
       Address.fromString(node.address).right.get,
       1L,
       100000L,
+      100,
       System.currentTimeMillis()).right.get
     val f = for {
       _ <- node.sendByNetwork(RawBytes(TransactionMessageSpec.messageCode, tx.bytes))
@@ -53,6 +54,7 @@ class SimpleTransactionsSuite extends FunSuite with BeforeAndAfterAll with Match
       Address.fromString(node.address).right.get,
       1L,
       100000L,
+      100,
       System.currentTimeMillis() + (1 days).toMillis).right.get
     val f = for {
       _ <- node.sendByNetwork(RawBytes(TransactionMessageSpec.messageCode, tx.bytes))

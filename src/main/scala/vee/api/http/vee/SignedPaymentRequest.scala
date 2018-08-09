@@ -6,6 +6,7 @@ case class SignedPaymentRequest(
     timestamp: Long,
     amount: Long,
     fee: Long,
+    feeScale: Short,
     recipient: String,
     senderPublicKey: String,
     signature: String)
