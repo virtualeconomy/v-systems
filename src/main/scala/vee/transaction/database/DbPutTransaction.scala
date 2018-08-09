@@ -75,7 +75,7 @@ object DbPutTransaction {
              signature: ByteStr): Either[ValidationError, DbPutTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale <= 100) {
+    } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(DbPutTransaction(sender, dbKey, dbEntry, fee, feeScale, timestamp, signature))
