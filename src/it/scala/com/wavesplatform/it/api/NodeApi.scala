@@ -138,8 +138,8 @@ trait NodeApi {
   def payment(sourceAddress: String, recipient: String, amount: Long, fee: Long): Future[String] =
     postJson("/waves/payment", PaymentRequest(amount, fee, sourceAddress, recipient)).as[JsValue].map(v => (v \ "signature").as[String])
 
-  def lease(sourceAddress: String, recipient: String, amount: Long, fee: Long): Future[Transaction] =
-    postJson("/leasing/lease", LeaseRequest(sourceAddress, amount, fee, recipient)).as[Transaction]
+  def lease(sourceAddress: String, recipient: String, amount: Long, fee: Long, feeScale: Short): Future[Transaction] =
+    postJson("/leasing/lease", LeaseRequest(sourceAddress, amount, fee, feeScale, recipient)).as[Transaction]
 
   def cancelLease(sourceAddress: String, leaseId: String, fee: Long, feeScale: Short): Future[Transaction] =
     postJson("/leasing/cancel", LeaseCancelRequest(sourceAddress, leaseId, fee, feeScale)).as[Transaction]
