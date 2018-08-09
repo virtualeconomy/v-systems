@@ -175,7 +175,7 @@ object Coordinator extends ScorexLogging {
       //_ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
 
       // check mint time is larger than parent block mint time
-      _ <- Either.cond(mintTime > prevBlockData.mintTime, (), s"Block mint time $mintTime does not larger than parent mint time ${prevBlockData.mintTime}")
+      _ <- Either.cond(mintTime > prevBlockData.mintTime, (), s"Block mint time $mintTime is not larger than parent mint time ${prevBlockData.mintTime}")
 
       // mint time should not greater than current time + 1s(error)
       // _ <- Either.cond(currentTs + MaxMintTimeFromFuture >= mintTime, (), s"Block from future, current time $currentTs, mint time $mintTime")
