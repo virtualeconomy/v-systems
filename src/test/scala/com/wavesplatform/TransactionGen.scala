@@ -62,6 +62,7 @@ trait TransactionGen {
   val positiveIntGen: Gen[Int] = Gen.choose(1, Int.MaxValue / 100)
   val positiveShortGen: Gen[Short] = Gen.choose(1, Short.MaxValue)
   val smallFeeGen: Gen[Long] = Gen.choose(1, 100000000)
+  val feeScaleGen: Gen[Short] =  Gen.choose(100, 100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
@@ -91,7 +92,8 @@ trait TransactionGen {
   def paymentGeneratorP(timestamp: Long, sender: PrivateKeyAccount, recipient: PrivateKeyAccount): Gen[PaymentTransaction] = for {
     amount: Long <- positiveLongGen
     fee: Long <- smallFeeGen
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp).right.get
 
 
   private val leaseParamGen = for {

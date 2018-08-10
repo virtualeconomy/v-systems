@@ -25,7 +25,7 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
 
     val ts = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L - 5000000000L
     val sender = PrivateKeyAccount(reference.dropRight(2))
-    val tx: Transaction = PaymentTransaction.create(sender, gen, 5, 1000, ts).right.get
+    val tx: Transaction = PaymentTransaction.create(sender, gen, 5, 1000, 100, ts).right.get
     val tr: TransferTransaction = TransferTransaction.create(None, sender, gen, 5, ts + 1, None, 2, Array()).right.get
     val assetId = Some(ByteStr(Array.fill(AssetIdLength)(Random.nextInt(100).toByte)))
     val tr2: TransferTransaction = TransferTransaction.create(assetId, sender, gen, 5, ts + 2, None, 2, Array()).right.get

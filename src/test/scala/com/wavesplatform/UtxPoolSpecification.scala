@@ -57,7 +57,8 @@ class UtxPoolSpecification extends FreeSpec
     amount <- chooseNum(1, (maxAmount * 0.9).toLong)
     recipient <- accountGen
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, time.getTimestamp()).right.get)
+    // feeScale <- chooseNum(1, 100)
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, 100, time.getTimestamp()).right.get)
     .label("paymentTransaction")
 
   /* this function is replaced by paymentWithRecipent(). The reason is that we disabled transfer transaction
@@ -72,7 +73,8 @@ class UtxPoolSpecification extends FreeSpec
   private def paymentWithRecipient(sender: PrivateKeyAccount, recipient: PublicKeyAccount, maxAmount: Long, time: Time) = (for {
     amount <- chooseNum(1, (maxAmount * 0.9).toLong)
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, time.getTimestamp()).right.get)
+    // feeScale <- chooseNum(1, 100)
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, 100, time.getTimestamp()).right.get)
     .label("paymentWithRecipient")
 
   private def mintingTransaction(sender: PrivateKeyAccount, amount: Long, time: Time, height: Int) = {
@@ -91,12 +93,13 @@ class UtxPoolSpecification extends FreeSpec
     recipient <- accountGen
     n <- chooseNum(3, 10)
     fee <- chooseNum(1, (senderBalance * 0.01).toLong)
+    //feeScale <- chooseNum(1, 100)
     offset <- chooseNum(1000000000L, 2000000000L)
   } yield {
     val time = new TestTime()
     val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, 10.minutes))
     val amountPart = (senderBalance - fee) / 2 - fee
-    val txs = for (_ <- 1 to n) yield PaymentTransaction.create(sender, recipient, amountPart, fee, time.getTimestamp()).right.get
+    val txs = for (_ <- 1 to n) yield PaymentTransaction.create(sender, recipient, amountPart, fee, 100, time.getTimestamp()).right.get
     (utx, time, txs, (offset + 1000000000L).nanos)
   }).label("twoOutOfManyValidPayments")
 
