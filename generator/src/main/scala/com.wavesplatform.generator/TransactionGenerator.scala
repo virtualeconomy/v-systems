@@ -113,7 +113,7 @@ object TransactionGenerator {
             val useAlias = r.nextBoolean()
             val recipientOpt = if (useAlias && aliases.nonEmpty) randomFrom(aliases.filter(_.sender != sender)).map(_.alias) else randomFrom(accounts.filter(_ != sender).map(_.toAddress))
             recipientOpt.flatMap(recipient =>
-              logOption(LeaseTransaction.create(sender, 1, moreThatStandartFee * 3, ts, recipient)))
+              logOption(LeaseTransaction.create(sender, 1, moreThatStandartFee * 3, 100, ts, recipient)))
           case TransactionType.LeaseCancelTransaction =>
             randomFrom(activeLeaseTransactions).flatMap(lease => {
               val sender = accounts.find(_.address == lease.sender.address).get

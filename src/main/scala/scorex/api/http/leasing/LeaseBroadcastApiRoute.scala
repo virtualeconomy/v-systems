@@ -32,7 +32,7 @@ case class LeaseBroadcastApiRoute(
       required = true,
       paramType = "body",
       dataType = "scorex.api.http.leasing.SignedLeaseRequest",
-      defaultValue = "{\n\t\"amount\": 100000000,\n\t\"recipient\": \"3NBsppTVpai9jq6agi9wXXrWhaMPPig48Aw\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      defaultValue = "{\n\t\"amount\": 100000000,\n\t\"recipient\": \"3NBsppTVpai9jq6agi9wXXrWhaMPPig48Aw\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -54,7 +54,7 @@ case class LeaseBroadcastApiRoute(
       required = true,
       paramType = "body",
       dataType = "scorex.api.http.leasing.SignedLeaseCancelRequest",
-      defaultValue = "{\n\t\"sender\": \"3Myss6gmMckKYtka3cKCM563TBJofnxvfD7\",\n\t\"txId\": \"ABMZDPY4MyQz7kKNAevw5P9eNmRErMutJoV9UNeCtqRV\",\n\t\"fee\": 10000000\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      defaultValue = "{\n\t\"sender\": \"3Myss6gmMckKYtka3cKCM563TBJofnxvfD7\",\n\t\"txId\": \"ABMZDPY4MyQz7kKNAevw5P9eNmRErMutJoV9UNeCtqRV\",\n\t\"fee\": 10000000,\n\t\"feeScale\": 100,\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
   def signedLeaseCancel: Route = (path("cancel") & post) {

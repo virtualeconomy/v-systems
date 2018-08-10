@@ -150,7 +150,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
       _ <- assertBalances(firstAddress, 70.waves, 70.waves)
       _ <- assertBalances(secondAddress, 105.waves, 105.waves)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.waves, fee = 5.waves).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.waves, fee = 5.waves, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
@@ -177,7 +177,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
       _ <- assertBalances(firstAddress, 65.waves, 60.waves)
       _ <- assertBalances(secondAddress, 105.waves, 110.waves)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.waves, fee = 5.waves).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.waves, fee = 5.waves, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
