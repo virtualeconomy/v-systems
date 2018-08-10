@@ -38,7 +38,7 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       required = true,
       paramType = "body",
       dataType = "vee.api.http.database.DbPutRequest",
-      defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+      defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))

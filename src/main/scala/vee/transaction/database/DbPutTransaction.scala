@@ -1,6 +1,6 @@
 package vee.transaction.database
 
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
@@ -16,6 +16,7 @@ case class DbPutTransaction private(sender: PublicKeyAccount,
                                     name: String,
                                     entry: Entry,
                                     fee: Long,
+                                    feeScale: Short,
                                     timestamp: Long,
                                     signature: ByteStr)
   extends SignedTransaction {
@@ -28,19 +29,19 @@ case class DbPutTransaction private(sender: PublicKeyAccount,
     BytesSerializable.arrayWithSize(name.getBytes("UTF-8")),
     BytesSerializable.arrayWithSize(entry.bytes.arr),
     Longs.toByteArray(fee),
+    Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "name" -> name,
     "entry" -> entry.json,
     "fee" -> fee,
+    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
   lazy val storageKey: ByteStr = DbPutTransaction.generateKey(sender.toAddress, name)
-  // TODO
-  // add feeScale in assetFee, need to change 100 later
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
+  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
 
 }
@@ -58,9 +59,10 @@ object DbPutTransaction {
     (for {
       dbEntry <- Entry.fromBytes(dbEntryBytes)
       fee = Longs.fromByteArray(bytes.slice(dbEntryEnd, dbEntryEnd + 8))
-      timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 16))
-      signature = ByteStr(bytes.slice(dbEntryEnd + 16, dbEntryEnd + 16 + SignatureLength))
-      tx <- DbPutTransaction.create(sender, new String(nameBytes, "UTF-8"), dbEntry, fee, timestamp, signature)
+      feeScale = Shorts.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 10))
+      timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 10, dbEntryEnd + 18))
+      signature = ByteStr(bytes.slice(dbEntryEnd + 18, dbEntryEnd + 18 + SignatureLength))
+      tx <- DbPutTransaction.create(sender, new String(nameBytes, "UTF-8"), dbEntry, fee, feeScale, timestamp, signature)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
@@ -68,20 +70,24 @@ object DbPutTransaction {
              dbKey: String,
              dbEntry: Entry,
              fee: Long,
+             feeScale: Short,
              timestamp: Long,
              signature: ByteStr): Either[ValidationError, DbPutTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
+    } else if (feeScale != 100) {
+      Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(DbPutTransaction(sender, dbKey, dbEntry, fee, timestamp, signature))
+      Right(DbPutTransaction(sender, dbKey, dbEntry, fee, feeScale, timestamp, signature))
     }
 
   def create(sender: PrivateKeyAccount,
              name: String,
              entry: Entry,
              fee: Long,
+             feeScale: Short,
              timestamp: Long): Either[ValidationError, DbPutTransaction] = {
-    create(sender, name, entry, fee, timestamp, ByteStr.empty).right.map { unsigned =>
+    create(sender, name, entry, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }
