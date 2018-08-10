@@ -82,7 +82,7 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
       _ <- assertBalances(firstAddress, 85.waves, 5.waves)
       _ <- assertBalances(secondAddress, 100.waves, 180.waves)
 
-      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves).map(_.id)
+      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
@@ -109,13 +109,13 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
       _ <- assertBalances(firstAddress, 75.waves, 60.waves)
       _ <- assertBalances(secondAddress, 100.waves, 115.waves)
 
-      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves).map(_.id)
+      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdCancelLeaseTxId))
 
-      _ <- assertBadRequest(sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves).map(_.id))
+      _ <- assertBadRequest(sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves, feeScale = 100).map(_.id))
 
       _ <- assertBalances(firstAddress, 70.waves, 60.waves)
       _ <- assertBalances(secondAddress, 100.waves, 110.waves)
@@ -138,7 +138,7 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
       _ <- assertBalances(firstAddress, 65.waves, 50.waves)
       _ <- assertBalances(secondAddress, 100.waves, 115.waves)
 
-      _ <- assertBadRequest(sender.cancelLease(thirdAddress, createdLeaseTxId, fee = 1.waves))
+      _ <- assertBadRequest(sender.cancelLease(thirdAddress, createdLeaseTxId, fee = 1.waves, feeScale = 100))
     } yield succeed
 
     Await.result(f, 1.minute)

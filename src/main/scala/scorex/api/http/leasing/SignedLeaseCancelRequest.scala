@@ -17,7 +17,9 @@ case class SignedLeaseCancelRequest(@ApiModelProperty(value = "Base58 encoded se
                                     @ApiModelProperty(required = true)
                                     signature: String,
                                     @ApiModelProperty(required = true)
-                                    fee: Long) extends BroadcastRequest {
+                                    fee: Long,
+                                    @ApiModelProperty(required = true)
+                                    feeScale: Short) extends BroadcastRequest {
   def toTx: Either[ValidationError, LeaseCancelTransaction] = for {
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
@@ -26,6 +28,7 @@ case class SignedLeaseCancelRequest(@ApiModelProperty(value = "Base58 encoded se
       _sender,
       _leaseTx,
       fee,
+      feeScale,
       timestamp,
       _signature)
   } yield _t
