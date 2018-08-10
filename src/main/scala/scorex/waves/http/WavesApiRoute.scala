@@ -53,7 +53,7 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
         doBroadcast(TransactionFactory.createPayment(payment, wallet, time)) map { f =>
           f.map { t =>
             val tx = t.asInstanceOf[PaymentTransaction]
-            SignedPaymentRequest(tx.timestamp, tx.amount, tx.fee, tx.recipient.address,
+            SignedPaymentRequest(tx.timestamp, tx.amount, tx.fee, tx.feeScale, tx.recipient.address,
               Base58.encode(tx.sender.publicKey), tx.signature.base58)
           }
         }
@@ -84,11 +84,11 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       (for {
         sender <- wallet.findPrivateKey(payment.sender)
         recipient <- Address.fromString(payment.recipient)
-        pt <- PaymentTransaction.create(sender, recipient, payment.amount, payment.fee, time.correctedTime())
+        pt <- PaymentTransaction.create(sender, recipient, payment.amount, payment.fee, payment.feeScale, time.correctedTime())
       } yield pt)
         .left.map(ApiError.fromValidationError)
         .map { t =>
-          SignedPaymentRequest(t.timestamp, t.amount, t.fee, t.recipient.address, Base58.encode(t.sender.publicKey), t.signature.base58)
+          SignedPaymentRequest(t.timestamp, t.amount, t.fee, t.feeScale, t.recipient.address, Base58.encode(t.sender.publicKey), t.signature.base58)
         }
     }
   }
@@ -119,9 +119,9 @@ case class WavesApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
           _seed <- Base58.decode(payment.senderWalletSeed).toOption.toRight(InvalidSeed)
           senderAccount = Wallet.generateNewAccount(Base58.encode(_seed), payment.senderAddressNonce)
           recipientAccount <- Address.fromString(payment.recipient).left.map(ApiError.fromValidationError)
-          _tx <- PaymentTransaction.create(senderAccount, recipientAccount, payment.amount, payment.fee, payment.timestamp)
+          _tx <- PaymentTransaction.create(senderAccount, recipientAccount, payment.amount, payment.fee, payment.feeScale, payment.timestamp)
             .left.map(ApiError.fromValidationError)
-        } yield SignedPaymentRequest(_tx.timestamp, _tx.amount, _tx.fee, _tx.recipient.address, Base58.encode(_tx.sender.publicKey),
+        } yield SignedPaymentRequest(_tx.timestamp, _tx.amount, _tx.fee, _tx.feeScale, _tx.recipient.address, Base58.encode(_tx.sender.publicKey),
            _tx.signature.base58)
       }
     }

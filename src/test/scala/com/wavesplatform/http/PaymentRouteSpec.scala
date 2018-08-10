@@ -22,19 +22,19 @@ class PaymentRouteSpec extends RouteSpec("/vee/payment")
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   "accepts payments" in {
-    forAll(accountGen.label("recipient"), positiveLongGen.label("amount"), smallFeeGen.label("fee")) {
-      case (recipient, amount, fee) =>
+    forAll(accountGen.label("recipient"), positiveLongGen.label("amount"), smallFeeGen.label("fee"), feeScaleGen.label("feeScale")) {
+      case (recipient, amount, fee, feeScale) =>
 
         val timestamp = System.currentTimeMillis()
         val time = mock[Time]
         (time.getTimestamp _).expects().returns(timestamp).anyNumberOfTimes()
 
         val sender = testWallet.privateKeyAccounts.head
-        val tx = PaymentTransaction.create(sender, recipient, amount, fee, timestamp)
+        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp)
 
         val route = PaymentApiRoute(restAPISettings, testWallet, utx, allChannels, time).route
 
-        val req = Json.obj("sender" -> sender.address, "recipient" -> recipient.stringRepr, "amount" -> amount, "fee" -> fee)
+        val req = Json.obj("sender" -> sender.address, "recipient" -> recipient.stringRepr, "amount" -> amount, "fee" -> fee, "feeScale" -> feeScale)
 
         Post(routePath(""), req) ~> route should produce(ApiKeyNotValid)
         Post(routePath(""), req) ~> api_key(apiKey) ~> route ~> check {
@@ -45,6 +45,7 @@ class PaymentRouteSpec extends RouteSpec("/vee/payment")
           (resp \ "feeAsset").asOpt[String] shouldEqual None
           (resp \ "type").as[Int] shouldEqual 2
           (resp \ "fee").as[Int] shouldEqual fee
+          // (resp \ "feeScale").as[Short] shouldEqual 100
           (resp \ "amount").as[Long] shouldEqual amount
           (resp \ "timestamp").as[Long] shouldEqual tx.right.get.timestamp
           (resp \ "sender").as[String] shouldEqual sender.address

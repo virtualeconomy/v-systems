@@ -27,7 +27,7 @@ object TransactionFactory {
   def createPayment(request: PaymentRequest, wallet: Wallet, time: Time): Either[ValidationError, PaymentTransaction] = for {
     pk <- wallet.findPrivateKey(request.sender)
     rec <- Address.fromString(request.recipient)
-    tx <- PaymentTransaction.create(pk, rec, request.amount, request.fee, time.getTimestamp())
+    tx <- PaymentTransaction.create(pk, rec, request.amount, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
 
 
@@ -119,6 +119,6 @@ object TransactionFactory {
       _signature <- ByteStr.decodeBase58(payment.signature).toOption.toRight(ValidationError.InvalidRequestSignature)
       _sender <- PublicKeyAccount.fromBase58String(payment.senderPublicKey)
       _recipient <- Address.fromString(payment.recipient)
-      tx <- PaymentTransaction.create(_sender, _recipient, payment.amount, payment.fee, payment.timestamp, _signature)
+      tx <- PaymentTransaction.create(_sender, _recipient, payment.amount, payment.fee, payment.feeScale, payment.timestamp, _signature)
     } yield tx
 }

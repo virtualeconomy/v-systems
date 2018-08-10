@@ -45,16 +45,16 @@ class TransactionsOrderingSpecification extends PropSpec with Assertions with Ma
 
   property("TransactionsOrdering.InBlock should sort txs by decreasing block timestamp") {
     val correctSeq = Seq(
-      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 124L).right.get,
-      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 123L).right.get)
+      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 100, 124L).right.get,
+      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 100, 123L).right.get)
 
     Random.shuffle(correctSeq).sorted(TransactionsOrdering.InBlock) shouldBe correctSeq
   }
 
   property("TransactionsOrdering.InUTXPool should sort txs by ascending block timestamp") {
     val correctSeq = Seq(
-      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 123L).right.get,
-      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 124L).right.get)
+      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 100, 123L).right.get,
+      PaymentTransaction.create(PrivateKeyAccount(Array.fill(32)(0)), Address.fromString("ATxt5tn81hXmEaCzuGB7WbJjNfrtRfsAUyt").right.get, 100000, 1, 100, 124L).right.get)
     Random.shuffle(correctSeq).sorted(TransactionsOrdering.InUTXPool) shouldBe correctSeq
   }
 }

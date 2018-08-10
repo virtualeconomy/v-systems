@@ -6,6 +6,7 @@ case class UnsignedPayment(
     timestamp: Long,
     amount: Long,
     fee: Long,
+    feeScale: Short,
     recipient: String,
     senderWalletSeed: String,
     senderAddressNonce: Int)

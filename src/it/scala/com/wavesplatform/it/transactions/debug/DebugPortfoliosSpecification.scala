@@ -18,7 +18,7 @@ class DebugPortfoliosSpecification(override val allNodes: Seq[Node], override va
       portfolioBefore <- sender.debugPortfoliosFor(firstAddress, considerUnspent = true)
       utxSizeBefore <- sender.utxSize
 
-      _ <- sender.payment(firstAddress, secondAddress, 5.waves, fee = 5.waves)
+      _ <- sender.payment(firstAddress, secondAddress, 5.waves, fee = 5.waves, feeScale = 100)
       _ <- sender.waitForUtxIncreased(utxSizeBefore)
 
       portfolioAfter <- sender.debugPortfoliosFor(firstAddress, considerUnspent = true)
@@ -38,7 +38,7 @@ class DebugPortfoliosSpecification(override val allNodes: Seq[Node], override va
       portfolioBefore <- sender.debugPortfoliosFor(firstAddress, considerUnspent = false)
       utxSizeBefore <- sender.utxSize
 
-      _ <- sender.payment(firstAddress, secondAddress, 5.waves, fee = 5.waves)
+      _ <- sender.payment(firstAddress, secondAddress, 5.waves, fee = 5.waves, feeScale = 100)
       _ <- sender.waitForUtxIncreased(utxSizeBefore)
 
       portfolioAfter <- sender.debugPortfoliosFor(firstAddress, considerUnspent = false)

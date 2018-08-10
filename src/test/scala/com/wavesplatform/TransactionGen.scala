@@ -92,7 +92,8 @@ trait TransactionGen {
   def paymentGeneratorP(timestamp: Long, sender: PrivateKeyAccount, recipient: PrivateKeyAccount): Gen[PaymentTransaction] = for {
     amount: Long <- positiveLongGen
     fee: Long <- smallFeeGen
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp).right.get
 
 
   private val leaseParamGen = for {
