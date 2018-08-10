@@ -1,4 +1,4 @@
-package vee.proof
+package vee.transaction.proof
 
 import com.wavesplatform.state2._
 import com.wavesplatform.utils.base58Length

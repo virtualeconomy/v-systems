@@ -1,4 +1,4 @@
-package vee.proof
+package vee.transaction.proof
 
 object ProofType extends Enumeration {
   val Curve25519 = Value(1)

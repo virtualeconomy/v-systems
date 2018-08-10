@@ -4,7 +4,7 @@ import com.wavesplatform.state2.ByteStr
 import play.api.libs.json._
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.transaction._
-import vee.proof.Proofs
+import vee.transaction.proof.Proofs
 
 trait ProvenTransaction extends Transaction with Signed {
 
