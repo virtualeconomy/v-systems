@@ -9,37 +9,37 @@ import scorex.crypto.EllipticCurveImpl
 
 sealed trait Proof {
 
-  lazy val bytes: ByteStr = ByteStr(BytesSerializable.arrayWithSize(pkBytes) ++
+  lazy val bytes: ByteStr = ByteStr(BytesSerializable.arrayWithSize(publicKeyBytes) ++
     Array(proofType.id.asInstanceOf[Byte]) ++
     signature.arr
   )
 
-  private lazy val (pkBytes, pkAddress): (Array[Byte], String) = pk match {
+  private lazy val (publicKeyBytes, publicKeyAddress): (Array[Byte], String) = publicKey match {
     case Some(key) => (key.publicKey, PublicKeyAccount.toAddress(key).address)
     case None => (Array.emptyByteArray, "None")
   }
 
-  val pk: Option[PublicKeyAccount]
+  val publicKey: Option[PublicKeyAccount]
   val proofType: ProofType.Value
   val signature: ByteStr
 
   lazy val json: JsObject = Json.obj(
     "proofType" -> proofType,
-    "publicKey" -> pkAddress,
+    "publicKey" -> publicKeyAddress,
     "signature" -> signature.base58
   )
 }
 
 object Proof {
 
-  case class ProofImpl(pk: Option[PublicKeyAccount], proofType: ProofType.Value, signature: ByteStr) extends Proof
+  case class ProofImpl(publicKey: Option[PublicKeyAccount], proofType: ProofType.Value, signature: ByteStr) extends Proof
 
   def createProof(toSign: Array[Byte], signer: PrivateKeyAccount): Either[ValidationError, Proof] = {
     Right(ProofImpl(Option(PublicKeyAccount(signer.publicKey)), ProofType.Curve25519, ByteStr(EllipticCurveImpl.sign(signer, toSign)) ))
   }
 
-  def buildProof(pk: Option[PublicKeyAccount], proofType: ProofType.Value, signature: ByteStr): Either[ValidationError, Proof] = {
-    Right(ProofImpl(pk, proofType, signature))
+  def buildProof(publickKey: Option[PublicKeyAccount], proofType: ProofType.Value, signature: ByteStr): Either[ValidationError, Proof] = {
+    Right(ProofImpl(publickKey, proofType, signature))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Proof] = {
@@ -50,12 +50,12 @@ object Proof {
   }
 
   def fromBytesWithValidLength(bytes: Array[Byte]): Either[ValidationError, Proof] = {
-    val (pkBytes, pkEnd) = Deser.parseArraySize(bytes, 0)
-    val getPk: Option[PublicKeyAccount] = pkBytes.length match {
+    val (publicKeyBytes, publicKeyEnd) = Deser.parseArraySize(bytes, 0)
+    val getPublicKey: Option[PublicKeyAccount] = publicKeyBytes.length match {
       case 0 => None
-      case _ => Option(PublicKeyAccount(pkBytes))
+      case _ => Option(PublicKeyAccount(publicKeyBytes))
     }
-    bytes.slice(pkEnd, pkEnd + 1).headOption match {
+    bytes.slice(publicKeyEnd, publicKeyEnd + 1).headOption match {
       case None =>
         Left (ValidationError.InvalidProofBytes)
       case Some (b) =>
@@ -64,9 +64,9 @@ object Proof {
             Left (ValidationError.InvalidProofType)
           case Some(proofType) =>
             buildProof (
-              getPk,
+              getPublicKey,
               proofType,
-              ByteStr (bytes.slice (pkEnd + 1, bytes.length) )
+              ByteStr (bytes.slice (publicKeyEnd + 1, bytes.length) )
             )
         }
     }
