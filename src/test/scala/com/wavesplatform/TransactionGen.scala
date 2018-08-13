@@ -42,6 +42,11 @@ trait TransactionGen {
 
   val invalidAliasAlphabetGen: Gen[Char] = frequency((1, numChar), (1, aliasSymbolChar), (9, alphaUpperChar))
 
+  val entryDataStringGen: Gen[String] = for {
+    length <- Gen.chooseNum(1, Entry.maxLength)
+    aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield aliasChars.mkString
+
   val validAliasStringGen: Gen[String] = for {
     length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
     aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
@@ -67,7 +72,7 @@ trait TransactionGen {
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
   val entryGen: Gen[Entry] = for {
-    data: String <- validAliasStringGen
+    data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
@@ -196,8 +201,9 @@ trait TransactionGen {
     sender: PrivateKeyAccount <- accountGen
     name: String <- validAliasStringGen
     entry: Entry <- entryGen
+    fee: Long <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield DbPutTransaction.create(sender, name, entry, MinIssueFee, 100, timestamp).right.get
+  } yield DbPutTransaction.create(sender, name, entry, fee, 100, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
