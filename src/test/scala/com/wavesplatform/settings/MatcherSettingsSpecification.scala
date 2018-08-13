@@ -9,7 +9,7 @@ import scorex.transaction.assets.exchange.AssetPair
 class MatcherSettingsSpecification extends FlatSpec with Matchers {
   "MatcherSettings" should "read values" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """waves {
+      """vee {
         |  directory: "/vee"
         |  matcher {
         |    enable: yes

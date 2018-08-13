@@ -32,7 +32,7 @@ if [ "$1" = upgrade ]; then
                 mv /etc/${{app_name}}.conf /etc/${{app_name}}/vee.conf || true
             fi
 
-            # if config file has not been manually altered, just remove waves.directory and wallet.file keys
+            # if config file has not been manually altered, just remove vee.directory and wallet.file keys
             sed -i.bak '/directory\s*=\s*"\?\/home\/vee\/vee"\?\|file\s*=\s*"\?\/home\/vee\/vee\/wallet\/wallet\.s\.dat/d' /etc/${{app_name}}/vee.conf
 
             if [ -d /home/${{app_name}}/vee/data ]; then

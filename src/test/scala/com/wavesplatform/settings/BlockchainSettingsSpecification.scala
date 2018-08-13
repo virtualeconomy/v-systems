@@ -13,7 +13,7 @@ import vee.settings.GenesisTransactionSettings
 class BlockchainSettingsSpecification extends FlatSpec with Matchers {
   "BlockchainSettings" should "read custom values" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """waves {
+      """vee {
         |  directory = "/vee"
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
@@ -98,7 +98,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
 
   it should "read testnet settings" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """waves {
+      """vee {
         |  directory = "/vee"
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
@@ -153,7 +153,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
 
   it should "read mainnet settings" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """waves {
+      """vee {
         |  directory = "/vee"
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1

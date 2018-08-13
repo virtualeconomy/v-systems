@@ -11,20 +11,20 @@ import org.scalatest.{Matchers, path}
 class PeerDatabaseImplSpecification extends path.FreeSpecLike with Matchers {
 
   private val config1 = ConfigFactory.parseString(
-    """waves.network {
+    """vee.network {
       |  file = null
       |  known-peers = []
       |  peers-data-residence-time: 2s
       |}""".stripMargin).withFallback(ConfigFactory.load()).resolve()
-  private val settings1 = config1.as[NetworkSettings]("waves.network")
+  private val settings1 = config1.as[NetworkSettings]("vee.network")
 
   private val config2 = ConfigFactory.parseString(
-    """waves.network {
+    """vee.network {
       |  file = null
       |  known-peers = []
       |  peers-data-residence-time: 10s
       |}""".stripMargin).withFallback(ConfigFactory.load()).resolve()
-  private val settings2 = config2.as[NetworkSettings]("waves.network")
+  private val settings2 = config2.as[NetworkSettings]("vee.network")
 
   val database = new PeerDatabaseImpl(settings1)
   val database2 = new PeerDatabaseImpl(settings2)

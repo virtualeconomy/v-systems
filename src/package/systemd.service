@@ -6,7 +6,7 @@ Requires=${{start_facilities}}
 Type=simple
 EnvironmentFile=${{env_config}}
 ExecStart=/usr/share/${{app_name}}/bin/${{exec}} \
-  -Dwaves.directory=/var/lib/${{app_name}} \
+  -Dvee.directory=/var/lib/${{app_name}} \
   -Dlogback.pattern="%%-5level %%logger{26} - %%msg%%n" \
   -- /etc/${{app_name}}/vee.conf
 Restart=always

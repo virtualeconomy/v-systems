@@ -46,7 +46,7 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
     close()
   }
 
-  private def knownPeers = seedAddress.fold("")(sa => s"-Dwaves.network.known-peers.0=$sa")
+  private def knownPeers = seedAddress.fold("")(sa => s"-Dvee.network.known-peers.0=$sa")
 
   private val networkName = "waves-" + this.##.toLong.toHexString
 
@@ -61,9 +61,9 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       .withFallback(ConfigFactory.defaultReference())
       .resolve()
 
-    val restApiPort = actualConfig.getString("waves.rest-api.port")
-    val networkPort = actualConfig.getString("waves.network.port")
-    val matcherApiPort = actualConfig.getString("waves.matcher.port")
+    val restApiPort = actualConfig.getString("vee.rest-api.port")
+    val networkPort = actualConfig.getString("vee.network.port")
+    val matcherApiPort = actualConfig.getString("vee.matcher.port")
 
     val portBindings = new ImmutableMap.Builder[String, java.util.List[PortBinding]]()
       .put(restApiPort, Collections.singletonList(PortBinding.randomPort("0.0.0.0")))
@@ -76,13 +76,13 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       .build()
 
     val containerConfig = ContainerConfig.builder()
-      .image("com.wavesplatform/waves:latest")
+      .image("vee.tech/vee-core :latest")
       .exposedPorts(restApiPort, networkPort, matcherApiPort)
       .hostConfig(hostConfig)
       .env(s"WAVES_OPTS=$configOverrides", s"WAVES_PORT=$networkPort")
       .build()
 
-    val containerId = client.createContainer(containerConfig, actualConfig.getString("waves.network.node-name") + "-" +
+    val containerId = client.createContainer(containerConfig, actualConfig.getString("vee.network.node-name") + "-" +
       this.##.toLong.toHexString).id()
     connectToNetwork(containerId)
     client.startContainer(containerId)
