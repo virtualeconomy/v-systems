@@ -2,7 +2,7 @@ package com.wavesplatform
 
 import com.wavesplatform.settings.Constants
 import com.wavesplatform.state2._
-import org.scalacheck.Gen.{alphaLowerChar, frequency, numChar, alphaUpperChar}
+import org.scalacheck.Gen.{alphaLowerChar, alphaUpperChar, frequency, numChar}
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.account.PublicKeyAccount._
 import scorex.account._
@@ -13,6 +13,8 @@ import scorex.transaction.assets.exchange._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
+import vee.database.{Entry, DataType}
+import vee.transaction.database.DbPutTransaction
 
 trait TransactionGen {
 
@@ -64,6 +66,9 @@ trait TransactionGen {
   val smallFeeGen: Gen[Long] = Gen.choose(1, 100000000)
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
+  val entryGen: Gen[Entry] = for {
+    data: String <- validAliasStringGen
+  } yield Entry.buildEntry(data, DataType.ByteArray).right.get
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
@@ -185,6 +190,14 @@ trait TransactionGen {
     slotId: Int <- slotidGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
   } yield ContendSlotsTransaction.create(sender, slotId, MinIssueFee, 100, timestamp).right.get
+
+  val dbPutGen: Gen[DbPutTransaction] = for {
+    timestamp: Long <- positiveLongGen
+    sender: PrivateKeyAccount <- accountGen
+    name: String <- validAliasStringGen
+    entry: Entry <- entryGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+  } yield DbPutTransaction.create(sender, name, entry, MinIssueFee, 100, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
