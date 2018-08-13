@@ -48,7 +48,7 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
 
   private def knownPeers = seedAddress.fold("")(sa => s"-Dvee.network.known-peers.0=$sa")
 
-  private val networkName = "waves-" + this.##.toLong.toHexString
+  private val networkName = "vee-" + this.##.toLong.toHexString
 
   private val wavesNetwork = client.createNetwork(NetworkConfig.builder().driver("bridge").name(networkName).build())
 
