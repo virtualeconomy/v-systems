@@ -14,7 +14,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
   "BlockchainSettings" should "read custom values" in {
     val config = loadConfig(ConfigFactory.parseString(
       """waves {
-        |  directory = "/waves"
+        |  directory = "/vee"
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
         |    type = CUSTOM
@@ -59,9 +59,9 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/waves/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/waves/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/waves/data/checkpoint.dat")))
+    settings.blockchainFile should be(Some(new File("/vee/data/blockchain.dat")))
+    settings.stateFile should be(Some(new File("/vee/data/state.dat")))
+    settings.checkpointFile should be(Some(new File("/vee/data/checkpoint.dat")))
     //not snapshot
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('C')
@@ -99,7 +99,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
   it should "read testnet settings" in {
     val config = loadConfig(ConfigFactory.parseString(
       """waves {
-        |  directory = "/waves"
+        |  directory = "/vee"
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
         |    type = TESTNET
@@ -107,9 +107,9 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/waves/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/waves/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/waves/data/checkpoint.dat")))
+    settings.blockchainFile should be(Some(new File("/vee/data/blockchain.dat")))
+    settings.stateFile should be(Some(new File("/vee/data/state.dat")))
+    settings.checkpointFile should be(Some(new File("/vee/data/checkpoint.dat")))
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('T')
     settings.functionalitySettings.allowTemporaryNegativeUntil should be(1477958400000L)
@@ -154,7 +154,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
   it should "read mainnet settings" in {
     val config = loadConfig(ConfigFactory.parseString(
       """waves {
-        |  directory = "/waves"
+        |  directory = "/vee"
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
         |    type = MAINNET
@@ -162,9 +162,9 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/waves/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/waves/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/waves/data/checkpoint.dat")))
+    settings.blockchainFile should be(Some(new File("/vee/data/blockchain.dat")))
+    settings.stateFile should be(Some(new File("/vee/data/state.dat")))
+    settings.checkpointFile should be(Some(new File("/vee/data/checkpoint.dat")))
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.allowTemporaryNegativeUntil should be(1479168000000L)

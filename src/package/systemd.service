@@ -8,7 +8,7 @@ EnvironmentFile=${{env_config}}
 ExecStart=/usr/share/${{app_name}}/bin/${{exec}} \
   -Dwaves.directory=/var/lib/${{app_name}} \
   -Dlogback.pattern="%%-5level %%logger{26} - %%msg%%n" \
-  -- /etc/${{app_name}}/waves.conf
+  -- /etc/${{app_name}}/vee.conf
 Restart=always
 RestartSec=${{retryTimeout}}
 SuccessExitStatus=143

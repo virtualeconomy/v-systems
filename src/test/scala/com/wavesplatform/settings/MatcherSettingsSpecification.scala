@@ -10,7 +10,7 @@ class MatcherSettingsSpecification extends FlatSpec with Matchers {
   "MatcherSettings" should "read values" in {
     val config = loadConfig(ConfigFactory.parseString(
       """waves {
-        |  directory: "/waves"
+        |  directory: "/vee"
         |  matcher {
         |    enable: yes
         |    account: "BASE58MATCHERACCOUNT"
@@ -43,8 +43,8 @@ class MatcherSettingsSpecification extends FlatSpec with Matchers {
     settings.port should be(9925)
     settings.minOrderFee should be(100000)
     settings.orderMatchTxFee should be(100000)
-    settings.journalDataDir should be("/waves/matcher/journal")
-    settings.snapshotsDataDir should be("/waves/matcher/snapshots")
+    settings.journalDataDir should be("/vee/matcher/journal")
+    settings.snapshotsDataDir should be("/vee/matcher/snapshots")
     settings.snapshotsInterval should be(1.day)
     settings.maxOpenOrders should be(1000)
     settings.priceAssets should be(Seq("WAVES", "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS", "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J"))
