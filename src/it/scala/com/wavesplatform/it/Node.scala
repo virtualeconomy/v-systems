@@ -2,7 +2,7 @@ package com.wavesplatform.it
 
 import com.typesafe.config.Config
 import com.wavesplatform.it.api._
-import com.wavesplatform.settings.WavesSettings
+import com.wavesplatform.settings.VeeSettings
 import org.asynchttpclient._
 import org.slf4j.LoggerFactory
 import scorex.transaction.TransactionParser.TransactionType
@@ -17,7 +17,7 @@ class Node(config: Config, val nodeInfo: NodeInfo, override val client: AsyncHtt
   val publicKey: String = config.getString("public-key")
   val address: String = config.getString("address")
   val accountSeed: String = config.getString("account-seed")
-  val settings: WavesSettings = WavesSettings.fromConfig(config)
+  val settings: VeeSettings = VeeSettings.fromConfig(config)
 
   override protected val log = LoggerFacade(LoggerFactory.getLogger(s"${getClass.getName}.${settings.networkSettings.nodeName}"))
 
