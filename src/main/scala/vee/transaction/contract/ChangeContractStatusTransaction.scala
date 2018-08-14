@@ -30,6 +30,7 @@ case class ChangeContractStatusTransaction private(sender: PublicKeyAccount,
     BytesSerializable.arrayWithSize(contractName.getBytes("UTF-8")),
     Array(action.id.toByte),
     Longs.toByteArray(fee),
+    Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
@@ -73,6 +74,8 @@ object ChangeContractStatusTransaction {
              signature: ByteStr): Either[ValidationError, ChangeContractStatusTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
+    } else if (feeScale != 100) {
+      Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(ChangeContractStatusTransaction(sender, contractName, action, fee, feeScale, timestamp, signature))
     }
