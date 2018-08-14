@@ -13,5 +13,5 @@ case class ContendSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender 
                               feeScale: Short)
 
 object ContendSlotsRequest {
-  implicit val aliasRequestFormat: Format[ContendSlotsRequest] = Json.format
+  implicit val contendSlotsRequestFormat: Format[ContendSlotsRequest] = Json.format
 }

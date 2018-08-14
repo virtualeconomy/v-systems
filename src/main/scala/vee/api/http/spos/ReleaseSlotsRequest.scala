@@ -13,5 +13,5 @@ case class ReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender 
                               feeScale: Short)
 
 object ReleaseSlotsRequest {
-  implicit val aliasRequestFormat: Format[ReleaseSlotsRequest] = Json.format
+  implicit val releaseSlotsRequestFormat: Format[ReleaseSlotsRequest] = Json.format
 }
