@@ -8,7 +8,9 @@ case class ChangeContractStatusRequest(@ApiModelProperty(value = "Base58 encoded
                                   @ApiModelProperty(value = "contractName", required = true)
                                   contractName: String,
                                   @ApiModelProperty(required = true)
-                                  fee: Long)
+                                  fee: Long,
+                              	  @ApiModelProperty(required = true)
+                                  feeScale: Short)
 
 object ChangeContractStatusRequest {
   implicit val changeContractStatusRequestFormat: Format[ChangeContractStatusRequest] = Json.format

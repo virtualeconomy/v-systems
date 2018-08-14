@@ -13,6 +13,8 @@ case class SignedCreateContractRequest (@ApiModelProperty(value = "Base58 encode
                                         senderPublicKey: String,
                                         @ApiModelProperty(required = true)
                                         fee: Long,
+                                        @ApiModelProperty(required = true)
+                                        feeScale: Short,
                                         @ApiModelProperty(value = "Name", required = true)
                                         name: String,
                                         @ApiModelProperty(value = "Content", required = true)
@@ -25,7 +27,7 @@ case class SignedCreateContractRequest (@ApiModelProperty(value = "Base58 encode
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
     _contract <- Contract.buildContract(content, name, true)
-    _t <- CreateContractTransaction.create(_sender, _contract, fee, timestamp, _signature)
+    _t <- CreateContractTransaction.create(_sender, _contract, fee, feeScale, timestamp, _signature)
   } yield _t
 }
 object SignedCreateContractRequest {

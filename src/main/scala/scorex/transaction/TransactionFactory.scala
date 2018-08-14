@@ -86,12 +86,12 @@ object TransactionFactory {
   def createContract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     contract <- Contract.buildContract(request.content, request.name, true)
-    tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
+    tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
 
   def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, time.getTimestamp())
+    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
 
   def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {
