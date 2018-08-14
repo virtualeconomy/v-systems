@@ -52,10 +52,10 @@ trait NodeApi {
       (rb: RequestBuilder) => rb.setHeader("Content-type", "application/json").setBody(stringify(toJson(body))))
 
   def getOrderStatus(asset: String, orderId: String): Future[MatcherStatusResponse] =
-    matcherGet(s"/matcher/orderbook/$asset/WAVES/$orderId").as[MatcherStatusResponse]
+    matcherGet(s"/matcher/orderbook/$asset/VEE/$orderId").as[MatcherStatusResponse]
 
   def getOrderBook(asset: String): Future[OrderBookResponse] =
-    matcherGet(s"/matcher/orderbook/$asset/WAVES").as[OrderBookResponse]
+    matcherGet(s"/matcher/orderbook/$asset/VEE").as[OrderBookResponse]
 
 
   def get(path: String, f: RequestBuilder => RequestBuilder = identity): Future[Response] =
@@ -136,7 +136,7 @@ trait NodeApi {
     postJson("/assets/transfer", TransferRequest(assetId, None, amount, fee, sourceAddress, None, recipient)).as[Transaction]
 
   def payment(sourceAddress: String, recipient: String, amount: Long, fee: Long, feeScale: Short): Future[String] =
-    postJson("/waves/payment", PaymentRequest(amount, fee, feeScale, sourceAddress, recipient)).as[JsValue].map(v => (v \ "signature").as[String])
+    postJson("/vee/payment", PaymentRequest(amount, fee, feeScale, sourceAddress, recipient)).as[JsValue].map(v => (v \ "signature").as[String])
 
   def lease(sourceAddress: String, recipient: String, amount: Long, fee: Long, feeScale: Short): Future[Transaction] =
     postJson("/leasing/lease", LeaseRequest(sourceAddress, amount, fee, feeScale, recipient)).as[Transaction]
