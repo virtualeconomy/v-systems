@@ -316,7 +316,7 @@ class OrderBookActorSpecification extends TestKit(ActorSystem("MatcherTest"))
 
     "partially execute order with zero fee remaining part" in {
 
-      val ord1 = sell(pair, 0.0006999, 1500 * Constants.UnitsInWave)
+      val ord1 = sell(pair, 0.0006999, 1500 * Constants.UnitsInVee)
       val ord2 = sell(pair, 0.00067634, 3075248828L)
       val ord3 = buy(pair, 0.00073697, 3075363900L)
 
@@ -327,14 +327,14 @@ class OrderBookActorSpecification extends TestKit(ActorSystem("MatcherTest"))
 
       actor ! GetAskOrdersRequest
       expectMsg(GetOrdersResponse(Seq(SellLimitOrder((0.0006999 * Order.PriceConstant).toLong,
-        1500 * Constants.UnitsInWave - (3075363900L - 3075248828L), ord1))))
+        1500 * Constants.UnitsInVee - (3075363900L - 3075248828L), ord1))))
     }
 
     "partially execute order with price > 1 and zero fee remaining part " in {
       val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("USD".getBytes)))
-      val ord1 = sell(pair, 1850, (0.1 * Constants.UnitsInWave).toLong)
-      val ord2 = sell(pair, 1840, (0.01 * Constants.UnitsInWave).toLong)
-      val ord3 = buy(pair, 2000, (0.0100001 * Constants.UnitsInWave).toLong)
+      val ord1 = sell(pair, 1850, (0.1 * Constants.UnitsInVee).toLong)
+      val ord2 = sell(pair, 1840, (0.01 * Constants.UnitsInVee).toLong)
+      val ord3 = buy(pair, 2000, (0.0100001 * Constants.UnitsInVee).toLong)
 
       actor ! ord1
       actor ! ord2
@@ -343,7 +343,7 @@ class OrderBookActorSpecification extends TestKit(ActorSystem("MatcherTest"))
 
       actor ! GetAskOrdersRequest
       expectMsg(GetOrdersResponse(Seq(SellLimitOrder(1850 * Order.PriceConstant,
-        ((0.1 - (0.0100001 - 0.01))*Constants.UnitsInWave).toLong, ord1))))
+        ((0.1 - (0.0100001 - 0.01))*Constants.UnitsInVee).toLong, ord1))))
     }
   }
 

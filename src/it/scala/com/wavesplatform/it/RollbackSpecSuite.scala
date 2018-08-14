@@ -86,10 +86,10 @@ class RollbackSpecSuite extends FreeSpec with ScalaFutures with IntegrationPatie
 
     val f = for {
       startHeight <- Future.traverse(nodes)(_.height).map(_.min)
-      aliasTxId <- nodes.head.createAlias(nodes.head.address, alias, 1.waves).map(_.id)
+      aliasTxId <- nodes.head.createAlias(nodes.head.address, alias, 1.vee).map(_.id)
       _ <- Future.traverse(nodes)(_.waitForTransaction(aliasTxId))
       _ <- Future.traverse(nodes)(_.rollback(startHeight, returnToUTX = false))
-      secondAliasTxId <- nodes.head.createAlias(nodes.head.address, alias, 1.waves).map(_.id)
+      secondAliasTxId <- nodes.head.createAlias(nodes.head.address, alias, 1.vee).map(_.id)
       _ <- Future.traverse(nodes)(_.waitForTransaction(secondAliasTxId))
     } yield succeed
 

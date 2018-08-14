@@ -276,7 +276,7 @@ trait TransactionGen {
   def issueGen(sender: PrivateKeyAccount, fixedQuantity: Option[Long] = None): Gen[IssueTransaction] = for {
     (_, assetName, description, quantity, decimals, _, iFee, timestamp) <- issueParamGen
   } yield {
-    IssueTransaction.create(sender, assetName, description, fixedQuantity.getOrElse(quantity), decimals, reissuable = false, 1*Constants.UnitsInWave, timestamp).right.get
+    IssueTransaction.create(sender, assetName, description, fixedQuantity.getOrElse(quantity), decimals, reissuable = false, 1*Constants.UnitsInVee, timestamp).right.get
   }
 
   val issueGen: Gen[IssueTransaction] = issueReissueBurnGen.map(_._1)

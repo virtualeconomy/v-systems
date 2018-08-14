@@ -23,6 +23,6 @@ package object util {
       f.flatMap(v => if (cond(v)) Future.successful(v) else schedule(retryUntil(f, cond, retryInterval), retryInterval))
   }
   implicit class LongExt(val l: Long) extends AnyVal {
-    def vee: Long = l * Constants.UnitsInWave
+    def vee: Long = l * Constants.UnitsInVee
   }
 }

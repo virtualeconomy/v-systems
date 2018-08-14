@@ -57,7 +57,7 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
       buyer <- accountGen
       seller <- accountGen
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(buyer, 1 * Constants.UnitsInWave, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(buyer, 1 * Constants.UnitsInVee, ts).right.get
       gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, ts).right.get
       issue1: IssueTransaction <- issueGen(buyer)
       exchange <- exchangeGeneratorP(buyer, seller, None, Some(issue1.id), fixedMatcherFee = Some(300000))
