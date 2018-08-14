@@ -107,7 +107,7 @@ case class OrderHistoryImpl(p: OrderHistoryStorage) extends OrderHistory with Sc
   }
 
   override def openVolume(assetAcc: AssetAcc): Long = {
-    val asset = assetAcc.assetId.map(_.base58).getOrElse(AssetPair.WavesName)
+    val asset = assetAcc.assetId.map(_.base58).getOrElse(AssetPair.VEEName)
     Option(p.addressToOrderPortfolio.get(assetAcc.account.address)).flatMap(_.get(asset)).map(math.max(0L, _)).getOrElse(0L)
   }
 

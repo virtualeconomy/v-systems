@@ -102,7 +102,7 @@ object RollbackSpecSuite {
 
   private val nonGeneratingNodesConfig = ConfigFactory.parseString(
     """
-      |waves.miner.enable=no
+      |vee.miner.enable=no
     """.stripMargin
   )
 
