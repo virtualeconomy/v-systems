@@ -28,7 +28,7 @@ trait OrderValidator {
 
     val b: Map[String, Long] = (Map(lo.spentAcc -> 0L) ++ Map(lo.feeAcc -> 0L))
       .map { case(a, _) => a -> spendableBalance(a) }
-      .map { case(a, v) => a.assetId.map(_.base58).getOrElse(AssetPair.WavesName) -> v }
+      .map { case(a, v) => a.assetId.map(_.base58).getOrElse(AssetPair.VEEName) -> v }
 
     val newOrder = Events.createOpenPortfolio(OrderAdded(lo)).getOrElse(order.senderPublicKey.address, OpenPortfolio.empty)
     val open = orderHistory.openPortfolio(order.senderPublicKey.address).orders.filter { case (k, _) => b.contains(k) }

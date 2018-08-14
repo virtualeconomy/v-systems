@@ -39,6 +39,7 @@ case class PaymentTransaction private(sender: PublicKeyAccount,
 
   override lazy val json: JsObject =jsonBase() ++ Json.obj(
     "recipient" -> recipient.stringRepr,
+    "feeScale" -> feeScale,
     "amount" -> amount,
   )
 

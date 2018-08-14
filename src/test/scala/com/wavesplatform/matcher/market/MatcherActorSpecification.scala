@@ -192,7 +192,7 @@ class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"
       val json = GetMarketsResponse(Array(), Seq(MarketData(pair1, a1Name, waves, now, None, None),
         MarketData(pair2, a1Name, a2Name, now, None, None))).json
 
-      ((json \ "markets") (0) \ "priceAsset").as[String] shouldBe AssetPair.WavesName
+      ((json \ "markets") (0) \ "priceAsset").as[String] shouldBe AssetPair.VEEName
       ((json \ "markets") (0) \ "priceAssetName").as[String] shouldBe waves
       ((json \ "markets") (0) \ "amountAsset").as[String] shouldBe a1.get.base58
       ((json \ "markets") (0) \ "amountAssetName").as[String] shouldBe a1Name
