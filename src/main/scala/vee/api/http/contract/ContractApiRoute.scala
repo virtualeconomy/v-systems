@@ -36,7 +36,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       required = true,
       paramType = "body",
       dataType = "vee.api.http.contract.CreateContractRequest",
-      defaultValue = "{\n\t\"contract\": \"contractcontract\",\n\t\"name\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+      defaultValue = "{\n\t\"contract\": \"contractcontract\",\n\t\"name\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -67,7 +67,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       required = true,
       paramType = "body",
       dataType = "vee.api.http.contract.ChangeContractStatusRequest",
-      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -85,7 +85,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       required = true,
       paramType = "body",
       dataType = "vee.api.http.contract.ChangeContractStatusRequest",
-      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}"
+      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
