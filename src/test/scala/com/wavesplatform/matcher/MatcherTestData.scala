@@ -20,8 +20,8 @@ trait MatcherTestData {
   val accountGen: Gen[PrivateKeyAccount] = bytes32gen.map(seed => PrivateKeyAccount(seed))
   val positiveLongGen: Gen[Long] = Gen.choose(1, Long.MaxValue)
 
-  val wavesAssetGen: Gen[Option[Array[Byte]]] = Gen.const(None)
-  val assetIdGen: Gen[Option[Array[Byte]]] = Gen.frequency((1, wavesAssetGen), (10, bytes32gen.map(Some(_))))
+  val veeAssetGen: Gen[Option[Array[Byte]]] = Gen.const(None)
+  val assetIdGen: Gen[Option[Array[Byte]]] = Gen.frequency((1, veeAssetGen), (10, bytes32gen.map(Some(_))))
 
   val assetPairGen = Gen.zip(assetIdGen, assetIdGen).
     suchThat(p => p._1 != p._2).
@@ -60,7 +60,7 @@ trait MatcherTestData {
     value.get
   }
 
-  val maxWavesAmountGen: Gen[Long] = Gen.choose(1, 100000000L * 100000000L)
+  val maxVeeAmountGen: Gen[Long] = Gen.choose(1, 100000000L * 100000000L)
 
   def buyGenerator(pair: AssetPair, price: Long, amount: Long, sender: Option[PrivateKeyAccount] = None,
                    matcherFee: Option[Long] = None): Gen[(Order, PrivateKeyAccount)] =
@@ -68,7 +68,7 @@ trait MatcherTestData {
       sender: PrivateKeyAccount <- sender.map(Gen.const).getOrElse(accountGen)
       timestamp: Long <- createdTimeGen
       expiration: Long <- maxTimeGen
-      matcherFee: Long <- matcherFee.map(Gen.const).getOrElse(maxWavesAmountGen)
+      matcherFee: Long <- matcherFee.map(Gen.const).getOrElse(maxVeeAmountGen)
     } yield (Order.buy(sender, MatcherAccount, pair, price, amount, timestamp, expiration, matcherFee), sender)
 
   def sellGenerator(pair: AssetPair, price: Long, amount: Long, sender: Option[PrivateKeyAccount] = None,
@@ -77,7 +77,7 @@ trait MatcherTestData {
       sender: PrivateKeyAccount <- sender.map(Gen.const).getOrElse(accountGen)
       timestamp: Long <- createdTimeGen
       expiration: Long <- maxTimeGen
-      matcherFee: Long <- matcherFee.map(Gen.const).getOrElse(maxWavesAmountGen)
+      matcherFee: Long <- matcherFee.map(Gen.const).getOrElse(maxVeeAmountGen)
     } yield (Order.sell(sender, MatcherAccount, pair, price, amount, timestamp, expiration, matcherFee), sender)
 
   def buy(pair: AssetPair, price: BigDecimal, amount: Long, sender: Option[PrivateKeyAccount] = None,
@@ -94,31 +94,31 @@ trait MatcherTestData {
     sender: PrivateKeyAccount <- accountGen
     pair <- assetPairGen
     orderType <- orderTypeGenerator
-    price: Long <- maxWavesAmountGen
-    amount: Long <- maxWavesAmountGen
+    price: Long <- maxVeeAmountGen
+    amount: Long <- maxVeeAmountGen
     timestamp: Long <- createdTimeGen
     expiration: Long <- maxTimeGen
-    matcherFee: Long <- maxWavesAmountGen
+    matcherFee: Long <- maxVeeAmountGen
   } yield (Order(sender, MatcherAccount, pair, orderType, price, amount, timestamp, expiration, matcherFee), sender)
 
   val buyLimitOrderGenerator: Gen[BuyLimitOrder] = for {
     sender: PrivateKeyAccount <- accountGen
     pair <- assetPairGen
-    price: Long <- maxWavesAmountGen
-    amount: Long <- maxWavesAmountGen
+    price: Long <- maxVeeAmountGen
+    amount: Long <- maxVeeAmountGen
     timestamp: Long <- createdTimeGen
     expiration: Long <- maxTimeGen
-    matcherFee: Long <- maxWavesAmountGen
+    matcherFee: Long <- maxVeeAmountGen
   } yield BuyLimitOrder(price, amount, Order.buy(sender, MatcherAccount, pair, price, amount, timestamp, expiration, matcherFee))
 
   val sellLimitOrderGenerator: Gen[SellLimitOrder] = for {
     sender: PrivateKeyAccount <- accountGen
     pair <- assetPairGen
-    price: Long <- maxWavesAmountGen
-    amount: Long <- maxWavesAmountGen
+    price: Long <- maxVeeAmountGen
+    amount: Long <- maxVeeAmountGen
     timestamp: Long <- createdTimeGen
     expiration: Long <- maxTimeGen
-    matcherFee: Long <- maxWavesAmountGen
+    matcherFee: Long <- maxVeeAmountGen
   } yield SellLimitOrder(price, amount, Order.sell(sender, MatcherAccount, pair, price, amount, timestamp, expiration, matcherFee))
 
 }

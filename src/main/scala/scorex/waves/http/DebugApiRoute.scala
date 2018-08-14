@@ -43,7 +43,7 @@ case class DebugApiRoute(settings: RestAPISettings,
                          utxStorage: UtxPool) extends ApiRoute {
 
   override lazy val route = pathPrefix("debug") {
-    blocks ~ state ~ info ~ stateWaves ~ rollback ~ rollbackTo ~ blacklist ~ portfolios
+    blocks ~ state ~ info ~ stateVee ~ rollback ~ rollbackTo ~ blacklist ~ portfolios
   }
 
   @Path("/blocks/{howMany}")
@@ -111,12 +111,12 @@ case class DebugApiRoute(settings: RestAPISettings,
     }
   }
 
-  @Path("/stateWaves/{height}")
+  @Path("/stateVee/{height}")
   @ApiOperation(value = "State at block", notes = "Get state at specified height", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "height", value = "height", required = true, dataType = "integer", paramType = "path")
   ))
-  def stateWaves: Route = (path("stateWaves" / IntNumber) & get) { height =>
+  def stateVee: Route = (path("stateVee" / IntNumber) & get) { height =>
     val result = stateReader.accountPortfolios.keys
       .map(acc => acc.stringRepr -> stateReader.balanceAtHeight(acc, height))
       .filter(_._2 != 0)

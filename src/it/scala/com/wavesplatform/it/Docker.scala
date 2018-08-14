@@ -50,7 +50,7 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
 
   private val networkName = "vee-" + this.##.toLong.toHexString
 
-  private val wavesNetwork = client.createNetwork(NetworkConfig.builder().driver("bridge").name(networkName).build())
+  private val veeNetwork = client.createNetwork(NetworkConfig.builder().driver("bridge").name(networkName).build())
 
   def startNode(nodeConfig: Config): Node = {
     val configOverrides = s"$knownPeers ${renderProperties(asProperties(nodeConfig.withFallback(suiteConfig)))}"
@@ -76,10 +76,10 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       .build()
 
     val containerConfig = ContainerConfig.builder()
-      .image("vee.tech/vee-core :latest")
+      .image("vee.tech/vee-core:latest")
       .exposedPorts(restApiPort, networkPort, matcherApiPort)
       .hostConfig(hostConfig)
-      .env(s"WAVES_OPTS=$configOverrides", s"WAVES_PORT=$networkPort")
+      .env(s"VEE_OPTS=$configOverrides", s"VEE_PORT=$networkPort")
       .build()
 
     val containerId = client.createContainer(containerConfig, actualConfig.getString("vee.network.node-name") + "-" +
@@ -116,16 +116,16 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       log.info("Stopping containers")
       nodes.values.foreach(n => n.close())
       nodes.keys.foreach(id => client.removeContainer(id, RemoveContainerParam.forceKill()))
-      client.removeNetwork(wavesNetwork.id())
+      client.removeNetwork(veeNetwork.id())
       client.close()
       http.close()
     }
   }
 
-  def disconnectFromNetwork(containerId: String): Unit =  client.disconnectFromNetwork(containerId, wavesNetwork.id())
+  def disconnectFromNetwork(containerId: String): Unit =  client.disconnectFromNetwork(containerId, veeNetwork.id())
   def disconnectFromNetwork(node: Node): Unit = disconnectFromNetwork(node.nodeInfo.containerId)
 
-  def connectToNetwork(containerId: String): Unit = client.connectToNetwork(containerId, wavesNetwork.id())
+  def connectToNetwork(containerId: String): Unit = client.connectToNetwork(containerId, veeNetwork.id())
   def connectToNetwork(node: Node): Unit = connectToNetwork(node.nodeInfo.containerId)
 }
 

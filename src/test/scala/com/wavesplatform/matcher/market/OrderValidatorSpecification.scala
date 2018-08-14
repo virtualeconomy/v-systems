@@ -58,18 +58,18 @@ class OrderValidatorSpecification extends WordSpec
   }
 
   val wbtc = ByteStr("WBTC".getBytes)
-  val pairWavesBtc = AssetPair(None, Some(wbtc))
+  val pairVeeBtc = AssetPair(None, Some(wbtc))
 
   "OrderValidator" should {
     "allows buy VEE for BTC without balance for order fee" in {
       validateNewOrderTest(Portfolio(0, LeaseInfo.empty, Map(
-        wbtc -> 10 * Constants.UnitsInWave
+        wbtc -> 10 * Constants.UnitsInVee
       ))) shouldBe an[Right[_, _]]
     }
 
     "does not allow buy VEE for BTC when assets number is negative" in {
       validateNewOrderTest(Portfolio(0, LeaseInfo.empty, Map(
-        wbtc -> -10 * Constants.UnitsInWave
+        wbtc -> -10 * Constants.UnitsInVee
       ))) shouldBe a[Left[_, _]]
     }
   }
@@ -77,10 +77,10 @@ class OrderValidatorSpecification extends WordSpec
   private def validateNewOrderTest(expectedPortfolio: Portfolio): Either[ValidationError.GenericError, Order] = {
     (ov.utxPool.portfolio _).when(*).returns(expectedPortfolio)
     val o = buy(
-      pair = pairWavesBtc,
+      pair = pairVeeBtc,
       price = 0.0022,
-      amount = 100 * Constants.UnitsInWave,
-      matcherFee = Some((0.003 * Constants.UnitsInWave).toLong)
+      amount = 100 * Constants.UnitsInVee,
+      matcherFee = Some((0.003 * Constants.UnitsInVee).toLong)
     )
     ov.validateNewOrder(o)
   }

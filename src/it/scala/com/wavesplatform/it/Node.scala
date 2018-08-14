@@ -30,6 +30,6 @@ class Node(config: Config, val nodeInfo: NodeInfo, override val client: AsyncHtt
   override val networkPort: Int = nodeInfo.hostNetworkPort
   override val blockDelay: FiniteDuration = settings.blockchainSettings.genesisSettings.averageBlockDelay
 
-  def fee(txValue: TransactionType.Value, asset: String = "WAVES"): Long =
+  def fee(txValue: TransactionType.Value, asset: String = "VEE"): Long =
     settings.feesSettings.fees(txValue.id).find(_.asset == asset).get.fee
 }
