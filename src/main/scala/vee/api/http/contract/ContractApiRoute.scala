@@ -74,7 +74,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   def enable: Route = processRequest("enable", (t: ChangeContractStatusRequest) => doBroadcast(TransactionFactory.changeContractStatus(t, ChangeContractStatusAction.Enable, wallet, time)))
 
   @Path("/disable")
-  @ApiOperation(value = "Enables a contract",
+  @ApiOperation(value = "Disacbles a contract",
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json")
