@@ -15,17 +15,17 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
 
-      _ <- assertBalances(firstAddress, 100.waves, 100.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 100.waves)
+      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 100.vee)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 10.waves, fee = 10.waves, feeScale = 100).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 10.vee, fee = 10.vee, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 90.waves, 80.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 80.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
     } yield succeed
 
     Await.result(f, 1.minute)
@@ -35,15 +35,15 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 90.waves, 80.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 80.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
 
-      leaseFailureAssertion <- assertBadRequest(sender.lease(secondAddress, firstAddress, 111.waves, 10.waves, feeScale = 100))
+      leaseFailureAssertion <- assertBadRequest(sender.lease(secondAddress, firstAddress, 111.vee, 10.vee, feeScale = 100))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 90.waves, 80.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 80.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
     } yield leaseFailureAssertion
 
     Await.result(f, 1.minute)
@@ -53,15 +53,15 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 90.waves, 80.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 80.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
 
-      transferFailureAssertion <- assertBadRequest(sender.lease(firstAddress, secondAddress, 90.waves, fee = 11.waves, feeScale = 100))
+      transferFailureAssertion <- assertBadRequest(sender.lease(firstAddress, secondAddress, 90.vee, fee = 11.vee, feeScale = 100))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 90.waves, 80.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 80.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
     } yield transferFailureAssertion
 
     Await.result(f, 1.minute)
@@ -70,26 +70,26 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
 
   test("lease cancellation reverts eff.b. changes; lessor pays fee for both lease and cancellation") {
     val f = for {
-      _ <- assertBalances(firstAddress, 90.waves, 80.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 80.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 70.waves, fee = 5.waves, feeScale = 100).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 70.vee, fee = 5.vee, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 85.waves, 5.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 180.waves)
+      _ <- assertBalances(firstAddress, 85.vee, 5.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 180.vee)
 
-      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves, feeScale = 100).map(_.id)
+      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.vee, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdCancelLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 80.waves, 70.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 80.vee, 70.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
     } yield succeed
 
     Await.result(f, 1.minute)
@@ -97,28 +97,28 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
 
   test("lease cancellation can be done only once") {
     val f = for {
-      _ <- assertBalances(firstAddress, 80.waves, 70.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 80.vee, 70.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.waves, fee = 5.waves, feeScale = 100).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.vee, fee = 5.vee, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 75.waves, 60.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 115.waves)
+      _ <- assertBalances(firstAddress, 75.vee, 60.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 115.vee)
 
-      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves, feeScale = 100).map(_.id)
+      createdCancelLeaseTxId <- sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.vee, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdCancelLeaseTxId))
 
-      _ <- assertBadRequest(sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.waves, feeScale = 100).map(_.id))
+      _ <- assertBadRequest(sender.cancelLease(firstAddress, createdLeaseTxId, fee = 5.vee, feeScale = 100).map(_.id))
 
-      _ <- assertBalances(firstAddress, 70.waves, 60.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 70.vee, 60.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
     } yield succeed
 
     Await.result(f, 1.minute)
@@ -126,19 +126,19 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
 
   test("only sender can cancel lease transaction") {
     val f = for {
-      _ <- assertBalances(firstAddress, 70.waves, 60.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 110.waves)
+      _ <- assertBalances(firstAddress, 70.vee, 60.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 110.vee)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.waves, fee = 5.waves, feeScale = 100).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.vee, fee = 5.vee, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 65.waves, 50.waves)
-      _ <- assertBalances(secondAddress, 100.waves, 115.waves)
+      _ <- assertBalances(firstAddress, 65.vee, 50.vee)
+      _ <- assertBalances(secondAddress, 100.vee, 115.vee)
 
-      _ <- assertBadRequest(sender.cancelLease(thirdAddress, createdLeaseTxId, fee = 1.waves, feeScale = 100))
+      _ <- assertBadRequest(sender.cancelLease(thirdAddress, createdLeaseTxId, fee = 1.vee, feeScale = 100))
     } yield succeed
 
     Await.result(f, 1.minute)
@@ -148,13 +148,13 @@ class LeasingTransactionsSpecification(override val allNodes: Seq[Node], overrid
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 65.waves, 50.waves)
+      _ <- assertBalances(firstAddress, 65.vee, 50.vee)
 
-      transferFailureAssertion <- assertBadRequest(sender.lease(firstAddress, firstAddress, 89.waves, fee = 1.waves, feeScale = 100))
+      transferFailureAssertion <- assertBadRequest(sender.lease(firstAddress, firstAddress, 89.vee, fee = 1.vee, feeScale = 100))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 65.waves, 50.waves)
+      _ <- assertBalances(firstAddress, 65.vee, 50.vee)
     } yield transferFailureAssertion
 
     Await.result(f, 1.minute)

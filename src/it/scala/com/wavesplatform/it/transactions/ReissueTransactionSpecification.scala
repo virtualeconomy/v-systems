@@ -15,24 +15,24 @@ class ReissueTransactionSpecification(override val allNodes: Seq[Node], override
 
   test("asset reissue changes issuer's asset balance; issuer's waves balance is decreased by fee") {
     val f = for {
-      _ <- assertBalances(firstAddress, 100.waves, 100.waves)
+      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
 
-      issuedAssetId <- sender.issue(firstAddress, "name", "description", defaultQuantity, 2, reissuable = true, fee = 10.waves).map(_.id)
+      issuedAssetId <- sender.issue(firstAddress, "name", "description", defaultQuantity, 2, reissuable = true, fee = 10.vee).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(issuedAssetId))
 
-      _ <- assertBalances(firstAddress, 90.waves, 90.waves)
+      _ <- assertBalances(firstAddress, 90.vee, 90.vee)
       _ <- assertAssetBalance(firstAddress, issuedAssetId, defaultQuantity)
 
-      reissuedAssetId <- sender.reissue(firstAddress, issuedAssetId, defaultQuantity, reissuable = true, fee = 10.waves).map(_.id)
+      reissuedAssetId <- sender.reissue(firstAddress, issuedAssetId, defaultQuantity, reissuable = true, fee = 10.vee).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(reissuedAssetId))
 
-      _ <- assertBalances(firstAddress, 80.waves, 80.waves)
+      _ <- assertBalances(firstAddress, 80.vee, 80.vee)
       _ <- assertAssetBalance(firstAddress, issuedAssetId, 2 * defaultQuantity)
     } yield succeed
 
