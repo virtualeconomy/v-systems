@@ -30,10 +30,10 @@ class MatcherActor(orderHistory: ActorRef, storedState: StateReader, wallet: Wal
   val tradedPairs = mutable.Map.empty[AssetPair, MarketData]
 
   def getAssetName(asset: Option[AssetId]): String =
-    asset.map(storedState.getAssetName).getOrElse(AssetPair.WavesName)
+    asset.map(storedState.getAssetName).getOrElse(AssetPair.VEEName)
 
   def createOrderBook(pair: AssetPair): ActorRef = {
-    def getAssetName(asset: Option[AssetId]): String = asset.map(storedState.getAssetName).getOrElse(AssetPair.WavesName)
+    def getAssetName(asset: Option[AssetId]): String = asset.map(storedState.getAssetName).getOrElse(AssetPair.VEEName)
 
     val md = MarketData(pair, getAssetName(pair.amountAsset), getAssetName(pair.priceAsset), NTP.correctedTime(),
       pair.amountAsset.flatMap(storedState.getIssueTransaction).map(t => AssetInfo(t.decimals)),

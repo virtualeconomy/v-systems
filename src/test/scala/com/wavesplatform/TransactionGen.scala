@@ -2,7 +2,7 @@ package com.wavesplatform
 
 import com.wavesplatform.settings.Constants
 import com.wavesplatform.state2._
-import org.scalacheck.Gen.{alphaLowerChar, frequency, numChar, alphaUpperChar}
+import org.scalacheck.Gen.{alphaLowerChar, alphaUpperChar, frequency, numChar}
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.account.PublicKeyAccount._
 import scorex.account._
@@ -13,6 +13,8 @@ import scorex.transaction.assets.exchange._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
+import vee.database.{Entry, DataType}
+import vee.transaction.database.DbPutTransaction
 
 trait TransactionGen {
 
@@ -40,6 +42,11 @@ trait TransactionGen {
 
   val invalidAliasAlphabetGen: Gen[Char] = frequency((1, numChar), (1, aliasSymbolChar), (9, alphaUpperChar))
 
+  val entryDataStringGen: Gen[String] = for {
+    length <- Gen.chooseNum(1, Entry.maxLength)
+    aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield aliasChars.mkString
+
   val validAliasStringGen: Gen[String] = for {
     length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
     aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
@@ -61,9 +68,12 @@ trait TransactionGen {
   val positiveLongGen: Gen[Long] = Gen.choose(1, Long.MaxValue / 100)
   val positiveIntGen: Gen[Int] = Gen.choose(1, Int.MaxValue / 100)
   val positiveShortGen: Gen[Short] = Gen.choose(1, Short.MaxValue)
-  val smallFeeGen: Gen[Long] = Gen.choose(1, 100000000)
+  val smallFeeGen: Gen[Long] = Gen.choose(1, 10000000000L)
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
+  val entryGen: Gen[Entry] = for {
+    data: String <- entryDataStringGen
+  } yield Entry.buildEntry(data, DataType.ByteArray).right.get
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
@@ -183,8 +193,18 @@ trait TransactionGen {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
     slotId: Int <- slotidGen
+    feeAmount <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield ContendSlotsTransaction.create(sender, slotId, MinIssueFee, 100, timestamp).right.get
+  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 1000, 100, timestamp).right.get
+
+  val dbPutGen: Gen[DbPutTransaction] = for {
+    timestamp: Long <- positiveLongGen
+    sender: PrivateKeyAccount <- accountGen
+    name: String <- validAliasStringGen
+    entry: Entry <- entryGen
+    fee: Long <- smallFeeGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+  } yield DbPutTransaction.create(sender, name, entry, fee, 100, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
@@ -198,8 +218,9 @@ trait TransactionGen {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
     slotId: Int <- slotidGen
+    feeAmount <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield  ReleaseSlotsTransaction.create(sender, slotId, MinIssueFee, 100, timestamp).right.get
+  } yield  ReleaseSlotsTransaction.create(sender, slotId, feeAmount, 100, timestamp).right.get
 
   def releaseGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] =
     timestampGen.flatMap(ts => releaseGeneratorP(ts, sender, slotId))
