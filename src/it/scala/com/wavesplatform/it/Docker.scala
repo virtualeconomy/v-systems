@@ -76,7 +76,7 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       .build()
 
     val containerConfig = ContainerConfig.builder()
-      .image("vee.tech/vee-core :latest")
+      .image("vee.tech/vee-core:latest")
       .exposedPorts(restApiPort, networkPort, matcherApiPort)
       .hostConfig(hostConfig)
       .env(s"VEE_OPTS=$configOverrides", s"VEE_PORT=$networkPort")
