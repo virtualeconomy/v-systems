@@ -30,6 +30,7 @@ case class CreateContractTransaction private(sender: PublicKeyAccount,
     sender.publicKey,
     BytesSerializable.arrayWithSize(contract.bytes.arr),
     Longs.toByteArray(fee),
+    Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
@@ -70,7 +71,9 @@ object CreateContractTransaction {
              signature: ByteStr): Either[ValidationError, CreateContractTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else {
+    } else if (feeScale != 100) {
+      Left(ValidationError.WrongFeeScale(feeScale))
+    }  else {
       Right(CreateContractTransaction(sender, contract, fee, feeScale, timestamp, signature))
     }
 
