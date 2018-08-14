@@ -1,6 +1,6 @@
 package vee.transaction.contract
 
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
@@ -16,6 +16,7 @@ import scala.util.{Failure, Success, Try}
 case class CreateContractTransaction private(sender: PublicKeyAccount,
                                           contract: Contract,
                                           fee: Long,
+                                          feeScale: Short,
                                           timestamp: Long,
                                           signature: ByteStr)
   extends SignedTransaction {
@@ -34,6 +35,7 @@ case class CreateContractTransaction private(sender: PublicKeyAccount,
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contract" -> (Json.obj("name" -> contract.name, "content"->contract.content, "enabled"->contract.enabled)),
     "fee" -> fee,
+    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
@@ -53,28 +55,31 @@ object CreateContractTransaction {
     (for {
       contract <- Contract.fromBytes(contractBytes)
       fee = Longs.fromByteArray(bytes.slice(contractEnd, contractEnd + 8))
-      timestamp = Longs.fromByteArray(bytes.slice(contractEnd + 8, contractEnd + 16))
-      signature = ByteStr(bytes.slice(contractEnd + 16, contractEnd + 16 + SignatureLength))
-      tx <- CreateContractTransaction.create(sender, contract, fee, timestamp, signature)
+      feeScale = Shorts.fromByteArray(bytes.slice(contractEnd + 8, contractEnd + 10))
+      timestamp = Longs.fromByteArray(bytes.slice(contractEnd + 10, contractEnd + 18))
+      signature = ByteStr(bytes.slice(contractEnd + 18, contractEnd + 18 + SignatureLength))
+      tx <- CreateContractTransaction.create(sender, contract, fee, feeScale, timestamp, signature)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(sender: PublicKeyAccount,
              contract: Contract,
              fee: Long,
+             feeScale: Short,
              timestamp: Long,
              signature: ByteStr): Either[ValidationError, CreateContractTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else {
-      Right(CreateContractTransaction(sender, contract, fee, timestamp, signature))
+      Right(CreateContractTransaction(sender, contract, fee, feeScale, timestamp, signature))
     }
 
   def create(sender: PrivateKeyAccount,
              contract: Contract,
              fee: Long,
+             feeScale: Short,
              timestamp: Long): Either[ValidationError, CreateContractTransaction] = {
-    create(sender, contract, fee, timestamp, ByteStr.empty).right.map { unsigned =>
+    create(sender, contract, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }
