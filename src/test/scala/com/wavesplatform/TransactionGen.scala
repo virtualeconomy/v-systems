@@ -7,6 +7,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import scorex.account.PublicKeyAccount._
 import scorex.account._
 import scorex.transaction._
+import vee.transaction.MintingTransaction
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange._
@@ -67,6 +68,8 @@ trait TransactionGen {
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
+
+  val mintingAmountGen: Gen[Long] = Gen.const(MintingTransaction.mintingReward)
 
   val wavesAssetGen: Gen[Option[ByteStr]] = Gen.const(None)
   val assetIdGen: Gen[Option[ByteStr]] = Gen.frequency((1, wavesAssetGen), (10, Gen.option(bytes32gen.map(ByteStr(_)))))
@@ -178,6 +181,20 @@ trait TransactionGen {
     sender: PrivateKeyAccount <- accountGen
     alias: Alias <- aliasGen
   } yield CreateAliasTransaction.create(sender, alias, MinIssueFee, timestamp).right.get
+
+  val MintingGen: Gen[MintingTransaction] = for {
+    recipient: PrivateKeyAccount <- accountGen
+    timestamp: Long <- positiveLongGen
+    amount: Long <- mintingAmountGen
+    currentBlockHeight: Int <- positiveIntGen
+  } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
+
+  def mintingGeneratorP(recipient: PrivateKeyAccount, currentBlockHeight: Int): Gen[MintingTransaction] =
+    timestampGen.flatMap(ts => mintingGeneratorP(ts, recipient, currentBlockHeight))
+
+  def mintingGeneratorP(timestamp: Long, recipient: PrivateKeyAccount, currentBlockHeight: Int) = for {
+    amount: Long <- mintingAmountGen
+  } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
 
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
