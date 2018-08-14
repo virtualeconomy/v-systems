@@ -7,7 +7,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class FeesSettingsSpecification extends FlatSpec with Matchers {
   "FeesSettings" should "read values" in {
     val config = ConfigFactory.parseString(
-      """waves {
+      """vee {
         |  network.file = "xxx"
         |  fees {
         |    payment.VEE = 100000
@@ -34,7 +34,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
 
   it should "combine read few fees for one transaction type" in {
     val config = ConfigFactory.parseString(
-      """waves.fees {
+      """vee.fees {
         |  payment {
         |    VEE0 = 0
         |  }
@@ -57,7 +57,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
   }
 
   it should "allow empty list" in {
-    val config = ConfigFactory.parseString("waves.fees = {}").resolve()
+    val config = ConfigFactory.parseString("vee.fees = {}").resolve()
 
     val settings = FeesSettings.fromConfig(config)
     settings.fees.size should be(0)
@@ -65,13 +65,13 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
 
   it should "override values" in {
     val config = ConfigFactory.parseString(
-      """waves.fees {
+      """vee.fees {
         |  payment.VEE1 = 1111
         |  reissue.VEE5 = 0
         |}
       """.stripMargin).withFallback(
       ConfigFactory.parseString(
-        """waves.fees {
+        """vee.fees {
           |  payment.VEE = 100000
           |  issue.VEE = 100000000
           |  transfer.VEE = 100000
@@ -89,7 +89,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
   }
 
   it should "fail on incorrect long values" in {
-    val config = ConfigFactory.parseString("waves.fees.payment.VEE=N/A").resolve()
+    val config = ConfigFactory.parseString("vee.fees.payment.VEE=N/A").resolve()
 
     intercept[BadValue] {
       FeesSettings.fromConfig(config)
@@ -97,7 +97,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
   }
 
   it should "fail on unknown transaction type" in {
-    val config = ConfigFactory.parseString("waves.fees.shmayment.VEE=100").resolve()
+    val config = ConfigFactory.parseString("vee.fees.shmayment.VEE=100").resolve()
 
     intercept[NoSuchElementException] {
       FeesSettings.fromConfig(config)
@@ -108,7 +108,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     val defaultConfig = ConfigFactory.load()
     val config = ConfigFactory.parseString(
       """
-        |waves.fees {
+        |vee.fees {
         |  payment {
         |    VEE = 10000000
         |  }

@@ -8,7 +8,7 @@ class SynchronizationSettingsSpecification extends FlatSpec with Matchers {
   "SynchronizationSettings" should "read values" in {
     val config = ConfigFactory.parseString(
       """
-        |waves {
+        |vee {
         |  synchronization {
         |    max-rollback: 100
         |    max-chain-length: 101

@@ -17,7 +17,7 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
 
 
   private val configString =
-    """waves {
+    """vee {
       |  fees {
       |    payment {
       |      VEE = 10000000

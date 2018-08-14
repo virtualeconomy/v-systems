@@ -16,7 +16,7 @@ case class SynchronizationSettings(maxRollback: Int,
                                    scoreTTL: FiniteDuration)
 
 object SynchronizationSettings {
-  val configPath: String = "waves.synchronization"
+  val configPath: String = "vee.synchronization"
 
   def fromConfig(config: Config): SynchronizationSettings = {
     val maxRollback = config.as[Int](s"$configPath.max-rollback")
