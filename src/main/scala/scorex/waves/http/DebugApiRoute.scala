@@ -43,7 +43,7 @@ case class DebugApiRoute(settings: RestAPISettings,
                          utxStorage: UtxPool) extends ApiRoute {
 
   override lazy val route = pathPrefix("debug") {
-    blocks ~ state ~ info ~ stateWaves ~ rollback ~ rollbackTo ~ blacklist ~ portfolios
+    blocks ~ state ~ info ~ stateVee ~ rollback ~ rollbackTo ~ blacklist ~ portfolios
   }
 
   @Path("/blocks/{howMany}")
