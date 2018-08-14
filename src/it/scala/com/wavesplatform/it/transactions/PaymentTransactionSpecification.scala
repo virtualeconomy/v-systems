@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 class PaymentTransactionSpecification(override val allNodes: Seq[Node], override val notMiner: Node)
   extends IntegrationSuiteWithThreeAddresses {
-  test("waves payment changes waves balances and eff.b.") {
+  test("vee payment changes vee balances and eff.b.") {
     val f = for {
       _ <- assertBalances(firstAddress, 100.vee, 100.vee)
       _ <- assertBalances(secondAddress, 100.vee, 100.vee)

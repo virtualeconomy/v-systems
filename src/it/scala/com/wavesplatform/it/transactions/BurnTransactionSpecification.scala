@@ -12,7 +12,7 @@ class BurnTransactionSpecification(override val allNodes: Seq[Node], override va
   extends IntegrationSuiteWithThreeAddresses {
 
   private val defaultQuantity = 100000
-  test("burning assets changes issuer's asset balance; issuer's waves balance is decreased by fee") {
+  test("burning assets changes issuer's asset balance; issuer's vee balance is decreased by fee") {
     val f = for {
       _ <- assertBalances(firstAddress, 100.vee, 100.vee)
 

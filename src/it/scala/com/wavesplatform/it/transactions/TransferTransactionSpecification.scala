@@ -18,7 +18,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
 
   private val defaultQuantity = 100000
 
-  test("asset transfer changes sender's and recipient's asset balance; issuer's.waves balance is decreased by fee") {
+  test("asset transfer changes sender's and recipient's asset balance; issuer's.vee balance is decreased by fee") {
     val f = for {
       _ <- assertBalances(firstAddress, 100.vee, 100.vee)
       _ <- assertBalances(secondAddress, 100.vee, 100.vee)
@@ -48,7 +48,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
     Await.result(f, 1.minute)
   }
 
-  test("waves transfer changes waves balances and eff.b.") {
+  test("vee transfer changes vee balances and eff.b.") {
     val f = for {
       _ <- assertBalances(firstAddress, 80.vee, 80.vee)
       _ <- assertBalances(secondAddress, 100.vee, 100.vee)
@@ -66,7 +66,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
     Await.result(f, 1.minute)
   }
 
-  test("invalid signed waves transfer should not be in UTX or blockchain") {
+  test("invalid signed vee transfer should not be in UTX or blockchain") {
     def createSignedTransferRequest(tx: TransferTransaction): SignedTransferRequest = {
       import tx._
       SignedTransferRequest(
@@ -125,7 +125,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
   }
 
 
-  test("can not make transfer without having enough of waves") {
+  test("can not make transfer without having enough of vee") {
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
@@ -170,7 +170,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
     Await.result(f, 1.minute)
   }
 
-  test("can not make transfer without having enough of your own waves") {
+  test("can not make transfer without having enough of your own vee") {
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 

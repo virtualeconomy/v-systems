@@ -19,7 +19,7 @@ class EventJsonSpecification extends PropSpec
   with Matchers
   with MatcherTestData {
 
-  val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("WAVES".getBytes)))
+  val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("VEE".getBytes)))
 
   val buyLevelGen: Gen[Vector[BuyLimitOrder]] =
     Gen.containerOf[Vector, BuyLimitOrder](buyLimitOrderGenerator)

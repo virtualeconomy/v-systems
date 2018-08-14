@@ -43,13 +43,13 @@ class OrderBookActorSpecification extends TestKit(ActorSystem("MatcherTest"))
 
   var eventsProbe = TestProbe()
 
-  val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("WAVES".getBytes)))
+  val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("VEE".getBytes)))
   val db = new MVStore.Builder().compress().open()
   val storedState: StateReader = stub[StateReader]
   val hugeAmount = Long.MaxValue / 2
   (storedState.accountPortfolio _).when(*).returns(Portfolio(hugeAmount, LeaseInfo.empty, Map(
     ByteStr("BTC".getBytes) -> hugeAmount,
-    ByteStr("WAVES".getBytes) -> hugeAmount
+    ByteStr("VEE".getBytes) -> hugeAmount
   )))
   val issueTransaction: IssueTransaction = IssueTransaction.create(
     PrivateKeyAccount("123".getBytes),

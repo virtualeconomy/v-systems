@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 class IssueTransactionSpecification(override val allNodes: Seq[Node], override val notMiner: Node)
   extends IntegrationSuiteWithThreeAddresses {
-  test("asset issue changes issuer's asset balance; issuer's waves balance is decreased by fee") {
+  test("asset issue changes issuer's asset balance; issuer's vee balance is decreased by fee") {
     val f = for {
       _ <- assertBalances(firstAddress, 100.vee, 100.vee)
 

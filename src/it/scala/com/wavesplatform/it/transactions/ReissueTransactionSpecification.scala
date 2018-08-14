@@ -13,7 +13,7 @@ class ReissueTransactionSpecification(override val allNodes: Seq[Node], override
 
   private val defaultQuantity = 100000
 
-  test("asset reissue changes issuer's asset balance; issuer's waves balance is decreased by fee") {
+  test("asset reissue changes issuer's asset balance; issuer's vee balance is decreased by fee") {
     val f = for {
       _ <- assertBalances(firstAddress, 100.vee, 100.vee)
 
