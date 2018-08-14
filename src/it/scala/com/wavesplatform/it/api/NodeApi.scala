@@ -265,7 +265,7 @@ trait NodeApi {
 
   def waitForDebugInfoAt(height: Long): Future[DebugInfo] = waitFor[DebugInfo](get("/debug/info").as[DebugInfo], _.stateHeight >= height, 1.seconds)
 
-  def debugStateAt(height: Long): Future[Map[String, Long]] = get(s"/debug/stateWaves/$height").as[Map[String, Long]]
+  def debugStateAt(height: Long): Future[Map[String, Long]] = get(s"/debug/stateVee/$height").as[Map[String, Long]]
 
   def debugPortfoliosFor(address: String, considerUnspent: Boolean) = {
     getWihApiKey(s"/debug/portfolios/$address?considerUnspent=$considerUnspent")
