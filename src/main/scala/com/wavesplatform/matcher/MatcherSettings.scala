@@ -32,7 +32,7 @@ case class MatcherSettings(enable: Boolean,
 
 
 object MatcherSettings {
-  val configPath: String = "waves.matcher"
+  val configPath: String = "vee.matcher"
   import com.wavesplatform.settings.fileReader
 
   def fromConfig(config: Config): MatcherSettings = {

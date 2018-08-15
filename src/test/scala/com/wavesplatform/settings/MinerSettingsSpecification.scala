@@ -11,7 +11,7 @@ class MinerSettingsSpecification extends FlatSpec with Matchers {
   "MinerSettings" should "read values" in {
     val config = ConfigFactory.parseString(
       """
-        |waves {
+        |vee {
         |  miner {
         |    enable: yes
         |    quorum: 1
@@ -20,7 +20,7 @@ class MinerSettingsSpecification extends FlatSpec with Matchers {
         |}
       """.stripMargin).resolve()
 
-    val settings = config.as[MinerSettings]("waves.miner")
+    val settings = config.as[MinerSettings]("vee.miner")
 
     settings.enable should be(true)
     settings.quorum should be(1)

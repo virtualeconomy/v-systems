@@ -46,5 +46,5 @@ package object utils extends ScorexLogging {
     }
   }
 
-  def forceStopApplication(): Unit = new Thread(() => { System.exit(1) }, "waves-platform-shutdown-thread").start()
+  def forceStopApplication(): Unit = new Thread(() => { System.exit(1) }, "vee-shutdown-thread").start()
 }

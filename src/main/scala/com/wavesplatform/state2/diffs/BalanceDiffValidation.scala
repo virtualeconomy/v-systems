@@ -23,7 +23,7 @@ object BalanceDiffValidation {
       val newPortfolio = oldPortfolio.combine(portfolioDiff)
 
       val err = if (newPortfolio.balance < 0) {
-        Some(s"negative waves balance: $acc, old: ${oldPortfolio.balance}, new: ${newPortfolio.balance}")
+        Some(s"negative vee balance: $acc, old: ${oldPortfolio.balance}, new: ${newPortfolio.balance}")
       } else if (newPortfolio.assets.values.exists(_ < 0)) {
         Some(s"negative asset balance: $acc, new portfolio: ${negativeAssetsInfo(newPortfolio)}")
       } else if (newPortfolio.effectiveBalance < 0) {

@@ -22,7 +22,7 @@ trait IntegrationSuiteWithThreeAddresses extends FunSuite with BeforeAndAfterAll
   protected val sender: Node = notMiner
   private val richAddress = sender.address
 
-  protected val defaultBalance: Long = 100.waves
+  protected val defaultBalance: Long = 100.vee
 
   protected lazy val firstAddress: String = Await.result(sender.createAddress, 1.minutes)
   protected lazy val secondAddress: String = Await.result(sender.createAddress, 1.minutes)

@@ -11,6 +11,6 @@ object Constants extends ScorexLogging {
   val ApplicationName = "vee"
   val AgentName = s"VEE Core v${Version.VersionString}"
 
-  val UnitsInWave = 100000000L
-  val TotalWaves = 10000000000L
+  val UnitsInVee = 100000000L
+  val TotalVee = 10000000000L
 }

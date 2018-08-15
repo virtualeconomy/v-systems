@@ -12,9 +12,9 @@ import scala.util.{Success, Try}
 case class AssetPair(@ApiModelProperty(dataType = "java.lang.String") amountAsset: Option[AssetId],
                      @ApiModelProperty(dataType = "java.lang.String") priceAsset: Option[AssetId]) {
   @ApiModelProperty(hidden = true)
-  lazy val priceAssetStr: String = priceAsset.map(_.base58).getOrElse(AssetPair.WavesName)
+  lazy val priceAssetStr: String = priceAsset.map(_.base58).getOrElse(AssetPair.VEEName)
   @ApiModelProperty(hidden = true)
-  lazy val amountAssetStr: String = amountAsset.map(_.base58).getOrElse(AssetPair.WavesName)
+  lazy val amountAssetStr: String = amountAsset.map(_.base58).getOrElse(AssetPair.VEEName)
 
   override def toString: String = key
 
@@ -43,10 +43,10 @@ case class AssetPair(@ApiModelProperty(dataType = "java.lang.String") amountAsse
 }
 
 object AssetPair {
-  val WavesName = "WAVES"
+  val VEEName = "VEE"
 
   private def extractAssetId(a: String): Try[Option[AssetId]] = a match {
-    case `WavesName` => Success(None)
+    case `VEEName` => Success(None)
     case other => ByteStr.decodeBase58(other).map(Option(_))
   }
 

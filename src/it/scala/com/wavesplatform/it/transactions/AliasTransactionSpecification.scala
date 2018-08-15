@@ -14,21 +14,21 @@ class AliasTransactionSpecification(override val allNodes: Seq[Node], override v
     val alias = "test_alias"
 
     val f = for {
-      _ <- assertBalances(firstAddress, 100.waves, 100.waves)
-      aliasTxId <- sender.createAlias(firstAddress, alias, 1.waves).map(_.id)
+      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
+      aliasTxId <- sender.createAlias(firstAddress, alias, 1.vee).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(aliasTxId))
 
-      _ <- assertBalances(firstAddress, 99.waves, 99.waves)
-      transferId <- sender.transfer(firstAddress, s"alias:${sender.settings.blockchainSettings.addressSchemeCharacter}:$alias", 1.waves, 1.waves).map(_.id)
+      _ <- assertBalances(firstAddress, 99.vee, 99.vee)
+      transferId <- sender.transfer(firstAddress, s"alias:${sender.settings.blockchainSettings.addressSchemeCharacter}:$alias", 1.vee, 1.vee).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(transferId))
 
-      _ <- assertBalances(firstAddress, 98.waves, 98.waves)
+      _ <- assertBalances(firstAddress, 98.vee, 98.vee)
     } yield succeed
 
     Await.result(f, 1.minute)
@@ -38,15 +38,15 @@ class AliasTransactionSpecification(override val allNodes: Seq[Node], override v
     val alias = "test_alias2"
 
     val f = for {
-      _ <- assertBalances(firstAddress, 98.waves, 98.waves)
-      aliasTxId <- sender.createAlias(firstAddress, alias, 1.waves).map(_.id)
+      _ <- assertBalances(firstAddress, 98.vee, 98.vee)
+      aliasTxId <- sender.createAlias(firstAddress, alias, 1.vee).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(aliasTxId))
 
-      _ <- assertBalances(firstAddress, 97.waves, 97.waves)
-      _ <- assertBadRequest(sender.createAlias(firstAddress, alias, 1.waves))
+      _ <- assertBalances(firstAddress, 97.vee, 97.vee)
+      _ <- assertBadRequest(sender.createAlias(firstAddress, alias, 1.vee))
     } yield succeed
 
     Await.result(f, 1.minute)
@@ -57,15 +57,15 @@ class AliasTransactionSpecification(override val allNodes: Seq[Node], override v
     val alias = "test_alias3"
 
     val f = for {
-      _ <- assertBalances(firstAddress, 97.waves, 97.waves)
-      aliasTxId <- sender.createAlias(firstAddress, alias, 1.waves).map(_.id)
+      _ <- assertBalances(firstAddress, 97.vee, 97.vee)
+      aliasTxId <- sender.createAlias(firstAddress, alias, 1.vee).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(aliasTxId))
 
-      _ <- assertBalances(firstAddress, 96.waves, 96.waves)
-      _ <- assertBadRequest(sender.createAlias(secondAddress, alias, 1.waves))
+      _ <- assertBalances(firstAddress, 96.vee, 96.vee)
+      _ <- assertBadRequest(sender.createAlias(secondAddress, alias, 1.vee))
     } yield succeed
 
     Await.result(f, 1.minute)

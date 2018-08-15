@@ -23,7 +23,7 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("database") {
-    putKV ~ getKV
+    putKV ~ getKV ~ signPutKV
   }
 
   @Path("/put")
@@ -43,6 +43,28 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def putKV: Route = processRequest("put", (t: DbPutRequest) => doBroadcast(TransactionFactory.dbPut(t, wallet, time)))
+
+  @Path("/broadcast/put")
+  @ApiOperation(value = "Broadcasts a signed db put transaction",
+    httpMethod = "POST",
+    produces = "application/json",
+    consumes = "application/json")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(
+      name = "body",
+      value = "Json with data",
+      required = true,
+      paramType = "body",
+      dataType = "vee.api.http.database.SignedDbPutRequest",
+      defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+    )
+  ))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  def signPutKV: Route = (path("broadcast" / "put") & post) {
+    json[SignedDbPutRequest] { signedDbPutReq =>
+      doBroadcast(signedDbPutReq.toTx)
+    }
+  }
 
   @Path("/get/{nameSpace}/{name}")
   @ApiOperation(value = "get", notes = "Get db entry", httpMethod = "GET")

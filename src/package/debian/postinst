@@ -2,7 +2,7 @@ ${{header}}
 ${{loader-functions}}
 ${{detect-loader}}
 
-config_file=/etc/${{app_name}}/waves.conf
+config_file=/etc/${{app_name}}/vee.conf
 
 
 if [ "$1" = configure ]; then
@@ -30,13 +30,13 @@ if [ "$1" = configure ]; then
     chmod 770 /var/log/${{app_name}}
     chown root:${{app_name}} /var/log/${{app_name}}
 
-    if [ -f /etc/${{app_name}}/waves.json ]; then
-        mv /etc/${{app_name}}/waves.json /etc/${{app_name}}/waves.json.bak
+    if [ -f /etc/${{app_name}}/vee.json ]; then
+        mv /etc/${{app_name}}/vee.json /etc/${{app_name}}/vee.json.bak
     fi
 
     if [ ! -f "$config_file" ]; then
         echo Creating default config file ...
-        cp /usr/share/${{app_name}}/doc/waves.conf.sample "$config_file"
+        cp /usr/share/${{app_name}}/doc/vee.conf.sample "$config_file"
         chmod 600 "$config_file"
         chown ${{app_name}}:${{app_name}} "$config_file"
     fi

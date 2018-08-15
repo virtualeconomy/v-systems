@@ -9,6 +9,7 @@ import org.scalatest.{Assertion, Matchers, PropSpec}
 import scorex.account.{Address, PrivateKeyAccount}
 import scorex.transaction.assets._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 
 class FeeCalculatorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks
@@ -16,32 +17,38 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
 
 
   private val configString =
-    """waves {
+    """vee {
       |  fees {
       |    payment {
-      |      WAVES = 100000
+      |      VEE = 10000000
       |    }
       |    issue {
-      |      WAVES = 100000000
+      |      VEE = 100000000
       |    }
       |    transfer {
-      |      WAVES = 100000
+      |      VEE = 10000000
       |      "JAudr64y6YxTgLn9T5giKKqWGkbMfzhdRAxmNNfn6FJN" = 2
       |    }
       |    reissue {
-      |      WAVES = 200000
+      |      VEE = 10000000
       |    }
       |    burn {
-      |      WAVES = 300000
+      |      VEE = 10000000
       |    }
       |    lease {
-      |      WAVES = 400000
+      |      VEE = 10000000
       |    }
       |    lease-cancel {
-      |      WAVES = 500000
+      |      VEE = 10000000
       |    }
       |    create-alias {
-      |      WAVES = 600000
+      |      VEE = 10000000
+      |    }
+      |    contend-slots {
+      |      VEE = 100000000000
+      |    }
+      |    release-slots {
+      |      VEE = 10000000
       |    }
       |  }
       |}""".stripMargin
@@ -67,7 +74,7 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
     val feeCalc = new FeeCalculator(mySettings)
     forAll(transferGen) { tx: TransferTransaction =>
       if (tx.feeAssetId.isEmpty) {
-        feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 100000)
+        feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
       } else {
         feeCalc.enoughFee(tx) shouldBe an[Left[_,_]]
       }
@@ -90,7 +97,7 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
   property("Payment transaction ") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(paymentGen) { tx: PaymentTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 100000)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }
 
@@ -104,35 +111,49 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
   property("Reissue transaction ") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(reissueGen) { tx: ReissueTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 200000)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }
 
   property("Burn transaction ") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(burnGen) { tx: BurnTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 300000)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }
 
   property("Lease transaction") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(leaseGen) { tx: LeaseTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 400000)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }
 
   property("Lease cancel transaction") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(leaseCancelGen) { tx: LeaseCancelTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 500000)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }
 
   property("Create alias transaction") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(createAliasGen) { tx: CreateAliasTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 600000)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
+    }
+  }
+
+  property("Contend slots transaction") {
+    val feeCalc = new FeeCalculator(mySettings)
+    forAll(contendSlotsGen) { tx: ContendSlotsTransaction =>
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 100000000000L)
+    }
+  }
+
+  property("Release slots transaction") {
+    val feeCalc = new FeeCalculator(mySettings)
+    forAll(releaseSlotsGen) { tx: ReleaseSlotsTransaction =>
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }
 

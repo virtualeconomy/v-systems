@@ -4,7 +4,7 @@ import java.time.{Duration, Instant}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.wavesplatform.network._
-import com.wavesplatform.settings.WavesSettings
+import com.wavesplatform.settings.VeeSettings
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.{Coordinator, UtxPool}
 import io.netty.channel.group.ChannelGroup
@@ -33,7 +33,7 @@ class Miner(
                checkpoint: CheckpointService,
                history: History,
                stateReader: StateReader,
-               settings: WavesSettings,
+               settings: VeeSettings,
                timeService: Time,
                utx: UtxPool,
                wallet: Wallet) extends ScorexLogging {
