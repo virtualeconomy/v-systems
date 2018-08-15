@@ -16,6 +16,8 @@ import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
 import vee.database.{Entry, DataType}
 import vee.transaction.database.DbPutTransaction
+import vee.contract.Contract
+import vee.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
 
 trait TransactionGen {
 
@@ -76,6 +78,17 @@ trait TransactionGen {
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
+
+  val contractContentGen: Gen[String] = for {
+    length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
+    contentStr <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield contentStr.mkString
+  val contractGen: Gen[Contract] = for {
+    name <- validAliasStringGen
+    content <- contractContentGen
+    enabled <- Arbitrary.arbitrary[Boolean]
+  } yield Contract.buildContract(content, name, enabled).right.get
+  val actionGen: Gen[ChangeContractStatusAction.Value] = Gen.oneOf(ChangeContractStatusAction.Enable, ChangeContractStatusAction.Disable)
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
@@ -223,6 +236,23 @@ trait TransactionGen {
     fee: Long <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
   } yield DbPutTransaction.create(sender, name, entry, fee, 100, timestamp).right.get
+
+  val createContractGen: Gen[CreateContractTransaction] = for {
+    sender: PrivateKeyAccount <- accountGen
+    contract: Contract <- contractGen
+    fee: Long <- smallFeeGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+    timestamp: Long <- positiveLongGen
+  } yield CreateContractTransaction.create(sender, contract, fee, 100, timestamp).right.get
+
+  val changeContractStatusGen: Gen[ChangeContractStatusTransaction] = for {
+    sender: PrivateKeyAccount <- accountGen
+    contractName: String<- validAliasStringGen
+    action: ChangeContractStatusAction.Value <- actionGen
+    fee: Long <- smallFeeGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+    timestamp: Long <- positiveLongGen
+  } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, 100, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
