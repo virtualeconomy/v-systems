@@ -17,7 +17,7 @@ class MintingTransactionDiffTest extends PropSpec with PropertyChecks with Gener
 
   val preconditionsAndMinting: Gen[(GenesisTransaction, MintingTransaction, Long)] = for {
     master <- accountGen
-    recipient <- otherAccountGen(candidate = master)
+    recipient <- mintingAddressGen
     ts <- positiveIntGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
     minting: MintingTransaction <- mintingGeneratorP(recipient, 2)

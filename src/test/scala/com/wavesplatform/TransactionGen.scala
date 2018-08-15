@@ -56,6 +56,7 @@ trait TransactionGen {
   } yield aliasChars.mkString
 
   val accountOrAliasGen: Gen[AddressOrAlias] = Gen.oneOf(aliasGen, accountGen.map(PublicKeyAccount.toAddress(_)))
+  val mintingAddressGen: Gen[Address] = accountGen.map(PublicKeyAccount.toAddress(_))
 
   def otherAccountGen(candidate: PrivateKeyAccount): Gen[PrivateKeyAccount] = accountGen.flatMap(Gen.oneOf(candidate, _))
 
@@ -183,16 +184,16 @@ trait TransactionGen {
   } yield CreateAliasTransaction.create(sender, alias, MinIssueFee, timestamp).right.get
 
   val MintingGen: Gen[MintingTransaction] = for {
-    recipient: PrivateKeyAccount <- accountGen
+    recipient: Address <- mintingAddressGen
     timestamp: Long <- positiveLongGen
     amount: Long <- mintingAmountGen
     currentBlockHeight: Int <- positiveIntGen
   } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
 
-  def mintingGeneratorP(recipient: PrivateKeyAccount, currentBlockHeight: Int): Gen[MintingTransaction] =
+  def mintingGeneratorP(recipient: Address, currentBlockHeight: Int): Gen[MintingTransaction] =
     timestampGen.flatMap(ts => mintingGeneratorP(ts, recipient, currentBlockHeight))
 
-  def mintingGeneratorP(timestamp: Long, recipient: PrivateKeyAccount, currentBlockHeight: Int) = for {
+  def mintingGeneratorP(timestamp: Long, recipient: Address, currentBlockHeight: Int) = for {
     amount: Long <- mintingAmountGen
   } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
 
