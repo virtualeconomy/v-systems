@@ -79,7 +79,7 @@ object BlacklistTestSuite {
 
   private val generatingNodeConfig = ConfigFactory.parseString(
     """
-      |waves.miner.offline = yes
+      |vee.miner.offline = yes
     """.stripMargin)
 
   private val dockerConfigs = Docker.NodeConfigs.getConfigList("nodes").asScala

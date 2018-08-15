@@ -28,5 +28,5 @@ case class SignedContendSlotsRequest(@ApiModelProperty(value = "Base58 encoded s
 }
 
 object SignedContendSlotsRequest {
-  implicit val broadcastAliasRequestReadsFormat: Format[SignedContendSlotsRequest] = Json.format
+  implicit val broadcastContendSlotsRequestReadsFormat: Format[SignedContendSlotsRequest] = Json.format
 }

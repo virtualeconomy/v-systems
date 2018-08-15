@@ -28,7 +28,7 @@ class OrderHistoryActorSpecification extends TestKit(ActorSystem("MatcherTest"))
   }
 
   val settings: MatcherSettings = matcherSettings.copy(account = MatcherAccount.address)
-  val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("WAVES".getBytes)))
+  val pair = AssetPair(Some(ByteStr("BTC".getBytes)), Some(ByteStr("VEE".getBytes)))
   val utxPool: UtxPool = stub[UtxPool]
   val wallet = Wallet(WalletSettings(None, "matcher", Some(WalletSeed)))
   wallet.generateNewAccount()
