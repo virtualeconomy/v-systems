@@ -25,4 +25,6 @@ trait ProvenTransaction extends Transaction with Signed {
       "fee" -> assetFee._2,
       "timestamp" -> timestamp
     ) ++ JsObject(proofField)
+
+  val signatureValid : Boolean = Proofs.verifyProofs(toSign, proofs)
 }
