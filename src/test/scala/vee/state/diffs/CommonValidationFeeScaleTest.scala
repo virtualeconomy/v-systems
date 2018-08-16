@@ -57,7 +57,6 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       leaseFee <- smallFeeGen
       leaseFeeScale <- feeScaleGen
       leaseTimestamp <- timestampGen
-      unleaseTimestamp <- timestampGen
       lease = LeaseTransaction.create(leaseSender, leaseAmount, leaseFee, leaseFeeScale, leaseTimestamp, leaseRecipient).right.get
     } yield (lease, leaseSender)) { case (lease, leaseSender) =>
       LeaseCancelTransaction.create(leaseSender, lease.id, lease.fee, 101, lease.timestamp + 1) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
