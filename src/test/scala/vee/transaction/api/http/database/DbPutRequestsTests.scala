@@ -33,7 +33,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
     val json =
       """
           {
-            "senderPublicKey": "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
+            "senderPublicKey": "CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
             "name": "DB Op",
             "data": "some data",
             "dataType": "ByteArray",
@@ -46,7 +46,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
 
     val req = Json.parse(json).validate[SignedDbPutRequest].get
 
-    req.senderPublicKey shouldBe "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb"
+    req.senderPublicKey shouldBe "CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw"
     req.name shouldBe "DB Op"
     req.data shouldBe "some data"
     req.dataType shouldBe "ByteArray"
