@@ -35,7 +35,7 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       required = true,
       paramType = "body",
       dataType = "scorex.api.http.assets.PaymentRequest",
-      defaultValue = "{\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"sender\":\"senderId\",\n\t\"recipient\":\"recipientId\"\n}"
+      defaultValue = "{\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"sender\":\"senderId\",\n\t\"recipient\":\"recipientId\",\n\t\"attachment\":\"5VECG3ZHwy\"\n}"
     )
   ))
   @ApiResponses(Array(
@@ -58,13 +58,13 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       required = true,
       paramType = "body",
       dataType = "vee.api.http.vee.SignedPaymentRequest",
-      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"signature\":\"sig\"\n}"
+      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"attachment\":\"5VECG3ZHwy\",\n\t\"signature\":\"sig\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def broadcastPayment: Route = (path("broadcast" / "payment") & post) {
     json[SignedPaymentRequest] { payment =>
-      doBroadcast(TransactionFactory.broadcastPayment(payment))
+      doBroadcast(payment.toTx)
     }
   }
 }

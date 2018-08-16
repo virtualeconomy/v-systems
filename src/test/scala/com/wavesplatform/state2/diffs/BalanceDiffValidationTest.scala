@@ -23,9 +23,10 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
       gen2: GenesisTransaction = GenesisTransaction.create(master2, Long.MaxValue - 1, ts).right.get
       fee <- smallFeeGen
       feeScale <- feeScaleGen
+      attachment <- attachmentGen
       amount <- Gen.choose(Long.MaxValue / 2, Long.MaxValue - fee - 1)
-      transfer1 = PaymentTransaction.create(master, recipient, amount, fee, feeScale, ts).right.get
-      transfer2 = PaymentTransaction.create(master2, recipient, amount, fee, feeScale, ts).right.get
+      transfer1 = PaymentTransaction.create(master, recipient, amount, fee, feeScale, ts, attachment).right.get
+      transfer2 = PaymentTransaction.create(master2, recipient, amount, fee, feeScale, ts, attachment).right.get
     } yield (gen1, gen2, transfer1, transfer2)
 
 
@@ -68,12 +69,13 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
     amt <- positiveLongGen
     fee <- smallFeeGen
     feeScale <- positiveShortGen
+    attachment <- attachmentGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
-    masterTransfersToAlice: PaymentTransaction = PaymentTransaction.create(master, alice, amt, fee, 100, ts).right.get
+    masterTransfersToAlice: PaymentTransaction = PaymentTransaction.create(master, alice, amt, fee, 100, ts, attachment).right.get
     (aliceLeasesToBob, _) <- leaseAndCancelGeneratorP(alice, bob, alice) suchThat (_._1.amount < amt)
     (masterLeasesToAlice, _) <- leaseAndCancelGeneratorP(master, alice, master) suchThat (_._1.amount > aliceLeasesToBob.amount)
     transferAmt <- Gen.choose(amt - fee - aliceLeasesToBob.amount, amt - fee)
-    aliceTransfersMoreThanOwnsMinusLeaseOut = PaymentTransaction.create(alice, cooper, transferAmt, fee, 100, ts).right.get
+    aliceTransfersMoreThanOwnsMinusLeaseOut = PaymentTransaction.create(alice, cooper, transferAmt, fee, 100, ts, attachment).right.get
 
   } yield (genesis, masterTransfersToAlice, aliceLeasesToBob, masterLeasesToAlice, aliceTransfersMoreThanOwnsMinusLeaseOut)
 
