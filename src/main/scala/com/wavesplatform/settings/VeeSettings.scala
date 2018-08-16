@@ -14,7 +14,7 @@ object LogLevel extends Enumeration {
   val ERROR = Value("ERROR")
 }
 
-case class WavesSettings(directory: String,
+case class VeeSettings(directory: String,
                          loggingLevel: LogLevel.Value,
                          networkSettings: NetworkSettings,
                          walletSettings: WalletSettings,
@@ -27,26 +27,26 @@ case class WavesSettings(directory: String,
                          synchronizationSettings: SynchronizationSettings,
                          utxSettings: UtxSettings)
 
-object WavesSettings {
+object VeeSettings {
   import NetworkSettings.networkSettingsValueReader
 
-  val configPath: String = "waves"
-  def fromConfig(config: Config): WavesSettings = {
+  val configPath: String = "vee"
+  def fromConfig(config: Config): VeeSettings = {
     val directory = config.as[String](s"$configPath.directory")
     val loggingLevel = config.as[LogLevel.Value](s"$configPath.logging-level")
 
-    val networkSettings = config.as[NetworkSettings]("waves.network")
-    val walletSettings = config.as[WalletSettings]("waves.wallet")
+    val networkSettings = config.as[NetworkSettings]("vee.network")
+    val walletSettings = config.as[WalletSettings]("vee.wallet")
     val blockchainSettings = BlockchainSettings.fromConfig(config)
     val checkpointsSettings = CheckpointsSettings.fromConfig(config)
     val feesSettings = FeesSettings.fromConfig(config)
     val matcherSettings = MatcherSettings.fromConfig(config)
-    val minerSettings = config.as[MinerSettings]("waves.miner")
+    val minerSettings = config.as[MinerSettings]("vee.miner")
     val restAPISettings = RestAPISettings.fromConfig(config)
     val synchronizationSettings = SynchronizationSettings.fromConfig(config)
-    val utxSettings = config.as[UtxSettings]("waves.utx")
+    val utxSettings = config.as[UtxSettings]("vee.utx")
 
-    WavesSettings(directory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
+    VeeSettings(directory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
       feesSettings, matcherSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
   }
 }

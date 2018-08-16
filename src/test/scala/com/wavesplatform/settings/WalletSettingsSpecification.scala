@@ -10,15 +10,15 @@ import org.scalatest.{FlatSpec, Matchers}
 class WalletSettingsSpecification extends FlatSpec with Matchers {
   "WalletSettings" should "read values from config" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """waves.wallet {
-        |  file: /waves/wallet/wallet.dat
+      """vee.wallet {
+        |  file: /vee/wallet/wallet.dat
         |  password: "some string as password"
         |  seed: "BASE58SEED"
         |}""".stripMargin))
-    val settings = config.as[WalletSettings]("waves.wallet")
+    val settings = config.as[WalletSettings]("vee.wallet")
 
     settings.seed should be(Some("BASE58SEED"))
-    settings.file should be(Some(new File("/waves/wallet/wallet.dat")))
+    settings.file should be(Some(new File("/vee/wallet/wallet.dat")))
     settings.password should be("some string as password")
   }
 }

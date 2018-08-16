@@ -11,7 +11,7 @@ trait RestAPISettingsHelper {
     val keyHash = Base58.encode(SecureCryptographicHash(apiKey))
     RestAPISettings.fromConfig(
       ConfigFactory
-        .parseString(s"waves.rest-api.api-key-hash = $keyHash")
+        .parseString(s"vee.rest-api.api-key-hash = $keyHash")
         .withFallback(ConfigFactory.load()))
   }
 }

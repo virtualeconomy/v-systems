@@ -75,10 +75,10 @@ object LeaseTransaction {
       Left(ValidationError.OverflowError)
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (recipient.isInstanceOf[Address] && sender.stringRepr == recipient.stringRepr) {
-      Left(ValidationError.ToSelf)
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
+    } else if (recipient.isInstanceOf[Address] && sender.stringRepr == recipient.stringRepr) {
+      Left(ValidationError.ToSelf)
     } else {
       Right(LeaseTransaction(sender, amount, fee, feeScale, timestamp, recipient, signature))
     }

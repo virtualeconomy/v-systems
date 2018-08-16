@@ -5,14 +5,14 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{FlatSpec, Matchers}
 
-class WavesSettingsSpecification extends FlatSpec with Matchers {
+class VeeSettingsSpecification extends FlatSpec with Matchers {
   private val home = System.getProperty("user.home")
 
-  "WavesSettings" should "read values from default config" in {
+  "VeeSettings" should "read values from default config" in {
     val config = ConfigFactory.load()
-    val settings = WavesSettings.fromConfig(config)
+    val settings = VeeSettings.fromConfig(config)
 
-    settings.directory should be(home + "/waves")
+    settings.directory should be(home + "/vee")
     settings.loggingLevel should be(LogLevel.INFO)
     settings.networkSettings should not be null
     settings.walletSettings should not be null
@@ -26,14 +26,14 @@ class WavesSettingsSpecification extends FlatSpec with Matchers {
     settings.utxSettings should not be null
   }
 
-  "WavesSettings" should "resolver folders correctly" in {
+  "VeeSettings" should "resolver folders correctly" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """waves {
+      """vee {
         |  logging-level = TRACE
         |  directory = "/xxx"
         |}""".stripMargin))
 
-    val settings = WavesSettings.fromConfig(config.resolve())
+    val settings = VeeSettings.fromConfig(config.resolve())
 
     settings.directory should be("/xxx")
     settings.networkSettings.file should be(Some(new File("/xxx/data/peers.dat")))

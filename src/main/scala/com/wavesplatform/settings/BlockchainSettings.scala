@@ -75,7 +75,7 @@ object FunctionalitySettings {
     numOfSlots = 5,
     mintingSpeed = 5)
 
-  val configPath = "waves.blockchain.custom.functionality"
+  val configPath = "vee.blockchain.custom.functionality"
 }
 
 case class BlockchainSettings(blockchainFile: Option[File],
@@ -93,7 +93,7 @@ object BlockchainType extends Enumeration {
 }
 
 object BlockchainSettings {
-  val configPath: String = "waves.blockchain"
+  val configPath: String = "vee.blockchain"
 
   def fromConfig(config: Config): BlockchainSettings = {
     val blockchainType = config.as[BlockchainType.Value](s"$configPath.type")
@@ -104,8 +104,8 @@ object BlockchainSettings {
         ('M', FunctionalitySettings.MAINNET, GenesisSettings.MAINNET)
       case BlockchainType.CUSTOM =>
         val addressSchemeCharacter = config.as[String](s"$configPath.custom.address-scheme-character").charAt(0)
-        val functionalitySettings = config.as[FunctionalitySettings]("waves.blockchain.custom.functionality")
-        val genesisSettings = config.as[GenesisSettings]("waves.blockchain.custom.genesis")
+        val functionalitySettings = config.as[FunctionalitySettings]("vee.blockchain.custom.functionality")
+        val genesisSettings = config.as[GenesisSettings]("vee.blockchain.custom.genesis")
         (addressSchemeCharacter, functionalitySettings, genesisSettings)
     }
 

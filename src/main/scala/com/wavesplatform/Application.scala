@@ -44,7 +44,7 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.util.Try
 
-class Application(val actorSystem: ActorSystem, val settings: WavesSettings) extends ScorexLogging {
+class Application(val actorSystem: ActorSystem, val settings: VeeSettings) extends ScorexLogging {
 
   private val checkpointService = new CheckpointServiceImpl(settings.blockchainSettings.checkpointFile, settings.checkpointsSettings)
   private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
@@ -200,7 +200,7 @@ class Application(val actorSystem: ActorSystem, val settings: WavesSettings) ext
 
 object Application extends ScorexLogging {
 
-  private def configureLogging(settings: WavesSettings) = {
+  private def configureLogging(settings: VeeSettings) = {
     import ch.qos.logback.classic.{Level, LoggerContext}
     import org.slf4j._
 
@@ -230,7 +230,7 @@ object Application extends ScorexLogging {
       // application config needs to be resolved wrt both system properties *and* user-supplied config.
       case Some(file) =>
         val cfg = ConfigFactory.parseFile(file)
-        if (!cfg.hasPath("waves")) {
+        if (!cfg.hasPath("vee")) {
           log.error("Malformed configuration file was provided! Aborting!")
           log.error("Please, read following article about configuration file format:")
           log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file") // need to be replaced by vee wiki
@@ -253,7 +253,7 @@ object Application extends ScorexLogging {
     log.info("Starting...")
 
     val config = readConfig(args.headOption)
-    val settings = WavesSettings.fromConfig(config)
+    val settings = VeeSettings.fromConfig(config)
     Kamon.start(config)
 
     RootActorSystem.start("wavesplatform", config) { actorSystem =>
