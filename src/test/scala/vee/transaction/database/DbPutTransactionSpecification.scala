@@ -1,13 +1,10 @@
 package vee.transaction.database
 
 import com.wavesplatform.TransactionGen
-import org.scalacheck.Gen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.account.PrivateKeyAccount
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction._
-import vee.database.Entry
 
 class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 

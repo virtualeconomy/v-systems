@@ -29,16 +29,17 @@ class DbPutRequestsTests extends FunSuite with Matchers {
     req.feeScale shouldBe 100
   }
 
-  test("SignedContendSlotsRequest") {
+  test("SignedDbPutRequest") {
     val json =
       """
           {
-            "sender": "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
+            "senderPublicKey": "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
             "name": "DB Op",
             "data": "some data",
             "dataType": "ByteArray",
             "fee": 100000000,
             "feeScale": 100,
+            "timestamp": 0,
             "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
           }
         """
@@ -51,6 +52,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
     req.dataType shouldBe "ByteArray"
     req.fee shouldBe 100000000L
     req.feeScale shouldBe 100
+    req.timestamp shouldBe 0
     req.signature shouldBe "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
   }
 }

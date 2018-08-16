@@ -1,7 +1,7 @@
 package vee.state.diffs
 
 import com.wavesplatform.TransactionGen
-import org.scalacheck.{Gen, Shrink}
+import org.scalacheck.Shrink
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.account.PrivateKeyAccount
@@ -35,7 +35,7 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       entry: Entry <- entryGen
       fee: Long <- smallFeeGen
     } yield (timestamp, sender, name, entry, fee)) { case (timestamp, sender, name, entry, fee) =>
-      DbPutTransaction.create(timestamp, sender, name, entry, fee, 101) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
+      DbPutTransaction.create(sender, name, entry, fee, 101, timestamp) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
     }
   }
 
