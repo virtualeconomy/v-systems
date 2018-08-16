@@ -19,16 +19,16 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
     ts <- positiveIntGen
     fee: Long <- smallFeeGen
     genesis: GenesisTransaction = GenesisTransaction.create(sender, ENOUGH_AMT, ts).right.get
-    transfer: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
-  } yield (genesis, transfer, transfer.fee)
+    tx: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
+  } yield (genesis, tx, tx.fee)
 
   val preconditionsWithoutEnoughAmtAndDbPut: Gen[(GenesisTransaction, DbPutTransaction, Long)] = for {
     sender <- accountGen
     ts <- positiveIntGen
     fee: Long <- smallFeeGen
     genesis: GenesisTransaction = GenesisTransaction.create(sender, fee / 2, ts).right.get
-    transfer: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
-  } yield (genesis, transfer, transfer.fee)
+    tx: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
+  } yield (genesis, tx, tx.fee)
 
 
   property("Diff doesn't break invariant") {

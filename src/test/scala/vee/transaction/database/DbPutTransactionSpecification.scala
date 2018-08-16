@@ -11,15 +11,6 @@ import vee.database.Entry
 
 class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 
-  val dbPutTxWithInvalidFeeScale: Gen[(Either[_, _], Short)] = for {
-    timestamp: Long <- positiveLongGen
-    sender: PrivateKeyAccount <- accountGen
-    name: String <- validAliasStringGen
-    entry: Entry <- entryGen
-    fee: Long <- smallFeeGen
-    feeScale: Short <- Gen.choose[Short](1,99)
-  } yield (DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp), feeScale)
-
   property("DbPutTransaction serialization roundtrip") {
     forAll(dbPutGen) { tx: DbPutTransaction =>
       require(tx.bytes.head == TransactionType.DbPutTransaction.id)
@@ -32,12 +23,6 @@ class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Ma
     forAll(dbPutGen) { tx: DbPutTransaction =>
       val recovered = TransactionParser.parseBytes(tx.bytes).get
       assertTxs(recovered.asInstanceOf[DbPutTransaction], tx)
-    }
-  }
-
-  property("Invalid Fee Scale") {
-    forAll(dbPutTxWithInvalidFeeScale) { case ((tx, feeScale)) =>
-      tx shouldBe Left(ValidationError.WrongFeeScale(feeScale))
     }
   }
 
