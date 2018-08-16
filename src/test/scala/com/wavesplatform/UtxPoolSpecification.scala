@@ -57,8 +57,9 @@ class UtxPoolSpecification extends FreeSpec
     amount <- chooseNum(1, (maxAmount * 0.9).toLong)
     recipient <- accountGen
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
+    attachment <- genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
     // feeScale <- chooseNum(1, 100)
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, 100, time.getTimestamp()).right.get)
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, 100, time.getTimestamp(), attachment).right.get)
     .label("paymentTransaction")
 
   /* this function is replaced by paymentWithRecipent(). The reason is that we disabled transfer transaction
@@ -74,7 +75,8 @@ class UtxPoolSpecification extends FreeSpec
     amount <- chooseNum(1, (maxAmount * 0.9).toLong)
     fee <- chooseNum(1, (maxAmount * 0.1).toLong)
     // feeScale <- chooseNum(1, 100)
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, 100, time.getTimestamp()).right.get)
+    attachment <- genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, 100, time.getTimestamp(), attachment).right.get)
     .label("paymentWithRecipient")
 
   private def mintingTransaction(sender: PrivateKeyAccount, amount: Long, time: Time, height: Int) = {
@@ -99,7 +101,8 @@ class UtxPoolSpecification extends FreeSpec
     val time = new TestTime()
     val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, 10.minutes))
     val amountPart = (senderBalance - fee) / 2 - fee
-    val txs = for (_ <- 1 to n) yield PaymentTransaction.create(sender, recipient, amountPart, fee, 100, time.getTimestamp()).right.get
+    val attachment: Array[Byte] = Array()
+    val txs = for (_ <- 1 to n) yield PaymentTransaction.create(sender, recipient, amountPart, fee, 100, time.getTimestamp(), attachment).right.get
     (utx, time, txs, (offset + 1000000000L).nanos)
   }).label("twoOutOfManyValidPayments")
 
