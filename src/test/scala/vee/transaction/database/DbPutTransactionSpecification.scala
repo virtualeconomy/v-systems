@@ -1,12 +1,24 @@
 package vee.transaction.database
 
 import com.wavesplatform.TransactionGen
+import org.scalacheck.Gen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
+import scorex.account.PrivateKeyAccount
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction._
+import vee.database.Entry
 
 class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
+
+  val dbPutTxWithInvalidFeeScale: Gen[Either[_, _]] = for {
+    timestamp: Long <- positiveLongGen
+    sender: PrivateKeyAccount <- accountGen
+    name: String <- validAliasStringGen
+    entry: Entry <- entryGen
+    fee: Long <- smallFeeGen
+    feeScale: Short <- Gen.choose[Short](1,99)
+  } yield DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp)
 
   property("DbPutTransaction serialization roundtrip") {
     forAll(dbPutGen) { tx: DbPutTransaction =>
@@ -20,6 +32,12 @@ class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Ma
     forAll(dbPutGen) { tx: DbPutTransaction =>
       val recovered = TransactionParser.parseBytes(tx.bytes).get
       assertTxs(recovered.asInstanceOf[DbPutTransaction], tx)
+    }
+  }
+
+  property("Invalid Fee Scale") {
+    forAll(dbPutTxWithInvalidFeeScale) { tx: Either[_, _] =>
+      tx shouldBe tx.left.get
     }
   }
 
