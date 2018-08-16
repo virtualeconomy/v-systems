@@ -21,8 +21,9 @@ class CommonValidationTimeTest extends PropSpec with PropertyChecks with Generat
       recipient <- accountGen
       amount <- positiveLongGen
       fee <- smallFeeGen
+      attachment <- attachmentGen
       // feeScale <- positiveShortGen
-      transfer1 = PaymentTransaction.create(master, recipient, amount, fee, 100, prevBlockTs - CommonValidation.MaxTimePrevBlockOverTransactionDiff.toNanos - 1).explicitGet()
+      transfer1 = PaymentTransaction.create(master, recipient, amount, fee, 100, prevBlockTs - CommonValidation.MaxTimePrevBlockOverTransactionDiff.toNanos - 1, attachment).explicitGet()
     } yield (prevBlockTs, blockTs, height, transfer1)) { case (prevBlockTs, blockTs, height, transfer1) =>
       TransactionDiffer(TestFunctionalitySettings.Enabled, Some(prevBlockTs), blockTs, height)(newState(), transfer1) should produce("too old")
     }
@@ -37,8 +38,9 @@ class CommonValidationTimeTest extends PropSpec with PropertyChecks with Generat
       recipient <- accountGen
       amount <- positiveLongGen
       fee <- smallFeeGen
-      feeScale <- positiveShortGen
-      transfer1 = PaymentTransaction.create(master, recipient, amount, fee, 100, blockTs + CommonValidation.MaxTimeTransactionOverBlockDiff.toNanos + 1).explicitGet()
+      //feeScale <- positiveShortGen
+      attachment <- attachmentGen
+      transfer1 = PaymentTransaction.create(master, recipient, amount, fee, 100, blockTs + CommonValidation.MaxTimeTransactionOverBlockDiff.toNanos + 1, attachment).explicitGet()
     } yield (prevBlockTs, blockTs, height, transfer1)) { case (prevBlockTs, blockTs, height, transfer1) =>
       val functionalitySettings = TestFunctionalitySettings.Enabled.copy(allowTransactionsFromFutureUntil = blockTs - 1)
       TransactionDiffer(functionalitySettings, Some(prevBlockTs), blockTs, height)(newState(), transfer1) should produce("far future")

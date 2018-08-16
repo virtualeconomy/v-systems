@@ -10,7 +10,9 @@ case class CreateContractRequest (@ApiModelProperty(value = "Base58 encoded send
                              @ApiModelProperty(value = "Content", required = true)
                              content: String,
                              @ApiModelProperty(required = true)
-                             fee: Long)
+                             fee: Long,
+                             @ApiModelProperty(required = true)
+                             feeScale: Short)
 
 object CreateContractRequest {
   implicit val contractRequestFormat: Format[CreateContractRequest] = Json.format

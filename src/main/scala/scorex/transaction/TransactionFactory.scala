@@ -5,7 +5,7 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
-import vee.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest}
+import vee.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest, SignedChangeContractStatusRequest}
 import vee.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vee.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
@@ -18,16 +18,23 @@ import vee.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
 import vee.wallet.Wallet
-import vee.api.http.vee.SignedPaymentRequest
 import vee.database.{DataType, Entry}
 import scorex.transaction.ValidationError.DbDataTypeError
 
 object TransactionFactory {
 
   def createPayment(request: PaymentRequest, wallet: Wallet, time: Time): Either[ValidationError, PaymentTransaction] = for {
-    pk <- wallet.findPrivateKey(request.sender)
-    rec <- Address.fromString(request.recipient)
-    tx <- PaymentTransaction.create(pk, rec, request.amount, request.fee, request.feeScale, time.getTimestamp())
+    publicKey <- wallet.findPrivateKey(request.sender)
+    recipient <- Address.fromString(request.recipient)
+    tx <- PaymentTransaction
+      .create(
+        publicKey,
+        recipient,
+        request.amount,
+        request.fee,
+        request.feeScale,
+        time.getTimestamp(),
+        request.attachment.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray))
   } yield tx
 
 
@@ -86,12 +93,18 @@ object TransactionFactory {
   def createContract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     contract <- Contract.buildContract(request.content, request.name, true)
-    tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, time.getTimestamp())
+    tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
 
   def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, time.getTimestamp())
+    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, request.feeScale, time.getTimestamp())
+  } yield tx
+
+  def broadcastChangeContractStatus(request: SignedChangeContractStatusRequest, action: ChangeContractStatusAction.Value): Either[ValidationError, ChangeContractStatusTransaction] = for {
+    _signature <- ByteStr.decodeBase58(request.signature).toOption.toRight(ValidationError.InvalidRequestSignature)
+    _sender <- PublicKeyAccount.fromBase58String(request.senderPublicKey)
+    tx <- ChangeContractStatusTransaction.create(_sender, request.contractName, action, request.fee, request.feeScale, request.timestamp, _signature)
   } yield tx
 
   def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {
@@ -114,11 +127,4 @@ object TransactionFactory {
     tx <- BurnTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.fee, time.getTimestamp())
   } yield tx
 
-  def broadcastPayment(payment: SignedPaymentRequest): Either[ValidationError, PaymentTransaction] =
-    for {
-      _signature <- ByteStr.decodeBase58(payment.signature).toOption.toRight(ValidationError.InvalidRequestSignature)
-      _sender <- PublicKeyAccount.fromBase58String(payment.senderPublicKey)
-      _recipient <- Address.fromString(payment.recipient)
-      tx <- PaymentTransaction.create(_sender, _recipient, payment.amount, payment.fee, payment.feeScale, payment.timestamp, _signature)
-    } yield tx
 }

@@ -7,6 +7,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import scorex.account.PublicKeyAccount._
 import scorex.account._
 import scorex.transaction._
+import vee.transaction.MintingTransaction
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange._
@@ -15,6 +16,8 @@ import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
 import vee.database.{Entry, DataType}
 import vee.transaction.database.DbPutTransaction
+import vee.contract.Contract
+import vee.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
 
 trait TransactionGen {
 
@@ -62,6 +65,7 @@ trait TransactionGen {
   } yield aliasChars.mkString
 
   val accountOrAliasGen: Gen[AddressOrAlias] = Gen.oneOf(aliasGen, accountGen.map(PublicKeyAccount.toAddress(_)))
+  val mintingAddressGen: Gen[Address] = accountGen.map(PublicKeyAccount.toAddress(_))
 
   def otherAccountGen(candidate: PrivateKeyAccount): Gen[PrivateKeyAccount] = accountGen.flatMap(Gen.oneOf(candidate, _))
 
@@ -71,12 +75,26 @@ trait TransactionGen {
   val smallFeeGen: Gen[Long] = Gen.choose(1, 10000000000L)
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
+  val attachmentGen: Gen[Array[Byte]] = genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
 
+  val contractContentGen: Gen[String] = for {
+    length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
+    contentStr <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield contentStr.mkString
+  val contractGen: Gen[Contract] = for {
+    name <- validAliasStringGen
+    content <- contractContentGen
+    enabled <- Arbitrary.arbitrary[Boolean]
+  } yield Contract.buildContract(content, name, enabled).right.get
+  val actionGen: Gen[ChangeContractStatusAction.Value] = Gen.oneOf(ChangeContractStatusAction.Enable, ChangeContractStatusAction.Disable)
+
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
+
+  val mintingAmountGen: Gen[Long] = Gen.const(MintingTransaction.mintingReward)
 
   val veeAssetGen: Gen[Option[ByteStr]] = Gen.const(None)
   val assetIdGen: Gen[Option[ByteStr]] = Gen.frequency((1, veeAssetGen), (10, Gen.option(bytes32gen.map(ByteStr(_)))))
@@ -103,7 +121,8 @@ trait TransactionGen {
     amount: Long <- positiveLongGen
     fee: Long <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp).right.get
+    attachment <- attachmentGen
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp, attachment).right.get
 
 
   private val leaseParamGen = for {
@@ -189,6 +208,20 @@ trait TransactionGen {
     alias: Alias <- aliasGen
   } yield CreateAliasTransaction.create(sender, alias, MinIssueFee, timestamp).right.get
 
+  val MintingGen: Gen[MintingTransaction] = for {
+    recipient: Address <- mintingAddressGen
+    timestamp: Long <- positiveLongGen
+    amount: Long <- mintingAmountGen
+    currentBlockHeight: Int <- positiveIntGen
+  } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
+
+  def mintingGeneratorP(recipient: Address, currentBlockHeight: Int): Gen[MintingTransaction] =
+    timestampGen.flatMap(ts => mintingGeneratorP(ts, recipient, currentBlockHeight))
+
+  def mintingGeneratorP(timestamp: Long, recipient: Address, currentBlockHeight: Int) = for {
+    amount: Long <- mintingAmountGen
+  } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
+
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
@@ -205,6 +238,23 @@ trait TransactionGen {
     fee: Long <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
   } yield DbPutTransaction.create(sender, name, entry, fee, 100, timestamp).right.get
+
+  val createContractGen: Gen[CreateContractTransaction] = for {
+    sender: PrivateKeyAccount <- accountGen
+    contract: Contract <- contractGen
+    fee: Long <- smallFeeGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+    timestamp: Long <- positiveLongGen
+  } yield CreateContractTransaction.create(sender, contract, fee, 100, timestamp).right.get
+
+  val changeContractStatusGen: Gen[ChangeContractStatusTransaction] = for {
+    sender: PrivateKeyAccount <- accountGen
+    contractName: String<- validAliasStringGen
+    action: ChangeContractStatusAction.Value <- actionGen
+    fee: Long <- smallFeeGen
+    //feeScale: Short <- positiveShortGen //set to 100 in this version
+    timestamp: Long <- positiveLongGen
+  } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, 100, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))

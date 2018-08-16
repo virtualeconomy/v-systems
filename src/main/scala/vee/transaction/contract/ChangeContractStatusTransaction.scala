@@ -2,7 +2,7 @@ package vee.transaction.contract
 
 import java.lang.String
 
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
@@ -17,6 +17,7 @@ case class ChangeContractStatusTransaction private(sender: PublicKeyAccount,
                                               contractName: String,
                                               action: ChangeContractStatusAction.Value,
                                               fee: Long,
+                                              feeScale: Short,
                                               timestamp: Long,
                                               signature: ByteStr)
   extends SignedTransaction {
@@ -29,11 +30,13 @@ case class ChangeContractStatusTransaction private(sender: PublicKeyAccount,
     BytesSerializable.arrayWithSize(contractName.getBytes("UTF-8")),
     Array(action.id.toByte),
     Longs.toByteArray(fee),
+    Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contract" -> contractName,
     "fee" -> fee,
+    "feeScale" -> feeScale,
     "action" -> action.toString(),
     "timestamp" -> timestamp
   )
@@ -53,10 +56,11 @@ object ChangeContractStatusTransaction {
     val contractName = new String(contractBytes, "UTF-8")
     val action = ChangeContractStatusAction(bytes(contractEnd))
     val fee = Longs.fromByteArray(bytes.slice(contractEnd + 1, contractEnd + 9))
-    val timestamp = Longs.fromByteArray(bytes.slice(contractEnd + 9, contractEnd + 17))
-    val signature = ByteStr(bytes.slice(contractEnd + 17, contractEnd + 17 + SignatureLength))
+    val feeScale = Shorts.fromByteArray(bytes.slice(contractEnd + 9, contractEnd + 11))
+    val timestamp = Longs.fromByteArray(bytes.slice(contractEnd + 11, contractEnd + 19))
+    val signature = ByteStr(bytes.slice(contractEnd + 19, contractEnd + 19 + SignatureLength))
     val tx:Either[ValidationError, ChangeContractStatusTransaction] = for {
-      tx <- ChangeContractStatusTransaction.create(sender, contractName, action, fee, timestamp, signature)
+      tx <- ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp, signature)
     } yield tx
     tx.fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
@@ -65,20 +69,24 @@ object ChangeContractStatusTransaction {
              contractName: String,
              action: ChangeContractStatusAction.Value,
              fee: Long,
+             feeScale: Short,
              timestamp: Long,
              signature: ByteStr): Either[ValidationError, ChangeContractStatusTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
+    } else if (feeScale != 100) {
+      Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(ChangeContractStatusTransaction(sender, contractName, action, fee, timestamp, signature))
+      Right(ChangeContractStatusTransaction(sender, contractName, action, fee, feeScale, timestamp, signature))
     }
 
   def create(sender: PrivateKeyAccount,
              contractName: String,
              action: ChangeContractStatusAction.Value,
              fee: Long,
+             feeScale: Short,
              timestamp: Long): Either[ValidationError, ChangeContractStatusTransaction] = {
-    create(sender, contractName, action, fee, timestamp, ByteStr.empty).right.map { unsigned =>
+    create(sender, contractName, action, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }
