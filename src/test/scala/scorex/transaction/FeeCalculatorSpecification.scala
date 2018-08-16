@@ -51,6 +51,9 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
       |    release-slots {
       |      VEE = 10000000
       |    }
+      |    db-put {
+      |      VEE = 10000000
+      |    }
       |  }
       |}""".stripMargin
 
@@ -158,5 +161,10 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
     }
   }
 
-
+  property("Db put transaction") {
+    val feeCalc = new FeeCalculator(mySettings)
+    forAll(dbPutGen) { tx: DbPutTransaction =>
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
+    }
+  }
 }
