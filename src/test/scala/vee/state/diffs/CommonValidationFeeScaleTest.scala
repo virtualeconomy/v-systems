@@ -4,6 +4,7 @@ import com.wavesplatform.TransactionGen
 import org.scalacheck.Shrink
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
+import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import scorex.transaction.PaymentTransaction
 import scorex.transaction.ValidationError
@@ -43,6 +44,32 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       ts <- timestampGen
     } yield (master, fee, recipient, amount, ts)) { case (master, fee, recipient, amount, ts) =>
       PaymentTransaction.create(master, recipient, amount, fee, 0, ts, Array()) shouldEqual Left(ValidationError.WrongFeeScale(0))
+    }
+  }
+
+  property("disallows invalid fee scale in Lease transaction") {
+    forAll(for {
+      sender <- accountGen
+      recipient <- accountGen
+      amount <- positiveLongGen
+      fee <- smallFeeGen
+      ts <- timestampGen
+    } yield (sender, recipient, amount, fee, ts)) { case (sender, recipient, amount, fee, ts) =>
+      LeaseTransaction.create(sender, amount, fee, 101, ts, recipient) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
+    }
+  }
+
+  property("disallows invalid fee scale in Lease cancel transaction") {
+    forAll(for {
+      leaseSender <- accountGen
+      leaseRecipient <- accountGen
+      leaseAmount <- positiveLongGen
+      leaseFee <- smallFeeGen
+      leaseFeeScale <- feeScaleGen
+      leaseTimestamp <- timestampGen
+      lease = LeaseTransaction.create(leaseSender, leaseAmount, leaseFee, leaseFeeScale, leaseTimestamp, leaseRecipient).right.get
+    } yield (lease, leaseSender)) { case (lease, leaseSender) =>
+      LeaseCancelTransaction.create(leaseSender, lease.id, lease.fee, 101, lease.timestamp + 1) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
     }
   }
 
