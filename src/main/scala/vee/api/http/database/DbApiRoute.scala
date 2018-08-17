@@ -38,7 +38,7 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       required = true,
       paramType = "body",
       dataType = "vee.api.http.database.DbPutRequest",
-      defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
+      defaultValue = "{\n\t\"dbKey\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -56,7 +56,7 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       required = true,
       paramType = "body",
       dataType = "vee.api.http.database.SignedDbPutRequest",
-      defaultValue = "{\n\t\"name\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      defaultValue = "{\n\t\"dbKey\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -66,19 +66,19 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
     }
   }
 
-  @Path("/get/{nameSpace}/{name}")
+  @Path("/get/{nameSpace}/{dbKey}")
   @ApiOperation(value = "get", notes = "Get db entry", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "nameSpace", value = "Address", required = true, dataType = "String", paramType = "path"),
-    new ApiImplicitParam(name = "name", value = "name", required = true, dataType = "String", paramType = "path")
+    new ApiImplicitParam(name = "dbKey", value = "dbKey", required = true, dataType = "String", paramType = "path")
   ))
   def getKV: Route = {
-    (path("get" / Segment / Segment) & get) { case (addr, name) => {
+    (path("get" / Segment / Segment) & get) { case (addr, dbKey) => {
       val dbEntryByteToResult = (dbEntryBytes: ByteStr) =>
         Entry.fromBytes(dbEntryBytes.arr).left.map[ApiError](ve1 => invalidDbEntry).map(entry=>entry.json)
       val addrKeyToResult = (addr1: Address) =>
-        state.dbGet(DbPutTransaction.generateKey(addr1, name))
-        .toRight(dbEntryNotExist(name, addr))
+        state.dbGet(DbPutTransaction.generateKey(addr1, dbKey))
+        .toRight(dbEntryNotExist(dbKey, addr))
         .flatMap(dbEntryByteToResult)
 
       complete(Address.fromString(addr).left.map[ApiError](ve => invalidDbNameSpace(addr))

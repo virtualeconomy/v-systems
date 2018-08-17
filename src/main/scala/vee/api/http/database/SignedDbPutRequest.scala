@@ -13,7 +13,7 @@ import vee.transaction.database.DbPutTransaction
 case class SignedDbPutRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                      senderPublicKey: String,
                                      @ApiModelProperty(value = "name", required = true)
-                                     name: String,
+                                     dbKey: String,
                                      @ApiModelProperty(value = "dataType", required = true)
                                      dataType: String,
                                      @ApiModelProperty(value = "data")
@@ -34,7 +34,7 @@ case class SignedDbPutRequest(@ApiModelProperty(value = "Base58 encoded sender p
       case None =>Left(DbDataTypeError(dataType))
     }
     dbEntry <- Entry.buildEntry(data, _dataType)
-    _t <- DbPutTransaction.create(_sender, name, dbEntry, fee, feeScale, timestamp, _signature)
+    _t <- DbPutTransaction.create(_sender, dbKey, dbEntry, fee, feeScale, timestamp, _signature)
   } yield _t
 }
 
