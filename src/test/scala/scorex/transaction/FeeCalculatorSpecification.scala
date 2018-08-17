@@ -9,6 +9,7 @@ import org.scalatest.{Assertion, Matchers, PropSpec}
 import scorex.account.{Address, PrivateKeyAccount}
 import scorex.transaction.assets._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vee.transaction.database.DbPutTransaction
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 
@@ -48,6 +49,9 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
       |      VEE = 100000000000
       |    }
       |    release-slots {
+      |      VEE = 10000000
+      |    }
+      |    db-put {
       |      VEE = 10000000
       |    }
       |  }
@@ -157,4 +161,10 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
     }
   }
 
+  property("Db put transaction") {
+    val feeCalc = new FeeCalculator(mySettings)
+    forAll(dbPutGen) { tx: DbPutTransaction =>
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
+    }
+  }
 }

@@ -236,8 +236,16 @@ trait TransactionGen {
     name: String <- validAliasStringGen
     entry: Entry <- entryGen
     fee: Long <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield DbPutTransaction.create(sender, name, entry, fee, 100, timestamp).right.get
+    //feeScale: Short <- positiveShortGen
+    feeScale: Short <- feeScaleGen //set to 100 in this version
+  } yield DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp).right.get
+
+  def dbPutGeneratorP(timestamp: Long, sender: PrivateKeyAccount, fee: Long): Gen[DbPutTransaction] = for {
+    name: String <- validAliasStringGen
+    entry: Entry <- entryGen
+    //feeScale: Short <- positiveShortGen
+    feeScale: Short <- feeScaleGen //set to 100 in this version
+  } yield DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp).right.get
 
   val createContractGen: Gen[CreateContractTransaction] = for {
     sender: PrivateKeyAccount <- accountGen

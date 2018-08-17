@@ -30,9 +30,9 @@ case class MintingTransaction private(recipient: Address,
   override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
 
   override lazy val json: JsObject = Json.obj(
+    "type" -> transactionType.id,
       "id" -> id.base58,
       "recipient" -> recipient.address,
-      "type" -> transactionType.id,
       "timestamp" -> timestamp,
       "amount" -> amount,
       "currentBlockHeight" -> currentBlockHeight)
