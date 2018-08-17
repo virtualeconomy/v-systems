@@ -55,6 +55,16 @@ trait TransactionGen {
     aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
   } yield aliasChars.mkString
 
+  val validDbKeyStringGen: Gen[String] = for {
+    length <- Gen.chooseNum(DbPutTransaction.MinDbKeyLength, DbPutTransaction.MaxDbKeyLength)
+    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield dbKeyChars.mkString
+
+  val invalidLengthDbKeyStringGen: Gen[String] = for {
+    length <- Gen.chooseNum(DbPutTransaction.MaxDbKeyLength + 1, DbPutTransaction.MaxDbKeyLength * 2)
+    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield dbKeyChars.mkString
+
   val aliasGen: Gen[Alias] = for {
     str <- validAliasStringGen
   } yield Alias.buildWithCurrentNetworkByte(str.mkString).explicitGet()
@@ -138,13 +148,15 @@ trait TransactionGen {
     (sender, amount, fee, feeScale, timestamp, recipient) <- leaseParamGen
     lease = LeaseTransaction.create(sender, amount, fee, feeScale, timestamp, recipient).right.get
     cancelFee <- smallFeeGen
-  } yield (lease, LeaseCancelTransaction.create(sender, lease.id, cancelFee, 100, timestamp + 1).right.get)
+    feeScale2: Short <- feeScaleGen
+  } yield (lease, LeaseCancelTransaction.create(sender, lease.id, cancelFee, feeScale2, timestamp + 1).right.get)
 
   def leaseAndCancelGeneratorP(leaseSender: PrivateKeyAccount, recipient: AddressOrAlias, unleaseSender: PrivateKeyAccount): Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
     (_, amount, fee, feeScale, timestamp, _) <- leaseParamGen
     lease = LeaseTransaction.create(leaseSender, amount, fee, feeScale, timestamp, recipient).right.get
     fee2 <- smallFeeGen
-    unlease = LeaseCancelTransaction.create(unleaseSender, lease.id, fee2, 100, timestamp + 1).right.get
+    feeScale2: Short <- feeScaleGen
+    unlease = LeaseCancelTransaction.create(unleaseSender, lease.id, fee2, feeScale2, timestamp + 1).right.get
   } yield (lease, unlease)
 
   val twoLeasesGen: Gen[(LeaseTransaction, LeaseTransaction)] = for {
@@ -161,7 +173,8 @@ trait TransactionGen {
     lease = LeaseTransaction.create(sender, amount, fee, feeScale, timestamp, recipient).right.get
     fee2 <- smallFeeGen
     timestamp2 <- positiveLongGen
-  } yield (lease, LeaseCancelTransaction.create(otherSender, lease.id, fee2, 100, timestamp2).right.get)
+    feeScale2: Short <- feeScaleGen
+  } yield (lease, LeaseCancelTransaction.create(otherSender, lease.id, fee2, feeScale2, timestamp2).right.get)
 
   val leaseGen: Gen[LeaseTransaction] = leaseAndCancelGen.map(_._1)
   val leaseCancelGen: Gen[LeaseCancelTransaction] = leaseAndCancelGen.map(_._2)
@@ -218,7 +231,7 @@ trait TransactionGen {
   def mintingGeneratorP(recipient: Address, currentBlockHeight: Int): Gen[MintingTransaction] =
     timestampGen.flatMap(ts => mintingGeneratorP(ts, recipient, currentBlockHeight))
 
-  def mintingGeneratorP(timestamp: Long, recipient: Address, currentBlockHeight: Int) = for {
+  def mintingGeneratorP(timestamp: Long, recipient: Address, currentBlockHeight: Int): Gen[MintingTransaction] = for {
     amount: Long <- mintingAmountGen
   } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
 
@@ -227,66 +240,64 @@ trait TransactionGen {
     sender: PrivateKeyAccount <- accountGen
     slotId: Int <- slotidGen
     feeAmount <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 1000, 100, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 1000, feeScale, timestamp).right.get
 
   val dbPutGen: Gen[DbPutTransaction] = for {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
-    name: String <- validAliasStringGen
+    dbKey: String <- validDbKeyStringGen
     entry: Entry <- entryGen
     fee: Long <- smallFeeGen
-    //feeScale: Short <- positiveShortGen
     feeScale: Short <- feeScaleGen //set to 100 in this version
-  } yield DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp).right.get
+  } yield DbPutTransaction.create(sender, dbKey, entry, fee * 10, feeScale, timestamp).right.get
 
   def dbPutGeneratorP(timestamp: Long, sender: PrivateKeyAccount, fee: Long): Gen[DbPutTransaction] = for {
-    name: String <- validAliasStringGen
+    dbKey: String <- validDbKeyStringGen
     entry: Entry <- entryGen
-    //feeScale: Short <- positiveShortGen
     feeScale: Short <- feeScaleGen //set to 100 in this version
-  } yield DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp).right.get
+  } yield DbPutTransaction.create(sender, dbKey, entry, fee, feeScale, timestamp).right.get
 
   val createContractGen: Gen[CreateContractTransaction] = for {
     sender: PrivateKeyAccount <- accountGen
     contract: Contract <- contractGen
     fee: Long <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
     timestamp: Long <- positiveLongGen
-  } yield CreateContractTransaction.create(sender, contract, fee, 100, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield CreateContractTransaction.create(sender, contract, fee, feeScale, timestamp).right.get
 
   val changeContractStatusGen: Gen[ChangeContractStatusTransaction] = for {
     sender: PrivateKeyAccount <- accountGen
     contractName: String<- validAliasStringGen
     action: ChangeContractStatusAction.Value <- actionGen
     fee: Long <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
     timestamp: Long <- positiveLongGen
-  } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, 100, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
 
   def contendGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] = for {
     fee: Long <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield ContendSlotsTransaction.create(sender, slotId, fee, 100, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield ContendSlotsTransaction.create(sender, slotId, fee, feeScale, timestamp).right.get
 
   val releaseSlotsGen: Gen[ReleaseSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
     slotId: Int <- slotidGen
     feeAmount <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield  ReleaseSlotsTransaction.create(sender, slotId, feeAmount, 100, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield  ReleaseSlotsTransaction.create(sender, slotId, feeAmount, feeScale, timestamp).right.get
 
   def releaseGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] =
     timestampGen.flatMap(ts => releaseGeneratorP(ts, sender, slotId))
 
   def releaseGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] = for {
     fee: Long <- smallFeeGen
-    //feeScale: Short <- positiveShortGen //set to 100 in this version
-  } yield ReleaseSlotsTransaction.create(sender, slotId, fee, 100, timestamp).right.get
+    feeScale: Short <- feeScaleGen
+  } yield ReleaseSlotsTransaction.create(sender, slotId, fee, feeScale, timestamp).right.get
 
 
   val issueParamGen = for {

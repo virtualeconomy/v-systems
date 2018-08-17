@@ -30,7 +30,7 @@ class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Ma
     first.feeScale shouldEqual second.feeScale
     first.entry.data shouldEqual second.entry.data
     first.entry.dataType shouldEqual second.entry.dataType
-    first.name shouldEqual second.name
+    first.dbKey shouldEqual second.dbKey
     first.bytes shouldEqual second.bytes
   }
 }
