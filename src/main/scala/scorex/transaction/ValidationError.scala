@@ -19,6 +19,7 @@ object ValidationError {
   case object InsufficientFee extends ValidationError
   case object TooBigArray extends ValidationError
   case object InvalidName extends ValidationError
+  case object InvalidDbKey extends ValidationError
   case object OverflowError extends ValidationError
   case object ToSelf extends ValidationError
   case object MissingSenderPrivateKey extends ValidationError

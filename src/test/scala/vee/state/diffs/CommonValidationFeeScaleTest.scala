@@ -1,20 +1,41 @@
 package vee.state.diffs
 
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.TransactionGen
-import org.scalacheck.Shrink
+import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Matchers, PropSpec}
-import scorex.account.PrivateKeyAccount
+import org.scalatest.{Assertion, Matchers, PropSpec}
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import scorex.transaction.PaymentTransaction
-import scorex.transaction.ValidationError
-import vee.database.Entry
+import scorex.transaction.{GenesisTransaction, PaymentTransaction}
 import vee.transaction.database.DbPutTransaction
+import com.wavesplatform.state2.ByteStr
+import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffEi}
+import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
+import scorex.crypto.EllipticCurveImpl
+import scorex.lagonaki.mocks.TestBlock
+import scorex.serialization.BytesSerializable
+import scorex.transaction.TransactionParser.TransactionType
+import scorex.transaction.ValidationError.WrongFeeScale
 
 class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
+
+  implicit class ConditionalAssert(v: Either[_, _]) {
+
+    def shouldBeRightIf(cond: Boolean): Assertion = {
+      if (cond) {
+        v shouldBe an[Right[_, _]]
+      } else {
+        v shouldBe an[Left[_, _]]
+      }
+    }
+  }
+
+  def validFeeScale(feeScale: Short): Boolean = {
+    feeScale == 100
+  }
 
   property("disallows invalid fee scale in ContendSlots Transaction") {
     forAll(for {
@@ -22,8 +43,9 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       fee <- smallFeeGen
       slotId <- slotidGen
       ts <- timestampGen
-    } yield (master, fee, slotId, ts)) { case (master, fee, slotId, ts) =>
-      ContendSlotsTransaction.create(master, slotId, fee, 101, ts) shouldEqual Left(ValidationError.WrongFeeScale(101))
+      feeScale <- positiveShortGen
+    } yield (master, fee, feeScale, slotId, ts)) { case (master, fee, feeScale: Short, slotId, ts) =>
+      ContendSlotsTransaction.create(master, slotId, fee, feeScale, ts) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 
@@ -33,8 +55,9 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       fee <- smallFeeGen
       slotId <- slotidGen
       ts <- timestampGen
-    } yield (master, fee, slotId, ts)) { case (master, fee, slotId, ts) =>
-      ReleaseSlotsTransaction.create(master, slotId, fee, 99, ts) shouldEqual Left(ValidationError.WrongFeeScale(99))
+      feeScale <- positiveShortGen
+    } yield (master, fee, feeScale, slotId, ts)) { case (master, fee, feeScale :Short, slotId, ts) =>
+      ReleaseSlotsTransaction.create(master, slotId, fee, feeScale, ts) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 
@@ -45,8 +68,9 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       amount <- positiveLongGen
       fee <- smallFeeGen
       ts <- timestampGen
-    } yield (master, fee, recipient, amount, ts)) { case (master, fee, recipient, amount, ts) =>
-      PaymentTransaction.create(master, recipient, amount, fee, 0, ts, Array()) shouldEqual Left(ValidationError.WrongFeeScale(0))
+      feeScale <- positiveShortGen
+    } yield (master, fee, feeScale, recipient, amount, ts)) { case (master, fee, feeScale: Short, recipient, amount, ts) =>
+      PaymentTransaction.create(master, recipient, amount, fee, feeScale, ts, Array()) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 
@@ -57,8 +81,9 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       amount <- positiveLongGen
       fee <- smallFeeGen
       ts <- timestampGen
-    } yield (sender, recipient, amount, fee, ts)) { case (sender, recipient, amount, fee, ts) =>
-      LeaseTransaction.create(sender, amount, fee, 101, ts, recipient) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
+      feeScale <- positiveShortGen
+    } yield (sender, recipient, amount, fee, feeScale, ts)) { case (sender, recipient, amount, fee, feeScale: Short, ts) =>
+      LeaseTransaction.create(sender, amount, fee, feeScale, ts, recipient) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 
@@ -71,8 +96,9 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       leaseFeeScale <- feeScaleGen
       leaseTimestamp <- timestampGen
       lease = LeaseTransaction.create(leaseSender, leaseAmount, leaseFee, leaseFeeScale, leaseTimestamp, leaseRecipient).right.get
-    } yield (lease, leaseSender)) { case (lease, leaseSender) =>
-      LeaseCancelTransaction.create(leaseSender, lease.id, lease.fee, 101, lease.timestamp + 1) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
+      feeScale <- positiveShortGen
+    } yield (lease, leaseSender, feeScale)) { case (lease, leaseSender, feeScale: Short) =>
+      LeaseCancelTransaction.create(leaseSender, lease.id, lease.fee, feeScale, lease.timestamp + 1) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 
@@ -80,15 +106,58 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
     forAll(for {
       timestamp <- positiveLongGen
       sender <- accountGen
-      nameg <- validAliasStringGen
+      name <- validAliasStringGen
       entry <- entryGen
       fee <- smallFeeGen
-    } yield (timestamp, sender, name, entry, fee)) { case (timestamp, sender, name, entry, fee) =>
-      DbPutTransaction.create(sender, name, entry, fee, 101, timestamp) shouldEqual(Left(ValidationError.WrongFeeScale(101)))
+      feeScale <- positiveShortGen
+    } yield (timestamp, sender, name, entry, fee, feeScale)) { case (timestamp, sender, name, entry, fee, feeScale: Short) =>
+      DbPutTransaction.create(sender, name, entry, fee, feeScale, timestamp) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 
-  // TODO
-  // test signed transactions
+  /*
+  This part test signed transaction cases. When a bad node broadcast an invalid feeScale transaction to others,
+  the invalid feeScale will be detected in TransactionDiff instead of transaction create
+   */
+
+  val preconditionsAndPayment: Gen[(GenesisTransaction, PaymentTransaction, Short)] = for {
+    master <- accountGen
+    recipient <- otherAccountGen(candidate = master)
+    ts <- positiveLongGen
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    ts2 <- positiveLongGen
+    amount <- positiveLongGen
+    fee <- smallFeeGen
+    feeScale <- positiveShortGen
+    attachment <- attachmentGen
+
+    toSign: Array[Byte] = {
+      val timestampBytes = Longs.toByteArray(ts2)
+      val amountBytes = Longs.toByteArray(amount)
+      val feeBytes = Longs.toByteArray(fee)
+      val feeScaleBytes = Shorts.toByteArray(feeScale)
+
+      Bytes.concat(Array(TransactionType.PaymentTransaction.id.toByte),
+        master.publicKey,
+        timestampBytes,
+        amountBytes,
+        feeBytes,
+        feeScaleBytes,
+        recipient.bytes.arr,
+        BytesSerializable.arrayWithSize(attachment)
+      )
+    }
+
+    transfer: PaymentTransaction = PaymentTransaction(master, recipient, amount, fee, feeScale, ts2, attachment, ByteStr(EllipticCurveImpl.sign(master, toSign)))
+  } yield (genesis, transfer, feeScale)
+
+  property("disallows invalid fee scale in Signed Payment Transaction") {
+    forAll(preconditionsAndPayment retryUntil(_._3 != 100)) {
+      case (genesis, payment, feeScale: Short) =>
+        assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(payment))) { totalDiffEi =>
+          totalDiffEi shouldBe Left(TransactionValidationError(WrongFeeScale(feeScale), payment))
+        }
+    }
+  }
 
 }

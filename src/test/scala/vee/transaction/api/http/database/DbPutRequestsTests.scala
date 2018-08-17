@@ -11,7 +11,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
       """
         {
           "sender": "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
-          "name": "DB Op",
+          "dbKey": "DB Op",
           "data": "some data",
           "dataType": "ByteArray",
           "fee": 100000000,
@@ -22,7 +22,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
     val req = Json.parse(json).validate[DbPutRequest].get
 
     req.sender shouldBe "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb"
-    req.name shouldBe "DB Op"
+    req.dbKey shouldBe "DB Op"
     req.data shouldBe "some data"
     req.dataType shouldBe "ByteArray"
     req.fee shouldBe 100000000L
@@ -34,7 +34,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
       """
           {
             "senderPublicKey": "CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
-            "name": "DB Op",
+            "dbKey": "DB Op",
             "data": "some data",
             "dataType": "ByteArray",
             "fee": 100000000,
@@ -47,7 +47,7 @@ class DbPutRequestsTests extends FunSuite with Matchers {
     val req = Json.parse(json).validate[SignedDbPutRequest].get
 
     req.senderPublicKey shouldBe "CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw"
-    req.name shouldBe "DB Op"
+    req.dbKey shouldBe "DB Op"
     req.data shouldBe "some data"
     req.dataType shouldBe "ByteArray"
     req.fee shouldBe 100000000L

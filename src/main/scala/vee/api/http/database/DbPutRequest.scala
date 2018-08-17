@@ -6,7 +6,7 @@ import play.api.libs.json.{Format, Json}
 case class DbPutRequest (@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                          sender: String,
                          @ApiModelProperty(value = "name", required = true)
-                         name: String,
+                         dbKey: String,
                          @ApiModelProperty(value = "dataType", required = true)
                          dataType: String,
                          @ApiModelProperty(value = "data")
