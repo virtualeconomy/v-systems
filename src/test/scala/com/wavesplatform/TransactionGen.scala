@@ -75,6 +75,7 @@ trait TransactionGen {
   val smallFeeGen: Gen[Long] = Gen.choose(1, 10000000000L)
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
+  val attachmentGen: Gen[Array[Byte]] = genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
@@ -120,7 +121,8 @@ trait TransactionGen {
     amount: Long <- positiveLongGen
     fee: Long <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp).right.get
+    attachment <- attachmentGen
+  } yield PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp, attachment).right.get
 
 
   private val leaseParamGen = for {

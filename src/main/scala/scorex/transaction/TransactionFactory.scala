@@ -18,16 +18,23 @@ import vee.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
 import vee.wallet.Wallet
-import vee.api.http.vee.SignedPaymentRequest
 import vee.database.{DataType, Entry}
 import scorex.transaction.ValidationError.DbDataTypeError
 
 object TransactionFactory {
 
   def createPayment(request: PaymentRequest, wallet: Wallet, time: Time): Either[ValidationError, PaymentTransaction] = for {
-    pk <- wallet.findPrivateKey(request.sender)
-    rec <- Address.fromString(request.recipient)
-    tx <- PaymentTransaction.create(pk, rec, request.amount, request.fee, request.feeScale, time.getTimestamp())
+    publicKey <- wallet.findPrivateKey(request.sender)
+    recipient <- Address.fromString(request.recipient)
+    tx <- PaymentTransaction
+      .create(
+        publicKey,
+        recipient,
+        request.amount,
+        request.fee,
+        request.feeScale,
+        time.getTimestamp(),
+        request.attachment.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray))
   } yield tx
 
 
@@ -120,11 +127,4 @@ object TransactionFactory {
     tx <- BurnTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.fee, time.getTimestamp())
   } yield tx
 
-  def broadcastPayment(payment: SignedPaymentRequest): Either[ValidationError, PaymentTransaction] =
-    for {
-      _signature <- ByteStr.decodeBase58(payment.signature).toOption.toRight(ValidationError.InvalidRequestSignature)
-      _sender <- PublicKeyAccount.fromBase58String(payment.senderPublicKey)
-      _recipient <- Address.fromString(payment.recipient)
-      tx <- PaymentTransaction.create(_sender, _recipient, payment.amount, payment.fee, payment.feeScale, payment.timestamp, _signature)
-    } yield tx
 }
