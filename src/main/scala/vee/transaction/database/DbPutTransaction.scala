@@ -13,7 +13,7 @@ import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
 import scala.util.{Failure, Success, Try}
 
 case class DbPutTransaction private(sender: PublicKeyAccount,
-                                    name: String,
+                                    dbKey: String,
                                     entry: Entry,
                                     fee: Long,
                                     feeScale: Short,
@@ -26,27 +26,30 @@ case class DbPutTransaction private(sender: PublicKeyAccount,
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     sender.publicKey,
-    BytesSerializable.arrayWithSize(name.getBytes("UTF-8")),
+    BytesSerializable.arrayWithSize(dbKey.getBytes("UTF-8")),
     BytesSerializable.arrayWithSize(entry.bytes.arr),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
-    "name" -> name,
+    "dbKey" -> dbKey,
     "entry" -> entry.json,
     "fee" -> fee,
     "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  lazy val storageKey: ByteStr = DbPutTransaction.generateKey(sender.toAddress, name)
+  lazy val storageKey: ByteStr = DbPutTransaction.generateKey(sender.toAddress, dbKey)
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
 
 }
 
 object DbPutTransaction {
+
+  val MaxDbKeyLength = 30
+  val MinDbKeyLength = 1
 
   def generateKey(owner: Address, key: String):ByteStr =
     ByteStr(owner.bytes.arr ++ key.getBytes("UTF-8"))
@@ -73,7 +76,9 @@ object DbPutTransaction {
              feeScale: Short,
              timestamp: Long,
              signature: ByteStr): Either[ValidationError, DbPutTransaction] =
-    if (fee <= 0) {
+    if (dbKey.length > MaxDbKeyLength || dbKey.length < MinDbKeyLength) {
+      Left(ValidationError.InvalidDbKey)
+    } else if(fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
@@ -82,12 +87,12 @@ object DbPutTransaction {
     }
 
   def create(sender: PrivateKeyAccount,
-             name: String,
+             dbKey: String,
              entry: Entry,
              fee: Long,
              feeScale: Short,
              timestamp: Long): Either[ValidationError, DbPutTransaction] = {
-    create(sender, name, entry, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
+    create(sender, dbKey, entry, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }

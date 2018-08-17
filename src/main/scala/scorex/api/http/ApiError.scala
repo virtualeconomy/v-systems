@@ -27,6 +27,7 @@ object ApiError {
     case ValidationError.NegativeAmount => NegativeAmount
     case ValidationError.InsufficientFee => InsufficientFee
     case ValidationError.InvalidName => InvalidName
+    case ValidationError.InvalidDbKey => InvalidDbKey
     case ValidationError.InvalidSignature(_, _) => InvalidSignature
     case ValidationError.InvalidRequestSignature => InvalidSignature
     case ValidationError.TooBigArray => TooBigArrayAllocation
@@ -179,6 +180,12 @@ case object InvalidSlotId extends ApiError {
   override val id = 116
   override val code = StatusCodes.BadRequest
   override val message = "invalid slot id"
+}
+
+case object InvalidDbKey extends ApiError {
+  override val id: Int = 117
+  override val message: String = "invalid db key"
+  override val code: StatusCode = StatusCodes.BadRequest
 }
 
 case class CustomValidationError(errorMessage: String) extends ApiError {
