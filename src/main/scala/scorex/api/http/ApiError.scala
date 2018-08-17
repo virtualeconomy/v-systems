@@ -41,6 +41,7 @@ object ApiError {
     case ValidationError.Mistiming(err) => Mistiming(err)
     case ValidationError.DbDataTypeError(err) => InvalidDbDataType(err)
     case ValidationError.WrongFeeScale(errFeeScale) => InvalidFeeScale(errFeeScale)
+    case ValidationError.WrongMintingReward(errMintingReward) => InvalidMintingReward(errMintingReward)
     case ValidationError.TooLongDbEntry(actualLength, maxLength) => TooLongDbEntry(actualLength, maxLength)
     case TransactionValidationError(error, tx) => error match {
       case ValidationError.Mistiming(errorMessage) => Mistiming(errorMessage)

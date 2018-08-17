@@ -81,3 +81,9 @@ case class InvalidFeeScale(feeScale: Short) extends ApiError {
   override val message: String = s"Validation failed for wrong fee scale ${feeScale}."
   override val code: StatusCode = StatusCodes.BadRequest
 }
+
+case class InvalidMintingReward(mintingReward: Long) extends ApiError {
+  override val id: Int = 115
+  override val message: String = s"Validation failed for wrong minting reward ${mintingReward}."
+  override val code: StatusCode = StatusCodes.BadRequest
+}
