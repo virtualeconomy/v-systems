@@ -34,7 +34,8 @@ class SimpleTransactionsSuite extends FunSuite with BeforeAndAfterAll with Match
       1L,
       100000L,
       100,
-      System.currentTimeMillis()).right.get
+      System.currentTimeMillis(),
+      Array()).right.get
     val f = for {
       _ <- node.sendByNetwork(RawBytes(TransactionMessageSpec.messageCode, tx.bytes))
       _ <- Future.successful(Thread.sleep(2000))
@@ -55,7 +56,8 @@ class SimpleTransactionsSuite extends FunSuite with BeforeAndAfterAll with Match
       1L,
       100000L,
       100,
-      System.currentTimeMillis() + (1 days).toMillis).right.get
+      System.currentTimeMillis() + (1 days).toMillis,
+      Array()).right.get
     val f = for {
       _ <- node.sendByNetwork(RawBytes(TransactionMessageSpec.messageCode, tx.bytes))
       _ <- Future.successful(Thread.sleep(2000))
