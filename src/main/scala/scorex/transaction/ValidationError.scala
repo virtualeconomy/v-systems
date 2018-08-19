@@ -11,6 +11,7 @@ object ValidationError {
   case object InvalidDataType extends ValidationError
   case object InvalidDataLength extends ValidationError
   case class TooLongDbEntry(actualLength: Int, maxLength: Int) extends ValidationError
+  case class InvalidUTF8String(field: String) extends ValidationError
   case object InvalidDataEntry extends ValidationError
   case object InvalidProofType extends ValidationError
   case object InvalidProofLength extends ValidationError

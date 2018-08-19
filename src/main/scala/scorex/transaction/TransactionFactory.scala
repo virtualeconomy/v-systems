@@ -18,8 +18,6 @@ import vee.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
 import vee.wallet.Wallet
-import vee.database.{DataType, Entry}
-import scorex.transaction.ValidationError.DbDataTypeError
 
 object TransactionFactory {
 
@@ -109,12 +107,7 @@ object TransactionFactory {
 
   def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    datatype <- DataType.values.find(_.toString == request.dataType) match {
-      case Some(x) => Right(x)
-      case None =>Left(DbDataTypeError(request.dataType))
-    }
-    dbEntry <- Entry.buildEntry(request.data, datatype)
-    tx <- DbPutTransaction.create(senderPrivateKey, request.dbKey, dbEntry, request.fee, request.feeScale, time.getTimestamp())
+    tx <- DbPutTransaction.create(senderPrivateKey, request.dbKey, request.dataType, request.data, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
 
   def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {

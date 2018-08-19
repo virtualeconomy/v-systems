@@ -45,6 +45,31 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
     }
   }
 
+  property("disallows invalid utf8 db key") {
+    forAll(for {
+      master <- accountGen
+      fee <- smallFeeGen
+      ts <- timestampGen
+      dbKey <- invalidUtf8StringGen
+      entry <- entryGen
+      feeScale <- feeScaleGen
+    } yield (master, fee, feeScale, dbKey, entry, ts)) { case (master, fee, feeScale, dbKey, entry, ts) =>
+      DbPutTransaction.create(master, dbKey, entry, fee, feeScale, ts) shouldEqual Left(ValidationError.InvalidUTF8String("dbKey"))
+    }
+  }
+
+  property("disallows invalid utf8 db entry") {
+    forAll(for {
+      master <- accountGen
+      fee <- smallFeeGen
+      ts <- timestampGen
+      dbKey <- validDbKeyStringGen
+      dbData <- invalidUtf8StringGen
+      feeScale <- feeScaleGen
+    } yield (master, fee, feeScale, dbKey, dbData, ts)) { case (master, fee, feeScale, dbKey, dbData, ts) =>
+      DbPutTransaction.create(master, dbKey, "ByteArray", dbData, fee, feeScale, ts) shouldEqual Left(ValidationError.InvalidUTF8String("dbEntry"))
+    }
+  }
 
   /*
   This part test signed transaction cases. When a bad node broadcast an invalid dbKey length transaction to others,

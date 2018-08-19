@@ -5,9 +5,10 @@ import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
-import vee.database.Entry
+import vee.database.{DataType, Entry}
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser.{KeyLength, TransactionType}
+import scorex.transaction.ValidationError.DbDataTypeError
 import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
 
 import scala.util.{Failure, Success, Try}
@@ -26,7 +27,7 @@ case class DbPutTransaction private(sender: PublicKeyAccount,
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     sender.publicKey,
-    BytesSerializable.arrayWithSize(dbKey.getBytes("UTF-8")),
+    BytesSerializable.arrayWithSize(Deser.serilizeString(dbKey)),
     BytesSerializable.arrayWithSize(entry.bytes.arr),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
@@ -52,7 +53,7 @@ object DbPutTransaction {
   val MinDbKeyLength = 1
 
   def generateKey(owner: Address, key: String):ByteStr =
-    ByteStr(owner.bytes.arr ++ key.getBytes("UTF-8"))
+    ByteStr(owner.bytes.arr ++ Deser.serilizeString(key))
 
   def parseTail(bytes: Array[Byte]): Try[DbPutTransaction] = Try {
     import EllipticCurveImpl._
@@ -65,7 +66,7 @@ object DbPutTransaction {
       feeScale = Shorts.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 10))
       timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 10, dbEntryEnd + 18))
       signature = ByteStr(bytes.slice(dbEntryEnd + 18, dbEntryEnd + 18 + SignatureLength))
-      tx <- DbPutTransaction.create(sender, new String(nameBytes, "UTF-8"), dbEntry, fee, feeScale, timestamp, signature)
+      tx <- DbPutTransaction.create(sender, Deser.deserilizeString(nameBytes), dbEntry, fee, feeScale, timestamp, signature)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
@@ -78,6 +79,8 @@ object DbPutTransaction {
              signature: ByteStr): Either[ValidationError, DbPutTransaction] =
     if (dbKey.length > MaxDbKeyLength || dbKey.length < MinDbKeyLength) {
       Left(ValidationError.InvalidDbKey)
+    } else if (!Deser.validUTF8(dbKey)) {
+      Left(ValidationError.InvalidUTF8String("dbKey"))
     } else if(fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {
@@ -86,13 +89,42 @@ object DbPutTransaction {
       Right(DbPutTransaction(sender, dbKey, dbEntry, fee, feeScale, timestamp, signature))
     }
 
+  def create(sender: PublicKeyAccount,
+             dbKey: String,
+             dbDataType: String,
+             dbData: String,
+             fee: Long,
+             feeScale: Short,
+             timestamp: Long,
+             signature: ByteStr): Either[ValidationError, DbPutTransaction] =
+    for {
+      datatype <- DataType.values.find(_.toString == dbDataType) match {
+          case Some(x) => Right(x)
+          case None =>Left(DbDataTypeError(dbDataType))
+      }
+      dbEntry <- Entry.buildEntry(dbData, datatype)
+      tx <- create(sender, dbKey, dbEntry, fee, feeScale, timestamp, signature)
+    } yield tx
+
   def create(sender: PrivateKeyAccount,
              dbKey: String,
-             entry: Entry,
+             dbEntry: Entry,
              fee: Long,
              feeScale: Short,
              timestamp: Long): Either[ValidationError, DbPutTransaction] = {
-    create(sender, dbKey, entry, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
+    create(sender, dbKey, dbEntry, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
+      unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
+    }
+  }
+
+  def create(sender: PrivateKeyAccount,
+             dbKey: String,
+             dbDataType: String,
+             dbData: String,
+             fee: Long,
+             feeScale: Short,
+             timestamp: Long): Either[ValidationError, DbPutTransaction] = {
+    create(sender, dbKey, dbDataType, dbData, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
     }
   }
