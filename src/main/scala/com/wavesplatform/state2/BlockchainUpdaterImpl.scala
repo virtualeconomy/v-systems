@@ -43,7 +43,6 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
 
   private def updatePersistedAndInMemory(): Unit = write { implicit l =>
     logHeights("State rebuild started")
-    //if (persisted.height < 1) persisted.setInitialSlots()
     val persistFrom = persisted.height + 1
     val persistUpTo = historyWriter.height - minimumInMemoryDiffSize + 1
 
