@@ -17,7 +17,7 @@ object MintingTransactionDiff {
     if (tx.currentBlockHeight != height)
       Left(GenericError(s"Invalid MintingTransaction, minting transaction height is different from the block height"))
     else if (tx.amount != MintingTransaction.mintingReward)
-      Left(GenericError(s"Minting Transaction Reward/Fee invalid"))
+      Left(ValidationError.WrongMintingReward(tx.amount))
     else
       Right(Diff(height = height,
         tx = tx,
