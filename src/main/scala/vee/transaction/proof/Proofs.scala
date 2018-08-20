@@ -7,9 +7,9 @@ import scorex.serialization.Deser
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{TransactionParser, ValidationError}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-case class Proofs(proofs: Seq[Proof]) {
+case class Proofs(proofs: List[Proof]) {
   val bytes: Array[Byte] = Proofs.Version +: Deser.serializeArrays(proofs.map(_.bytes.arr))
   val base58: Seq[String] = proofs.map(p => Base58.encode(p.bytes.arr))
 }
@@ -22,18 +22,45 @@ object Proofs {
   // signature length = 64, publickey length = 32 + 1, proof type length = 1
   val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(2)
 
-  lazy val empty = create(Seq.empty).explicitGet()
+  lazy val empty = create(List.empty).explicitGet()
 
-  def create(proofs: Seq[Proof]): Either[ValidationError, Proofs] =
+  def toProofs(proofsByteStr: List[ByteStr]): Either[ValidationError, List[Proof]] = {
+    val p = proofsByteStr.map(f => f.arr.headOption match {
+      case None => Left(ValidationError.InvalidProofType)
+      case Some(b) =>
+        ProofType.fromByte(b) match {
+          case Some(proofType) if proofType == ProofType.Curve25519 =>
+            EllipticCurve25519Proof.fromBytes(f.arr) match {
+              case Left(left) => Left(left)
+              case Right(right) => Right(EllipticCurve25519Proof.toProof(right))
+            }
+          case _ => Left(ValidationError.InvalidProofType)
+        }
+    })
+
+    val r = p collectFirst { case Left(f) => f } toLeft {
+      p collect {case Right(right) => right}
+    }
+    r
+  }
+
+  def verifyProofs(toVerify: Array[Byte], proofs: Proofs): Boolean =
+    proofs.proofs.forall(f => Proof.verifyProof(toVerify, f))
+
+  def create(proofsByteStr: List[ByteStr]): Either[ValidationError, Proofs] =
     for {
-      _ <- Either.cond(proofs.lengthCompare(MaxProofs) <= 0, (), GenericError(s"Too many proofs, max $MaxProofs proofs"))
-      _ <- Either.cond(!proofs.map(_.bytes.arr.length).exists(_ > MaxProofSize), (), GenericError(s"Too large proof, must be max $MaxProofSize bytes"))
+      _ <- Either.cond(proofsByteStr.lengthCompare(MaxProofs) <= 0, (), GenericError(s"Too many proofs, max $MaxProofs proofs"))
+      _ <- Either.cond(!proofsByteStr.map(_.arr.length).exists(_ > MaxProofSize), (), GenericError(s"Too large proof, must be max $MaxProofSize bytes"))
+      _ <- Either.cond(!proofsByteStr.map(_.arr.head).exists(ProofType.fromByte(_).get != ProofType.Curve25519), (), ValidationError.InvalidProofType)
+      toProofList = toProofs(proofsByteStr)
+      _ <- Either.cond(toProofList.isRight, (), GenericError("Invalid proof"))
+      proofs = toProofList.toOption.get
     } yield Proofs(proofs)
 
   def fromBytes(ab: Array[Byte]): Either[ValidationError, Proofs] =
     for {
       _    <- Either.cond(ab.headOption contains 1, (), GenericError(s"Proofs version must be 1, actual:${ab.headOption}"))
       arrs <- Try(Deser.parseArrays(ab.tail)).toEither.left.map(er => GenericError(er.toString))
-      r    <- create(arrs.map(Proof.fromBytes(_).fold(left => Failure(new Exception(left.toString)), right => Success(right)).get))
+      r <- create(arrs.map(ByteStr(_)).toList)
     } yield r
 }
