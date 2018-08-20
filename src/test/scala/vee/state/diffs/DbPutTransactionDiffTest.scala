@@ -54,7 +54,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
   val preconditionsAndDbPut: Gen[(GenesisTransaction, DbPutTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     ts2 <- positiveLongGen
     dbKey <- invalidLengthDbKeyStringGen
     entry <- entryGen

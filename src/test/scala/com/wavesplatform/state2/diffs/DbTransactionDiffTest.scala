@@ -18,7 +18,7 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
     sender <- accountGen
     ts <- positiveIntGen
     fee: Long <- smallFeeGen
-    genesis: GenesisTransaction = GenesisTransaction.create(sender, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(sender, ENOUGH_AMT, -1, ts).right.get
     tx: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
   } yield (genesis, tx, tx.fee)
 
@@ -26,7 +26,7 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
     sender <- accountGen
     ts <- positiveIntGen
     fee: Long <- smallFeeGen
-    genesis: GenesisTransaction = GenesisTransaction.create(sender, fee / 2, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(sender, fee / 2, -1, ts).right.get
     tx: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
   } yield (genesis, tx, tx.fee)
 

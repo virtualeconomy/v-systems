@@ -26,9 +26,9 @@ class GenesisTransactionSpecification extends PropSpec with PropertyChecks with 
   property("GenesisTransaction Signature should be the same") {
     val balance = 457L
     val timestamp = 2398762345L
-    val signature = GenesisTransaction.generateSignature(defaultRecipient, balance, timestamp)
+    val signature = GenesisTransaction.generateSignature(defaultRecipient, balance, -1, timestamp)
 
-    val expected = "5Xt4P937spKdxinxxGzeRJwi18eRFUivzqnta4bQsT3Xj2Lzo4xPMgAyET115a3yNJCg4ZrifbHVGHY15HVfwtuW"
+    val expected = "Hv3aQeyuKNkTHcJZsgUyZmcoc8U4UUDB4KXMQ2j44stoKxq1RhLFNyLXACvE3q16udwQHBq5XRcuDaDRcsNn4Y9"
     val actual = Base58.encode(signature)
 
     assert(actual == expected)
@@ -36,13 +36,13 @@ class GenesisTransactionSpecification extends PropSpec with PropertyChecks with 
 
 
   property("GenesisTransaction parse from Bytes should work fine") {
-    val bytes = Base58.decode("5GoidXWjBfzuXQ5g6aXZrZ8rZSLMeDyZb4GgH7XtjBp7DhquLGGXV7stLG").get
+    val bytes = Base58.decode("UxYztEXtoSnQZ3krg7LNoGGvQCHS1NnJmGLRARbKTLLz3M63XZ3zxn4pjKvM4XQ").get
 
     val actualTransaction = parseBytes(bytes).get
 
     val balance = 12345L
     val timestamp = 1234567890L
-    val expectedTransaction = GenesisTransaction.create(defaultRecipient, balance, timestamp).right.get
+    val expectedTransaction = GenesisTransaction.create(defaultRecipient, balance, -1, timestamp).right.get
 
     actualTransaction should equal(expectedTransaction)
   }
@@ -51,7 +51,7 @@ class GenesisTransactionSpecification extends PropSpec with PropertyChecks with 
     forAll(Gen.listOfN(32, Arbitrary.arbitrary[Byte]).map(_.toArray), Gen.posNum[Long], Gen.posNum[Long]) {
       (recipientSeed: Array[Byte], time: Long, amount: Long) =>
         val recipient = PrivateKeyAccount(recipientSeed)
-        val source = GenesisTransaction.create(recipient, amount, time).right.get
+        val source = GenesisTransaction.create(recipient, amount, -1, time).right.get
         val bytes = source.bytes
         val dest = parseBytes(bytes).get
 

@@ -19,8 +19,8 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
       master2 <- accountGen
       recipient <- otherAccountGen(candidate = master)
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(master, Long.MaxValue - 1, ts).right.get
-      gen2: GenesisTransaction = GenesisTransaction.create(master2, Long.MaxValue - 1, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(master, Long.MaxValue - 1, -1, ts).right.get
+      gen2: GenesisTransaction = GenesisTransaction.create(master2, Long.MaxValue - 1, -1, ts).right.get
       fee <- smallFeeGen
       feeScale <- feeScaleGen
       attachment <- attachmentGen
@@ -43,8 +43,8 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
       master2 <- accountGen
       recipient <- accountGen
       ts <- timestampGen
-      gen1 = GenesisTransaction.create(master1, Long.MaxValue - 1, ts).right.get
-      gen2 = GenesisTransaction.create(master2, Long.MaxValue - 1, ts).right.get
+      gen1 = GenesisTransaction.create(master1, Long.MaxValue - 1, -1, ts).right.get
+      gen2 = GenesisTransaction.create(master2, Long.MaxValue - 1, -1, ts).right.get
       fee <- smallFeeGen
       feeScale <-feeScaleGen
       amt1 <- Gen.choose(Long.MaxValue / 2 + 1, Long.MaxValue - 1 - fee)
@@ -70,7 +70,7 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
     fee <- smallFeeGen
     feeScale <- positiveShortGen
     attachment <- attachmentGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     masterTransfersToAlice: PaymentTransaction = PaymentTransaction.create(master, alice, amt, fee, 100, ts, attachment).right.get
     (aliceLeasesToBob, _) <- leaseAndCancelGeneratorP(alice, bob, alice) suchThat (_._1.amount < amt)
     (masterLeasesToAlice, _) <- leaseAndCancelGeneratorP(master, alice, master) suchThat (_._1.amount > aliceLeasesToBob.amount)

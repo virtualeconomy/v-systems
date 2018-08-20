@@ -13,7 +13,7 @@ class BlockchainUpdaterBlockOnlyTest extends PropSpec with PropertyChecks with D
     master <- accountGen
     recipient <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     payment: PaymentTransaction <- paymentGeneratorP(master, recipient)
     payment2: PaymentTransaction <- paymentGeneratorP(master, recipient)
   } yield (genesis, payment, payment2)

@@ -50,8 +50,8 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        initial-mint-time = 1529885280000000000
         |        average-block-delay = 60s
         |        transactions = [
-        |          {recipient = "BASE58ADDRESS1", amount = 50000000000001},
-        |          {recipient = "BASE58ADDRESS2", amount = 49999999999999}
+        |          {recipient = "BASE58ADDRESS1", amount = 50000000000001, slot-id = -1},
+        |          {recipient = "BASE58ADDRESS2", amount = 49999999999999, slot-id = -1}
         |        ]
         |      }
         |    }
@@ -92,8 +92,8 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.genesisSettings.initialMintTime should be(1529885280000000000L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
     settings.genesisSettings.transactions should be(Seq(
-      GenesisTransactionSettings("BASE58ADDRESS1", 50000000000001L),
-      GenesisTransactionSettings("BASE58ADDRESS2", 49999999999999L)))
+      GenesisTransactionSettings("BASE58ADDRESS1", 50000000000001L, -1),
+      GenesisTransactionSettings("BASE58ADDRESS2", 49999999999999L, -1)))
   }
 
   it should "read testnet settings" in {
@@ -131,23 +131,23 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
-    settings.genesisSettings.blockTimestamp should be(1533270829695055435L)
-    settings.genesisSettings.timestamp should be(1533270829695055435L)
+    settings.genesisSettings.blockTimestamp should be(1534746765723318677L)
+    settings.genesisSettings.timestamp should be(1534746765723318677L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("2EEhJxNTrjHejQyEd6bVUP67rSw3LbLTwERK1D6HUkjZEBbSYAVhJJvaRbzghEtUhj4xSm3Exc3xG7VcbpMXdg2G").toOption)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("5JYTm7RepzUfgbPqA4RkPApuNA5Mq2HFaKPW4MYyhHcZUj9JttRgaoKwMfqD7Ske4ZXiMfMfARP3joHb1J3EWJdW").toOption)
     settings.genesisSettings.initialBalance should be(1000000000000000000L)
 
     settings.genesisSettings.transactions should be(Seq(
-        GenesisTransactionSettings("ATxpELPa3yhE5h4XELxtPrW9TfXPrmYE7ze",300000000000000000L),
-        GenesisTransactionSettings("ATtRykARbyJS1RwNsA6Rn1Um3S7FuVSovHK",200000000000000000L),
-        GenesisTransactionSettings("ATtchuwHVQmNTsRA8ba19juGK9m1gNsUS1V",150000000000000000L),
-        GenesisTransactionSettings("AU4AoB2WzeXiJvgDhCZmr6B7uDqAzGymG3L",50000000000000000L),
-        GenesisTransactionSettings("AUBHchRBY4mVNktgCgJdGNcYbwvmzPKgBgN",60000000000000000L),
-        GenesisTransactionSettings("AU6qstXoazCHDK5dmuCqEnnTWgTqRugHwzm",60000000000000000L),
-        GenesisTransactionSettings("AU9HYFXuPZPbFVw8vmp7mFmHb7qiaMmgEYE",60000000000000000L),
-        GenesisTransactionSettings("AUBLPMpHVV74fHQD8D6KosA76nusw4FqRr1",60000000000000000L),
-        GenesisTransactionSettings("AUBbpPbymsrM8QiXqS3NU7CrD1vy1EyonCa",40000000000000000L),
-        GenesisTransactionSettings("AU7nJLcT1mThXGTT1KDkoAtfPzc82Sgay1V",20000000000000000L)
+        GenesisTransactionSettings("ATxpELPa3yhE5h4XELxtPrW9TfXPrmYE7ze",300000000000000000L, 0),
+        GenesisTransactionSettings("ATtRykARbyJS1RwNsA6Rn1Um3S7FuVSovHK",200000000000000000L, 1),
+        GenesisTransactionSettings("ATtchuwHVQmNTsRA8ba19juGK9m1gNsUS1V",150000000000000000L, 2),
+        GenesisTransactionSettings("AU4AoB2WzeXiJvgDhCZmr6B7uDqAzGymG3L",50000000000000000L, 3),
+        GenesisTransactionSettings("AUBHchRBY4mVNktgCgJdGNcYbwvmzPKgBgN",60000000000000000L, 4),
+        GenesisTransactionSettings("AU6qstXoazCHDK5dmuCqEnnTWgTqRugHwzm",60000000000000000L, 5),
+        GenesisTransactionSettings("AU9HYFXuPZPbFVw8vmp7mFmHb7qiaMmgEYE",60000000000000000L, 6),
+        GenesisTransactionSettings("AUBLPMpHVV74fHQD8D6KosA76nusw4FqRr1",60000000000000000L, 7),
+        GenesisTransactionSettings("AUBbpPbymsrM8QiXqS3NU7CrD1vy1EyonCa",40000000000000000L, 8),
+        GenesisTransactionSettings("AU7nJLcT1mThXGTT1KDkoAtfPzc82Sgay1V",20000000000000000L, 9)
     ))
   }
 
@@ -190,11 +190,11 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("FSH8eAAzZNqnG8xgTZtz5xuLqXySsXgAjmFEC25hXMbEufiGjqWPnGCZFt6gLiVLJny16ipxRNAkkzjjhqTjBE2").toOption)
     settings.genesisSettings.initialBalance should be(1000000000000000000L) //changed the total initialBalance in default setting
     settings.genesisSettings.transactions should be(Seq(
-      GenesisTransactionSettings("3PAWwWa6GbwcJaFzwqXQN5KQm7H96Y7SHTQ", 999999999500000000L),
-      GenesisTransactionSettings("3P8JdJGYc7vaLu4UXUZc1iRLdzrkGtdCyJM", 100000000L),
-      GenesisTransactionSettings("3PAGPDPqnGkyhcihyjMHe9v36Y4hkAh9yDy", 100000000L),
-      GenesisTransactionSettings("3P9o3ZYwtHkaU1KxsKkFjJqJKS3dLHLC9oF", 100000000L),
-      GenesisTransactionSettings("3PJaDyprvekvPXPuAtxrapacuDJopgJRaU3", 100000000L),
-      GenesisTransactionSettings("3PBWXDFUc86N2EQxKJmW8eFco65xTyMZx6J", 100000000L)))
+      GenesisTransactionSettings("3PAWwWa6GbwcJaFzwqXQN5KQm7H96Y7SHTQ", 999999999500000000L, 0),
+      GenesisTransactionSettings("3P8JdJGYc7vaLu4UXUZc1iRLdzrkGtdCyJM", 100000000L, 1),
+      GenesisTransactionSettings("3PAGPDPqnGkyhcihyjMHe9v36Y4hkAh9yDy", 100000000L, 2),
+      GenesisTransactionSettings("3P9o3ZYwtHkaU1KxsKkFjJqJKS3dLHLC9oF", 100000000L, 3),
+      GenesisTransactionSettings("3PJaDyprvekvPXPuAtxrapacuDJopgJRaU3", 100000000L, 4),
+      GenesisTransactionSettings("3PBWXDFUc86N2EQxKJmW8eFco65xTyMZx6J", 100000000L,5)))
   }
 }
