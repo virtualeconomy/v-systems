@@ -54,10 +54,10 @@ object MintingTransaction {
              amount: Long,
              timestamp: Long,
              currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
-    if (amount <= 0) {
-      Left(ValidationError.NegativeAmount) //CHECK IF AMOUNT IS POSITIVE
+    if (amount != mintingReward) {
+      Left(ValidationError.WrongMintingReward(amount))
     } else if (Try(Math.addExact(amount, 0)).isFailure) {
-      Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
+      Left(ValidationError.OverflowError) // CHECK THAT amount won't overflow Long
     } else {
       Right(MintingTransaction(recipient, amount, timestamp, currentBlockHeight))
     }
