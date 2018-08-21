@@ -58,7 +58,7 @@ class LegacyFrameCodec(peerDatabase: PeerDatabase) extends ByteToMessageCodec[Ra
 }
 
 object LegacyFrameCodec {
-  val Magic = 0x12345678
+  val Magic = 0xbfadafbe
 
   private val messageSpecs: Map[Byte, MessageSpec[_ <: AnyRef]] =
     BasicMessagesRepo.specs.map(s => s.messageCode -> s).toMap
