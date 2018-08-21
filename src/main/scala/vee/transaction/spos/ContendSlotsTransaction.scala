@@ -23,7 +23,7 @@ case class ContendSlotsTransaction private(slotId: Int,
 
   override val transactionType: TransactionType.Value = TransactionType.ContendSlotsTransaction
 
-  val toSign: Array[Byte] = Bytes.concat(
+  lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     Ints.toByteArray(slotId),
     Longs.toByteArray(fee),
