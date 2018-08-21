@@ -43,7 +43,6 @@ case class MintingTransaction private(recipient: Address,
 
 object MintingTransaction {
 
-  val mintingFee = 100000
   val mintingReward = 900000000
 
   private val recipientLength = Address.AddressLength
