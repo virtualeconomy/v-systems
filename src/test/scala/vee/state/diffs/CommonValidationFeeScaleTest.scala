@@ -124,7 +124,7 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
     master <- accountGen
     recipient <- otherAccountGen(candidate = master)
     ts <- positiveLongGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     ts2 <- positiveLongGen
     amount <- positiveLongGen
     fee <- smallFeeGen

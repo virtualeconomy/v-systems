@@ -67,13 +67,15 @@ object GenesisBlockGenerator extends App {
     val mt = if (mintTime < 0) timestamp / 10000000000L * 10000000000L else mintTime
 
     val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))
-    val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), timestamp, ByteStr.empty) }
+    val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), n, timestamp, ByteStr.empty) }
+
+    println(ByteStr(genesisTxs.head.bytes).base58)
     // set the genesisblock's minting Balance to 0
     val genesisBlock = Block.buildAndSign(1, timestamp, reference, SposConsensusBlockData(mt, 0L, Array.fill(DigestSize)(0: Byte)), genesisTxs, genesisSigner)
     val signature = genesisBlock.signerData.signature
 
     (accounts, GenesisSettings(timestamp, timestamp, initialBalance, Some(signature),
-      genesisTxs.map(tx => GenesisTransactionSettings(tx.recipient.stringRepr, tx.amount)), mt, averageBlockDelay))
+      genesisTxs.map(tx => GenesisTransactionSettings(tx.recipient.stringRepr, tx.amount, tx.slotId)), mt, averageBlockDelay))
 
   }
 

@@ -18,7 +18,7 @@ class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
   def issueReissueBurnTxs(isReissuable: Boolean): Gen[((GenesisTransaction, IssueTransaction), (ReissueTransaction, BurnTransaction))] = for {
     master <- accountGen
     ts <- timestampGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     ia <- positiveLongGen
     ra <- positiveLongGen
     ba <- positiveLongGen.suchThat(x => x < ia + ra)
@@ -46,7 +46,7 @@ class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     val setup: Gen[(GenesisTransaction, ReissueTransaction, BurnTransaction)] = for {
       master <- accountGen
       ts <- timestampGen
-      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
       reissue <- reissueGen
       burn <- burnGen
     } yield (genesis, reissue, burn)

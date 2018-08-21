@@ -235,14 +235,6 @@ trait TransactionGen {
     amount: Long <- mintingAmountGen
   } yield MintingTransaction.create(recipient, amount, timestamp, currentBlockHeight).right.get
 
-  val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
-    timestamp: Long <- positiveLongGen
-    sender: PrivateKeyAccount <- accountGen
-    slotId: Int <- slotidGen
-    feeAmount <- smallFeeGen
-    feeScale: Short <- feeScaleGen
-  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 1000, feeScale, timestamp).right.get
-
   val dbPutGen: Gen[DbPutTransaction] = for {
     timestamp: Long <- positiveLongGen
     sender: PrivateKeyAccount <- accountGen
@@ -274,6 +266,14 @@ trait TransactionGen {
     timestamp: Long <- positiveLongGen
     feeScale: Short <- feeScaleGen
   } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp).right.get
+
+  val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
+    timestamp: Long <- positiveLongGen
+    sender: PrivateKeyAccount <- accountGen
+    slotId: Int <- slotidGen
+    feeAmount <- smallFeeGen
+    feeScale: Short <- feeScaleGen
+  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 1000, feeScale, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
@@ -425,6 +425,6 @@ trait TransactionGen {
   def genesisGeneratorP(recipient: PrivateKeyAccount): Gen[GenesisTransaction] = for {
     amt <- positiveLongGen
     ts <- positiveIntGen
-  } yield GenesisTransaction.create(recipient, amt, ts).right.get
+  } yield GenesisTransaction.create(recipient, amt, -1, ts).right.get
 
 }

@@ -19,7 +19,7 @@ class CreateAliasTransactionDiffTest extends PropSpec with PropertyChecks with G
   val preconditionsAndAliasCreations: Gen[(GenesisTransaction, CreateAliasTransaction, CreateAliasTransaction, CreateAliasTransaction, CreateAliasTransaction)] = for {
     master <- accountGen
     ts <- timestampGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     alias <- aliasGen
     alias2 <- aliasGen suchThat (_.name != alias.name)
     fee <- smallFeeGen
@@ -63,8 +63,8 @@ class CreateAliasTransactionDiffTest extends PropSpec with PropertyChecks with G
     master <- accountGen
     aliasedRecipient <- otherAccountGen(candidate = master)
     ts <- positiveIntGen
-    gen: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
-    gen2: GenesisTransaction = GenesisTransaction.create(aliasedRecipient, ENOUGH_AMT + 1, ts).right.get
+    gen: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    gen2: GenesisTransaction = GenesisTransaction.create(aliasedRecipient, ENOUGH_AMT + 1, -1, ts).right.get
     issue1: IssueTransaction <- issueReissueBurnGeneratorP(ENOUGH_AMT, master).map(_._1)
     issue2: IssueTransaction <- issueReissueBurnGeneratorP(ENOUGH_AMT, master).map(_._1)
     maybeAsset <- Gen.option(issue1)

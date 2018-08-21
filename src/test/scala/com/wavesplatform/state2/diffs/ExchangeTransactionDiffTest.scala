@@ -31,8 +31,8 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
       buyer <- accountGen
       seller <- accountGen
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(buyer, ENOUGH_AMT, ts).right.get
-      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(buyer, ENOUGH_AMT, -1, ts).right.get
+      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, -1, ts).right.get
       issue1: IssueTransaction <- issueReissueBurnGeneratorP(ENOUGH_AMT, seller).map(_._1)
       issue2: IssueTransaction <- issueReissueBurnGeneratorP(ENOUGH_AMT, buyer).map(_._1)
       maybeAsset1 <- Gen.option(issue1.id)
@@ -57,8 +57,8 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
       buyer <- accountGen
       seller <- accountGen
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(buyer, 1 * Constants.UnitsInVee, ts).right.get
-      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(buyer, 1 * Constants.UnitsInVee, -1, ts).right.get
+      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, -1, ts).right.get
       issue1: IssueTransaction <- issueGen(buyer)
       exchange <- exchangeGeneratorP(buyer, seller, None, Some(issue1.id), fixedMatcherFee = Some(300000))
     } yield (gen1, gen2, issue1, exchange)
@@ -100,8 +100,8 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
       seller <- accountGen
       matcher <- accountGen
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(buyer, ENOUGH_AMT, ts).right.get
-      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(buyer, ENOUGH_AMT, -1, ts).right.get
+      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, -1, ts).right.get
       issue1: IssueTransaction <- issueGen(seller)
     } yield (buyer, seller, matcher, gen1, gen2, issue1)
 
@@ -126,8 +126,8 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
       seller <- accountGen
       matcher <- accountGen
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(buyer, ENOUGH_AMT, ts).right.get
-      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(buyer, ENOUGH_AMT, -1, ts).right.get
+      gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, -1, ts).right.get
       issue1: IssueTransaction <- issueGen(seller, fixedQuantity = Some(1000L))
     } yield (buyer, seller, matcher, gen1, gen2, issue1)
 

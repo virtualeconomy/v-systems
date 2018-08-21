@@ -15,7 +15,7 @@ class StateReaderEffectiveBalancePropertyTest extends PropSpec with PropertyChec
   val setup: Gen[(GenesisTransaction, Int, Int, Int)] = for {
     master <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     emptyBlocksAmt <- Gen.choose(1, 10)
     atHeight <- Gen.choose(0, 20)
     confirmations <- Gen.choose(1, 20)

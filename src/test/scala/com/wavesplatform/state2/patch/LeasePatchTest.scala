@@ -26,8 +26,8 @@ class LeasePatchTest extends PropSpec with PropertyChecks with GeneratorDrivenPr
       otherAccount <- accountGen
       otherAccount2 <- accountGen
       ts <- timestampGen
-      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
-      genesis2: GenesisTransaction = GenesisTransaction.create(otherAccount, ENOUGH_AMT, ts).right.get
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+      genesis2: GenesisTransaction = GenesisTransaction.create(otherAccount, ENOUGH_AMT, -1, ts).right.get
       (lease, _) <- leaseAndCancelGeneratorP(master, recipient, master)
       fee2 <- smallFeeGen
       unleaseOther = LeaseCancelTransaction.create(otherAccount, lease.id, fee2, 100, ts + 1).right.get

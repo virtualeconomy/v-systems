@@ -28,7 +28,7 @@ object TransactionDiffer {
       t5 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t4)
       t6 <- CommonValidation.disallowInvalidFeeScale(t5)
       diff <- t6 match {
-        case gtx: GenesisTransaction => GenesisTransactionDiff(currentBlockHeight)(gtx)
+        case gtx: GenesisTransaction => GenesisTransactionDiff(settings, currentBlockHeight)(gtx)
         case ptx: PaymentTransaction => PaymentTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(ptx)
         //case itx: IssueTransaction => AssetTransactionsDiff.issue(currentBlockHeight)(itx)
         //case rtx: ReissueTransaction => AssetTransactionsDiff.reissue(s, settings, currentBlockTimestamp, currentBlockHeight)(rtx)

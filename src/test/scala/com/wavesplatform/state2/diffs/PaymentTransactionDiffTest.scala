@@ -17,7 +17,7 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
     master <- accountGen
     recipient <- otherAccountGen(candidate = master)
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     transfer: PaymentTransaction <- paymentGeneratorP(master, recipient)
   } yield (genesis, transfer, transfer.fee)
 
