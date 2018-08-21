@@ -17,12 +17,12 @@ case class Proofs(proofs: List[Proof]) {
 object Proofs {
 
   val Version            = 1: Byte
-  val MaxProofs          = 8
-  val MaxProofSize       = 64
+  val MaxProofs          = 1
+  val MaxProofSize       = 64 + 32 + 2
   // signature length = 64, publickey length = 32 + 1, proof type length = 1
   val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(2)
 
-  lazy val empty = create(List.empty).explicitGet()
+  lazy val empty = Proofs(List.empty)
 
   def toProofs(proofsByteStr: List[ByteStr]): Either[ValidationError, List[Proof]] = {
     val p = proofsByteStr.map(f => f.arr.headOption match {
@@ -52,9 +52,7 @@ object Proofs {
       _ <- Either.cond(proofsByteStr.lengthCompare(MaxProofs) <= 0, (), GenericError(s"Too many proofs, max $MaxProofs proofs"))
       _ <- Either.cond(!proofsByteStr.map(_.arr.length).exists(_ > MaxProofSize), (), GenericError(s"Too large proof, must be max $MaxProofSize bytes"))
       _ <- Either.cond(!proofsByteStr.map(_.arr.head).exists(ProofType.fromByte(_).get != ProofType.Curve25519), (), ValidationError.InvalidProofType)
-      toProofList = toProofs(proofsByteStr)
-      _ <- Either.cond(toProofList.isRight, (), GenericError("Invalid proof"))
-      proofs = toProofList.toOption.get
+      proofs <- toProofs(proofsByteStr)
     } yield Proofs(proofs)
 
   def fromBytes(ab: Array[Byte]): Either[ValidationError, Proofs] =

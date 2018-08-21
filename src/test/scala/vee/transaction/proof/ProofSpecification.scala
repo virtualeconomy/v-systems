@@ -15,7 +15,7 @@ with Matchers {
     val publicKey:PublicKeyAccount = PublicKeyAccount.fromBase58String("Hhg1VXGM27Rsjt5NVJgcMpcYgHn8ft6LTexpw3JHr25t").toOption.get
     val signature:ByteStr = ByteStr.decodeBase58("62PirdnRZ7AN3dP5Nc3zxoNt5FRhjyfYKSzDdbGQEJcbnvmkvwiARQsy54TaBfJFLDbSqmHiGFnKf7DWdbBmBiWW").get
     val proof = EllipticCurve25519Proof.buildProof(publicKey, signature)
-    proof.map(_.bytes).map(_.arr).flatMap(EllipticCurve25519Proof.fromBytes(_)) should be (proof)
+    EllipticCurve25519Proof.fromBytes(proof.bytes.arr).toOption.get should be (proof)
   }
 
   property("report invalid proof type") {
