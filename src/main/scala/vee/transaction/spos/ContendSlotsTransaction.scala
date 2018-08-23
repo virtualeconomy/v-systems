@@ -52,11 +52,10 @@ object ContendSlotsTransaction {
     val fee = Longs.fromByteArray(bytes.slice(slotIdEnd, slotIdEnd + 8))
     val feeScale = Shorts.fromByteArray(bytes.slice(slotIdEnd + 8, slotIdEnd + 10))
     val timestamp = Longs.fromByteArray(bytes.slice(slotIdEnd + 10, slotIdEnd + 18))
-    // if the proofs from bytes return validation error, return empty proofs
-    val proofs = Proofs.fromBytes(bytes.slice(slotIdEnd + 18, bytes.length)).getOrElse(Proofs.empty)
-    ContendSlotsTransaction
-      .create(slotId, fee, feeScale, timestamp, proofs)
-      .fold(left => Failure(new Exception(left.toString)), right => Success(right))
+    (for {
+      proofs <- Proofs.fromBytes(bytes.slice(slotIdEnd + 18, bytes.length))
+      tx <- ContendSlotsTransaction.create(slotId, fee, feeScale, timestamp, proofs)
+    } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(slotId: Int,
