@@ -9,7 +9,7 @@ object TestFunctionalitySettings {
     minimalGeneratingBalanceAfter = 0L,
     allowTransactionsFromFutureUntil = Long.MaxValue, allowUnissuedAssetsUntil = 0L,
     allowBurnTransactionAfter = 0L, allowLeaseTransactionAfter = 0L,
-    requirePaymentUniqueIdAfter = 0L, allowExchangeTransactionAfter = 0L,
+    allowExchangeTransactionAfter = 0L,
     allowInvalidReissueInSameBlockUntilTimestamp = 0L, allowCreatealiasTransactionAfter = 0L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 0L, resetEffectiveBalancesAtHeight = 0,
     allowLeasedBalanceTransferUntil = 0L,
