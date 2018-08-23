@@ -57,12 +57,10 @@ object CommonValidation {
         case _ => Right(tx)
       } else Right(tx)
 
-  def disallowDuplicateIds[T <: Transaction](state: StateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = tx match {
-    case ptx: PaymentTransaction if ptx.timestamp < settings.requirePaymentUniqueIdAfter => Right(tx)
-    case _ =>
-      if (state.containsTransaction(tx.id))
-        Left(GenericError(s"Tx id(exc. for some PaymentTransactions) cannot be duplicated. Current height is: $height. Tx with such id aready present"))
-      else Right(tx)
+  def disallowDuplicateIds[T <: Transaction](state: StateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = {
+    if (state.containsTransaction(tx.id))
+        Left(GenericError(s"Tx id cannot be duplicated. Current height is: $height. Tx with such id already present"))
+    else Right(tx)
   }
 
   def disallowBeforeActivationTime[T <: Transaction](settings: FunctionalitySettings, tx: T): Either[ValidationError, T] =
