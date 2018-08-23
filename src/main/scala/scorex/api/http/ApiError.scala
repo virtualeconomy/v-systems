@@ -44,6 +44,7 @@ object ApiError {
     case ValidationError.WrongFeeScale(errFeeScale) => InvalidFeeScale(errFeeScale)
     case ValidationError.WrongMintingReward(errMintingReward) => InvalidMintingReward(errMintingReward)
     case ValidationError.TooLongDbEntry(actualLength, maxLength) => TooLongDbEntry(actualLength, maxLength)
+    case ValidationError.InvalidUTF8String(field) => InvalidUTF8String(field)
     case TransactionValidationError(error, tx) => error match {
       case ValidationError.Mistiming(errorMessage) => Mistiming(errorMessage)
       case _ => StateCheckFailed(tx, fromValidationError(error).message)
@@ -187,6 +188,12 @@ case object InvalidDbKey extends ApiError {
   override val id: Int = 117
   override val message: String = "invalid db key"
   override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case class InvalidUTF8String(field: String) extends ApiError {
+  override val id: Int = 118
+  override val code = StatusCodes.BadRequest
+  override val message: String = s"The $field is not a valid utf8 string"
 }
 
 case class CustomValidationError(errorMessage: String) extends ApiError {

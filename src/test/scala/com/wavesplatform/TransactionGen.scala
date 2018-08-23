@@ -41,6 +41,8 @@ trait TransactionGen {
 
   val aliasSymbolChar: Gen[Char] = Gen.oneOf('.','@', '_', '-')
 
+  val invalidUtf8Char: Gen[Char] = Gen.oneOf('\uD800','\uD801', '\uD802')
+
   val aliasAlphabetGen: Gen[Char] = frequency((1, numChar), (1, aliasSymbolChar), (9, alphaLowerChar))
 
   val invalidAliasAlphabetGen: Gen[Char] = frequency((1, numChar), (1, aliasSymbolChar), (9, alphaUpperChar))
@@ -89,6 +91,10 @@ trait TransactionGen {
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
+
+  val invalidUtf8StringGen: Gen[String] = for {
+    data <- Gen.listOfN(2, invalidUtf8Char)
+  } yield data.mkString
 
   val contractContentGen: Gen[String] = for {
     length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)

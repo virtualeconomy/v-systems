@@ -1,5 +1,8 @@
 package scorex.serialization
 
+import java.nio.{ByteBuffer, CharBuffer}
+import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder}
+
 import com.google.common.primitives.{Bytes, Shorts}
 
 object Deser {
@@ -30,4 +33,19 @@ object Deser {
     r._1
   }
 
+  val encoder = ThreadLocal.withInitial[CharsetEncoder](() => Charset.forName("UTF-8").newEncoder);
+  def decoder = ThreadLocal.withInitial[CharsetDecoder](() => Charset.forName("UTF-8").newDecoder);
+
+  def validUTF8(string: String): Boolean = {
+    encoder.get().canEncode(string)
+  }
+
+  def serilizeString(string: String) : Array[Byte] = {
+    val bytes: ByteBuffer = encoder.get().encode(CharBuffer.wrap(string))
+    bytes.array.slice(bytes.position, bytes.limit)
+  }
+
+  def deserilizeString(bytes: Array[Byte]) :String = {
+    decoder.get().decode(ByteBuffer.wrap(bytes)).toString
+  }
 }

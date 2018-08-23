@@ -2,12 +2,13 @@ package vee.database
 
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
+import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 
 sealed trait Entry {
 
   lazy val bytes: ByteStr = ByteStr(Array(dataType.id.asInstanceOf[Byte]) ++
-    data.getBytes("UTF-8"))
+    Deser.serilizeString(data))
 
   val data: String
   val dataType: DataType.Value
@@ -19,11 +20,13 @@ sealed trait Entry {
 
 object Entry {
 
-  val maxLength: Int= 16384 //16k
+  val maxLength: Int= 16384 //16k, if this one >=shorts.max 32767, serilization can be a problem
   def buildEntry(data: String, dataType: DataType.Value): Either[ValidationError, Entry] = {
     case class EntryImpl(data: String, dataType: DataType.Value) extends Entry
     if(data != null && data.length > maxLength)
       Left(ValidationError.TooLongDbEntry(data.length, maxLength))
+    else if (dataType == DataType.ByteArray && !Deser.validUTF8(data))
+      Left(ValidationError.InvalidUTF8String("dbEntry"))
     else
       Right(EntryImpl(data, dataType))
   }
@@ -41,7 +44,7 @@ object Entry {
         Left (ValidationError.InvalidDataType)
       case Some (dataType) =>
         buildEntry (
-          new String (bytes.slice (1, bytes.length), "UTF-8"),
+          Deser.deserilizeString(bytes.slice (1, bytes.length)),
           dataType
         )
     }
