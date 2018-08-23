@@ -13,8 +13,6 @@ object TestFunctionalitySettings {
     allowInvalidReissueInSameBlockUntilTimestamp = 0L, allowCreatealiasTransactionAfter = 0L,
     allowMultipleLeaseCancelTransactionUntilTimestamp = 0L, resetEffectiveBalancesAtHeight = 0,
     allowLeasedBalanceTransferUntil = 0L,
-    allowContendSlotsTransactionAfter = 0L,
-    allowReleaseSlotsTransactionAfter = 0L,
     numOfSlots = 2, // easy to test the release case later
     mintingSpeed = 1
   )

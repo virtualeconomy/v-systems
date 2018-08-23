@@ -35,9 +35,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        allow-createalias-transaction-after = 13
         |        allow-multiple-lease-cancel-transaction-until-timestamp = 14
         |        reset-effective-balances-at-height = 15
-        |        allow-contend-slots-transaction-after = 16
         |        allow-leased-balance-transfer-until = 17
-        |        allow-release-slots-transaction-after = 18
         |        num-of-slots = 5
         |        minting-speed = 5
         |      }
@@ -78,9 +76,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(13)
     settings.functionalitySettings.allowMultipleLeaseCancelTransactionUntilTimestamp should be(14)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(15)
-    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(16)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(17)
-    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(18)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
     settings.genesisSettings.blockTimestamp should be(1460678400000L)
@@ -123,8 +119,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowExchangeTransactionAfter should be(1483228800000L)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(51500)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(1493596800000L)
-    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1493596800000L)
-    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
@@ -176,8 +170,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowMultipleLeaseCancelTransactionUntilTimestamp should be(1492768800000L)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(462000)
     settings.functionalitySettings.allowExchangeTransactionAfter should be(1491192000000L)
-    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(1503914400000L)
-    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1503914400000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(Long.MaxValue)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)

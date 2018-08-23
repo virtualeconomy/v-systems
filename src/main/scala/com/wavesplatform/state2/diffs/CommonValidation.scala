@@ -75,10 +75,6 @@ object CommonValidation {
         Left(GenericError(s"must not appear before time=${settings.allowExchangeTransactionAfter}"))
       case tx: CreateAliasTransaction if tx.timestamp <= settings.allowCreatealiasTransactionAfter =>
         Left(GenericError(s"must not appear before time=${settings.allowCreatealiasTransactionAfter}"))
-      case tx: ContendSlotsTransaction if tx.timestamp <= settings.allowContendSlotsTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowContendSlotsTransactionAfter}"))
-      case tx: ReleaseSlotsTransaction if tx.timestamp <= settings.allowReleaseSlotsTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowReleaseSlotsTransactionAfter}"))
       case _: BurnTransaction => Right(tx)
       case _: PaymentTransaction => Right(tx)
       case _: GenesisTransaction => Right(tx)
