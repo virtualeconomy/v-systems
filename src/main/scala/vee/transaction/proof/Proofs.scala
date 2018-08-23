@@ -20,20 +20,17 @@ object Proofs {
   val MaxProofs          = 1
   val MaxProofSize       = 64 + 32 + 1
   // signature length = 64, public-key length = 32, proof type length = 1
-  val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(2)
+  val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(1)
 
   lazy val empty = Proofs(List.empty)
 
   def toProofs(proofsByteStr: List[ByteStr]): Either[ValidationError, List[Proof]] = {
     val p = proofsByteStr.map(f => f.arr.headOption match {
-      case None => Left(ValidationError.InvalidProofType)
+      case None => Left(ValidationError.InvalidProofBytes)
       case Some(b) =>
         ProofType.fromByte(b) match {
           case Some(proofType) if proofType == ProofType.Curve25519 =>
-            EllipticCurve25519Proof.fromBytes(f.arr) match {
-              case Left(left) => Left(left)
-              case Right(right) => Right(EllipticCurve25519Proof.toProof(right))
-            }
+            EllipticCurve25519Proof.fromBytes(f.arr)
           case _ => Left(ValidationError.InvalidProofType)
         }
     })
@@ -45,7 +42,7 @@ object Proofs {
   }
 
   def verifyProofs(toVerify: Array[Byte], proofs: Proofs): Boolean =
-    proofs.proofs.forall(f => Proof.verifyProof(toVerify, f))
+    proofs.proofs.forall(f => ProofVerify.verifyProof(toVerify, f.bytes.arr))
 
   def create(proofsByteStr: List[ByteStr]): Either[ValidationError, Proofs] =
     for {

@@ -7,7 +7,7 @@ import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser.KeyLength
 
-trait EllipticCurve25519Proof {
+sealed trait EllipticCurve25519Proof extends Proof{
 
   lazy val bytes: ByteStr = ByteStr(Array(proofType.id.asInstanceOf[Byte]) ++
     publicKey.publicKey ++
@@ -28,14 +28,10 @@ trait EllipticCurve25519Proof {
 
 object EllipticCurve25519Proof {
 
-  case class EllipticCurve25519ProofImpl(publicKey: PublicKeyAccount, signature: ByteStr) extends EllipticCurve25519Proof
+  private case class EllipticCurve25519ProofImpl(publicKey: PublicKeyAccount, signature: ByteStr) extends EllipticCurve25519Proof
 
   def createProof(toSign: Array[Byte], signer: PrivateKeyAccount): EllipticCurve25519Proof = {
     EllipticCurve25519ProofImpl(PublicKeyAccount(signer.publicKey), ByteStr(EllipticCurveImpl.sign(signer, toSign)) )
-  }
-
-  def toProof(eProof: EllipticCurve25519Proof): Proof = {
-    Proof.toProof(eProof.bytes, eProof.proofType, eProof.json)
   }
 
   def verifyProof(toSign: Array[Byte], bytes: Array[Byte]): Boolean = {
