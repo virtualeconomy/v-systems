@@ -3,11 +3,11 @@ package vee.transaction.database
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
+import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import vee.database.{DataType, Entry}
 import scorex.serialization.{BytesSerializable, Deser}
-import scorex.transaction.TransactionParser.{KeyLength, TransactionType}
+import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.DbDataTypeError
 import scorex.transaction.{AssetId, ValidationError}
 import vee.transaction.ProvenTransaction
@@ -40,8 +40,8 @@ case class DbPutTransaction private(dbKey: String,
     "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
-
-  lazy val storageKey: ByteStr = DbPutTransaction.generateKey(proofs, dbKey)
+  lazy val publicKey: PublicKeyAccount = EllipticCurve25519Proof.fromBytes(proofs.proofs.head.bytes.arr).toOption.get.publicKey
+  lazy val storageKey: ByteStr = DbPutTransaction.generateKey(publicKey.toAddress, dbKey)
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
@@ -52,20 +52,20 @@ object DbPutTransaction {
   val MaxDbKeyLength = 30
   val MinDbKeyLength = 1
 
-  def generateKey(proofs: Proofs, key: String):ByteStr =
-    ByteStr(proofs.bytes ++ Deser.serilizeString(key))
+  def generateKey(owner: Address, key: String):ByteStr =
+    ByteStr(owner.bytes.arr ++ Deser.serilizeString(key))
 
   def parseTail(bytes: Array[Byte]): Try[DbPutTransaction] = Try {
-    val (nameBytes, nameEnd) = Deser.parseArraySize(bytes, KeyLength)
-    val (dbEntryBytes, dbEntryEnd) = Deser.parseArraySize(bytes, nameEnd)
-    (for {
-      dbEntry <- Entry.fromBytes(dbEntryBytes)
-      fee = Longs.fromByteArray(bytes.slice(dbEntryEnd, dbEntryEnd + 8))
-      feeScale = Shorts.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 10))
-      timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 10, dbEntryEnd + 18))
-      proofs = Proofs.fromBytes(bytes.slice(dbEntryEnd + 18, bytes.length)).getOrElse(Proofs.empty) //Return empty proofs for validation error
-      tx <- DbPutTransaction.create(Deser.deserilizeString(nameBytes), dbEntry, fee, feeScale, timestamp, proofs)
-    } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
+    val (dbKeyBytes, dbKeyEnd) = Deser.parseArraySize(bytes, 0)
+    val dbKey: String = Deser.deserilizeString(dbKeyBytes)
+    val (dbEntryBytes, dbEntryEnd) = Deser.parseArraySize(bytes, dbKeyEnd)
+    val dbEntry: Entry = Entry.fromBytes(dbEntryBytes).getOrElse(Entry.empty) //Return empty entry for validation error
+    val fee = Longs.fromByteArray(bytes.slice(dbEntryEnd, dbEntryEnd + 8))
+    val feeScale = Shorts.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 10))
+    val timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 10, dbEntryEnd + 18))
+    val proofs = Proofs.fromBytes(bytes.slice(dbEntryEnd + 18, bytes.length)).getOrElse(Proofs.empty) //Return empty proofs for validation error
+    DbPutTransaction.create(dbKey, dbEntry, fee, feeScale, timestamp, proofs)
+    .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(dbKey: String,
