@@ -7,7 +7,7 @@ import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser.KeyLength
 
-trait EllipticCurve25519Proof {
+sealed trait EllipticCurve25519Proof extends Proof{
 
   lazy val bytes: ByteStr = ByteStr(Array(proofType.id.asInstanceOf[Byte]) ++
     publicKey.publicKey ++
@@ -28,14 +28,10 @@ trait EllipticCurve25519Proof {
 
 object EllipticCurve25519Proof {
 
-  case class EllipticCurve25519ProofImpl(publicKey: PublicKeyAccount, signature: ByteStr) extends EllipticCurve25519Proof
+  private case class EllipticCurve25519ProofImpl(publicKey: PublicKeyAccount, signature: ByteStr) extends EllipticCurve25519Proof
 
-  def createProof(toSign: Array[Byte], signer: PrivateKeyAccount): Either[ValidationError, EllipticCurve25519Proof] = {
-    Right(EllipticCurve25519ProofImpl(PublicKeyAccount(signer.publicKey), ByteStr(EllipticCurveImpl.sign(signer, toSign)) ))
-  }
-
-  def toProof(eProof: EllipticCurve25519Proof): Proof = {
-    Proof.toProof(eProof.bytes, eProof.proofType, eProof.json)
+  def createProof(toSign: Array[Byte], signer: PrivateKeyAccount): EllipticCurve25519Proof = {
+    EllipticCurve25519ProofImpl(PublicKeyAccount(signer.publicKey), ByteStr(EllipticCurveImpl.sign(signer, toSign)) )
   }
 
   def verifyProof(toSign: Array[Byte], bytes: Array[Byte]): Boolean = {
@@ -45,8 +41,8 @@ object EllipticCurve25519Proof {
     }
   }
 
-  def buildProof(publicKey: PublicKeyAccount, signature: ByteStr): Either[ValidationError, EllipticCurve25519Proof] = {
-    Right(EllipticCurve25519ProofImpl(publicKey, signature))
+  def buildProof(publicKey: PublicKeyAccount, signature: ByteStr): EllipticCurve25519Proof = {
+    EllipticCurve25519ProofImpl(publicKey, signature)
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, EllipticCurve25519Proof] = {
@@ -65,7 +61,7 @@ object EllipticCurve25519Proof {
       case Some (b) =>
         ProofType.fromByte(b) match {
           case Some(proofType) if proofType == ProofType.Curve25519 =>
-            buildProof(publicKey, signature)
+            Right(buildProof(publicKey, signature))
           case _ =>
             Left (ValidationError.InvalidProofType)
         }

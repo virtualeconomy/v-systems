@@ -16,8 +16,6 @@ trait ProvenTransaction extends Transaction with Signed {
 
   protected def proofField: Seq[(String, JsValue)] = Seq("proofs" -> JsArray(proofs.proofs.map(p => p.json)))
 
-  val bodyBytes: Array[Byte]
-
   protected def jsonBase(): JsObject =
     Json.obj(
       "type" -> transactionType.id,
@@ -26,5 +24,5 @@ trait ProvenTransaction extends Transaction with Signed {
       "timestamp" -> timestamp
     ) ++ JsObject(proofField)
 
-  val signatureValid : Boolean = Proofs.verifyProofs(toSign, proofs)
+  lazy val signatureValid : Boolean = Proofs.verifyProofs(toSign, proofs)
 }

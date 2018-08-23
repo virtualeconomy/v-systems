@@ -25,7 +25,7 @@ class ContendSlotsTransactionSpecification extends PropSpec with PropertyChecks 
   }
 
   private def assertTxs(first: ContendSlotsTransaction, second: ContendSlotsTransaction): Unit = {
-    first.sender.address shouldEqual second.sender.address
+    first.proofs.bytes shouldEqual second.proofs.bytes
     first.timestamp shouldEqual second.timestamp
     first.fee shouldEqual second.fee
     first.feeScale shouldEqual second.feeScale
