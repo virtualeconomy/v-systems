@@ -18,8 +18,8 @@ object Proofs {
 
   val Version            = 1: Byte
   val MaxProofs          = 1
-  val MaxProofSize       = 64 + 32 + 2
-  // signature length = 64, publickey length = 32 + 1, proof type length = 1
+  val MaxProofSize       = 64 + 32 + 1
+  // signature length = 64, public-key length = 32, proof type length = 1
   val MaxProofStringSize = base58Length(MaxProofSize) + TransactionParser.KeyStringLength + base58Length(2)
 
   lazy val empty = Proofs(List.empty)

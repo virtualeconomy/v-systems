@@ -25,7 +25,7 @@ object ContendSlotsTransactionDiff {
     }
     val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0
 
-    if (proofLength != Proofs.MaxProofs){
+    if (proofLength > Proofs.MaxProofs){
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     }
     else if (!MultiSlotsCheck && isValidSlotID){

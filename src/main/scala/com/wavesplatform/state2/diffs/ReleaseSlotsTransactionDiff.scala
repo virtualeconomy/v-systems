@@ -29,7 +29,7 @@ object ReleaseSlotsTransactionDiff {
     // add more ValidationError
 
     val emptyAddress = ""
-    if (proofLength != Proofs.MaxProofs){
+    if (proofLength > Proofs.MaxProofs){
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     }
     else if (hasEnoughMiner && isValidAddress && isValidSlotID) {
