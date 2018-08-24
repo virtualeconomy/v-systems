@@ -40,7 +40,7 @@ object ContractTransactionDiff {
       originalContent = contract._3
       newContractInfo = (!originalEnabled, sender.toAddress, originalContent)
       validation <- if (!originalAddr.equals(sender.toAddress.bytes)) {
-        Left(GenericError(s"Only the creater of the contract can change contract status"))
+        Left(GenericError(s"Only the creator of the contract can change contract status"))
       } else if (originalEnabled && (tx.action == ChangeContractStatusAction.Enable)) {
         Left(GenericError(s"The contract already enabled"))
       } else if (!originalEnabled && (tx.action == ChangeContractStatusAction.Disable)) {
