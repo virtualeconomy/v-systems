@@ -21,7 +21,7 @@ object TransactionDiffer {
   def apply(settings: FunctionalitySettings, prevBlockTimestamp: Option[Long], currentBlockTimestamp: Long, currentBlockHeight: Int)(s: StateReader, tx: Transaction): Either[ValidationError, Diff] = {
     for {
       t0 <- Signed.validateSignatures(tx)
-      t1 <- CommonValidation.disallowTxFromFuture(settings, currentBlockTimestamp, t0)
+      t1 <- CommonValidation.disallowTxFromFuture(currentBlockTimestamp, t0)
       t2 <- CommonValidation.disallowTxFromPast(prevBlockTimestamp, t1)
       t3 <- CommonValidation.disallowBeforeActivationTime(settings, t2)
       t4 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t3)
