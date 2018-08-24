@@ -150,10 +150,6 @@ object Coordinator extends ScorexLogging {
       blockData = block.consensusData
 
       generator = block.signerData.generator
-      calcGs = calcGeneratorSignature(prevBlockData, generator)
-      blockGs = blockData.generationSignature
-      _ <- Either.cond(calcGs.sameElements(blockGs), (),
-        s"declared generation signature ${blockGs.mkString} does not match calculated generation signature ${calcGs.mkString}")
 
       // the validation here need to be discussed
       effectiveBalance = state.effectiveBalance(generator)

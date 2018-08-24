@@ -13,7 +13,6 @@ import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.JsObject
 import scorex.api.http.BlockNotExists
 import vee.consensus.spos.api.http.SposConsensusApiRoute
-import scorex.crypto.encode.Base58
 
 class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHelper with PropertyChecks with MockFactory with BlockGen with HistoryTest {
   private val state = mock[StateReader]
@@ -23,25 +22,6 @@ class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHel
   for (i <- 1 to 10) appendTestBlock(history)
 
   private val route = SposConsensusApiRoute(restAPISettings, state, history, FunctionalitySettings.TESTNET).route
-
-  routePath("/generationSignature") - {
-    "for last block" in {
-      Get(routePath("/generationSignature")) ~> route ~> check {
-        (responseAs[JsObject] \ "generationSignature").as[String] shouldEqual Base58.encode(history.lastBlock.get.consensusData.generationSignature)
-      }
-    }
-
-    "for existed block" in {
-      val block = history.blockAt(3).get
-      Get(routePath(s"/generationSignature/${block.uniqueId.base58}")) ~> route ~> check {
-        (responseAs[JsObject] \ "generationSignature").as[String] shouldEqual Base58.encode(block.consensusData.generationSignature)
-      }
-    }
-
-    "for not existed block" in {
-      Get(routePath(s"/generationSignature/brggwg4wg4g")) ~> route should produce(BlockNotExists)
-    }
-  }
 
   routePath("/mintTime") - {
     "for existed block" in {
