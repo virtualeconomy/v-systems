@@ -4,7 +4,6 @@ import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
-import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.transaction.TransactionParser._
 import scorex.transaction._
@@ -52,11 +51,10 @@ object ReleaseSlotsTransaction {
     val fee = Longs.fromByteArray(bytes.slice(slotIdEnd, slotIdEnd + 8))
     val feeScale = Shorts.fromByteArray(bytes.slice(slotIdEnd + 8, slotIdEnd + 10))
     val timestamp = Longs.fromByteArray(bytes.slice(slotIdEnd + 10, slotIdEnd + 18))
-    // if the proofs from bytes return validation error, return empty proofs
-    val proofs = Proofs.fromBytes(bytes.slice(slotIdEnd + 18, bytes.length)).getOrElse(Proofs.empty)
-    ReleaseSlotsTransaction
-      .create(slotId, fee, feeScale, timestamp, proofs)
-      .fold(left => Failure(new Exception(left.toString)), right => Success(right))
+    (for {
+      proofs <- Proofs.fromBytes(bytes.slice(slotIdEnd + 18, bytes.length))
+      tx <- ReleaseSlotsTransaction.create(slotId, fee, feeScale, timestamp, proofs)
+    } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(slotId: Int,
@@ -78,8 +76,8 @@ object ReleaseSlotsTransaction {
              feeScale: Short,
              timestamp: Long): Either[ValidationError, ReleaseSlotsTransaction] = for {
     unsigned <- create(slotId, fee, feeScale, timestamp, Proofs.empty)
-    signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign))
-    tx <- create(sender, slotId, fee, feeScale, timestamp, signature)
+    proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
+    tx <- create(slotId, fee, feeScale, timestamp, proofs)
   } yield tx
 
   def create(sender: PublicKeyAccount,
