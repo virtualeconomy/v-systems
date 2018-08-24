@@ -4,7 +4,6 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
-import scorex.crypto.EllipticCurveImpl
 import vee.database.{DataType, Entry}
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser.TransactionType

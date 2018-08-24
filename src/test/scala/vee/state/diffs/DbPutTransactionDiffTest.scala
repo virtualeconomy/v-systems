@@ -7,7 +7,6 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.transaction.{GenesisTransaction, ValidationError}
 import vee.transaction.database.DbPutTransaction
-import com.wavesplatform.state2.ByteStr
 import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffEi}
 import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
 import scorex.account.PrivateKeyAccount
