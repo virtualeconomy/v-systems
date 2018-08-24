@@ -59,13 +59,14 @@ object DbPutTransaction {
     val (dbKeyBytes, dbKeyEnd) = Deser.parseArraySize(bytes, 0)
     val dbKey: String = Deser.deserilizeString(dbKeyBytes)
     val (dbEntryBytes, dbEntryEnd) = Deser.parseArraySize(bytes, dbKeyEnd)
-    val dbEntry: Entry = Entry.fromBytes(dbEntryBytes).getOrElse(Entry.empty) //Return empty entry for validation error
-    val fee = Longs.fromByteArray(bytes.slice(dbEntryEnd, dbEntryEnd + 8))
-    val feeScale = Shorts.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 10))
-    val timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 10, dbEntryEnd + 18))
-    val proofs = Proofs.fromBytes(bytes.slice(dbEntryEnd + 18, bytes.length)).getOrElse(Proofs.empty) //Return empty proofs for validation error
-    DbPutTransaction.create(dbKey, dbEntry, fee, feeScale, timestamp, proofs)
-    .fold(left => Failure(new Exception(left.toString)), right => Success(right))
+    (for {
+      dbEntry <- Entry.fromBytes(dbEntryBytes)
+      fee = Longs.fromByteArray(bytes.slice(dbEntryEnd, dbEntryEnd + 8))
+      feeScale = Shorts.fromByteArray(bytes.slice(dbEntryEnd + 8, dbEntryEnd + 10))
+      timestamp = Longs.fromByteArray(bytes.slice(dbEntryEnd + 10, dbEntryEnd + 18))
+      proofs <- Proofs.fromBytes(bytes.slice(dbEntryEnd + 18, bytes.length))
+      tx <- DbPutTransaction.create(dbKey, dbEntry, fee, feeScale, timestamp, proofs)
+    } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(dbKey: String,
@@ -123,8 +124,8 @@ object DbPutTransaction {
              timestamp: Long): Either[ValidationError, DbPutTransaction] =
   for {
     unsigned <- create(dbKey, dbEntry, fee, feeScale, timestamp, Proofs.empty)
-    signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign))
-    tx <- create(sender, dbKey, dbEntry, fee, feeScale, timestamp, signature)
+    proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
+    tx <- create(dbKey, dbEntry, fee, feeScale, timestamp, proofs)
   } yield tx
 
   def create(sender: PrivateKeyAccount,

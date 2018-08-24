@@ -21,7 +21,6 @@ sealed trait Entry {
 object Entry {
 
   val maxLength: Int= 16384 //16k, if this one >=shorts.max 32767, serilization can be a problem
-  lazy val empty = Entry.buildEntry("", DataType.ByteArray).toOption.get
 
   def buildEntry(data: String, dataType: DataType.Value): Either[ValidationError, Entry] = {
     case class EntryImpl(data: String, dataType: DataType.Value) extends Entry
