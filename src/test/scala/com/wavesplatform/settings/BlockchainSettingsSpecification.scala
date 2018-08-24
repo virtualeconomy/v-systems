@@ -29,16 +29,13 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        allow-transactions-from-future-until = 6
         |        allow-unissued-assets-until = 7
         |        allow-burn-transaction-after = 8
-        |        require-payment-unique-id-after = 9
         |        allow-lease-transaction-after = 10
         |        allow-exchange-transaction-after = 11
         |        allow-invalid-reissue-in-same-block-until-timestamp = 12
         |        allow-createalias-transaction-after = 13
         |        allow-multiple-lease-cancel-transaction-until-timestamp = 14
         |        reset-effective-balances-at-height = 15
-        |        allow-contend-slots-transaction-after = 16
         |        allow-leased-balance-transfer-until = 17
-        |        allow-release-slots-transaction-after = 18
         |        num-of-slots = 5
         |        minting-speed = 5
         |      }
@@ -73,16 +70,13 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowTransactionsFromFutureUntil should be(6)
     settings.functionalitySettings.allowUnissuedAssetsUntil should be(7)
     settings.functionalitySettings.allowBurnTransactionAfter should be(8)
-    settings.functionalitySettings.requirePaymentUniqueIdAfter should be(9)
     settings.functionalitySettings.allowLeaseTransactionAfter should be(10)
     settings.functionalitySettings.allowExchangeTransactionAfter should be(11)
     settings.functionalitySettings.allowInvalidReissueInSameBlockUntilTimestamp should be(12)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(13)
     settings.functionalitySettings.allowMultipleLeaseCancelTransactionUntilTimestamp should be(14)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(15)
-    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(16)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(17)
-    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(18)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
     settings.genesisSettings.blockTimestamp should be(1460678400000L)
@@ -120,14 +114,11 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowTransactionsFromFutureUntil should be(1478100000000L)
     settings.functionalitySettings.allowUnissuedAssetsUntil should be(1479416400000L)
     settings.functionalitySettings.allowBurnTransactionAfter should be(1481110521000L)
-    settings.functionalitySettings.requirePaymentUniqueIdAfter should be(1485942685000L)
     settings.functionalitySettings.allowInvalidReissueInSameBlockUntilTimestamp should be(1492560000000000000L)
     settings.functionalitySettings.allowMultipleLeaseCancelTransactionUntilTimestamp should be(1492560000000000000L)
     settings.functionalitySettings.allowExchangeTransactionAfter should be(1483228800000L)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(51500)
     settings.functionalitySettings.allowCreatealiasTransactionAfter should be(1493596800000L)
-    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1493596800000L)
-    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(1493596800000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(1495238400000L)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
@@ -178,10 +169,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.allowInvalidReissueInSameBlockUntilTimestamp should be(1492768800000L)
     settings.functionalitySettings.allowMultipleLeaseCancelTransactionUntilTimestamp should be(1492768800000L)
     settings.functionalitySettings.resetEffectiveBalancesAtHeight should be(462000)
-    settings.functionalitySettings.requirePaymentUniqueIdAfter should be(1491192000000L)
     settings.functionalitySettings.allowExchangeTransactionAfter should be(1491192000000L)
-    settings.functionalitySettings.allowReleaseSlotsTransactionAfter should be(1503914400000L)
-    settings.functionalitySettings.allowContendSlotsTransactionAfter should be(1503914400000L)
     settings.functionalitySettings.allowLeasedBalanceTransferUntil should be(Long.MaxValue)
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)

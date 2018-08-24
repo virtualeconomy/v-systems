@@ -57,12 +57,10 @@ object CommonValidation {
         case _ => Right(tx)
       } else Right(tx)
 
-  def disallowDuplicateIds[T <: Transaction](state: StateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = tx match {
-    case ptx: PaymentTransaction if ptx.timestamp < settings.requirePaymentUniqueIdAfter => Right(tx)
-    case _ =>
-      if (state.containsTransaction(tx.id))
-        Left(GenericError(s"Tx id(exc. for some PaymentTransactions) cannot be duplicated. Current height is: $height. Tx with such id aready present"))
-      else Right(tx)
+  def disallowDuplicateIds[T <: Transaction](state: StateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = {
+    if (state.containsTransaction(tx.id))
+        Left(GenericError(s"Tx id cannot be duplicated. Current height is: $height. Tx with such id already present"))
+    else Right(tx)
   }
 
   def disallowBeforeActivationTime[T <: Transaction](settings: FunctionalitySettings, tx: T): Either[ValidationError, T] =
@@ -77,10 +75,6 @@ object CommonValidation {
         Left(GenericError(s"must not appear before time=${settings.allowExchangeTransactionAfter}"))
       case tx: CreateAliasTransaction if tx.timestamp <= settings.allowCreatealiasTransactionAfter =>
         Left(GenericError(s"must not appear before time=${settings.allowCreatealiasTransactionAfter}"))
-      case tx: ContendSlotsTransaction if tx.timestamp <= settings.allowContendSlotsTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowContendSlotsTransactionAfter}"))
-      case tx: ReleaseSlotsTransaction if tx.timestamp <= settings.allowReleaseSlotsTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowReleaseSlotsTransactionAfter}"))
       case _: BurnTransaction => Right(tx)
       case _: PaymentTransaction => Right(tx)
       case _: GenesisTransaction => Right(tx)
