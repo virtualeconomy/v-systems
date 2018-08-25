@@ -58,6 +58,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
         tx.amount shouldEqual txAfter.amount
         tx.fee shouldEqual txAfter.fee
         tx.feeScale shouldEqual txAfter.feeScale
+        tx.proofs shouldEqual txAfter.proofs
     }
   }
 
@@ -79,6 +80,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
         tx.amount shouldEqual txAfter.amount
         tx.fee shouldEqual txAfter.fee
         tx.feeScale shouldEqual txAfter.feeScale
+        tx.proofs shouldEqual txAfter.proofs
     }
   }
 
