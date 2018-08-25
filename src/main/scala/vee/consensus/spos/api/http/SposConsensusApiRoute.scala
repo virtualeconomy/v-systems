@@ -8,7 +8,6 @@ import io.swagger.annotations._
 import play.api.libs.json.{JsArray, Json}
 import scorex.account.Address
 import scorex.api.http.{ApiRoute, CommonApiFunctions, InvalidAddress, InvalidSlotId}
-import scorex.crypto.encode.Base58
 import scorex.transaction.{History, PoSCalc}
 import vee.spos.SPoSCalc
 
@@ -22,7 +21,7 @@ case class SposConsensusApiRoute(
 
   override val route: Route =
     pathPrefix("consensus") {
-      algo ~ allSlotsInfo ~ mintingBalance ~ mintingBalanceId ~ mintTime ~ mintTimeId ~ generationSignature ~ generationSignatureId ~ generatingBalance
+      algo ~ allSlotsInfo ~ mintingBalance ~ mintingBalanceId ~ mintTime ~ mintTimeId ~ generatingBalance
     }
 
   @Path("/generatingBalance/{address}")
@@ -109,23 +108,6 @@ case class SposConsensusApiRoute(
         }
       case _ => complete(InvalidSlotId)
     }
-  }
-
-  @Path("/generationSignature/{blockId}")
-  @ApiOperation(value = "Generation signature", notes = "Generation signature of a block with specified id", httpMethod = "GET")
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "blockId", value = "Block id ", required = true, dataType = "string", paramType = "path")
-  ))
-  def generationSignatureId: Route = (path("generationSignature" / Segment) & get) { encodedSignature =>
-    withBlock(history, encodedSignature) { block =>
-      complete(Json.obj("generationSignature" -> Base58.encode(block.consensusData.generationSignature)))
-    }
-  }
-
-  @Path("/generationSignature")
-  @ApiOperation(value = "Generation signature last", notes = "Generation signature of a last block", httpMethod = "GET")
-  def generationSignature: Route = (path("generationSignature") & get) {
-    complete(Json.obj("generationSignature" -> Base58.encode(history.lastBlock.get.consensusData.generationSignature)))
   }
 
   @Path("/mintTime/{blockId}")
