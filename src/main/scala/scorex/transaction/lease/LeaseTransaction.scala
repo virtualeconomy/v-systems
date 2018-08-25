@@ -53,18 +53,18 @@ object LeaseTransaction {
       feeScale = Shorts.fromByteArray(bytes.slice(quantityStart + 16, quantityStart + 18))
       timestamp = Longs.fromByteArray(bytes.slice(quantityStart + 18, quantityStart + 26))
       proofs <- Proofs.fromBytes(bytes.slice(quantityStart + 26, bytes.length))
-      tx <- LeaseTransaction.create(quantity, fee, feeScale, timestamp, recipient, proofs)
+      tx <- LeaseTransaction.createWithProof(quantity, fee, feeScale, timestamp, recipient, proofs)
 
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
-  def create(amount: Long,
+  def createWithProof(amount: Long,
              fee: Long,
              feeScale: Short,
              timestamp: Long,
              recipient: AddressOrAlias,
              proofs: Proofs): Either[ValidationError, LeaseTransaction] = {
-    val sender = EllipticCurve25519Proof.fromBytes(proofs.proofs.head.bytes.arr).toOption.get.publicKey
+
     if (amount <= 0) {
       Left(ValidationError.NegativeAmount)
     } else if (Try(Math.addExact(amount, fee)).isFailure) {
@@ -73,7 +73,9 @@ object LeaseTransaction {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
-    } else if (recipient.isInstanceOf[Address] && sender.stringRepr == recipient.stringRepr) {
+    } else if (recipient.isInstanceOf[Address]
+      && !proofs.equals(Proofs.empty)
+      && EllipticCurve25519Proof.fromBytes(proofs.proofs.head.bytes.arr).toOption.get.publicKey.stringRepr == recipient.stringRepr) {
       Left(ValidationError.ToSelf)
     } else {
       Right(LeaseTransaction(amount, fee, feeScale, timestamp, recipient, proofs))
@@ -86,9 +88,9 @@ object LeaseTransaction {
              feeScale: Short,
              timestamp: Long,
              recipient: AddressOrAlias): Either[ValidationError, LeaseTransaction] = for {
-    unsigned <- create(amount, fee, feeScale, timestamp, recipient, Proofs.empty)
+    unsigned <- createWithProof(amount, fee, feeScale, timestamp, recipient, Proofs.empty)
     proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
-    tx <- create(amount, fee, feeScale, timestamp, recipient, proofs)
+    tx <- createWithProof(amount, fee, feeScale, timestamp, recipient, proofs)
   } yield tx
 
   def create(sender: PublicKeyAccount,
@@ -99,6 +101,6 @@ object LeaseTransaction {
              recipient: AddressOrAlias,
              signature: ByteStr): Either[ValidationError, LeaseTransaction] = for {
     proofs <- Proofs.create(List(EllipticCurve25519Proof.buildProof(sender, signature).bytes))
-    tx <- create(amount, fee, feeScale, timeStamp,recipient, proofs)
+    tx <- createWithProof(amount, fee, feeScale, timeStamp,recipient, proofs)
   } yield tx
 }
