@@ -13,7 +13,6 @@ case class FunctionalitySettings(numOfSlots: Int,
                                  mintingSpeed: Int)
 
 object FunctionalitySettings {
-  //TODO, change the default settings
   val MAINNET = FunctionalitySettings(
     numOfSlots = 5,
     mintingSpeed = 5)
