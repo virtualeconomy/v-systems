@@ -5,7 +5,6 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.lease.LeaseTransaction
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
 

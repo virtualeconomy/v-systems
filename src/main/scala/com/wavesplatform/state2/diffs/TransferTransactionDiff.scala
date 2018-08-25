@@ -41,15 +41,12 @@ object TransferTransactionDiff {
         case None => true
         case Some(aid) => state.assetInfo(aid).isDefined
       }
-    } yield (portfolios, blockTime > s.allowUnissuedAssetsUntil && !(assetIssued && feeAssetIssued))
+    } yield (portfolios, !(assetIssued && feeAssetIssued))
 
     isInvalidEi match {
       case Left(e) => Left(e)
       case Right((portfolios, invalid)) =>
-        if (invalid)
-          Left(GenericError(s"Unissued assets are not allowed after allowUnissuedAssetsUntil=${s.allowUnissuedAssetsUntil}"))
-        else
-          Right(Diff(height, tx, portfolios))
+        Left(GenericError(s"Unissued assets are not allowed"))
     }
   }
 }

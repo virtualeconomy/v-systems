@@ -16,11 +16,6 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  private val allowMultipleLeaseCancelTransactionUntilTimestamp = Long.MaxValue / 2
-  private val settings = TestFunctionalitySettings.Enabled.copy(
-    allowMultipleLeaseCancelTransactionUntilTimestamp = allowMultipleLeaseCancelTransactionUntilTimestamp)
-
-
   def total(l: LeaseInfo): Long = l.leaseIn - l.leaseOut
 
   property("can lease/cancel lease preserving vee invariant") {
@@ -75,7 +70,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
   property("cannot cancel lease twice") {
     forAll(cancelLeaseTwice, timestampGen) {
       case ((genesis, payment, lease, leaseCancel, leaseCancel2), blockTime) =>
-        assertDiffEi(Seq(TestBlock.create(Seq(genesis, payment, lease, leaseCancel))), TestBlock.create(blockTime, Seq(leaseCancel2)), settings) { totalDiffEi =>
+        assertDiffEi(Seq(TestBlock.create(Seq(genesis, payment, lease, leaseCancel))), TestBlock.create(blockTime, Seq(leaseCancel2)), TestFunctionalitySettings.Enabled) { totalDiffEi =>
           totalDiffEi should produce("Cannot cancel already cancelled lease")
         }
     }
@@ -93,7 +88,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     } yield (genesis, lease, leaseForward)
 
     forAll(setup) { case ((genesis, lease, leaseForward)) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, lease))), TestBlock.create(Seq(leaseForward)), settings) { totalDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, lease))), TestBlock.create(Seq(leaseForward)), TestFunctionalitySettings.Enabled) { totalDiffEi =>
         totalDiffEi should produce("Cannot lease more than own")
       }
     }
@@ -115,7 +110,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
   property("cannot cancel lease of another sender") {
     forAll(Gen.oneOf(true, false).flatMap(cancelLeaseOfAnotherSender), timestampGen) {
       case ((genesis, genesis2, lease, unleaseOtherOrRecipient), blockTime) =>
-        assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseOtherOrRecipient)), settings) { totalDiffEi =>
+        assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseOtherOrRecipient)), TestFunctionalitySettings.Enabled) { totalDiffEi =>
           totalDiffEi should produce("LeaseTransaction was leased by other sender")
         }
     }

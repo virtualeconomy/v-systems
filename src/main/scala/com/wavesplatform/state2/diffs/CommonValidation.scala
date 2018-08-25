@@ -8,12 +8,6 @@ import scorex.account.Address
 import scorex.transaction.ValidationError.{GenericError, Mistiming}
 import scorex.transaction._
 import scorex.transaction.assets._
-import scorex.transaction.assets.exchange.ExchangeTransaction
-import vee.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
-import vee.transaction.database.DbPutTransaction
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vee.transaction.MintingTransaction
-import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -61,37 +55,6 @@ object CommonValidation {
         Left(GenericError(s"Tx id cannot be duplicated. Current height is: $height. Tx with such id already present"))
     else Right(tx)
   }
-
-  def disallowBeforeActivationTime[T <: Transaction](settings: FunctionalitySettings, tx: T): Either[ValidationError, T] =
-    tx match {
-      case tx: BurnTransaction if tx.timestamp <= settings.allowBurnTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowBurnTransactionAfter}"))
-      case tx: LeaseTransaction if tx.timestamp <= settings.allowLeaseTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowLeaseTransactionAfter}"))
-      case tx: LeaseCancelTransaction if tx.timestamp <= settings.allowLeaseTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowLeaseTransactionAfter}"))
-      case tx: ExchangeTransaction if tx.timestamp <= settings.allowExchangeTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowExchangeTransactionAfter}"))
-      case tx: CreateAliasTransaction if tx.timestamp <= settings.allowCreatealiasTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowCreatealiasTransactionAfter}"))
-      case _: BurnTransaction => Right(tx)
-      case _: PaymentTransaction => Right(tx)
-      case _: GenesisTransaction => Right(tx)
-      case _: TransferTransaction => Right(tx)
-      case _: IssueTransaction => Right(tx)
-      case _: ReissueTransaction => Right(tx)
-      case _: ExchangeTransaction => Right(tx)
-      case _: LeaseTransaction => Right(tx)
-      case _: LeaseCancelTransaction => Right(tx)
-      case _: CreateAliasTransaction => Right(tx)
-      case _: MintingTransaction => Right(tx)
-      case _: ContendSlotsTransaction => Right(tx)
-      case _: ReleaseSlotsTransaction => Right(tx)
-      case _: CreateContractTransaction => Right(tx)
-      case _: ChangeContractStatusTransaction => Right(tx)
-      case _: DbPutTransaction => Right(tx)
-      case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
-    }
 
   def disallowTxFromFuture[T <: Transaction](time: Long, tx: T): Either[ValidationError, T] = {
 

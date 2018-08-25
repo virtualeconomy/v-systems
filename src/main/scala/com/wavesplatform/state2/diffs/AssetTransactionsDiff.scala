@@ -1,6 +1,5 @@
 package com.wavesplatform.state2.diffs
 
-import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{AssetInfo, Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError.GenericError

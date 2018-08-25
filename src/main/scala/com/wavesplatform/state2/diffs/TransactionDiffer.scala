@@ -23,8 +23,7 @@ object TransactionDiffer {
       t0 <- Signed.validateSignatures(tx)
       t1 <- CommonValidation.disallowTxFromFuture(currentBlockTimestamp, t0)
       t2 <- CommonValidation.disallowTxFromPast(prevBlockTimestamp, t1)
-      t3 <- CommonValidation.disallowBeforeActivationTime(settings, t2)
-      t4 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t3)
+      t4 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t2)
       t5 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t4)
       t6 <- CommonValidation.disallowInvalidFeeScale(t5)
       diff <- t6 match {
@@ -46,7 +45,7 @@ object TransactionDiffer {
         case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }
-      positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp, settings)(diff)
+      positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp)(diff)
     } yield positiveDiff
   }.left.map(TransactionValidationError(_, tx))
 }

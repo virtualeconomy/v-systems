@@ -4,7 +4,6 @@ import cats.Monoid
 import cats.implicits._
 import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2._
-import com.wavesplatform.state2.patch.LeasePatch
 import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
 import scorex.block.Block
 import scorex.transaction.{Signed, Transaction, ValidationError}
@@ -37,10 +36,7 @@ object BlockDiffer extends ScorexLogging {
     }
 
     txsDiffEi.map { d =>
-      val diff = if (currentBlockHeight == settings.resetEffectiveBalancesAtHeight)
-        Monoid.combine(d, LeasePatch(new CompositeStateReader(s, d.asBlockDiff)))
-      else d
-      val newSnapshots = diff.portfolios
+      val newSnapshots = d.portfolios
         .collect { case (acc, portfolioDiff) if portfolioDiff.balance != 0 || portfolioDiff.effectiveBalance != 0 =>
           val oldPortfolio = s.accountPortfolio(acc)
           val lastHeight = s.lastUpdateHeight(acc).getOrElse(0)
@@ -59,7 +55,7 @@ object BlockDiffer extends ScorexLogging {
             weightedBalance = newWeightedBalance)
           )
         }
-      BlockDiff(diff, heightDiff, newSnapshots)
+      BlockDiff(d, heightDiff, newSnapshots)
     }
   }
 }
