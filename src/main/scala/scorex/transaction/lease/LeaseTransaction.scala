@@ -4,7 +4,6 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
-import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser._
 import scorex.transaction._
 import vee.transaction.ProvenTransaction
@@ -37,8 +36,6 @@ case class LeaseTransaction private(amount: Long,
     "timestamp" -> timestamp
   )
 
-  // TODO
-  // add feeScale in assetFee, need to change 100 later
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
@@ -55,9 +52,10 @@ object LeaseTransaction {
       fee = Longs.fromByteArray(bytes.slice(quantityStart + 8, quantityStart + 16))
       feeScale = Shorts.fromByteArray(bytes.slice(quantityStart + 16, quantityStart + 18))
       timestamp = Longs.fromByteArray(bytes.slice(quantityStart + 18, quantityStart + 26))
-      signature = ByteStr(bytes.slice(quantityStart + 26, quantityStart + 26 + SignatureLength))
-      lt <- LeaseTransaction.create(quantity, fee, feeScale, timestamp, recipient, proofs)
-    } yield lt).fold(left => Failure(new Exception(left.toString)), right => Success(right))
+      proofs <- Proofs.fromBytes(bytes.slice(quantityStart + 26, bytes.length))
+      tx <- LeaseTransaction.create(quantity, fee, feeScale, timestamp, recipient, proofs)
+
+    } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def create(amount: Long,

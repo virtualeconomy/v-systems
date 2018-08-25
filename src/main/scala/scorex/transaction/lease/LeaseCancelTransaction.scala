@@ -4,26 +4,24 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.crypto.EllipticCurveImpl
-import scorex.crypto.EllipticCurveImpl.SignatureLength
 import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.TransactionParser.{KeyLength, _}
 import scorex.transaction._
+import vee.transaction.ProvenTransaction
+import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Failure, Success, Try}
 
-case class LeaseCancelTransaction private(sender: PublicKeyAccount,
-                                          leaseId: ByteStr,
+case class LeaseCancelTransaction private(leaseId: ByteStr,
                                           fee: Long,
                                           feeScale: Short,
                                           timestamp: Long,
-                                          signature: ByteStr)
-  extends SignedTransaction {
+                                          proofs: Proofs)
+  extends ProvenTransaction {
 
   override val transactionType: TransactionType.Value = TransactionType.LeaseCancelTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(Array(transactionType.id.toByte),
-    sender.publicKey,
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp),
@@ -36,10 +34,8 @@ case class LeaseCancelTransaction private(sender: PublicKeyAccount,
     "leaseId" -> leaseId.base58
   )
 
-  // TODO
-  // add feeScale in assetFee, need to change 100 later
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
-  override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
+  override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
@@ -51,18 +47,17 @@ object LeaseCancelTransaction {
     val feeScale = Shorts.fromByteArray(bytes.slice(KeyLength + 8, KeyLength + 10))
     val timestamp = Longs.fromByteArray(bytes.slice(KeyLength + 10, KeyLength + 18))
     val leaseId = ByteStr(bytes.slice(KeyLength + 18, KeyLength + 18 + DigestSize))
-    val signature = ByteStr(bytes.slice(KeyLength + 18 + DigestSize, KeyLength + 18 + DigestSize + SignatureLength))
-    LeaseCancelTransaction
-      .create(sender, leaseId, fee, feeScale, timestamp, signature)
-      .fold(left => Failure(new Exception(left.toString)), right => Success(right))
+    (for {
+      proofs <- Proofs.fromBytes(bytes.slice(KeyLength + 18 + DigestSize, bytes.length))
+      tx <- LeaseCancelTransaction.create(leaseId, fee, feeScale, timestamp, proofs)
+    } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
-  def create(sender: PublicKeyAccount,
-             leaseId: ByteStr,
+  def create(leaseId: ByteStr,
              fee: Long,
              feeScale: Short,
              timestamp: Long,
-             signature: ByteStr): Either[ValidationError, LeaseCancelTransaction] =
+             proofs: Proofs): Either[ValidationError, LeaseCancelTransaction] =
     if (leaseId.arr.length != DigestSize) {
       Left(ValidationError.GenericError("Lease transaction id is invalid"))
     } else if (fee <= 0) {
@@ -70,16 +65,26 @@ object LeaseCancelTransaction {
     } else if (feeScale != 100){
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(LeaseCancelTransaction(sender, leaseId, fee, feeScale, timestamp, signature))
+      Right(LeaseCancelTransaction(leaseId, fee, feeScale, timestamp, proofs))
     }
 
   def create(sender: PrivateKeyAccount,
              leaseId: ByteStr,
              fee: Long,
              feeScale: Short,
-             timestamp: Long): Either[ValidationError, LeaseCancelTransaction] = {
-    create(sender, leaseId, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
-      unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
-    }
-  }
+             timestamp: Long): Either[ValidationError, LeaseCancelTransaction] = for {
+    unsigned <- create(leaseId, fee, feeScale, timestamp, Proofs.empty)
+    proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
+    tx <- create(leaseId, fee, feeScale, timestamp, proofs)
+  } yield tx
+
+  def create(sender: PublicKeyAccount,
+             leaseId: ByteStr,
+             fee: Long,
+             feeScale: Short,
+             timestamp: Long,
+             signature: ByteStr): Either[ValidationError, LeaseCancelTransaction] = for {
+    proofs <- Proofs.create(List(EllipticCurve25519Proof.buildProof(sender, signature).bytes))
+    tx <- create(leaseId, fee, feeScale, timestamp, proofs)
+  } yield tx
 }
