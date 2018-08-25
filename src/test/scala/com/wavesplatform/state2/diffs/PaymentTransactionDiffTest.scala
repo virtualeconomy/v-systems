@@ -8,6 +8,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
+import vee.transaction.proof.EllipticCurve25519Proof
 
 class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -26,9 +27,10 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
     forAll(preconditionsAndPayment) { case ((genesis, payment, feePayment)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(payment))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
+        val sender = EllipticCurve25519Proof.fromBytes(payment.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         totalPortfolioDiff.balance shouldBe -feePayment
         totalPortfolioDiff.effectiveBalance shouldBe -feePayment
-        newState.accountTransactionIds(payment.sender, 2).size shouldBe 2 // genesis and payment
+        newState.accountTransactionIds(sender.toAddress, 2).size shouldBe 2 // genesis and payment
       }
     }
   }
