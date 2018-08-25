@@ -11,6 +11,7 @@ import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
+import vee.transaction.proof.EllipticCurve25519Proof
 
 class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -53,7 +54,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
         totalDiff.snapshots(lease.recipient.asInstanceOf[Address]) shouldBe Map(2 -> Snapshot(1, 0, 0, 0))
 
-        newState.accountPortfolio(lease.sender).leaseInfo shouldBe LeaseInfo.empty
+        newState.accountPortfolio(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo shouldBe LeaseInfo.empty
         newState.accountPortfolio(lease.recipient.asInstanceOf[Address]).leaseInfo shouldBe LeaseInfo.empty
       }
     }
@@ -134,9 +135,9 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     forAll(cancelLeaseOfAnotherSender(unleaseByRecipient = false), timestampGen retryUntil (_ < allowMultipleLeaseCancelTransactionUntilTimestamp)) {
       case ((genesis, genesis2, lease, unleaseOther), blockTime) =>
         assertDiffAndState(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseOther)), settings) { case (totalDiff, newState) =>
-          totalDiff.txsDiff.portfolios.get(lease.sender) shouldBe None
+          totalDiff.txsDiff.portfolios.get(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey) shouldBe None
           total(totalDiff.txsDiff.portfolios(lease.recipient.asInstanceOf[Address]).leaseInfo) shouldBe -lease.amount
-          total(totalDiff.txsDiff.portfolios(unleaseOther.sender).leaseInfo) shouldBe lease.amount
+          total(totalDiff.txsDiff.portfolios(EllipticCurve25519Proof.fromBytes(unleaseOther.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo) shouldBe lease.amount
         }
     }
   }
@@ -145,8 +146,8 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     forAll(cancelLeaseOfAnotherSender(unleaseByRecipient = true), timestampGen retryUntil (_ < allowMultipleLeaseCancelTransactionUntilTimestamp)) {
       case ((genesis, genesis2, lease, unleaseRecipient), blockTime) =>
         assertDiffAndState(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseRecipient)), settings) { case (totalDiff, newState) =>
-          totalDiff.txsDiff.portfolios.get(lease.sender) shouldBe None
-          total(totalDiff.txsDiff.portfolios(unleaseRecipient.sender).leaseInfo) shouldBe 0
+          totalDiff.txsDiff.portfolios.get(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey) shouldBe None
+          total(totalDiff.txsDiff.portfolios(EllipticCurve25519Proof.fromBytes(unleaseRecipient.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo) shouldBe 0
         }
     }
   }

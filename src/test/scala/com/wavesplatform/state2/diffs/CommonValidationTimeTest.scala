@@ -15,7 +15,7 @@ class CommonValidationTimeTest extends PropSpec with PropertyChecks with Generat
   property("disallows too old transacions") {
     forAll(for {
       prevBlockTs <- timestampGen
-      blockTs <- timestampGen
+      blockTs <- Gen.choose(prevBlockTs, prevBlockTs + 7 * 24 * 3600 * 1000)
       master <- accountGen
       height <- positiveIntGen
       recipient <- accountGen
