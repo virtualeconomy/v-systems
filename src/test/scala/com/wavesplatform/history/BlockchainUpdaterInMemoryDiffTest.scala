@@ -13,6 +13,7 @@ class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks wit
   val preconditionsAndPayments: Gen[(GenesisTransaction, PaymentTransaction, PaymentTransaction)] = for {
     master <- accountGen
     recipient <- accountGen
+    //just because the block time is 0 in this test case. Need refactoring later.
     ts <- Gen.choose(1, MaxTimeTransactionOverBlockDiff.toNanos - 1)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     payment: PaymentTransaction <- paymentGeneratorP(ts, master, recipient)
