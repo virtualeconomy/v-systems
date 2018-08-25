@@ -5,6 +5,7 @@ import play.api.libs.json.{JsObject, Json}
 import scorex.transaction.ValidationError
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
+import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser.KeyLength
 
 sealed trait EllipticCurve25519Proof extends Proof{
@@ -20,7 +21,7 @@ sealed trait EllipticCurve25519Proof extends Proof{
 
   lazy val json: JsObject = Json.obj(
     "proofType" -> proofType, // we can also write the detail name here
-    "publicKey" -> PublicKeyAccount.toAddress(publicKey).address,
+    "publicKey" -> Base58.encode(publicKey.publicKey),
     "signature" -> signature.base58
   )
 
