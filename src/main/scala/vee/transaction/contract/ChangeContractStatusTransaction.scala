@@ -40,8 +40,6 @@ case class ChangeContractStatusTransaction private(contractName: String,
     "timestamp" -> timestamp
   )
 
-  // TODO
-  // add feeScale in assetFee, need to change 100 later
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 }

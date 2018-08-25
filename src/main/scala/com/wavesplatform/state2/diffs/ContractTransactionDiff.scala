@@ -13,11 +13,11 @@ object ContractTransactionDiff {
   def create(s: StateReader, height: Int)(tx: CreateContractTransaction): Either[ValidationError, Diff] = {
     //no need to validate the name duplication coz that will create a duplicate transacion and
     // will fail with duplicated transaction id
-    val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     if (tx.proofs.proofs.length > Proofs.MaxProofs){
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     }
     else {
+      val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       val contractInfo = (tx.contract.enabled, sender.toAddress, tx.contract.content)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
