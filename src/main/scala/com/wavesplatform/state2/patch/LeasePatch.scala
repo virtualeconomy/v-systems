@@ -2,6 +2,7 @@ package com.wavesplatform.state2.patch
 
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
+import scorex.transaction.TransactionStatus
 
 object LeasePatch {
   def apply(s: StateReader): Diff = {
@@ -19,9 +20,10 @@ object LeasePatch {
       aliases = Map.empty,
       slotids = Map.empty,
       slotNum = 0,
+      txStatus = TransactionStatus.Unprocessed,
+      chargedFee = 0L,
       contracts = Map.empty,
       dbEntries = Map.empty,
-      paymentTransactionIdsByHashes = Map.empty,
       orderFills = Map.empty,
       leaseState = s.activeLeases().map(_ -> false).toMap)
   }

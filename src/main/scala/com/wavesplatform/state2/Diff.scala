@@ -4,7 +4,7 @@ import cats.Monoid
 import cats.implicits._
 import scorex.account.{Address, Alias}
 import vee.database.Entry
-import scorex.transaction.Transaction
+import scorex.transaction.{ProcessedTransaction, Transaction, TransactionStatus}
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)
 
@@ -40,21 +40,22 @@ object AssetInfo {
   }
 }
 
-case class Diff(transactions: Map[ByteStr, (Int, Transaction, Set[Address])],
+case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Address])],
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
                 aliases: Map[Alias, Address],
                 slotids: Map[Int,String],
                 slotNum: Int,
+                txStatus: TransactionStatus.Value,
+                chargedFee: Long,
                 contracts: Map[String, (Boolean, Address, String)],
                 dbEntries: Map[ByteStr, Entry],
-                paymentTransactionIdsByHashes: Map[ByteStr, ByteStr],
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
 
   lazy val accountTransactionIds: Map[Address, List[ByteStr]] = {
     val map: List[(Address, Set[(Int, Long, ByteStr)])] = transactions.toList
-      .flatMap { case (id, (h, tx, accs)) => accs.map(acc => acc -> Set((h, tx.timestamp, id))) }
+      .flatMap { case (id, (h, tx, accs)) => accs.map(acc => acc -> Set((h, tx.transaction.timestamp, id))) }
     val groupedByAcc = map.foldLeft(Map.empty[Address, Set[(Int, Long, ByteStr)]]) { case (m, (acc, set)) =>
       m.combine(Map(acc -> set))
     }
@@ -71,24 +72,26 @@ object Diff {
             aliases: Map[Alias, Address] = Map.empty,
             slotids: Map[Int,String] = Map.empty,
             slotNum: Int = 0,
+            txStatus: TransactionStatus.Value = TransactionStatus.Success,
+            chargedFee: Long = 0,
             contracts: Map[String, (Boolean, Address, String)] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
-            paymentTransactionIdsByHashes: Map[ByteStr, ByteStr] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
-    transactions = Map((tx.id, (height, tx, portfolios.keys.toSet))),
+    transactions = Map((tx.id, (height, ProcessedTransaction(txStatus, chargedFee, tx), portfolios.keys.toSet))),
     portfolios = portfolios,
     issuedAssets = assetInfos,
     aliases = aliases,
     slotids = slotids,
     slotNum = slotNum,
+    txStatus = txStatus,
+    chargedFee = chargedFee,
     contracts = contracts,
     dbEntries = dbEntries,
-    paymentTransactionIdsByHashes = paymentTransactionIdsByHashes,
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -104,9 +107,10 @@ object Diff {
       aliases = older.aliases ++ newer.aliases,
       slotids = older.slotids ++ newer.slotids,
       slotNum = older.slotNum + newer.slotNum,
+      txStatus = newer.txStatus,
+      chargedFee = newer.chargedFee,
       contracts = older.contracts ++ newer.contracts,
       dbEntries = older.dbEntries ++ newer.dbEntries,
-      paymentTransactionIdsByHashes = older.paymentTransactionIdsByHashes ++ newer.paymentTransactionIdsByHashes,
       orderFills = older.orderFills.combine(newer.orderFills),
       leaseState = older.leaseState ++ newer.leaseState)
   }
