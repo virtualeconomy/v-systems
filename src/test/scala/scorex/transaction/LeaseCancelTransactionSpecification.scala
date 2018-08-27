@@ -35,7 +35,7 @@ class LeaseCancelTransactionSpecification extends PropSpec with PropertyChecks w
   private def assertTxs(first: LeaseCancelTransaction, second: LeaseCancelTransaction): Unit = {
     first.leaseId shouldEqual second.leaseId
     first.fee shouldEqual second.fee
-    first.signature shouldEqual second.signature
+    first.proofs.bytes shouldEqual second.proofs.bytes
     first.bytes shouldEqual second.bytes
   }
 

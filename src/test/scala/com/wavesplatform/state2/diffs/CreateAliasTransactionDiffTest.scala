@@ -10,6 +10,7 @@ import scorex.account.PrivateKeyAccount
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.{CreateAliasTransaction, GenesisTransaction}
+import vee.transaction.proof.EllipticCurve25519Proof
 
 @Ignore
 class CreateAliasTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -95,7 +96,7 @@ class CreateAliasTransactionDiffTest extends PropSpec with PropertyChecks with G
   property("Can lease to alias except for self") {
     forAll(preconditionsTransferLease) { case (gen, gen2, issue1, issue2, aliasTx, _, lease) =>
       assertDiffEi(Seq(TestBlock.create(Seq(gen, gen2, issue1, issue2, aliasTx))), TestBlock.create(Seq(lease))) { blockDiffEi =>
-        if (lease.sender.toAddress != aliasTx.sender.toAddress) {
+        if (EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toAddress != aliasTx.sender.toAddress) {
           val recipientPortfolioDiff = blockDiffEi.explicitGet().txsDiff.portfolios(aliasTx.sender)
           recipientPortfolioDiff shouldBe Portfolio(0, LeaseInfo(lease.amount, 0), Map.empty)
         }

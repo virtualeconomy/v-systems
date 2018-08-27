@@ -1,16 +1,19 @@
 package com.wavesplatform.state2.diffs
 
 import cats._
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.TransactionGen
 import com.wavesplatform.state2._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import scorex.account.Address
+import scorex.account.{Address, PrivateKeyAccount}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
+import vee.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
+import scorex.transaction._
 import com.wavesplatform.state2.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
 class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -18,6 +21,40 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   def total(l: LeaseInfo): Long = l.leaseIn - l.leaseOut
+
+  property("can not lease to self") {
+    val selfLease: Gen[(GenesisTransaction, LeaseTransaction)] = for {
+      master: PrivateKeyAccount <- accountGen
+      amount <- positiveLongGen
+      fee <- smallFeeGen
+      feeScale <- feeScaleGen
+      ts <- timestampGen
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+
+      toSign = Bytes.concat(Array(TransactionParser.TransactionType.LeaseTransaction.id.toByte),
+        master.toAddress.bytes.arr,
+        Longs.toByteArray(amount),
+        Longs.toByteArray(fee),
+        Shorts.toByteArray(feeScale),
+        Longs.toByteArray(ts + 1))
+
+      proof: Proof = EllipticCurve25519Proof.createProof(toSign, master)
+      proofs: Proofs =  Proofs.create(List(proof.bytes)).right.get
+      lease: LeaseTransaction = LeaseTransaction(amount, fee, feeScale, ts + 1, master.toAddress, proofs)
+
+    } yield (genesis, lease)
+
+    forAll(selfLease) { case (genesis, lease) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(lease))) { totalDiffEi =>
+        totalDiffEi should produce("Cannot lease to self")
+      }
+    }
+
+    forAll(selfLease) { case (_, lease: LeaseTransaction) =>
+      LeaseTransaction.createWithProof(lease.amount, lease.fee, lease.feeScale, lease.timestamp, lease.recipient, lease.proofs) shouldBe Left(ValidationError.ToSelf)
+    }
+
+  }
 
   property("can lease/cancel lease preserving vee invariant") {
 
@@ -49,7 +86,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
         totalDiff.snapshots(lease.recipient.asInstanceOf[Address]) shouldBe Map(2 -> Snapshot(1, 0, 0, 0))
 
-        newState.accountPortfolio(lease.sender).leaseInfo shouldBe LeaseInfo.empty
+        newState.accountPortfolio(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo shouldBe LeaseInfo.empty
         newState.accountPortfolio(lease.recipient.asInstanceOf[Address]).leaseInfo shouldBe LeaseInfo.empty
       }
     }

@@ -9,6 +9,7 @@ import scorex.api.http.leasing.{SignedLeaseCancelRequest, SignedLeaseRequest}
 import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser
 import scorex.transaction.assets.{IssueTransaction, TransferTransaction}
+import vee.transaction.proof.EllipticCurve25519Proof
 
 trait RequestGen extends TransactionGen {
   val nonPositiveLong: G[Long] = choose(Long.MinValue, 0).label("non-positive value")
@@ -117,11 +118,11 @@ trait RequestGen extends TransactionGen {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
     _alias <- leaseGen
-  } yield SignedLeaseRequest(_alias.sender.toString, _alias.amount, _alias.fee, _alias.feeScale, _alias.recipient.toString, _timestamp, _signature)
+  } yield SignedLeaseRequest(EllipticCurve25519Proof.fromBytes(_alias.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toString, _alias.amount, _alias.fee, _alias.feeScale, _alias.recipient.toString, _timestamp, _signature)
 
   val leaseCancelReq: G[SignedLeaseCancelRequest] = for {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
     _cancel <- leaseCancelGen
-  } yield SignedLeaseCancelRequest(_cancel.sender.toString, _cancel.leaseId.base58, _cancel.timestamp, _signature, _cancel.fee, _cancel.feeScale)
+  } yield SignedLeaseCancelRequest(EllipticCurve25519Proof.fromBytes(_cancel.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toString, _cancel.leaseId.base58, _cancel.timestamp, _signature, _cancel.fee, _cancel.feeScale)
 }
