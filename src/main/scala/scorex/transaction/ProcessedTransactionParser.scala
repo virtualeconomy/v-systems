@@ -19,6 +19,12 @@ object ProcessedTransactionParser {
       case status: Byte if status == TransactionStatus.Failed.id =>
         parseTail(TransactionStatus.Failed, data.tail)
 
+      case status: Byte if status == TransactionStatus.Unprocessed.id =>
+        parseTail(TransactionStatus.Unprocessed, data.tail)
+
+      case status: Byte if status == TransactionStatus.ContendFailed.id =>
+        parseTail(TransactionStatus.ContendFailed, data.tail)
+
       case status => Failure(new Exception(s"Invalid transaction status: $status"))
     }
   }
