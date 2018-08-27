@@ -25,7 +25,7 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
       attachment <- attachmentGen
       amount <- Gen.choose(Long.MaxValue / 2, Long.MaxValue - fee - 1)
       transfer1 = PaymentTransaction.create(master, recipient, amount, fee, feeScale, ts, attachment).right.get
-      transfer2 = PaymentTransaction.create(master2, recipient, amount, fee, feeScale, ts, attachment).right.get
+      transfer2 = PaymentTransaction.create(master2, recipient, amount, fee, feeScale, ts + 1, attachment).right.get
     } yield (gen1, gen2, transfer1, transfer2)
 
 

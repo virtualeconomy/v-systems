@@ -26,7 +26,6 @@ package object history {
   }
 
   private val defaultSigner = PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0))
-  private val generationSignature = Array.fill(Block.GeneratorSignatureLength)(0: Byte)
 
   def buildBlockOfTxs(refTo: ByteStr, txs: Seq[Transaction]): Block = {
     Block.buildAndSign(
@@ -35,8 +34,7 @@ package object history {
       reference = refTo,
       consensusData = SposConsensusBlockData(
         mintTime = 0L,
-        mintBalance = 0L,
-        generationSignature = generationSignature),
+        mintBalance = 0L),
       transactionData = txs,
       signer = defaultSigner)
   }

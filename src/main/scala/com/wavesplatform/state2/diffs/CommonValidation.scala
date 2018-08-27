@@ -8,6 +8,7 @@ import scorex.account.Address
 import scorex.transaction.ValidationError.{GenericError, Mistiming}
 import scorex.transaction._
 import scorex.transaction.assets._
+import vee.transaction.proof.EllipticCurve25519Proof
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -18,10 +19,11 @@ object CommonValidation {
   val MaxTimePrevBlockOverTransactionDiff: FiniteDuration = 2.hours
 
   def disallowSendingGreaterThanBalance[T <: Transaction](s: StateReader, settings: FunctionalitySettings, blockTime: Long, tx: T): Either[ValidationError, T] =
+
     tx match {
-      case ptx: PaymentTransaction if s.accountPortfolio(ptx.sender).balance < (ptx.amount + ptx.fee) =>
+      case ptx: PaymentTransaction if s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance < (ptx.amount + ptx.fee) =>
         Left(GenericError(s"Attempt to pay unavailable funds: balance " +
-          s"${s.accountPortfolio(ptx.sender).balance} is less than ${ptx.amount + ptx.fee}"))
+          s"${s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance} is less than ${ptx.amount + ptx.fee}"))
       case ttx: TransferTransaction =>
         val sender: Address = ttx.sender
 

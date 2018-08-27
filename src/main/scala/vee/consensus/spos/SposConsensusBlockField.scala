@@ -3,7 +3,6 @@ package vee.consensus.spos
 import com.google.common.primitives.{Bytes, Longs}
 import play.api.libs.json.{JsObject, Json}
 import scorex.block.BlockField
-import scorex.crypto.encode.Base58
 
 
 case class SposConsensusBlockField(override val value: SposConsensusBlockData)
@@ -13,14 +12,12 @@ case class SposConsensusBlockField(override val value: SposConsensusBlockData)
 
   override def bytes: Array[Byte] =
     Bytes.ensureCapacity(Longs.toByteArray(value.mintTime), 8, 0) ++
-      Bytes.ensureCapacity(Longs.toByteArray(value.mintBalance), 8, 0) ++
-      value.generationSignature
+      Bytes.ensureCapacity(Longs.toByteArray(value.mintBalance), 8, 0)
 
 
 
   override def json: JsObject = Json.obj(name -> Json.obj(
     "mintTime" -> value.mintTime,
-    "mintBalance" -> value.mintBalance,
-    "generationSignature" -> Base58.encode(value.generationSignature)
+    "mintBalance" -> value.mintBalance
   ))
 }
