@@ -29,7 +29,7 @@ object LeaseTransactionsDiff {
             sender -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
             recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
           )
-          Right(Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true)))
+          Right(Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee))
         }
       }
     }
@@ -54,7 +54,7 @@ object LeaseTransactionsDiff {
           Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty))))
       } else Left(GenericError(s"LeaseTransaction was leased by other sender"))
 
-    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false))
+    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false), chargedFee = tx.fee)
   }
 }
 
