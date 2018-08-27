@@ -18,7 +18,7 @@ object LeaseTransactionsDiff {
   def lease(s: StateReader, height: Int)(tx: LeaseTransaction): Either[ValidationError, Diff] = {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     s.resolveAliasEi(tx.recipient).flatMap { recipient =>
-      if (recipient == sender)
+      if (recipient == sender.toAddress)
         Left(GenericError("Cannot lease to self"))
       else {
         val ap = s.accountPortfolio(sender)
