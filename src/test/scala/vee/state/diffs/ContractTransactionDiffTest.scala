@@ -11,6 +11,7 @@ import scorex.transaction.GenesisTransaction
 import vee.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
 import com.wavesplatform.state2.diffs.{produce, _}
 import vee.contract.Contract
+import vee.transaction.proof.EllipticCurve25519Proof
 
 class ContractTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -39,7 +40,7 @@ class ContractTransactionDiffTest extends PropSpec with PropertyChecks with Gene
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -feeCreate
         totalPortfolioDiff.effectiveBalance shouldBe -feeCreate
-        newState.accountTransactionIds(create.sender, 2).size shouldBe 2 // genesis and create
+        newState.accountTransactionIds(EllipticCurve25519Proof.fromBytes(create.proofs.proofs.head.bytes.arr).toOption.get.publicKey, 2).size shouldBe 2 // genesis and create
       }
     }
   }
@@ -77,7 +78,7 @@ class ContractTransactionDiffTest extends PropSpec with PropertyChecks with Gene
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -feeChange
         totalPortfolioDiff.effectiveBalance shouldBe -feeChange
-        newState.accountTransactionIds(change.sender, 3).size shouldBe 3 // genesis and create, change
+        newState.accountTransactionIds(EllipticCurve25519Proof.fromBytes(change.proofs.proofs.head.bytes.arr).toOption.get.publicKey, 3).size shouldBe 3 // genesis and create, change
       }
     }
   }

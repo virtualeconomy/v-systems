@@ -125,7 +125,7 @@ object Coordinator extends ScorexLogging {
     import PoSCalc._
 
     val fs = bcs.functionalitySettings
-    val (sortStart, sortEnd) = (fs.requireSortedTransactionsAfter, Long.MaxValue)
+    val sortEnd = Long.MaxValue
     val blockTime = block.timestamp
     val mt = block.consensusData.mintTime
 
@@ -135,12 +135,12 @@ object Coordinator extends ScorexLogging {
       _ <- Either.cond(blockTime - currentTs < MaxTimeDrift, (), s"timestamp $blockTime is from future")
       // use same ordering
       /*
-      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
+      _ <- Either.cond(blockTime > sortEnd ||
         block.transactionData.map(_.transaction).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction),
         (), "transactions are not sorted")
       */
       // if minting tx is the last tx in block, just drop it
-      _ <- Either.cond(blockTime < sortStart || blockTime > sortEnd ||
+      _ <- Either.cond(blockTime > sortEnd ||
         block.transactionData.map(_.transaction).dropRight(1).sorted(TransactionsOrdering.InUTXPool) == block.transactionData.map(_.transaction).dropRight(1),
         (), "transactions are not sorted")
 
@@ -150,14 +150,10 @@ object Coordinator extends ScorexLogging {
       blockData = block.consensusData
 
       generator = block.signerData.generator
-      calcGs = calcGeneratorSignature(prevBlockData, generator)
-      blockGs = blockData.generationSignature
-      _ <- Either.cond(calcGs.sameElements(blockGs), (),
-        s"declared generation signature ${blockGs.mkString} does not match calculated generation signature ${calcGs.mkString}")
 
       // the validation here need to be discussed
       effectiveBalance = state.effectiveBalance(generator)
-      _ <- Either.cond(blockTime < fs.minimalGeneratingBalanceAfter || effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
+      _ <- Either.cond(effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
         s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
 
       //TODO

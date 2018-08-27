@@ -21,8 +21,7 @@ trait BlockGen extends TransactionGen {
     reference <- byteArrayGen(Block.BlockIdLength)
     mintTime <- Gen.posNum[Long]
     mintBalance <- Gen.posNum[Long]
-    generationSignature <- byteArrayGen(Block.GeneratorSignatureLength)
-  } yield Block.buildAndSign(1, txs.map(_.timestamp).max, ByteStr(reference), SposConsensusBlockData(mintTime, mintBalance, generationSignature), txs, signer)
+  } yield Block.buildAndSign(1, txs.map(_.timestamp).max, ByteStr(reference), SposConsensusBlockData(mintTime, mintBalance), txs, signer)
 
   val randomSignerBlockGen: Gen[Block] = for {
     (transactions, signer) <- blockParamGen

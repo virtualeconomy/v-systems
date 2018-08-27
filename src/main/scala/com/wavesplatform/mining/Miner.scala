@@ -16,7 +16,6 @@ import monix.execution.cancelables.{CompositeCancelable, SerialCancelable}
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
-import scorex.transaction.PoSCalc._
 import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
 import scorex.utils.{ScorexLogging, Time}
 import vee.transaction.MintingTransaction
@@ -82,8 +81,7 @@ class Miner(
       _ <- checkSlot(account)
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
-      gs = calcGeneratorSignature(lastBlockKernelData, account)
-      consensusData = SposConsensusBlockData(mintTime, balance, gs)
+      consensusData = SposConsensusBlockData(mintTime, balance)
       unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(
         account.toAddress,  //minter can set any address here
         MintingTransaction.mintingReward,

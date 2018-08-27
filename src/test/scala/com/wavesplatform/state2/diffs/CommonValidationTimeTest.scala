@@ -42,8 +42,7 @@ class CommonValidationTimeTest extends PropSpec with PropertyChecks with Generat
       attachment <- attachmentGen
       transfer1 = PaymentTransaction.create(master, recipient, amount, fee, 100, blockTs + CommonValidation.MaxTimeTransactionOverBlockDiff.toNanos + 1, attachment).explicitGet()
     } yield (prevBlockTs, blockTs, height, transfer1)) { case (prevBlockTs, blockTs, height, transfer1) =>
-      val functionalitySettings = TestFunctionalitySettings.Enabled.copy(allowTransactionsFromFutureUntil = blockTs - 1)
-      TransactionDiffer(functionalitySettings, Some(prevBlockTs), blockTs, height)(newState(), transfer1) should produce("far future")
+      TransactionDiffer(TestFunctionalitySettings.Enabled, Some(prevBlockTs), blockTs, height)(newState(), transfer1) should produce("far future")
     }
   }
 }

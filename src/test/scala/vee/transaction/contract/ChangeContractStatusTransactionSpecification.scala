@@ -24,7 +24,7 @@ class ChangeContractStatusTransactionSpecification extends PropSpec with Propert
   }
 
   private def assertTxs(first: ChangeContractStatusTransaction, second: ChangeContractStatusTransaction): Unit = {
-    first.sender.address shouldEqual second.sender.address
+    first.proofs.bytes shouldEqual second.proofs.bytes
     first.timestamp shouldEqual second.timestamp
     first.fee shouldEqual second.fee
     first.feeScale shouldEqual second.feeScale

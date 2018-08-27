@@ -9,10 +9,9 @@ import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
 import vee.transaction.database.DbPutTransaction
-import com.wavesplatform.state2.ByteStr
+import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
 import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffEi}
 import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
-import scorex.crypto.EllipticCurveImpl
 import scorex.lagonaki.mocks.TestBlock
 import scorex.serialization.BytesSerializable
 import scorex.transaction.TransactionParser.TransactionType
@@ -138,7 +137,6 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       val feeScaleBytes = Shorts.toByteArray(feeScale)
 
       Bytes.concat(Array(TransactionType.PaymentTransaction.id.toByte),
-        master.publicKey,
         timestampBytes,
         amountBytes,
         feeBytes,
@@ -148,7 +146,9 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       )
     }
 
-    transfer: PaymentTransaction = PaymentTransaction(master, recipient, amount, fee, feeScale, ts2, attachment, ByteStr(EllipticCurveImpl.sign(master, toSign)))
+    proofs: Proofs = Proofs.create(List(EllipticCurve25519Proof.createProof(toSign, master).bytes)).getOrElse(Proofs.empty)
+
+    transfer: PaymentTransaction = PaymentTransaction(recipient, amount, fee, feeScale, ts2, attachment, proofs)
   } yield (genesis, transfer, feeScale)
 
   property("disallows invalid fee scale in Signed Payment Transaction") {
