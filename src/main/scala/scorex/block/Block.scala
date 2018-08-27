@@ -167,10 +167,10 @@ object Block extends ScorexLogging {
                    timestamp: Long,
                    reference: ByteStr,
                    consensusData: SposConsensusBlockData,
-                   transactionData: Seq[Transaction],
+                   transactionData: Seq[ProcessedTransaction],
                    signer: PrivateKeyAccount): Block = {
     val nonSignedBlock = Block(timestamp, version, reference, SignerData(signer, ByteStr.empty), consensusData,
-      transactionData.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)})
+      transactionData)
     val toSign = nonSignedBlock.bytes
     val signature = EllipticCurveImpl.sign(signer, toSign)
     require(reference.arr.length == SignatureLength, "Incorrect reference")
