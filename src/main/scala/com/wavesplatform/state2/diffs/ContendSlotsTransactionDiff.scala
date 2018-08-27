@@ -35,8 +35,6 @@ object ContendSlotsTransactionDiff {
         // charge the transaction fee without any modification
         Right(Diff(height = height, tx = tx,
           portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-          slotids = Map(tx.slotId -> sender.toAddress.address),
-          slotNum = 1,
           txStatus = TransactionStatus.ContendFailed,
           chargedFee = tx.fee))
       }
