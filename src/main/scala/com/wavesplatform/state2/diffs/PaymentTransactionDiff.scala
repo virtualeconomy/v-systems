@@ -26,7 +26,8 @@ object PaymentTransactionDiff {
             balance = -tx.amount - tx.fee,
             LeaseInfo.empty,
             assets = Map.empty
-          ))
+          )),
+      chargedFee = tx.fee
       ))
   }
 }

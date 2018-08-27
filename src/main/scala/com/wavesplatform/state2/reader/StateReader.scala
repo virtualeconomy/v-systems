@@ -17,7 +17,7 @@ trait StateReader extends Synchronized {
 
   def accountPortfolios: Map[Address, Portfolio]
 
-  def transactionInfo(id: ByteStr): Option[(Int, Transaction)]
+  def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)]
 
   def containsTransaction(id: ByteStr): Boolean
 
@@ -65,7 +65,7 @@ object StateReader {
         .collect { case (acc, Some(amt)) => acc -> amt }
 
     def findTransaction[T <: Transaction](signature: ByteStr)(implicit ct: ClassTag[T]): Option[T]
-    = s.transactionInfo(signature).map(_._2)
+    = s.transactionInfo(signature).map(_._2.transaction)
       .flatMap(tx => {
         if (ct.runtimeClass.isAssignableFrom(tx.getClass))
           Some(tx.asInstanceOf[T])
@@ -84,7 +84,7 @@ object StateReader {
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 
-    def accountTransactions(account: Address, limit: Int): Seq[_ <: Transaction] = s.read { _ =>
+    def accountTransactions(account: Address, limit: Int): Seq[_ <: ProcessedTransaction] = s.read { _ =>
       s.accountTransactionIds(account, limit).flatMap(s.transactionInfo).map(_._2)
     }
 

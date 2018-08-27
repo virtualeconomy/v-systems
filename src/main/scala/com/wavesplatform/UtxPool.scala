@@ -106,18 +106,18 @@ class UtxPool(time: Time,
     transactions().get(transactionId)
   }
 
-  def packUnconfirmed(): Seq[Transaction] = write { implicit l =>
+  def packUnconfirmed(): Seq[ProcessedTransaction] = write { implicit l =>
     val currentTs = time.correctedTime()
     removeExpired(currentTs)
     val differ = TransactionDiffer(fs, history.lastBlock.map(_.timestamp), currentTs, stateReader.height) _
     val (invalidTxs, validTxs, _) = transactions()
       .values.toSeq
       .sorted(TransactionsOrdering.InUTXPool)
-      .foldLeft((Seq.empty[ByteStr], Seq.empty[Transaction], Monoid[Diff].empty)) {
+      .foldLeft((Seq.empty[ByteStr], Seq.empty[ProcessedTransaction], Monoid[Diff].empty)) {
         case ((invalid, valid, diff), tx) if valid.size < 100 =>
           differ(new CompositeStateReader(stateReader, diff.asBlockDiff), tx) match {
             case Right(newDiff) =>
-              (invalid, tx +: valid, Monoid.combine(diff, newDiff))
+              (invalid, ProcessedTransaction(newDiff.txStatus, newDiff.chargedFee, tx) +: valid, Monoid.combine(diff, newDiff))
             case Left(e) =>
               log.debug(s"Removing invalid transaction ${tx.id} from UTX: $e")
               (tx.id +: invalid, valid, diff)

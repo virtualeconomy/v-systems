@@ -22,7 +22,8 @@ object DbTransactionDiff {
     } else {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        dbEntries = Map(tx.storageKey -> tx.entry)
+        dbEntries = Map(tx.storageKey -> tx.entry),
+        chargedFee = tx.fee
       ))
     }
   }

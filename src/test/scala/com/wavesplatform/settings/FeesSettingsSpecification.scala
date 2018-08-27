@@ -138,7 +138,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |    VEE = 10000000
         |  }
         |  contend-slots {
-        |    VEE = 100000000000
+        |    VEE = 5000000000000
         |  }
         |  release-slots {
         |    VEE = 10000000
@@ -164,7 +164,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     settings.fees(3).toSet should equal(Set(FeeSettings("VEE", 10000000)))
     settings.fees(4).toSet should equal(Set(FeeSettings("VEE", 10000000)))
     settings.fees(5).toSet should equal(Set(FeeSettings("VEE", 100000)))
-    settings.fees(6).toSet should equal(Set(FeeSettings("VEE", 100000000000L)))
+    settings.fees(6).toSet should equal(Set(FeeSettings("VEE", 5000000000000L)))
     settings.fees(7).toSet should equal(Set(FeeSettings("VEE", 10000000)))
     settings.fees(8).toSet should equal(Set(FeeSettings("VEE", 20000000)))
     settings.fees(9).toSet should equal(Set(FeeSettings("VEE", 10000000)))

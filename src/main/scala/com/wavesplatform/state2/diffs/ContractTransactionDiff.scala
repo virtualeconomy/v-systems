@@ -21,7 +21,8 @@ object ContractTransactionDiff {
       val contractInfo = (tx.contract.enabled, sender.toAddress, tx.contract.content)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        contracts = Map(tx.contract.name -> contractInfo)
+        contracts = Map(tx.contract.name -> contractInfo),
+        chargedFee = tx.fee
       ))
     }
   }
@@ -50,7 +51,8 @@ object ContractTransactionDiff {
       }else Right(())
     } yield Diff(height = height, tx = tx,
       portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-      contracts = Map(tx.contractName -> newContractInfo)
+      contracts = Map(tx.contractName -> newContractInfo),
+      chargedFee = tx.fee
     )
   }
 }

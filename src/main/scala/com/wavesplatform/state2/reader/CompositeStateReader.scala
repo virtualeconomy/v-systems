@@ -6,7 +6,7 @@ import cats.implicits._
 import cats.kernel.Monoid
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
-import scorex.transaction.Transaction
+import scorex.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
 
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {
@@ -15,7 +15,7 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   private val txDiff = blockDiff.txsDiff
 
-  override def transactionInfo(id: ByteStr): Option[(Int, Transaction)] =
+  override def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)] =
     txDiff.transactions.get(id)
       .map(t => (t._1, t._2))
       .orElse(inner.transactionInfo(id))
@@ -113,7 +113,7 @@ object CompositeStateReader {
     override def accountPortfolios: Map[Address, Portfolio] =
       new CompositeStateReader(inner, blockDiff()).accountPortfolios
 
-    override def transactionInfo(id: ByteStr): Option[(Int, Transaction)] =
+    override def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)] =
       new CompositeStateReader(inner, blockDiff()).transactionInfo(id)
 
     override def resolveAlias(a: Alias): Option[Address] =

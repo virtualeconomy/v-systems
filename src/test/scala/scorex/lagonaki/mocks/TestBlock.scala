@@ -24,7 +24,7 @@ object TestBlock {
     reference = randomSignature(),
     signerData = SignerData(defaultSigner, ByteStr.empty),
     consensusData = SposConsensusBlockData(0L, 0L),
-    transactionData = txs.map(ProcessedTransaction(TransactionStatus.Success, 0, _))))
+    transactionData = txs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}))
 
   def randomOfLength(length: Int): ByteStr = ByteStr(Array.fill(length)(random.nextInt().toByte))
 

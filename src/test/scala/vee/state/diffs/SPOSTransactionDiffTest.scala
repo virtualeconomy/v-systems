@@ -131,7 +131,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     contend = contendTmp.copy(proofs = proofs)
   } yield (genesis, contend)
 
-  property("contend transaction can not contain multi-transactions") {
+  property("contend transaction can not contain multi-proofs") {
     forAll(preconditionsAndContend2) { case (genesis, contend) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(contend))) { blockDiffEi =>
         blockDiffEi should produce("Too many proofs")
@@ -150,9 +150,9 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     release = releaseTmp.copy(proofs = proofs)
   } yield (genesis, contend, release)
 
-  property("release transaction can not contain multi-transactions") {
+  property("release transaction can not contain multi-proofs") {
     forAll(preconditionsAndRelease2) { case (genesis, contend, release) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, contend))), TestBlock.create(Seq(release))) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(contend))), TestBlock.create(Seq(release))) { blockDiffEi =>
         blockDiffEi should produce("Too many proofs")
       }
     }

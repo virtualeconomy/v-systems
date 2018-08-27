@@ -35,7 +35,7 @@ object ReleaseSlotsTransactionDiff {
     else if (hasEnoughMiner && isValidAddress && isValidSlotID) {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        slotids = Map(tx.slotId -> emptyAddress),slotNum = -1))
+        slotids = Map(tx.slotId -> emptyAddress),slotNum = -1, chargedFee = tx.fee))
     }
     else if (!isValidSlotID){
       Left(GenericError(s"slot id: ${tx.slotId} invalid."))

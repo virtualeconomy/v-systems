@@ -6,7 +6,7 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
-import scorex.transaction.{Transaction, TransactionParser}
+import scorex.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
 import scala.collection.JavaConverters._
 
@@ -14,9 +14,9 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   val sp = Synchronized(p)
 
-  override def transactionInfo(id: ByteStr): Option[(Int, Transaction)] = read { implicit l =>
+  override def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)] = read { implicit l =>
     Option(sp().transactions.get(id)).map {
-      case (h, bytes) => (h, TransactionParser.parseBytes(bytes).get)
+      case (h, bytes) => (h, ProcessedTransactionParser.parseBytes(bytes).get)
     }
   }
 

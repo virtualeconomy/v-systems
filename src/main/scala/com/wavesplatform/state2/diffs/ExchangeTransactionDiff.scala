@@ -52,8 +52,9 @@ object ExchangeTransactionDiff {
 
     Diff(height, tx, portfolios = portfolios, orderFills = Map(
       ByteStr(tx.buyOrder.id) -> OrderFillInfo(tx.amount, tx.buyMatcherFee),
-      ByteStr(tx.sellOrder.id) -> OrderFillInfo(tx.amount, tx.sellMatcherFee)
-    ))
+      ByteStr(tx.sellOrder.id) -> OrderFillInfo(tx.amount, tx.sellMatcherFee)),
+      chargedFee = tx.fee
+    )
   }
 
 

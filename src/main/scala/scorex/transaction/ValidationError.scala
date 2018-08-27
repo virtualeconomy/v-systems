@@ -23,6 +23,7 @@ object ValidationError {
   case object InvalidDbKey extends ValidationError
   case object OverflowError extends ValidationError
   case object ToSelf extends ValidationError
+  case object InvalidProcessedTransaction extends ValidationError
   case object MissingSenderPrivateKey extends ValidationError
   case object UnsupportedTransactionType extends ValidationError
   case object InvalidRequestSignature extends ValidationError

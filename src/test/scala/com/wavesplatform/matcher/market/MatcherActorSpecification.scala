@@ -23,7 +23,7 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecL
 import scorex.account.PrivateKeyAccount
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import scorex.transaction.{AssetId, History}
+import scorex.transaction.{AssetId, History, ProcessedTransaction, TransactionStatus}
 import scorex.utils.{NTP, ScorexLogging}
 import vee.wallet.Wallet
 
@@ -58,8 +58,8 @@ class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"
   (storedState.assetInfo _).when(*).returns(Some(AssetInfo(true, 10000000000L)))
   val i1 = IssueTransaction.create(PrivateKeyAccount(Array.empty), "Unknown".getBytes(), Array.empty, 10000000000L, 8.toByte, true, 100000L, 10000L).right.get
   val i2 = IssueTransaction.create(PrivateKeyAccount(Array.empty), "ForbiddenName".getBytes(), Array.empty, 10000000000L, 8.toByte, true, 100000L, 10000L).right.get
-  (storedState.transactionInfo _).when(i2.id).returns(Some((1, i2)))
-  (storedState.transactionInfo _).when(*).returns(Some((1, i1)))
+  (storedState.transactionInfo _).when(i2.id).returns(Some((1, ProcessedTransaction(TransactionStatus.Success, i2.fee, i2))))
+  (storedState.transactionInfo _).when(*).returns(Some((1, ProcessedTransaction(TransactionStatus.Success, i1.fee, i1))))
   (storedState.accountPortfolio _).when(*).returns(Portfolio(Long.MaxValue, LeaseInfo.empty, Map(ByteStr("123".getBytes) -> Long.MaxValue)))
 
   override protected def beforeEach() = {

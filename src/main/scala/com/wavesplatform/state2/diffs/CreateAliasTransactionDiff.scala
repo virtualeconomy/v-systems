@@ -9,7 +9,8 @@ object CreateAliasTransactionDiff {
   def apply(height: Int)(tx: CreateAliasTransaction): Either[ValidationError, Diff] = {
     Right(Diff(height = height, tx = tx,
       portfolios = Map(tx.sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-      aliases = Map(tx.alias -> tx.sender.toAddress)
+      aliases = Map(tx.alias -> tx.sender.toAddress),
+      chargedFee = tx.fee
     ))
   }
 }

@@ -16,7 +16,7 @@ import monix.execution.cancelables.{CompositeCancelable, SerialCancelable}
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
+import scorex.transaction.{BlockchainUpdater, CheckpointService, History, ProcessedTransaction, TransactionStatus}
 import scorex.utils.{ScorexLogging, Time}
 import vee.transaction.MintingTransaction
 import vee.wallet.Wallet
@@ -66,28 +66,24 @@ class Miner(
   private def generateOneBlockTask(account: PrivateKeyAccount, parentHeight: Int, parent: Block,
                                    greatGrandParent: Option[Block], balance: Long, mintTime: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {
     val pc = allChannels.size()
-    val minimalMintBalance = 100000000000L
     lazy val lastBlockKernelData = parent.consensusData
-    val effectiveBalance = stateReader.effectiveBalance(account)
     val currentTime = timeService.correctedTime()
     // start only use to record the duration
     val start = System.currentTimeMillis()
     log.debug(s"${start*1000000L}: Corrected time: $currentTime (in Nanoseonds)")
     for {
       _ <- Either.cond(pc >= minerSettings.quorum, (), s"Quorum not available ($pc/${minerSettings.quorum}, not forging block with ${account.address}")
-      // initial mint Balance = 0 now, should be modified later
-      _ <- Either.cond(effectiveBalance >= minimalMintBalance, (), s"${System.currentTimeMillis()} (in Millisecond): ${account.address}'s effective Balance $effectiveBalance was NOT greater than target $minimalMintBalance, not forging block with ${account.address}")
       _ = log.debug(s"Forging with ${account.address}, balance $balance, prev block ${parent.uniqueId}")
       _ <- checkSlot(account)
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       consensusData = SposConsensusBlockData(mintTime, balance)
-      unconfirmed = utx.packUnconfirmed() :+ MintingTransaction.create(
+      unconfirmed = utx.packUnconfirmed() :+ ProcessedTransaction(TransactionStatus.Success, 0L, MintingTransaction.create(
         account.toAddress,  //minter can set any address here
         MintingTransaction.mintingReward,
         currentTime,
         parentHeight + 1
-      ).right.get
+      ).right.get)
       _ = log.debug(s"Adding ${unconfirmed.size} unconfirmed transaction(s) to new block")
       block = Block.buildAndSign(Version, currentTime, parent.uniqueId, consensusData, unconfirmed, account)
       // call currentTimeMillis to record the duration

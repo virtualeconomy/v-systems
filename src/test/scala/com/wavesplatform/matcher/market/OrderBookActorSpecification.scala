@@ -61,7 +61,7 @@ class OrderBookActorSpecification extends TestKit(ActorSystem("MatcherTest"))
     100000L,
     10000L).right.get
 
-  (storedState.transactionInfo _).when(*).returns(Some((1, issueTransaction)))
+  (storedState.transactionInfo _).when(*).returns(Some((1, ProcessedTransaction(TransactionStatus.Success, issueTransaction.fee, issueTransaction))))
 
   val settings = matcherSettings.copy(account = MatcherAccount.address)
 
