@@ -46,7 +46,10 @@ object TransferTransactionDiff {
     isInvalidEi match {
       case Left(e) => Left(e)
       case Right((portfolios, invalid)) =>
-        Left(GenericError(s"Unissued assets are not allowed"))
+        if (invalid)
+          Left(GenericError(s"Unissued assets are not allowed")) 
+        else  
+          Right(Diff(height, tx, portfolios))
     }
   }
 }
