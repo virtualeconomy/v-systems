@@ -122,8 +122,6 @@ object Coordinator extends ScorexLogging {
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
                                       (block: Block): Either[ValidationError, Unit] = {
 
-    import PoSCalc._
-
     val fs = bcs.functionalitySettings
     val sortEnd = Long.MaxValue
     val blockTime = block.timestamp
@@ -150,11 +148,6 @@ object Coordinator extends ScorexLogging {
       blockData = block.consensusData
 
       generator = block.signerData.generator
-
-      // the validation here need to be discussed
-      effectiveBalance = state.effectiveBalance(generator)
-      _ <- Either.cond(effectiveBalance >= MinimalEffectiveBalanceForGenerator, (),
-        s"generator's effective balance $effectiveBalance is less that minimal ($MinimalEffectiveBalanceForGenerator)")
 
       //TODO
       //check the generator's address for multi slots address case (VEE), checked by diff
