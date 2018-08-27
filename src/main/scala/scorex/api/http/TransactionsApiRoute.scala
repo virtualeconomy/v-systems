@@ -12,7 +12,7 @@ import io.swagger.annotations._
 import play.api.libs.json._
 import scorex.account.Address
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import scorex.transaction.{History, Transaction}
+import scorex.transaction.{History, Transaction, ProcessedTransaction}
 
 import scala.util.Success
 import scala.util.control.Exception
@@ -53,7 +53,7 @@ case class TransactionsApiRoute(
               path(Segment) { limitStr =>
                 Exception.allCatch.opt(limitStr.toInt) match {
                   case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
-                    complete(Json.arr(JsArray(state.accountTransactions(a, limit).map(txToExtendedJson))))
+                    complete(Json.arr(JsArray(state.accountTransactions(a, limit).map(processedTxToExtendedJson))))
                   case Some(limit) if limit > MaxTransactionsPerRequest =>
                     complete(TooBigArrayAllocation)
                   case _ =>
@@ -79,7 +79,7 @@ case class TransactionsApiRoute(
           case Success(id) =>
             state.transactionInfo(id) match {
               case Some((h, tx)) =>
-                complete(txToExtendedJson(tx) + ("height" -> JsNumber(h)))
+                complete(processedTxToExtendedJson(tx) + ("height" -> JsNumber(h)))
               case None =>
                 complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Transaction is not in blockchain"))
             }
@@ -130,6 +130,14 @@ case class TransactionsApiRoute(
       case leaseCancel: LeaseCancelTransaction =>
         leaseCancel.json ++ Json.obj("lease" -> state.findTransaction[LeaseTransaction](leaseCancel.leaseId).map(_.json).getOrElse[JsValue](JsNull))
       case t => t.json
+    }
+  }
+
+  private def processedTxToExtendedJson(tx: ProcessedTransaction): JsObject = {
+    tx.transaction match {
+      case leaseCancel: LeaseCancelTransaction =>
+        tx.json ++ Json.obj("lease" -> state.findTransaction[LeaseTransaction](leaseCancel.leaseId).map(_.json).getOrElse[JsValue](JsNull))
+      case _ => tx.json
     }
   }
 }
