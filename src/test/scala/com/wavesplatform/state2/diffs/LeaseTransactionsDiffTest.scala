@@ -14,6 +14,7 @@ import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
 import vee.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
 import scorex.transaction._
+import com.wavesplatform.state2.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
 class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -151,27 +152,6 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       case ((genesis, genesis2, lease, unleaseOtherOrRecipient, blockTime)) =>
         assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseOtherOrRecipient)), TestFunctionalitySettings.Enabled) { totalDiffEi =>
           totalDiffEi should produce("LeaseTransaction was leased by other sender")
-        }
-    }
-  }
-
-  property("can cancel lease of another sender and acquire leasing power before allowMultipleLeaseCancelTransactionUntilTimestamp") {
-    forAll(cancelLeaseOfAnotherSender(unleaseByRecipient = false), timestampGen retryUntil (_ < allowMultipleLeaseCancelTransactionUntilTimestamp)) {
-      case ((genesis, genesis2, lease, unleaseOther), blockTime) =>
-        assertDiffAndState(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseOther)), settings) { case (totalDiff, newState) =>
-          totalDiff.txsDiff.portfolios.get(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey) shouldBe None
-          total(totalDiff.txsDiff.portfolios(lease.recipient.asInstanceOf[Address]).leaseInfo) shouldBe -lease.amount
-          total(totalDiff.txsDiff.portfolios(EllipticCurve25519Proof.fromBytes(unleaseOther.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo) shouldBe lease.amount
-        }
-    }
-  }
-
-  property("if recipient cancels lease, it doesn't change leasing component of mining power before allowMultipleLeaseCancelTransactionUntilTimestamp") {
-    forAll(cancelLeaseOfAnotherSender(unleaseByRecipient = true), timestampGen retryUntil (_ < allowMultipleLeaseCancelTransactionUntilTimestamp)) {
-      case ((genesis, genesis2, lease, unleaseRecipient), blockTime) =>
-        assertDiffAndState(Seq(TestBlock.create(Seq(genesis, genesis2, lease))), TestBlock.create(blockTime, Seq(unleaseRecipient)), settings) { case (totalDiff, newState) =>
-          totalDiff.txsDiff.portfolios.get(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey) shouldBe None
-          total(totalDiff.txsDiff.portfolios(EllipticCurve25519Proof.fromBytes(unleaseRecipient.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo) shouldBe 0
         }
     }
   }
