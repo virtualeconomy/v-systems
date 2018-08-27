@@ -5,7 +5,6 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.lease.LeaseTransaction
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
 
@@ -26,7 +25,7 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
       attachment <- attachmentGen
       amount <- Gen.choose(Long.MaxValue / 2, Long.MaxValue - fee - 1)
       transfer1 = PaymentTransaction.create(master, recipient, amount, fee, feeScale, ts, attachment).right.get
-      transfer2 = PaymentTransaction.create(master2, recipient, amount, fee, feeScale, ts, attachment).right.get
+      transfer2 = PaymentTransaction.create(master2, recipient, amount, fee, feeScale, ts + 1, attachment).right.get
     } yield (gen1, gen2, transfer1, transfer2)
 
 
@@ -79,32 +78,4 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
 
   } yield (genesis, masterTransfersToAlice, aliceLeasesToBob, masterLeasesToAlice, aliceTransfersMoreThanOwnsMinusLeaseOut)
 
-
-  property("can transfer more than own-leaseOut before allow-leased-balance-transfer-until") {
-    val allowTransferLeasedBalanceUntil = Long.MaxValue / 2
-    val settings = TestFunctionalitySettings.Enabled.copy(allowLeasedBalanceTransferUntil = allowTransferLeasedBalanceUntil)
-
-    forAll(ownLessThatLeaseOut, timestampGen retryUntil (_ < allowTransferLeasedBalanceUntil)) {
-      case ((genesis, masterTransfersToAlice, aliceLeasesToBob, masterLeasesToAlice, aliceTransfersMoreThanOwnsMinusLeaseOut), blockTime) =>
-        assertDiffEi(Seq(TestBlock.create(Seq(genesis, masterTransfersToAlice, aliceLeasesToBob, masterLeasesToAlice))),
-          TestBlock.create(blockTime, Seq(aliceTransfersMoreThanOwnsMinusLeaseOut)),
-          settings) { totalDiffEi =>
-          totalDiffEi shouldBe 'right
-        }
-    }
-  }
-
-  property("cannot transfer more than own-leaseOut after allow-leased-balance-transfer-until") {
-    val allowTransferLeasedBalanceUntil = Long.MaxValue / 2
-    val settings = TestFunctionalitySettings.Enabled.copy(allowLeasedBalanceTransferUntil = allowTransferLeasedBalanceUntil)
-
-    forAll(ownLessThatLeaseOut, timestampGen retryUntil (_ > allowTransferLeasedBalanceUntil)) {
-      case ((genesis, masterTransfersToAlice, aliceLeasesToBob, masterLeasesToAlice, aliceTransfersMoreThanOwnsMinusLeaseOut), blockTime) =>
-        assertDiffEi(Seq(TestBlock.create(Seq(genesis, masterTransfersToAlice, aliceLeasesToBob, masterLeasesToAlice))),
-          TestBlock.create(blockTime, Seq(aliceTransfersMoreThanOwnsMinusLeaseOut)),
-          settings) { totalDiffEi =>
-          totalDiffEi should produce("leased being more than own")
-        }
-    }
-  }
 }

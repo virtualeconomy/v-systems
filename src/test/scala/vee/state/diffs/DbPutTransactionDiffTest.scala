@@ -7,14 +7,14 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.transaction.{GenesisTransaction, ValidationError}
 import vee.transaction.database.DbPutTransaction
-import com.wavesplatform.state2.ByteStr
 import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffEi}
 import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
-import scorex.crypto.EllipticCurveImpl
+import scorex.account.PrivateKeyAccount
 import scorex.lagonaki.mocks.TestBlock
-import scorex.serialization.BytesSerializable
+import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.InvalidDbKey
+import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -28,7 +28,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
       dbKey <- invalidLengthDbKeyStringGen
       entry <- entryGen
       feeScale <- feeScaleGen
-    } yield (master, fee, feeScale, dbKey, entry, ts)) { case (master, fee, feeScale, dbKey, entry, ts) =>
+    } yield (master, fee, feeScale, dbKey, entry, ts)) { case (master: PrivateKeyAccount, fee, feeScale, dbKey, entry, ts) =>
       DbPutTransaction.create(master, dbKey, entry, fee, feeScale, ts) shouldEqual Left(ValidationError.InvalidDbKey)
     }
   }
@@ -40,7 +40,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
       ts <- timestampGen
       entry <- entryGen
       feeScale <- feeScaleGen
-    } yield (master, fee, feeScale, entry, ts)) { case (master, fee, feeScale, entry, ts) =>
+    } yield (master, fee, feeScale, entry, ts)) { case (master: PrivateKeyAccount, fee, feeScale, entry, ts) =>
       DbPutTransaction.create(master, "", entry, fee, feeScale, ts) shouldEqual Left(ValidationError.InvalidDbKey)
     }
   }
@@ -53,7 +53,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
       dbKey <- invalidUtf8StringGen
       entry <- entryGen
       feeScale <- feeScaleGen
-    } yield (master, fee, feeScale, dbKey, entry, ts)) { case (master, fee, feeScale, dbKey, entry, ts) =>
+    } yield (master, fee, feeScale, dbKey, entry, ts)) { case (master: PrivateKeyAccount, fee, feeScale, dbKey, entry, ts) =>
       DbPutTransaction.create(master, dbKey, entry, fee, feeScale, ts) shouldEqual Left(ValidationError.InvalidUTF8String("dbKey"))
     }
   }
@@ -66,7 +66,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
       dbKey <- validDbKeyStringGen
       dbData <- invalidUtf8StringGen
       feeScale <- feeScaleGen
-    } yield (master, fee, feeScale, dbKey, dbData, ts)) { case (master, fee, feeScale, dbKey, dbData, ts) =>
+    } yield (master, fee, feeScale, dbKey, dbData, ts)) { case (master: PrivateKeyAccount, fee, feeScale, dbKey, dbData, ts) =>
       DbPutTransaction.create(master, dbKey, "ByteArray", dbData, fee, feeScale, ts) shouldEqual Left(ValidationError.InvalidUTF8String("dbEntry"))
     }
   }
@@ -88,14 +88,15 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
 
     toSign: Array[Byte] = Bytes.concat(
       Array(TransactionType.DbPutTransaction.id.toByte),
-      master.publicKey,
-      BytesSerializable.arrayWithSize(dbKey.getBytes("UTF-8")),
+      BytesSerializable.arrayWithSize(Deser.serilizeString(dbKey)),
       BytesSerializable.arrayWithSize(entry.bytes.arr),
       Longs.toByteArray(fee),
       Shorts.toByteArray(feeScale),
       Longs.toByteArray(ts2))
 
-    dbPut: DbPutTransaction = DbPutTransaction(master, dbKey, entry, fee, feeScale, ts2, ByteStr(EllipticCurveImpl.sign(master, toSign)))
+    proof = EllipticCurve25519Proof.createProof(toSign, master)
+    proofs: Proofs = Proofs.create(List(proof.bytes)).right.get
+    dbPut: DbPutTransaction = DbPutTransaction(dbKey, entry, fee, feeScale, ts2, proofs)
   } yield (genesis, dbPut)
 
   property("disallows invalid dbKey length in Signed db put Transaction") {

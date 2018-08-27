@@ -8,12 +8,7 @@ import scorex.account.Address
 import scorex.transaction.ValidationError.{GenericError, Mistiming}
 import scorex.transaction._
 import scorex.transaction.assets._
-import scorex.transaction.assets.exchange.ExchangeTransaction
-import vee.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
-import vee.transaction.database.DbPutTransaction
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vee.transaction.MintingTransaction
-import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vee.transaction.proof.EllipticCurve25519Proof
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -24,38 +19,38 @@ object CommonValidation {
   val MaxTimePrevBlockOverTransactionDiff: FiniteDuration = 2.hours
 
   def disallowSendingGreaterThanBalance[T <: Transaction](s: StateReader, settings: FunctionalitySettings, blockTime: Long, tx: T): Either[ValidationError, T] =
-    if (blockTime >= settings.allowTemporaryNegativeUntil)
-      tx match {
-        case ptx: PaymentTransaction if s.accountPortfolio(ptx.sender).balance < (ptx.amount + ptx.fee) =>
-          Left(GenericError(s"Attempt to pay unavailable funds: balance " +
-            s"${s.accountPortfolio(ptx.sender).balance} is less than ${ptx.amount + ptx.fee}"))
-        case ttx: TransferTransaction =>
-          val sender: Address = ttx.sender
 
-          val amountDiff = ttx.assetId match {
-            case Some(aid) => Portfolio(0, LeaseInfo.empty, Map(aid -> -ttx.amount))
-            case None => Portfolio(-ttx.amount, LeaseInfo.empty, Map.empty)
-          }
-          val feeDiff = ttx.feeAssetId match {
-            case Some(aid) => Portfolio(0, LeaseInfo.empty, Map(aid -> -ttx.fee))
-            case None => Portfolio(-ttx.fee, LeaseInfo.empty, Map.empty)
-          }
+    tx match {
+      case ptx: PaymentTransaction if s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance < (ptx.amount + ptx.fee) =>
+        Left(GenericError(s"Attempt to pay unavailable funds: balance " +
+          s"${s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance} is less than ${ptx.amount + ptx.fee}"))
+      case ttx: TransferTransaction =>
+        val sender: Address = ttx.sender
 
-          val accountPortfolio = s.accountPortfolio(sender)
-          val spendings = Monoid.combine(amountDiff, feeDiff)
+        val amountDiff = ttx.assetId match {
+          case Some(aid) => Portfolio(0, LeaseInfo.empty, Map(aid -> -ttx.amount))
+          case None => Portfolio(-ttx.amount, LeaseInfo.empty, Map.empty)
+        }
+        val feeDiff = ttx.feeAssetId match {
+          case Some(aid) => Portfolio(0, LeaseInfo.empty, Map(aid -> -ttx.fee))
+          case None => Portfolio(-ttx.fee, LeaseInfo.empty, Map.empty)
+        }
 
-          lazy val negativeAsset = spendings.assets.find { case (id, amt) => (accountPortfolio.assets.getOrElse(id, 0L) + amt) < 0L }.map { case (id, amt) => (id, accountPortfolio.assets.getOrElse(id, 0L), amt, accountPortfolio.assets.getOrElse(id, 0L) + amt) }
-          lazy val newVEEBalance = accountPortfolio.balance + spendings.balance
-          lazy val negativeVEE = newVEEBalance < 0
-          if (negativeVEE)
-            Left(GenericError(s"Attempt to transfer unavailable funds:" +
-              s" Transaction application leads to negative vee balance to (at least) temporary negative state, current balance equals ${accountPortfolio.balance}, spends equals ${spendings.balance}, result is $newVEEBalance"))
-          else if (negativeAsset.nonEmpty)
-            Left(GenericError(s"Attempt to transfer unavailable funds:" +
-              s" Transaction application leads to negative asset '${negativeAsset.get._1}' balance to (at least) temporary negative state, current balance is ${negativeAsset.get._2}, spends equals ${negativeAsset.get._3}, result is ${negativeAsset.get._4}"))
-          else Right(tx)
-        case _ => Right(tx)
-      } else Right(tx)
+        val accountPortfolio = s.accountPortfolio(sender)
+        val spendings = Monoid.combine(amountDiff, feeDiff)
+
+        lazy val negativeAsset = spendings.assets.find { case (id, amt) => (accountPortfolio.assets.getOrElse(id, 0L) + amt) < 0L }.map { case (id, amt) => (id, accountPortfolio.assets.getOrElse(id, 0L), amt, accountPortfolio.assets.getOrElse(id, 0L) + amt) }
+        lazy val newVEEBalance = accountPortfolio.balance + spendings.balance
+        lazy val negativeVEE = newVEEBalance < 0
+        if (negativeVEE)
+          Left(GenericError(s"Attempt to transfer unavailable funds:" +
+            s" Transaction application leads to negative vee balance to (at least) temporary negative state, current balance equals ${accountPortfolio.balance}, spends equals ${spendings.balance}, result is $newVEEBalance"))
+        else if (negativeAsset.nonEmpty)
+          Left(GenericError(s"Attempt to transfer unavailable funds:" +
+            s" Transaction application leads to negative asset '${negativeAsset.get._1}' balance to (at least) temporary negative state, current balance is ${negativeAsset.get._2}, spends equals ${negativeAsset.get._3}, result is ${negativeAsset.get._4}"))
+        else Right(tx)
+      case _ => Right(tx)
+    }
 
   def disallowDuplicateIds[T <: Transaction](state: StateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = {
     if (state.containsTransaction(tx.id))
@@ -63,41 +58,9 @@ object CommonValidation {
     else Right(tx)
   }
 
-  def disallowBeforeActivationTime[T <: Transaction](settings: FunctionalitySettings, tx: T): Either[ValidationError, T] =
-    tx match {
-      case tx: BurnTransaction if tx.timestamp <= settings.allowBurnTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowBurnTransactionAfter}"))
-      case tx: LeaseTransaction if tx.timestamp <= settings.allowLeaseTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowLeaseTransactionAfter}"))
-      case tx: LeaseCancelTransaction if tx.timestamp <= settings.allowLeaseTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowLeaseTransactionAfter}"))
-      case tx: ExchangeTransaction if tx.timestamp <= settings.allowExchangeTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowExchangeTransactionAfter}"))
-      case tx: CreateAliasTransaction if tx.timestamp <= settings.allowCreatealiasTransactionAfter =>
-        Left(GenericError(s"must not appear before time=${settings.allowCreatealiasTransactionAfter}"))
-      case _: BurnTransaction => Right(tx)
-      case _: PaymentTransaction => Right(tx)
-      case _: GenesisTransaction => Right(tx)
-      case _: TransferTransaction => Right(tx)
-      case _: IssueTransaction => Right(tx)
-      case _: ReissueTransaction => Right(tx)
-      case _: ExchangeTransaction => Right(tx)
-      case _: LeaseTransaction => Right(tx)
-      case _: LeaseCancelTransaction => Right(tx)
-      case _: CreateAliasTransaction => Right(tx)
-      case _: MintingTransaction => Right(tx)
-      case _: ContendSlotsTransaction => Right(tx)
-      case _: ReleaseSlotsTransaction => Right(tx)
-      case _: CreateContractTransaction => Right(tx)
-      case _: ChangeContractStatusTransaction => Right(tx)
-      case _: DbPutTransaction => Right(tx)
-      case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
-    }
+  def disallowTxFromFuture[T <: Transaction](time: Long, tx: T): Either[ValidationError, T] = {
 
-  def disallowTxFromFuture[T <: Transaction](settings: FunctionalitySettings, time: Long, tx: T): Either[ValidationError, T] = {
-    val allowTransactionsFromFutureByTimestamp = tx.timestamp < settings.allowTransactionsFromFutureUntil
-
-    if (!allowTransactionsFromFutureByTimestamp && (tx.timestamp - time) > MaxTimeTransactionOverBlockDiff.toNanos)
+    if ((tx.timestamp - time) > MaxTimeTransactionOverBlockDiff.toNanos)
       Left(Mistiming(s"Transaction ts ${tx.timestamp} is from far future. BlockTime: $time"))
     else Right(tx)
   }

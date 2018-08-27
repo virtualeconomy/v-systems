@@ -5,21 +5,21 @@ import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
 import vee.contract.Contract
-import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser._
-import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
+import scorex.transaction.{AssetId, ValidationError}
+import vee.transaction.proof._
+import vee.transaction.ProvenTransaction
 
 import scala.util.{Failure, Success, Try}
 
-case class CreateContractTransaction private(sender: PublicKeyAccount,
-                                          contract: Contract,
+case class CreateContractTransaction private(contract: Contract,
                                           fee: Long,
                                           feeScale: Short,
                                           timestamp: Long,
-                                          signature: ByteStr)
-  extends SignedTransaction {
+                                          proofs: Proofs)
+  extends ProvenTransaction {
 
   override val transactionType: TransactionType.Value = TransactionType.CreateContractTransaction
 
@@ -27,7 +27,6 @@ case class CreateContractTransaction private(sender: PublicKeyAccount,
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
-    sender.publicKey,
     BytesSerializable.arrayWithSize(contract.bytes.arr),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
@@ -43,47 +42,55 @@ case class CreateContractTransaction private(sender: PublicKeyAccount,
   // TODO
   // add feeScale in assetFee, need to change 100 later
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
-  override lazy val bytes: Array[Byte] = Bytes.concat(toSign, signature.arr)
+  override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
 object CreateContractTransaction {
 
   def parseTail(bytes: Array[Byte]): Try[CreateContractTransaction] = Try {
-    import EllipticCurveImpl._
-    val sender = PublicKeyAccount(bytes.slice(0, KeyLength))
-    val (contractBytes, contractEnd) = Deser.parseArraySize(bytes, KeyLength)
+    val (contractBytes, contractEnd) = Deser.parseArraySize(bytes, 0)
     (for {
       contract <- Contract.fromBytes(contractBytes)
       fee = Longs.fromByteArray(bytes.slice(contractEnd, contractEnd + 8))
       feeScale = Shorts.fromByteArray(bytes.slice(contractEnd + 8, contractEnd + 10))
       timestamp = Longs.fromByteArray(bytes.slice(contractEnd + 10, contractEnd + 18))
-      signature = ByteStr(bytes.slice(contractEnd + 18, contractEnd + 18 + SignatureLength))
-      tx <- CreateContractTransaction.create(sender, contract, fee, feeScale, timestamp, signature)
+      proofs <- Proofs.fromBytes(bytes.slice(contractEnd + 18, bytes.length))
+      tx <- CreateContractTransaction.create(contract, fee, feeScale, timestamp, proofs)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
-  def create(sender: PublicKeyAccount,
-             contract: Contract,
+  def create(contract: Contract,
              fee: Long,
              feeScale: Short,
              timestamp: Long,
-             signature: ByteStr): Either[ValidationError, CreateContractTransaction] =
+             proofs: Proofs): Either[ValidationError, CreateContractTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
     }  else {
-      Right(CreateContractTransaction(sender, contract, fee, feeScale, timestamp, signature))
+      Right(CreateContractTransaction(contract, fee, feeScale, timestamp, proofs))
     }
 
   def create(sender: PrivateKeyAccount,
              contract: Contract,
              fee: Long,
              feeScale: Short,
-             timestamp: Long): Either[ValidationError, CreateContractTransaction] = {
-    create(sender, contract, fee, feeScale, timestamp, ByteStr.empty).right.map { unsigned =>
-      unsigned.copy(signature = ByteStr(EllipticCurveImpl.sign(sender, unsigned.toSign)))
-    }
-  }
+             timestamp: Long): Either[ValidationError, CreateContractTransaction] = for {
+    unsigned <- create(contract, fee, feeScale, timestamp, Proofs.empty)
+    proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
+    tx <- create(contract, fee, feeScale, timestamp, proofs)
+  } yield tx
+
+
+  def create(sender: PublicKeyAccount,
+             contract: Contract,
+             fee: Long,
+             feeScale: Short,
+             timestamp: Long,
+             signature: ByteStr): Either[ValidationError, CreateContractTransaction] = for {
+    proofs <- Proofs.create(List(EllipticCurve25519Proof.buildProof(sender, signature).bytes))
+    tx <- create(contract, fee, feeScale, timestamp, proofs)
+  } yield tx
 }

@@ -7,15 +7,17 @@ import org.scalacheck.Gen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import scorex.transaction._
+import com.wavesplatform.state2.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
 class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks with DomainScenarioDrivenPropertyCheck with Matchers with TransactionGen {
   val preconditionsAndPayments: Gen[(GenesisTransaction, PaymentTransaction, PaymentTransaction)] = for {
     master <- accountGen
     recipient <- accountGen
-    ts <- positiveIntGen
+    //just because the block time is 0 in this test case. Need refactoring later.
+    ts <- Gen.choose(1, MaxTimeTransactionOverBlockDiff.toNanos - 1)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    payment: PaymentTransaction <- paymentGeneratorP(master, recipient)
-    payment2: PaymentTransaction <- paymentGeneratorP(master, recipient)
+    payment: PaymentTransaction <- paymentGeneratorP(ts, master, recipient)
+    payment2: PaymentTransaction <- paymentGeneratorP(ts, master, recipient)
   } yield (genesis, payment, payment2)
 
   property("compactification test") {

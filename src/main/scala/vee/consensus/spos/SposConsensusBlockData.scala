@@ -1,3 +1,3 @@
 package vee.consensus.spos
 
-case class SposConsensusBlockData(mintTime: Long, mintBalance: Long, generationSignature: Array[Byte])
+case class SposConsensusBlockData(mintTime: Long, mintBalance: Long)

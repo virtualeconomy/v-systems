@@ -50,7 +50,6 @@ class PaymentRouteSpec extends RouteSpec("/vee/payment")
           (resp \ "amount").as[Long] shouldEqual amount
           (resp \ "timestamp").as[Long] shouldEqual tx.right.get.timestamp
           (resp \ "attachment").as[String] shouldEqual Base58.encode(tx.right.get.attachment)
-          (resp \ "sender").as[String] shouldEqual sender.address
           (resp \ "recipient").as[String] shouldEqual recipient.stringRepr
         }
     }

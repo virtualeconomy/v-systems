@@ -7,7 +7,6 @@ import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import vee.consensus.spos.{SposConsensusBlockField, SposConsensusBlockData}
 import scorex.crypto.EllipticCurveImpl
-import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import scorex.transaction.TransactionParser._
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{AssetAcc, _}
@@ -138,7 +137,7 @@ object Block extends ScorexLogging {
     val cBytes = bytes.slice(position, position + cBytesLength)
     val mintTimeBytes = cBytes.slice(0, Block.MintTimeLength)
     val mintBalanceBytes = cBytes.slice(Block.MintTimeLength, Block.MintTimeLength + Block.MintBalanceLength)
-    val consData = SposConsensusBlockData(Longs.fromByteArray(mintTimeBytes), Longs.fromByteArray(mintBalanceBytes), cBytes.takeRight(Block.GeneratorSignatureLength))
+    val consData = SposConsensusBlockData(Longs.fromByteArray(mintTimeBytes), Longs.fromByteArray(mintBalanceBytes))
     position += cBytesLength
 
     val fBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
@@ -175,7 +174,6 @@ object Block extends ScorexLogging {
     val toSign = nonSignedBlock.bytes
     val signature = EllipticCurveImpl.sign(signer, toSign)
     require(reference.arr.length == SignatureLength, "Incorrect reference")
-    require(consensusData.generationSignature.length == GeneratorSignatureLength, "Incorrect consensusData.generationSignature")
     require(signer.publicKey.length == KeyLength, "Incorrect signer.publicKey")
     nonSignedBlock.copy(signerData = SignerData(signer, ByteStr(signature)))
   }
@@ -197,7 +195,7 @@ object Block extends ScorexLogging {
     }
     val transactionGenesisDataField = TransactionsBlockFieldVersion1or2(transactionGenesisData)
     // initial minting Balance set as 0
-    val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, 0L, Array.fill(DigestSize)(0: Byte))
+    val consensusGenesisData = SposConsensusBlockData(genesisSettings.initialMintTime, 0L)
     val consensusGenesisDataField = SposConsensusBlockField(consensusGenesisData)
     val feeGenesisData = ResourcePricingBlockData(0L, 0L, 0L, 0L, 0L)
     val feeGenesisDataField = ResourcePricingBlockField(feeGenesisData)
