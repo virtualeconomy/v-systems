@@ -279,7 +279,7 @@ trait TransactionGen {
     slotId: Int <- slotidGen
     feeAmount <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 1000, feeScale, timestamp).right.get
+  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 50000, feeScale, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
@@ -287,7 +287,7 @@ trait TransactionGen {
   def contendGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] = for {
     fee: Long <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield ContendSlotsTransaction.create(sender, slotId, fee, feeScale, timestamp).right.get
+  } yield ContendSlotsTransaction.create(sender, slotId, fee * 50000, feeScale, timestamp).right.get
 
   val releaseSlotsGen: Gen[ReleaseSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen

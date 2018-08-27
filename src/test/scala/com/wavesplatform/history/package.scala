@@ -7,7 +7,7 @@ import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.{Transaction, TransactionParser}
+import scorex.transaction.{ProcessedTransaction, Transaction, TransactionParser, TransactionStatus}
 
 package object history {
   val MinInMemoryDiffSize = 5
@@ -35,7 +35,7 @@ package object history {
       consensusData = SposConsensusBlockData(
         mintTime = 0L,
         mintBalance = 0L),
-      transactionData = txs,
+      transactionData = txs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)},
       signer = defaultSigner)
   }
 

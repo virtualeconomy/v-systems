@@ -34,7 +34,8 @@ class BlockSpecification extends FunSuite with Matchers with MockFactory {
 
     List(1, 2).foreach { version =>
       val timestamp = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L
-      val block = Block.buildAndSign(version.toByte, timestamp, ByteStr(reference), cbd, tbd, gen)
+      val block = Block.buildAndSign(version.toByte, timestamp, ByteStr(reference), cbd,
+        tbd.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}, gen)
       val parsedBlock = Block.parseBytes(block.bytes).get
       assert(Signed.validateSignatures(block).isRight)
       assert(Signed.validateSignatures(parsedBlock).isRight)

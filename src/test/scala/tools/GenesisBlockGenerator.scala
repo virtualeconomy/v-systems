@@ -5,9 +5,10 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
-import scorex.transaction.GenesisTransaction
+import scorex.transaction.{GenesisTransaction, TransactionStatus, Transaction, ProcessedTransaction}
 import scorex.transaction.TransactionParser.SignatureLength
 import vee.wallet.Wallet
+
 import scala.concurrent.duration._
 
 object GenesisBlockGenerator extends App {
@@ -70,7 +71,8 @@ object GenesisBlockGenerator extends App {
 
     println(ByteStr(genesisTxs.head.bytes).base58)
     // set the genesisblock's minting Balance to 0
-    val genesisBlock = Block.buildAndSign(1, timestamp, reference, SposConsensusBlockData(mt, 0L), genesisTxs, genesisSigner)
+    val genesisBlock = Block.buildAndSign(1, timestamp, reference, SposConsensusBlockData(mt, 0L),
+      genesisTxs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}, genesisSigner)
     val signature = genesisBlock.signerData.signature
 
     (accounts, GenesisSettings(timestamp, timestamp, initialBalance, Some(signature),

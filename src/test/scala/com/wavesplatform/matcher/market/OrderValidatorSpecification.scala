@@ -11,7 +11,7 @@ import org.scalamock.scalatest.PathMockFactory
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.transaction.ValidationError
+import scorex.transaction.{ProcessedTransaction, TransactionStatus, ValidationError}
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order}
 import vee.wallet.Wallet
@@ -32,7 +32,7 @@ class OrderValidatorSpecification extends WordSpec
   val ss: StateReader = stub[StateReader]
   (ss.assetInfo _).when(*).returns(Some(AssetInfo(true, 10000000000L)))
   val i1: IssueTransaction = IssueTransaction.create(PrivateKeyAccount(Array.empty), "WBTC".getBytes(), Array.empty, 10000000000L, 8.toByte, true, 100000L, 10000L).right.get
-  (ss.transactionInfo _).when(*).returns(Some((1, i1)))
+  (ss.transactionInfo _).when(*).returns(Some((1, ProcessedTransaction(TransactionStatus.Success, i1.fee, i1))))
 
   val s: MatcherSettings = matcherSettings.copy(account = MatcherAccount.address)
   val w = Wallet(WalletSettings(None, "matcher", Some(WalletSeed)))

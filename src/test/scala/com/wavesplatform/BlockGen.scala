@@ -5,7 +5,7 @@ import org.scalacheck.Gen
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{SignedTransaction, Transaction}
+import scorex.transaction.{ProcessedTransaction, SignedTransaction, Transaction, TransactionStatus}
 
 trait BlockGen extends TransactionGen {
 
@@ -21,7 +21,8 @@ trait BlockGen extends TransactionGen {
     reference <- byteArrayGen(Block.BlockIdLength)
     mintTime <- Gen.posNum[Long]
     mintBalance <- Gen.posNum[Long]
-  } yield Block.buildAndSign(1, txs.map(_.timestamp).max, ByteStr(reference), SposConsensusBlockData(mintTime, mintBalance), txs, signer)
+  } yield Block.buildAndSign(1, txs.map(_.timestamp).max, ByteStr(reference),
+    SposConsensusBlockData(mintTime, mintBalance), txs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}, signer)
 
   val randomSignerBlockGen: Gen[Block] = for {
     (transactions, signer) <- blockParamGen
