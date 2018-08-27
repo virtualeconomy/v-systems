@@ -45,19 +45,14 @@ object LeaseTransactionsDiff {
       lease <- leaseEi
       recipient <- s.resolveAliasEi(lease.recipient)
       isLeaseActive = s.isLeaseActive(lease)
-      _ <- if (!isLeaseActive && time > settings.allowMultipleLeaseCancelTransactionUntilTimestamp)
+      _ <- if (!isLeaseActive)
         Left(GenericError(s"Cannot cancel already cancelled lease")) else Right(())
       canceller = Address.fromPublicKey(tx.sender.publicKey)
       portfolioDiff <- if (tx.sender == lease.sender) {
         Right(Monoid.combine(
           Map(canceller -> Portfolio(-tx.fee, LeaseInfo(0, -lease.amount), Map.empty)),
           Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty))))
-      } else if (time < settings.allowMultipleLeaseCancelTransactionUntilTimestamp) { // cancel of another acc
-        Right(Monoid.combine(
-          Map(canceller -> Portfolio(-tx.fee, LeaseInfo(0, -lease.amount), Map.empty)),
-          Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty))))
-      } else Left(GenericError(s"LeaseTransaction was leased by other sender " +
-        s"and time=$time > allowMultipleLeaseCancelTransactionUntilTimestamp=${settings.allowMultipleLeaseCancelTransactionUntilTimestamp}"))
+      } else Left(GenericError(s"LeaseTransaction was leased by other sender"))
 
     } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false))
   }

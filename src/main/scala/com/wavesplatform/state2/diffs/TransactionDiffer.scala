@@ -21,13 +21,12 @@ object TransactionDiffer {
   def apply(settings: FunctionalitySettings, prevBlockTimestamp: Option[Long], currentBlockTimestamp: Long, currentBlockHeight: Int)(s: StateReader, tx: Transaction): Either[ValidationError, Diff] = {
     for {
       t0 <- Signed.validateSignatures(tx)
-      t1 <- CommonValidation.disallowTxFromFuture(settings, currentBlockTimestamp, t0)
+      t1 <- CommonValidation.disallowTxFromFuture(currentBlockTimestamp, t0)
       t2 <- CommonValidation.disallowTxFromPast(prevBlockTimestamp, t1)
-      t3 <- CommonValidation.disallowBeforeActivationTime(settings, t2)
-      t4 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t3)
-      t5 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t4)
-      t6 <- CommonValidation.disallowInvalidFeeScale(t5)
-      diff <- t6 match {
+      t3 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t2)
+      t4 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t3)
+      t5 <- CommonValidation.disallowInvalidFeeScale(t4)
+      diff <- t5 match {
         case gtx: GenesisTransaction => GenesisTransactionDiff(settings, currentBlockHeight)(gtx)
         case ptx: PaymentTransaction => PaymentTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(ptx)
         //case itx: IssueTransaction => AssetTransactionsDiff.issue(currentBlockHeight)(itx)
@@ -46,7 +45,7 @@ object TransactionDiffer {
         case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }
-      positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp, settings)(diff)
+      positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp)(diff)
     } yield positiveDiff
   }.left.map(TransactionValidationError(_, tx))
 }

@@ -9,60 +9,15 @@ import net.ceedubs.ficus.readers.EnumerationReader._
 
 import vee.settings._
 
-case class FunctionalitySettings(allowTemporaryNegativeUntil: Long,
-                                 allowInvalidPaymentTransactionsByTimestamp: Long,
-                                 requireSortedTransactionsAfter: Long,
-                                 generationBalanceDepthFrom50To1000AfterHeight: Long,
-                                 minimalGeneratingBalanceAfter: Long,
-                                 allowTransactionsFromFutureUntil: Long,
-                                 allowUnissuedAssetsUntil: Long,
-                                 allowBurnTransactionAfter: Long,
-                                 allowLeaseTransactionAfter: Long,
-                                 allowExchangeTransactionAfter: Long,
-                                 allowInvalidReissueInSameBlockUntilTimestamp: Long,
-                                 allowCreatealiasTransactionAfter: Long,
-                                 allowMultipleLeaseCancelTransactionUntilTimestamp: Long,
-                                 resetEffectiveBalancesAtHeight: Long,
-                                 allowLeasedBalanceTransferUntil: Long,
-                                 numOfSlots: Int,
+case class FunctionalitySettings(numOfSlots: Int,
                                  mintingSpeed: Int)
 
 object FunctionalitySettings {
-  //TODO, change the default settings
-  val MAINNET = FunctionalitySettings(allowTemporaryNegativeUntil = 1479168000000L,
-    allowInvalidPaymentTransactionsByTimestamp = 1479168000000L,
-    requireSortedTransactionsAfter = 1479168000000L,
-    generationBalanceDepthFrom50To1000AfterHeight = 232000L,
-    minimalGeneratingBalanceAfter = 1479168000000L,
-    allowTransactionsFromFutureUntil = 1479168000000L,
-    allowUnissuedAssetsUntil = 1479416400000L,
-    allowBurnTransactionAfter = 1491192000000L,
-    allowLeaseTransactionAfter = 1491192000000L,
-    allowExchangeTransactionAfter = 1491192000000L,
-    allowInvalidReissueInSameBlockUntilTimestamp = 1492768800000L,
-    allowCreatealiasTransactionAfter = 1503914400000L, // 2017-08-28T10:00:00Z
-    allowMultipleLeaseCancelTransactionUntilTimestamp = 1492768800000L,
-    resetEffectiveBalancesAtHeight = 462000,
-    allowLeasedBalanceTransferUntil = Long.MaxValue,
+  val MAINNET = FunctionalitySettings(
     numOfSlots = 5,
     mintingSpeed = 5)
 
   val TESTNET = FunctionalitySettings(
-    allowTemporaryNegativeUntil = 1477958400000L,
-    allowInvalidPaymentTransactionsByTimestamp = 1477958400000000000L, // timestamp rescale
-    requireSortedTransactionsAfter = 1477958400000L,
-    generationBalanceDepthFrom50To1000AfterHeight = Long.MinValue,
-    minimalGeneratingBalanceAfter = Long.MinValue,
-    allowTransactionsFromFutureUntil = 1478100000000L,
-    allowUnissuedAssetsUntil = 1479416400000L,
-    allowBurnTransactionAfter = 1481110521000L,
-    allowLeaseTransactionAfter = Long.MinValue,
-    allowExchangeTransactionAfter = 1483228800000L,
-    allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000000000L,
-    allowCreatealiasTransactionAfter = 1493596800000L,
-    allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000000000L,
-    resetEffectiveBalancesAtHeight = 51500,
-    allowLeasedBalanceTransferUntil = 1495238400000L,
     numOfSlots = 5,
     mintingSpeed = 5)
 
