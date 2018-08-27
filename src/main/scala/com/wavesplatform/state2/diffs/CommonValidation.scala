@@ -14,6 +14,7 @@ import vee.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vee.transaction.MintingTransaction
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vee.transaction.proof.EllipticCurve25519Proof
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -26,9 +27,9 @@ object CommonValidation {
   def disallowSendingGreaterThanBalance[T <: Transaction](s: StateReader, settings: FunctionalitySettings, blockTime: Long, tx: T): Either[ValidationError, T] =
     if (blockTime >= settings.allowTemporaryNegativeUntil)
       tx match {
-        case ptx: PaymentTransaction if s.accountPortfolio(ptx.sender).balance < (ptx.amount + ptx.fee) =>
+        case ptx: PaymentTransaction if s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance < (ptx.amount + ptx.fee) =>
           Left(GenericError(s"Attempt to pay unavailable funds: balance " +
-            s"${s.accountPortfolio(ptx.sender).balance} is less than ${ptx.amount + ptx.fee}"))
+            s"${s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance} is less than ${ptx.amount + ptx.fee}"))
         case ttx: TransferTransaction =>
           val sender: Address = ttx.sender
 
