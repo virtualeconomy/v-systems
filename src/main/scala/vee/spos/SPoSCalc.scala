@@ -8,7 +8,7 @@ import scorex.utils.ScorexLogging
 object SPoSCalc extends ScorexLogging {
 
   // useful constant
-  val MinimalEffectiveBalanceForGenerator: Long = 1000000000000L
+  val MinimalEffectiveBalanceForContender: Long = 100000000000000L
 
   def weightedBalaceCalc(heightDiff: Int, lastEffectiveBalance: Long, lastWeightedBalance: Long, cntEffectiveBalance: Long, fs: FunctionalitySettings): Long = {
     // mintingSpeed should be larger than 0
