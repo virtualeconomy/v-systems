@@ -49,7 +49,10 @@ object TransferTransactionDiff {
         if (invalid)
           Left(GenericError(s"Unissued assets are not allowed")) 
         else  
-          Right(Diff(height, tx, portfolios))
+          Right(Diff(height = height,
+            tx = tx,
+            portfolios = portfolios,
+            chargedFee = tx.fee))
     }
   }
 }
