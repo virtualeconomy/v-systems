@@ -44,7 +44,7 @@ case class BlocksApiRoute(settings: RestAPISettings, checkpointsSettings: Checkp
         }.filter(_._1.isDefined)
           .map { pair => (pair._1.get, pair._2) }
           .filter(_._1.signerData.generator.address == address).map { pair =>
-          pair._1.json + ("height" -> Json.toJson(pair._2))
+          pair._1.json + ("height" -> Json.toJson(pair._2)) + ("transaction count" -> Json.toJson(pair._1.transactionData.length))
         })
       complete(blocks)
     } else complete(TooBigArrayAllocation)
@@ -57,7 +57,7 @@ case class BlocksApiRoute(settings: RestAPISettings, checkpointsSettings: Checkp
   ))
   def child: Route = (path("child" / Segment) & get) { encodedSignature =>
     withBlock(history, encodedSignature) { block =>
-      complete(history.child(block).map(_.json).getOrElse[JsObject](
+      complete(history.child(block).map(_.json + ("transaction count" -> Json.toJson(block.transactionData.length))).getOrElse[JsObject](
         Json.obj("status" -> "error", "details" -> "No child blocks")))
     }
   }
@@ -106,7 +106,7 @@ case class BlocksApiRoute(settings: RestAPISettings, checkpointsSettings: Checkp
   ))
   def at: Route = (path("at" / IntNumber) & get) { height =>
     history.blockAt(height).map(_.json) match {
-      case Some(json) => complete(json + ("height" -> JsNumber(height)))
+      case Some(json) => complete(json + ("height" -> JsNumber(height)) + ("transaction count" -> JsNumber(history.blockAt(height).map(_.transactionData.length).get)))
       case None => complete(Json.obj("status" -> "error", "details" -> "No block for this height"))
     }
   }
@@ -121,7 +121,7 @@ case class BlocksApiRoute(settings: RestAPISettings, checkpointsSettings: Checkp
     if (end >= 0 && start >= 0 && end - start >= 0 && end - start < MaxBlocksPerRequest) {
       val blocks = JsArray(
         (start to end).flatMap { height =>
-          history.blockAt(height).map(_.json + ("height" -> Json.toJson(height)))
+          history.blockAt(height).map(_.json + ("height" -> Json.toJson(height)) + ("transaction count" -> Json.toJson(history.blockAt(height).get.transactionData.length)))
         })
       complete(blocks)
     } else complete(TooBigArrayAllocation)
@@ -133,13 +133,13 @@ case class BlocksApiRoute(settings: RestAPISettings, checkpointsSettings: Checkp
   def last: Route = (path("last") & get) {
     val height = history.height()
     val lastBlock = history.blockAt(height).get
-    complete(lastBlock.json + ("height" -> Json.toJson(height)))
+    complete(lastBlock.json + ("height" -> Json.toJson(height)) + ("transaction count" -> Json.toJson(lastBlock.transactionData.length)))
   }
 
   @Path("/first")
   @ApiOperation(value = "First", notes = "Get genesis block data", httpMethod = "GET")
   def first: Route = (path("first") & get) {
-    complete(history.genesis.json + ("height" -> Json.toJson(1)))
+    complete(history.genesis.json + ("height" -> Json.toJson(1)) + ("transaction count" -> Json.toJson(history.genesis.transactionData.length)))
   }
 
   @Path("/signature/{signature}")
@@ -151,7 +151,7 @@ case class BlocksApiRoute(settings: RestAPISettings, checkpointsSettings: Checkp
     if (encodedSignature.length > TransactionParser.SignatureStringLength) complete(InvalidSignature) else {
       ByteStr.decodeBase58(encodedSignature).toOption.toRight(InvalidSignature)
         .flatMap(s => history.blockById(s).toRight(BlockNotExists)) match {
-        case Right(block) => complete(block.json + ("height" -> history.heightOf(block.uniqueId).map(Json.toJson(_)).getOrElse(JsNull)))
+        case Right(block) => complete(block.json + ("height" -> history.heightOf(block.uniqueId).map(Json.toJson(_)).getOrElse(JsNull)) + ("transaction count" -> Json.toJson(block.transactionData.length)))
         case Left(e) => complete(e)
       }
     }
