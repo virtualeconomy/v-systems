@@ -16,6 +16,7 @@ class MinerSettingsSpecification extends FlatSpec with Matchers {
         |    enable: yes
         |    quorum: 1
         |    interval-after-last-block-then-generation-is-allowed: 1d
+        |    reward-address: ""
         |  }
         |}
       """.stripMargin).resolve()
@@ -25,5 +26,6 @@ class MinerSettingsSpecification extends FlatSpec with Matchers {
     settings.enable should be(true)
     settings.quorum should be(1)
     settings.intervalAfterLastBlockThenGenerationIsAllowed should be(Duration.ofDays(1))
+    settings.rewardAddress should be("")
   }
 }
