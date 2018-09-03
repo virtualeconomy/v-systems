@@ -114,7 +114,7 @@ class UtxPool(time: Time,
       .values.toSeq
       .sorted(TransactionsOrdering.InUTXPool)
       .foldLeft((Seq.empty[ByteStr], Seq.empty[ProcessedTransaction], Monoid[Diff].empty)) {
-        case ((invalid, valid, diff), tx) if valid.size < 100 =>
+        case ((invalid, valid, diff), tx) if valid.size < 99 =>
           differ(new CompositeStateReader(stateReader, diff.asBlockDiff), tx) match {
             case Right(newDiff) =>
               (invalid, ProcessedTransaction(newDiff.txStatus, newDiff.chargedFee, tx) +: valid, Monoid.combine(diff, newDiff))

@@ -13,7 +13,7 @@ import kamon.metric.instrument
 import monix.eval.Task
 import monix.execution._
 import monix.execution.cancelables.{CompositeCancelable, SerialCancelable}
-import scorex.account.PrivateKeyAccount
+import scorex.account.{PrivateKeyAccount, Address}
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
 import scorex.transaction.{BlockchainUpdater, CheckpointService, History, ProcessedTransaction, TransactionStatus}
@@ -78,8 +78,14 @@ class Miner(
       _ = log.debug(s"Previous block ID ${parent.uniqueId} at $parentHeight with exact mint time ${lastBlockKernelData.mintTime}")
       avgBlockDelay = blockchainSettings.genesisSettings.averageBlockDelay
       consensusData = SposConsensusBlockData(mintTime, balance)
+      _ <- Either.cond(minerSettings.rewardAddress == "" || Address.fromString(minerSettings.rewardAddress).isRight, (),
+        s"Invalid reward address, can not send reward to ${minerSettings.rewardAddress}")
+      rewardAddress: Address = minerSettings.rewardAddress match {
+        case "" => account.toAddress
+        case _ => Address.fromString(minerSettings.rewardAddress).right.get
+      }
       unconfirmed = utx.packUnconfirmed() :+ ProcessedTransaction(TransactionStatus.Success, 0L, MintingTransaction.create(
-        account.toAddress,  //minter can set any address here
+        rewardAddress,  //minter can set any address here
         MintingTransaction.mintingReward,
         currentTime,
         parentHeight + 1
