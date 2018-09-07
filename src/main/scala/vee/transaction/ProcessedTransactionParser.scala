@@ -1,7 +1,8 @@
-package scorex.transaction
+package vee.transaction
 
 import scala.util.{Failure, Try}
 import java.util
+import scorex.transaction.TransactionParser
 
 import com.google.common.primitives.Longs
 

@@ -3,6 +3,7 @@ package scorex.transaction
 import com.google.common.primitives.{Bytes, Ints}
 import play.api.libs.json.{JsArray, JsObject, Json}
 import scorex.block.{Block, BlockField}
+import vee.transaction.ProcessedTransaction
 
 trait TransactionsBlockField extends BlockField[Seq[ProcessedTransaction]]
 

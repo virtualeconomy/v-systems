@@ -2,7 +2,8 @@ package com.wavesplatform.state2.diffs
 
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
-import scorex.transaction.{TransactionStatus, ValidationError}
+import scorex.transaction.ValidationError
+import vee.transaction.TransactionStatus
 import vee.transaction.spos.ContendSlotsTransaction
 import vee.spos.SPoSCalc._
 import scorex.account.Address

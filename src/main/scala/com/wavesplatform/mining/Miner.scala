@@ -16,7 +16,8 @@ import monix.execution.cancelables.{CompositeCancelable, SerialCancelable}
 import scorex.account.{PrivateKeyAccount, Address}
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{BlockchainUpdater, CheckpointService, History, ProcessedTransaction, TransactionStatus}
+import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
+import vee.transaction.{ProcessedTransaction, TransactionStatus}
 import scorex.utils.{ScorexLogging, Time}
 import vee.transaction.MintingTransaction
 import vee.wallet.Wallet

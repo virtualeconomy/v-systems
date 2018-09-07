@@ -7,6 +7,7 @@ import scorex.account.PrivateKeyAccount
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
 import scorex.transaction._
+import vee.transaction._
 import scorex.transaction.assets.TransferTransaction
 
 import scala.util.Random

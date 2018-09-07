@@ -1,4 +1,4 @@
-package scorex.transaction
+package vee.transaction
 
 object TransactionStatus extends Enumeration {
   val Unprocessed = Value(1)

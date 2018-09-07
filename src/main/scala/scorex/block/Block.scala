@@ -12,6 +12,7 @@ import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{AssetAcc, _}
 import scorex.utils.ScorexLogging
 import vee.fee.{ResourcePricingBlockField, ResourcePricingBlockData}
+import vee.transaction._
 
 import scala.util.{Failure, Try}
 
@@ -75,7 +76,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
   lazy val bytesWithoutSignature: Array[Byte] = bytes.dropRight(SignatureLength)
 
   // set blockScore to minting Balance / 100000000
-  val sc = consensusData.mintBalance / 100000000L
+  val sc = Math.max(consensusData.mintBalance / 100000000L, 1L)
   lazy val blockScore: BigInt = BigInt(sc.toString)
 
   // destroy transaction fee
