@@ -4,7 +4,8 @@ import cats.Monoid
 import cats.implicits._
 import scorex.account.{Address, Alias}
 import vee.database.Entry
-import scorex.transaction.{ProcessedTransaction, Transaction, TransactionStatus}
+import scorex.transaction.Transaction
+import vee.transaction.{ProcessedTransaction, TransactionStatus}
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)
 

@@ -20,6 +20,7 @@ import org.scalamock.scalatest.PathMockFactory
 import org.scalatest._
 import scorex.account.PrivateKeyAccount
 import scorex.transaction._
+import vee.transaction._
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
 import scorex.utils.ScorexLogging

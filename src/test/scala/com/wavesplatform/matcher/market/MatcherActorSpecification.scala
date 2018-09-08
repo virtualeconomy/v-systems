@@ -23,7 +23,8 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecL
 import scorex.account.PrivateKeyAccount
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import scorex.transaction.{AssetId, History, ProcessedTransaction, TransactionStatus}
+import scorex.transaction.{AssetId, History}
+import vee.transaction.{ProcessedTransaction, TransactionStatus}
 import scorex.utils.{NTP, ScorexLogging}
 import vee.wallet.Wallet
 

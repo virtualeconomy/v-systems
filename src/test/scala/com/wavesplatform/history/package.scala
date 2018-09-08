@@ -7,7 +7,8 @@ import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.{ProcessedTransaction, Transaction, TransactionParser, TransactionStatus}
+import scorex.transaction.{Transaction, TransactionParser}
+import vee.transaction.{ProcessedTransaction, TransactionStatus}
 
 package object history {
   val MinInMemoryDiffSize = 5

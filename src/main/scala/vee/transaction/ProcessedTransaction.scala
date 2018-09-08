@@ -1,9 +1,10 @@
-package scorex.transaction
+package vee.transaction
 
 
 import play.api.libs.json.{JsObject, Json}
 import scorex.serialization.{BytesSerializable, JsonSerializable}
 import com.google.common.primitives.{Bytes, Longs}
+import scorex.transaction.Transaction
 
 case class ProcessedTransaction(
   status: TransactionStatus.Value,

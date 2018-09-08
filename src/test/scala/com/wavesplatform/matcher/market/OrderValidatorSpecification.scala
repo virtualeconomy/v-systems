@@ -11,7 +11,8 @@ import org.scalamock.scalatest.PathMockFactory
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.transaction.{ProcessedTransaction, TransactionStatus, ValidationError}
+import scorex.transaction.ValidationError
+import vee.transaction.{ProcessedTransaction, TransactionStatus}
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order}
 import vee.wallet.Wallet

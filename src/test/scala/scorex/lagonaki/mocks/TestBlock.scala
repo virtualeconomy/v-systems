@@ -6,7 +6,8 @@ import scorex.block._
 import vee.consensus.spos.SposConsensusBlockData
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser._
-import scorex.transaction.{ProcessedTransaction, Transaction, TransactionParser, TransactionStatus}
+import scorex.transaction.{Transaction, TransactionParser}
+import vee.transaction.{ProcessedTransaction, TransactionStatus}
 
 import scala.util.{Random, Try}
 

@@ -6,7 +6,7 @@ import cats.implicits._
 import cats.kernel.Monoid
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
-import scorex.transaction.ProcessedTransaction
+import vee.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
 
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {

@@ -5,7 +5,8 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
 import vee.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{GenesisTransaction, TransactionStatus, Transaction, ProcessedTransaction}
+import scorex.transaction.{GenesisTransaction, Transaction}
+import vee.transaction.{TransactionStatus, ProcessedTransaction}
 import scorex.transaction.TransactionParser.SignatureLength
 import vee.wallet.Wallet
 
