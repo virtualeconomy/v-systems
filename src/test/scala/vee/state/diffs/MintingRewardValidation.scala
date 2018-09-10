@@ -9,6 +9,7 @@ import vee.transaction.MintingTransaction
 import com.wavesplatform.state2.diffs.assertDiffEi
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.ValidationError.WrongMintingReward
+import vee.spos.SPoSCalc._
 
 class MintingRewardValidation extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -26,7 +27,7 @@ class MintingRewardValidation extends PropSpec with PropertyChecks with Generato
   }
 
   def validMintingReward(amount: Long): Boolean = {
-    amount == MintingTransaction.mintingReward
+    amount == MintingReward
   }
 
   property("disallows create minting transaction with invalid minting reward") {
@@ -54,7 +55,7 @@ the invalid minting reward will be detected in TransactionDiff instead of transa
   } yield (minting, amount)
 
   property("disallows to receive minting transaction with invalid minting reward") {
-    forAll(preMinting retryUntil(_._2 != MintingTransaction.mintingReward)) {
+    forAll(preMinting retryUntil(_._2 != MintingReward)) {
       case (minting, amount) =>
         assertDiffEi(Seq(TestBlock.create(Seq())), TestBlock.create(Seq(minting))) { totalDiffEi =>
           totalDiffEi shouldBe Left(TransactionValidationError(WrongMintingReward(amount), minting))

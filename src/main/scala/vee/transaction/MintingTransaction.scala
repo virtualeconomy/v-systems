@@ -9,6 +9,7 @@ import scorex.account.Address
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.transaction._
 import scorex.transaction.TransactionParser._
+import vee.spos.SPoSCalc._
 
 import scala.util.{Failure, Success, Try}
 
@@ -43,8 +44,6 @@ case class MintingTransaction private(recipient: Address,
 
 object MintingTransaction {
 
-  val mintingReward = 900000000
-
   private val recipientLength = Address.AddressLength
   private val currentBlockHeightLength = 4
   private val BaseLength = TimestampLength + recipientLength + AmountLength + currentBlockHeightLength
@@ -53,7 +52,7 @@ object MintingTransaction {
              amount: Long,
              timestamp: Long,
              currentBlockHeight: Int): Either[ValidationError, MintingTransaction] = {
-    if (amount != mintingReward) {
+    if (amount != MintingReward) {
       Left(ValidationError.WrongMintingReward(amount))
     } else if (Try(Math.addExact(amount, 0)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT amount won't overflow Long

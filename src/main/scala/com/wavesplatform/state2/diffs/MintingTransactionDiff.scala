@@ -6,6 +6,7 @@ import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.ValidationError
 import vee.transaction.MintingTransaction
+import vee.spos.SPoSCalc._
 
 import scala.util.{Left, Right}
 
@@ -16,7 +17,7 @@ object MintingTransactionDiff {
 
     if (tx.currentBlockHeight != height)
       Left(GenericError(s"Invalid MintingTransaction, minting transaction height is different from the block height"))
-    else if (tx.amount != MintingTransaction.mintingReward)
+    else if (tx.amount != MintingReward)
       Left(ValidationError.WrongMintingReward(tx.amount))
     else
       Right(Diff(height = height,

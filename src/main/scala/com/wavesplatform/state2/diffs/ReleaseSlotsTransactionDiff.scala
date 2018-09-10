@@ -9,6 +9,7 @@ import com.wavesplatform.settings.FunctionalitySettings
 import scala.util.{Left, Right}
 import scorex.transaction.ValidationError.GenericError
 import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vee.spos.SPoSCalc._
 
 object ReleaseSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ReleaseSlotsTransaction): Either[ValidationError, Diff] = {
@@ -17,9 +18,11 @@ object ReleaseSlotsTransactionDiff {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     val proofLength = tx.proofs.proofs.length
 
-    val hasEnoughMiner = s.effectiveSlotAddressSize >= (fs.numOfSlots + 1) / 2 && s.effectiveSlotAddressSize > 1
+    val MinimalSlotNumber = 10
 
-    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0
+    val hasEnoughMiner = s.effectiveSlotAddressSize > MinimalSlotNumber
+
+    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0 && (tx.slotId % SlotGap == 0)
 
     val isValidAddress = s.slotAddress(tx.slotId) match {
       case Some(l) if l == sender.toAddress.address => true
@@ -38,7 +41,7 @@ object ReleaseSlotsTransactionDiff {
         slotids = Map(tx.slotId -> emptyAddress),slotNum = -1, chargedFee = tx.fee))
     }
     else if (!isValidSlotID){
-      Left(GenericError(s"slot id: ${tx.slotId} invalid."))
+      Left(ValidationError.InvalidSlotId(tx.slotId))
     }
     else if (!hasEnoughMiner){
       Left(GenericError(s"${s.effectiveSlotAddressSize} effective slot address(es) left, can not release the minting right"))

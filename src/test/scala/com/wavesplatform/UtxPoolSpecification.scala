@@ -14,6 +14,7 @@ import scorex.block.Block
 //import scorex.transaction.assets.TransferTransaction
 import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
 import scorex.utils.Time
+import vee.spos.SPoSCalc._
 
 import scala.concurrent.duration._
 import vee.transaction.MintingTransaction
@@ -129,7 +130,7 @@ class UtxPoolSpecification extends FreeSpec
   private val withMintingTransaction = (for {
     (sender, senderBalance, state, history) <- stateGen
     time = new TestTime()
-    tx = mintingTransaction(sender, MintingTransaction.mintingReward, time, history.height())
+    tx = mintingTransaction(sender, MintingReward, time, history.height())
   } yield {
     val settings = UtxSettings(10, 1.minute)
     val utxPool = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, settings)

@@ -78,12 +78,18 @@ case class WrongTransactionJson(err: JsError) extends ApiError {
 
 case class InvalidFeeScale(feeScale: Short) extends ApiError {
   override val id: Int = 114
-  override val message: String = s"Validation failed for wrong fee scale ${feeScale}."
+  override val message: String = s"Validation failed for wrong fee scale $feeScale."
   override val code: StatusCode = StatusCodes.BadRequest
 }
 
 case class InvalidMintingReward(mintingReward: Long) extends ApiError {
   override val id: Int = 115
-  override val message: String = s"Validation failed for wrong minting reward ${mintingReward}."
+  override val message: String = s"Validation failed for wrong minting reward $mintingReward."
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case class InvalidSlotId(slotId: Int) extends ApiError {
+  override val id: Int = 116
+  override val message: String = s"slot id: $slotId invalid."
   override val code: StatusCode = StatusCodes.BadRequest
 }

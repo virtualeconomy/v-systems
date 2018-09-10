@@ -18,6 +18,7 @@ import vee.database.{Entry, DataType}
 import vee.transaction.database.DbPutTransaction
 import vee.contract.Contract
 import vee.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
+import vee.spos.SPoSCalc._
 
 trait TransactionGen {
 
@@ -110,7 +111,7 @@ trait TransactionGen {
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
 
-  val mintingAmountGen: Gen[Long] = Gen.const(MintingTransaction.mintingReward)
+  val mintingAmountGen: Gen[Long] = Gen.const(MintingReward)
 
   val veeAssetGen: Gen[Option[ByteStr]] = Gen.const(None)
   val assetIdGen: Gen[Option[ByteStr]] = Gen.frequency((1, veeAssetGen), (10, Gen.option(bytes32gen.map(ByteStr(_)))))
@@ -295,7 +296,7 @@ trait TransactionGen {
     slotId: Int <- slotidGen
     feeAmount <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield  ReleaseSlotsTransaction.create(sender, slotId, feeAmount, feeScale, timestamp).right.get
+  } yield  ReleaseSlotsTransaction.create(sender, slotId/SlotGap * SlotGap, feeAmount, feeScale, timestamp).right.get
 
   def releaseGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] =
     timestampGen.flatMap(ts => releaseGeneratorP(ts, sender, slotId))

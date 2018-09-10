@@ -9,6 +9,7 @@ import scorex.transaction.TransactionParser._
 import scorex.transaction._
 import vee.transaction._
 import vee.transaction.proof._
+import vee.spos.SPoSCalc._
 
 import scala.util.{Failure, Success, Try}
 
@@ -66,7 +67,9 @@ object ContendSlotsTransaction {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100){
       Left(ValidationError.WrongFeeScale(feeScale))
-    } else {
+    } else if (slotId % SlotGap!= 0){
+      Left(ValidationError.InvalidSlotId(slotId))
+    } else{
       Right(ContendSlotsTransaction(slotId, fee, feeScale, timestamp, proofs))
     }
 

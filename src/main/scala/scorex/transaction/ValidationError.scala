@@ -36,4 +36,5 @@ object ValidationError {
   case class Mistiming(err: String) extends ValidationError
   case class WrongFeeScale(errFeeScale: Short) extends ValidationError
   case class WrongMintingReward(errReward: Long) extends ValidationError
+  case class InvalidSlotId(errSlotId: Int) extends ValidationError
 }

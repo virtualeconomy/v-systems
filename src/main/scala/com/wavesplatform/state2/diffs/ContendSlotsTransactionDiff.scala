@@ -5,11 +5,11 @@ import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError
 import vee.transaction.TransactionStatus
 import vee.transaction.spos.ContendSlotsTransaction
-import vee.spos.SPoSCalc._
 import scorex.account.Address
 import com.wavesplatform.settings.FunctionalitySettings
 import scorex.transaction.ValidationError.GenericError
 import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vee.spos.SPoSCalc._
 
 import scala.util.Right
 import scala.util.Left
@@ -24,7 +24,7 @@ object ContendSlotsTransactionDiff {
       case None => false
       case _ => true
     }
-    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0
+    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0 && (tx.slotId % SlotGap == 0)
 
     if (proofLength > Proofs.MaxProofs){
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
@@ -68,7 +68,7 @@ object ContendSlotsTransactionDiff {
       Left(GenericError(s"${sender.address} already own one slot."))
     }
     else{
-      Left(GenericError(s"slot id: ${tx.slotId} invalid."))
+      Left(ValidationError.InvalidSlotId(tx.slotId))
     }
   }
 }
