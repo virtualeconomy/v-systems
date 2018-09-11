@@ -87,7 +87,7 @@ class Miner(
       }
       unconfirmed = utx.packUnconfirmed() :+ ProcessedTransaction(TransactionStatus.Success, 0L, MintingTransaction.create(
         rewardAddress,  //minter can set any address here
-        MintingTransaction.mintingReward,
+        MintingReward,
         currentTime,
         parentHeight + 1
       ).right.get)

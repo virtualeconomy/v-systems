@@ -106,7 +106,7 @@ case class SposConsensusApiRoute(
               "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
               "height" -> state.height))
         }
-      case _ => complete(InvalidSlotId)
+      case _ => complete(InvalidSlotId(slotId))
     }
   }
 

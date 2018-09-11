@@ -42,6 +42,7 @@ object ApiError {
     case ValidationError.Mistiming(err) => Mistiming(err)
     case ValidationError.DbDataTypeError(err) => InvalidDbDataType(err)
     case ValidationError.WrongFeeScale(errFeeScale) => InvalidFeeScale(errFeeScale)
+    case ValidationError.InvalidSlotId(errSlotId) => InvalidSlotId(errSlotId)
     case ValidationError.WrongMintingReward(errMintingReward) => InvalidMintingReward(errMintingReward)
     case ValidationError.TooLongDbEntry(actualLength, maxLength) => TooLongDbEntry(actualLength, maxLength)
     case ValidationError.InvalidUTF8String(field) => InvalidUTF8String(field)
@@ -176,12 +177,6 @@ case object MissingSenderPrivateKey extends ApiError {
   override val id: Int = 115
   override val message: String = "no private key for sender address in wallet"
   override val code: StatusCode = StatusCodes.BadRequest
-}
-
-case object InvalidSlotId extends ApiError {
-  override val id = 116
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid slot id"
 }
 
 case object InvalidDbKey extends ApiError {

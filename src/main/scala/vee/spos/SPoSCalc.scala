@@ -2,13 +2,20 @@ package vee.spos
 
 import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2.reader.StateReader
-import scorex.account.Address
+import scorex.account.{Address, AddressScheme}
 import scorex.utils.ScorexLogging
 
 object SPoSCalc extends ScorexLogging {
 
   // useful constant
   val MinimalEffectiveBalanceForContender: Long = 100000000000000L
+
+  // update plan: 4 -> 15 slots, 2 -> 30 slots, 1 -> 60 slots
+  val SlotGap = if (AddressScheme.current.chainId == 'M'.toByte) 4 else 1
+
+  // update plan: 15 slots -> 36 vee coins, 30 slots -> 18 vee coins, 60 slots -> 9 vee coins
+  val BaseReward = 900000000L
+  val MintingReward = BaseReward * SlotGap
 
   def weightedBalaceCalc(heightDiff: Int, lastEffectiveBalance: Long, lastWeightedBalance: Long, cntEffectiveBalance: Long, fs: FunctionalitySettings): Long = {
     // mintingSpeed should be larger than 0

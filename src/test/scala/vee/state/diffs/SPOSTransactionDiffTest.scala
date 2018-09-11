@@ -10,6 +10,8 @@ import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.GenesisTransaction
 import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import com.wavesplatform.state2.diffs._
+import com.wavesplatform.state2.diffs.TransactionDiffer._
+import scorex.transaction.ValidationError
 import scorex.settings.TestFunctionalitySettings
 import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
@@ -52,69 +54,98 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
   }
 
   property("contend transaction can not contend invalid slots") {
-    forAll(preconditionsAndContend) { case (genesis, _, _, invalid1, invalid2, _) =>
+    forAll(preconditionsAndContend) { case (genesis, _, _, invalid1:ContendSlotsTransaction, invalid2:ContendSlotsTransaction, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(invalid1))) { blockDiffEi =>
-        blockDiffEi should produce("invalid.")
+        blockDiffEi shouldBe Left(TransactionValidationError(ValidationError.InvalidSlotId(invalid1.slotId), invalid1))
       }
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(invalid2))) { blockDiffEi =>
-        blockDiffEi should produce("invalid.")
+        blockDiffEi shouldBe Left(TransactionValidationError(ValidationError.InvalidSlotId(invalid2.slotId), invalid2))
       }
     }
   }
 
   // the num of slot is 2
-  val preconditionsAndRelease: Gen[(GenesisTransaction, GenesisTransaction, ContendSlotsTransaction, ContendSlotsTransaction,
-    ReleaseSlotsTransaction, ReleaseSlotsTransaction, ReleaseSlotsTransaction, ReleaseSlotsTransaction, Long, Long, Long)] = for {
+  val preconditionsAndRelease: Gen[(GenesisTransaction, GenesisTransaction, GenesisTransaction, GenesisTransaction,
+    GenesisTransaction, GenesisTransaction, GenesisTransaction, GenesisTransaction, GenesisTransaction, GenesisTransaction,
+    GenesisTransaction, ReleaseSlotsTransaction, ReleaseSlotsTransaction, ReleaseSlotsTransaction, ReleaseSlotsTransaction, Long)] = for {
+    master0 <- accountGen
     master1 <- accountGen
-    ts1 <- positiveIntGen
-    genesis1: GenesisTransaction = GenesisTransaction.create(master1, ENOUGH_AMT, -1, ts1).right.get
-    contend1: ContendSlotsTransaction <- contendGeneratorP(master1, 0)
-    release1: ReleaseSlotsTransaction <- releaseGeneratorP(master1, 0)
-    releaseInvalid1: ReleaseSlotsTransaction <- releaseGeneratorP(master1, 1)
-    releaseInvalid2: ReleaseSlotsTransaction <- releaseGeneratorP(master1, -1)
-    releaseInvalid3: ReleaseSlotsTransaction <- releaseGeneratorP(master1, TestFunctionalitySettings.Enabled.numOfSlots)
     master2 <- accountGen
-    ts2 <- positiveIntGen
-    genesis2: GenesisTransaction = GenesisTransaction.create(master2, ENOUGH_AMT, -1, ts2).right.get
-    contend2: ContendSlotsTransaction <- contendGeneratorP(master2, 1)
-  } yield (genesis1, genesis2, contend1, contend2, release1, releaseInvalid1, releaseInvalid2, releaseInvalid3, contend1.fee, contend2.fee, release1.fee)
+    master3 <- accountGen
+    master4 <- accountGen
+    master5 <- accountGen
+    master6 <- accountGen
+    master7 <- accountGen
+    master8 <- accountGen
+    master9 <- accountGen
+    master10 <- accountGen
+
+    ts1 <- positiveIntGen
+    genesis0: GenesisTransaction = GenesisTransaction.create(master0, ENOUGH_AMT, 0, ts1).right.get
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, ENOUGH_AMT, 4, ts1).right.get
+    genesis2: GenesisTransaction = GenesisTransaction.create(master2, ENOUGH_AMT, 8, ts1).right.get
+    genesis3: GenesisTransaction = GenesisTransaction.create(master3, ENOUGH_AMT, 12, ts1).right.get
+    genesis4: GenesisTransaction = GenesisTransaction.create(master4, ENOUGH_AMT, 16, ts1).right.get
+    genesis5: GenesisTransaction = GenesisTransaction.create(master5, ENOUGH_AMT, 20, ts1).right.get
+    genesis6: GenesisTransaction = GenesisTransaction.create(master6, ENOUGH_AMT, 24, ts1).right.get
+    genesis7: GenesisTransaction = GenesisTransaction.create(master7, ENOUGH_AMT, 28, ts1).right.get
+    genesis8: GenesisTransaction = GenesisTransaction.create(master8, ENOUGH_AMT, 32, ts1).right.get
+    genesis9: GenesisTransaction = GenesisTransaction.create(master9, ENOUGH_AMT, 36, ts1).right.get
+    genesis10: GenesisTransaction = GenesisTransaction.create(master10, ENOUGH_AMT, 40, ts1).right.get
+
+    release1: ReleaseSlotsTransaction <- releaseGeneratorP(master0, 0)
+    releaseInvalid1: ReleaseSlotsTransaction <- releaseGeneratorP(master0, 4)
+    releaseInvalid2: ReleaseSlotsTransaction <- releaseGeneratorP(master0, -1)
+    releaseInvalid3: ReleaseSlotsTransaction <- releaseGeneratorP(master0, TestFunctionalitySettings.Enabled.numOfSlots)
+
+  } yield (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6, genesis7, genesis8, genesis9, genesis10,
+    release1, releaseInvalid1, releaseInvalid2, releaseInvalid3, release1.fee)
 
   property("release transaction doesn't break invariant") {
-    forAll(preconditionsAndRelease) { case (genesis1, genesis2, contend1, contend2, release1, _, _, _, f1, f2, f3) =>
-      assertDiffAndState(Seq(TestBlock.create(Seq(genesis1, genesis2))), TestBlock.create(Seq(contend1, contend2, release1))) { (blockDiff, newState) =>
+    forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,
+    genesis7, genesis8, genesis9, genesis10, release1, _, _, _, f1) =>
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
+        genesis5, genesis6, genesis7, genesis8, genesis9, genesis10))), TestBlock.create(Seq(release1))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe -(f1 + f2 + f3)
-        totalPortfolioDiff.effectiveBalance shouldBe -(f1 + f2 + f3)
+        totalPortfolioDiff.balance shouldBe - f1
+        totalPortfolioDiff.effectiveBalance shouldBe -f1
         val sender = EllipticCurve25519Proof.fromBytes(release1.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 2).size shouldBe 2 // genesis and payment
+        newState.accountTransactionIds(sender, 10).size shouldBe 2 // genesis and release
       }
     }
   }
 
   property("release transaction can not release wrong slot id") {
-    forAll(preconditionsAndRelease) { case (genesis1, genesis2, contend1, contend2, _, invalid1, invalid2, invalid3, _, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis1, genesis2))), TestBlock.create(Seq(contend1, contend2, invalid1))) { blockDiffEi =>
+    forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,
+    genesis7, genesis8, genesis9, genesis10, _, invalid1, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
+        genesis5, genesis6, genesis7, genesis8, genesis9, genesis10))), TestBlock.create(Seq(invalid1))) { blockDiffEi =>
         blockDiffEi should produce("can not release the minting right of slot id")
       }
     }
   }
 
   property("release transaction can not release invalid slots") {
-    forAll(preconditionsAndRelease) { case (genesis1, genesis2, contend1, contend2, _, invalid1, invalid2, invalid3, _, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis1, genesis2))), TestBlock.create(Seq(contend1, contend2, invalid2))) { blockDiffEi =>
-        blockDiffEi should produce("invalid.")
+    forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,
+    genesis7, genesis8, genesis9, genesis10, _, _, invalid2:ReleaseSlotsTransaction, invalid3:ReleaseSlotsTransaction, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
+        genesis5, genesis6, genesis7, genesis8, genesis9, genesis10))), TestBlock.create(Seq(invalid2))) { blockDiffEi =>
+        blockDiffEi shouldBe Left(TransactionValidationError(ValidationError.InvalidSlotId(invalid2.slotId), invalid2))
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis1, genesis2))), TestBlock.create(Seq(contend1, contend2, invalid3))) { blockDiffEi =>
-        blockDiffEi should produce("invalid.")
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
+        genesis5, genesis6, genesis7, genesis8, genesis9, genesis10))), TestBlock.create(Seq(invalid3))) { blockDiffEi =>
+        blockDiffEi shouldBe Left(TransactionValidationError(ValidationError.InvalidSlotId(invalid3.slotId), invalid3))
       }
     }
   }
 
   property("release transaction can not release when minter number is not enough") {
-    forAll(preconditionsAndRelease) { case (genesis1, _, contend1, _, release1, _, _, _, _, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis1))), TestBlock.create(Seq(contend1, release1))) { blockDiffEi =>
+    forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,
+    genesis7, genesis8, _, _, release1, _, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
+        genesis5, genesis6, genesis7, genesis8))), TestBlock.create(Seq(release1))) { blockDiffEi =>
         blockDiffEi should produce("effective slot address(es) left, can not release the minting right")
       }
     }

@@ -16,6 +16,7 @@ import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time}
 import kamon.Kamon
 import kamon.metric.instrument
+import vee.spos.SPoSCalc._
 
 object Coordinator extends ScorexLogging {
   def processFork(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater, stateReader: StateReader,
@@ -149,14 +150,15 @@ object Coordinator extends ScorexLogging {
 
       generator = block.signerData.generator
 
-      //TODO
-      //check the generator's address for multi slots address case (VEE), checked by diff
       //check generator.address, compare mintTime and generator's slot id
       minterAddress = PublicKeyAccount.toAddress(generator)
       mintTime = block.consensusData.mintTime
       slotid = (mintTime / 1000000000L / Math.max(fs.mintingSpeed, 1L)) % fs.numOfSlots
       slotAddress = state.slotAddress(slotid.toInt)
+      _ <- Either.cond(slotid.toInt % SlotGap == 0, (), ValidationError.InvalidSlotId(slotid.toInt))
       _ <- Either.cond(minterAddress.address == slotAddress.get, (), s"Minting address ${minterAddress.address} does not match the slot address ${slotAddress.get} of slot $slotid")
+
+
       // TODO
       // set a better duration here
       // compare cntTime and mintTime
