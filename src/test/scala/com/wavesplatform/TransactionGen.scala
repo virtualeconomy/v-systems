@@ -280,7 +280,7 @@ trait TransactionGen {
     slotId: Int <- slotidGen
     feeAmount <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield ContendSlotsTransaction.create(sender, slotId, feeAmount * 50000, feeScale, timestamp).right.get
+  } yield ContendSlotsTransaction.create(sender, slotId/SlotGap * SlotGap, feeAmount * 50000, feeScale, timestamp).right.get
 
   def contendGeneratorP(sender: PrivateKeyAccount, slotId: Int): Gen[ContendSlotsTransaction] =
     timestampGen.flatMap(ts => contendGeneratorP(ts, sender, slotId))
