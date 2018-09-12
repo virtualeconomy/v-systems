@@ -14,12 +14,12 @@ case class FunctionalitySettings(numOfSlots: Int,
 
 object FunctionalitySettings {
   val MAINNET = FunctionalitySettings(
-    numOfSlots = 5,
-    mintingSpeed = 5)
+    numOfSlots = 60,
+    mintingSpeed = 1)
 
   val TESTNET = FunctionalitySettings(
-    numOfSlots = 5,
-    mintingSpeed = 5)
+    numOfSlots = 60,
+    mintingSpeed = 1)
 
   val configPath = "vee.blockchain.custom.functionality"
 }
