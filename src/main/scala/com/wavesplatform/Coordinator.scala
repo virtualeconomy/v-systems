@@ -117,7 +117,7 @@ object Coordinator extends ScorexLogging {
   }
 
   val MaxTimeDrift: Long = Duration.ofSeconds(15).toNanos
-  val MaxMintTimeFromFuture: Long = Duration.ofMillis(500).toNanos
+  val MaxMintTimeFromFuture: Long = Duration.ofMillis(30000).toNanos
   private val blockReceiveGapStats = Kamon.metrics.histogram("block-receive-gap", instrument.Time.Milliseconds)
 
   private def blockConsensusValidation(history: History, state: StateReader, bcs: BlockchainSettings, currentTs: Long)
@@ -168,8 +168,8 @@ object Coordinator extends ScorexLogging {
       // check mint time is larger than parent block mint time
       _ <- Either.cond(mintTime > prevBlockData.mintTime, (), s"Block mint time $mintTime is not larger than parent mint time ${prevBlockData.mintTime}")
 
-      // mint time should not greater than current time + 1s(error)
-      // _ <- Either.cond(currentTs + MaxMintTimeFromFuture >= mintTime, (), s"Block from future, current time $currentTs, mint time $mintTime")
+      // mint time should not greater than current time + 30s(error in one round)
+       _ <- Either.cond(currentTs + MaxMintTimeFromFuture >= mintTime, (), s"Block from future, current time $currentTs, mint time $mintTime")
 
       _ <- Either.cond(block.transactionData.map(_.transaction).filter(_.transactionType == TransactionParser.TransactionType.MintingTransaction).size == 1,
            (), s"One and only one minting transaction allowed per block" )
