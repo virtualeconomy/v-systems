@@ -26,9 +26,9 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
 
   def setHeight(i: Int): Unit = variables.put(heightKey, i)
 
-  private val addressList: MVMap[Int, String] = db.openMap("addressList")
+  val addressList: MVMap[Int, String] = db.openMap("addressList")
 
-  private val addressToID: MVMap[String, Int] = db.openMap("addressToID")
+  val addressToID: MVMap[String, Int] = db.openMap("addressToID")
 
   def setSlotAddress(i: Int, add: String):Unit = {
     addressList.put(i,add)

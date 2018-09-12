@@ -137,6 +137,8 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().leaseState.clear()
     sp().lastBalanceSnapshotHeight.clear()
     sp().lastBalanceSnapshotWeightedBalance.clear()
+    sp().addressList.clear()
+    sp().addressToID.clear()
     sp().setHeight(0)
     sp().commit()
   }
