@@ -4,7 +4,7 @@ The code in master branch is under development. The latest release for each netw
 
 # Installation
 
-[How to configure VEE node](https://github.com/excelsia/VEE/wiki/How-to-install-VEE-node)
+[How to configure VEE node](https://github.com/excelsia/vee/wiki/How-to-install-VEE-testnet-node)
 
 ## Compiling Packages from source
 
