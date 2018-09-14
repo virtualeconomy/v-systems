@@ -25,11 +25,8 @@ import io.netty.util.concurrent.GlobalEventExecutor
 import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
-import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
 import vee.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
 import vee.api.http.vee._
-import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
-import vee.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import vee.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
@@ -97,17 +94,17 @@ class Application(val actorSystem: ActorSystem, val settings: VeeSettings) exten
       AddressApiRoute(settings.restAPISettings, wallet, stateReader, settings.blockchainSettings.functionalitySettings),
       DebugApiRoute(settings.restAPISettings, wallet, stateReader, history, peerDatabase, establishedConnections, blockchainUpdater, allChannels, utxStorage),
       //WavesApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
-      AssetsApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
+      //AssetsApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       NodeApiRoute(settings.restAPISettings, () => this.shutdown()),
-      AssetsBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      //AssetsBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       LeaseApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       LeaseBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
-      AliasApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      //AliasApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      //AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
       SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
-      ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      //ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      //ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       DbApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader)
     )
 
@@ -122,17 +119,17 @@ class Application(val actorSystem: ActorSystem, val settings: VeeSettings) exten
       typeOf[AddressApiRoute],
       typeOf[DebugApiRoute],
       //typeOf[WavesApiRoute],
-      typeOf[AssetsApiRoute],
+      //typeOf[AssetsApiRoute],
       typeOf[NodeApiRoute],
-      typeOf[AssetsBroadcastApiRoute],
+      //typeOf[AssetsBroadcastApiRoute],
       typeOf[LeaseApiRoute],
       typeOf[LeaseBroadcastApiRoute],
-      typeOf[AliasApiRoute],
-      typeOf[AliasBroadcastApiRoute],
+      //typeOf[AliasApiRoute],
+      //typeOf[AliasBroadcastApiRoute],
       typeOf[SPOSApiRoute],
       typeOf[SPOSBroadcastApiRoute],
-      typeOf[ContractApiRoute],
-      typeOf[ContractBroadcastApiRoute],
+      //typeOf[ContractApiRoute],
+      //typeOf[ContractBroadcastApiRoute],
       typeOf[DbApiRoute]
     )
 
