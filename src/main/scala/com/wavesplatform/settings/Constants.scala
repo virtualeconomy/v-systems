@@ -12,5 +12,5 @@ object Constants extends ScorexLogging {
   val AgentName = s"VEE Core v${Version.VersionString}"
 
   val UnitsInVee = 100000000L
-  val TotalVee = 10000000000L
+  val TotalVee = 10000000000L // unuse in mainnet
 }

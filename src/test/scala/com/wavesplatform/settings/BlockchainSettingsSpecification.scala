@@ -131,16 +131,36 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
-    settings.genesisSettings.blockTimestamp should be(1460678400000L)
-    settings.genesisSettings.timestamp should be(1465742577614L)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("FSH8eAAzZNqnG8xgTZtz5xuLqXySsXgAjmFEC25hXMbEufiGjqWPnGCZFt6gLiVLJny16ipxRNAkkzjjhqTjBE2").toOption)
-    settings.genesisSettings.initialBalance should be(1000000000000000000L) //changed the total initialBalance in default setting
+    settings.genesisSettings.blockTimestamp should be(1537164018783517311L)
+    settings.genesisSettings.timestamp should be(1537164018783517311L)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("45jkYxYcTrLkgwVdaQzsnzgeGz4Ebogd28napZ5UNQuZw5XD2SLjqFyEnfNCFaGEiRkYHVVyyK1QwQxjia86k2Yo").toOption)
+    settings.genesisSettings.initialBalance should be(514285800000000000L) //changed the total initialBalance in default setting
     settings.genesisSettings.transactions should be(Seq(
-      GenesisTransactionSettings("3PAWwWa6GbwcJaFzwqXQN5KQm7H96Y7SHTQ", 999999999500000000L, 0),
-      GenesisTransactionSettings("3P8JdJGYc7vaLu4UXUZc1iRLdzrkGtdCyJM", 100000000L, 1),
-      GenesisTransactionSettings("3PAGPDPqnGkyhcihyjMHe9v36Y4hkAh9yDy", 100000000L, 2),
-      GenesisTransactionSettings("3P9o3ZYwtHkaU1KxsKkFjJqJKS3dLHLC9oF", 100000000L, 3),
-      GenesisTransactionSettings("3PJaDyprvekvPXPuAtxrapacuDJopgJRaU3", 100000000L, 4),
-      GenesisTransactionSettings("3PBWXDFUc86N2EQxKJmW8eFco65xTyMZx6J", 100000000L,5)))
+      GenesisTransactionSettings("ARMxPV8puShq49KzPoQb5XGttxghvLdMFg1",36000006000000000L,-1),
+      GenesisTransactionSettings("ARFHdvqddPNfMXNt9fgH7Lw1aGRgL29wTKY",15428574000000000L,-1),
+      GenesisTransactionSettings("ARQSe9A3DLryBqN4Y1NV1PhERnuWaDLheza",25097147000000000L,-1),
+      GenesisTransactionSettings("ARHY8cocXeGnH3q4bkLpU56sCg28fF5hSWV",36000006000000000L,-1),
+      GenesisTransactionSettings("ARCry9n7JvHF8rooXiEMhesAHP8zv3sBLDr",36000006000000000L,-1),
+      GenesisTransactionSettings("AR7M83ZypZc5WRzdZHjhULnQ7xzoMM8udJt",12342859200000000L,-1),
+      GenesisTransactionSettings("ARPdpZ9PT5kDbi2U6ZUgxoFwJzFchz7Fcsw",36000006000000000L,-1),
+      GenesisTransactionSettings("ARCK84TwkqzQEksj8pQTxbsCuRY9YGsAbSU",36000006000000000L,-1),
+      GenesisTransactionSettings("ARKbFz4N3f8Rgonf1Afd2aix2QtkCUjnWqW",39085720800000000L,-1),
+      GenesisTransactionSettings("ARRo5K1rfLk9wjXhUjAqxdZjK7LTjx7Y7ki",36000006000000000L,-1),
+      GenesisTransactionSettings("ARBLnj5P9XNspGRGj8UjS1Fny3pkvxJUqJV",36000006000000000L,-1),
+      GenesisTransactionSettings("AR5c7ibqGhkyjzYu143E171TiFdmPFHofKb",36000006000000000L,-1),
+      GenesisTransactionSettings("ARJukkvk47P9JKpdpjbvPQFr8Lv4D8Qsqnn",36000006000000000L,-1),
+      GenesisTransactionSettings("ARBD7fqPGPq5stYKyk3EbZe1w1FDYhh2KnZ",36000006000000000L,-1),
+      GenesisTransactionSettings("ARH6GEvr8FV12HN4rZ969K885sukp5qdNJY",36000006000000000L,-1),
+      GenesisTransactionSettings("AR2pa1RW5jvKV4b7PNnZG7Az6emz5WtiE4r",26331433000000000L,-1),
+      GenesisTransactionSettings("ARQcQXvUVeZ55cV7VWBzvTZCfGLNcQQ4BSm",0L,0),
+      GenesisTransactionSettings("ARPbddZcV3gpXT4WBxVP44HAgroqeQw38kt",0L,4),
+      GenesisTransactionSettings("AR73vwfW1sNALXCZTqbypNuEEbPTKccERok",0L,12),
+      GenesisTransactionSettings("AR3yL8ALb4oLYqUruLMmi6DYcNiCrCCXXrH",0L,16),
+      GenesisTransactionSettings("ARL8X83xFfU9aHXQoP6HW5kPzrCurLjoCT1",0L,24),
+      GenesisTransactionSettings("AR2hWH9sugKjdArn7A9yYkUWQdGHjefcJq9",0L,28),
+      GenesisTransactionSettings("AR8QbPBWx9x2yeWCWXdJVxftb7RQ6hqwAiU",0L,36),
+      GenesisTransactionSettings("AR4SSjr2tuZxSmJpfwHCbxWEp2xQERh4JWL",0L,40),
+      GenesisTransactionSettings("AR8n5DjETjUKFApuJNRhkWsTbWPeSYQorBS",0L,48),
+      GenesisTransactionSettings("AR7mJnfqmEw5pwCyWkJRqdbcVhGhaycLaVs",0L,52)))
   }
 }
