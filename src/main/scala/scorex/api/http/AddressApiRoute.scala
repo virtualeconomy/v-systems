@@ -332,7 +332,7 @@ object AddressApiRoute {
 
   implicit val balanceFormat: Format[Balance] = Json.format
 
-  case class BalanceDetails(address: String, regular: Long, mintingAverage: Long, available: Long, effective: Long, height: Long)
+  case class BalanceDetails(address: String, regular: Long, mintingAverage: Long, available: Long, effective: Long, height: Int)
 
   implicit val balanceDetailsFormat: Format[BalanceDetails] = Json.format
 
