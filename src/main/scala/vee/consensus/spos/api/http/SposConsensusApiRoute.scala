@@ -21,7 +21,7 @@ case class SposConsensusApiRoute(
 
   override val route: Route =
     pathPrefix("consensus") {
-      algo ~ allSlotsInfo ~ mintingBalance ~ mintingBalanceId ~ mintTime ~ mintTimeId ~ generatingBalance
+      algo ~ allSlotsInfo ~ mintingAverageBalance ~ mintingAverageBalanceId ~ mintTime ~ mintTimeId ~ generatingBalance
     }
 
   @Path("/generatingBalance/{address}")
@@ -39,18 +39,18 @@ case class SposConsensusApiRoute(
     }
   }
 
-  @Path("/mintingBalance/{address}")
-  @ApiOperation(value = "Minting balance", notes = "Account's minting balance", httpMethod = "GET")
+  @Path("/mintingAverageBalance/{address}")
+  @ApiOperation(value = "Minting average balance", notes = "Account's minting average balance", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
-  def mintingBalance: Route = (path("mintingBalance" / Segment) & get) { address =>
+  def mintingAverageBalance: Route = (path("mintingAverageBalance" / Segment) & get) { address =>
     Address.fromString(address) match {
       case Left(_) => complete(InvalidAddress)
       case Right(account) =>
         complete(Json.obj(
           "address" -> account.address,
-          "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
+          "mintingAverageBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
           "height" -> state.height))
     }
   }
@@ -65,17 +65,17 @@ case class SposConsensusApiRoute(
           case None => Json.obj(
             "slotId"-> f,
             "address" -> "None",
-            "mintingBalance" -> 0)
+            "mintingAverageBalance" -> 0)
           case Some(address) => Address.fromString(address) match {
             case Left(_) => Json.obj(
               "slotId"-> f,
               "address" -> "Error address",
-              "mintingBalance" -> 0)
+              "mintingAverageBalance" -> 0)
             case Right(account) =>
               Json.obj(
                 "slotId"-> f,
                 "address" -> account.address,
-                "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, h))
+                "mintingAverageBalance" -> SPoSCalc.mintingBalance(state, fs, account, h))
           }
         }
       }
@@ -84,17 +84,17 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/slotInfo/{slotId}")
-  @ApiOperation(value = "Minting balance with slot ID", notes = "Account of supernode's minting balance", httpMethod = "GET")
+  @ApiOperation(value = "Minting average balance with slot ID", notes = "Account of supernode's minting average balance", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "slotId", value = "Slot Id", required = true, dataType = "integer", paramType = "path")
   ))
-  def mintingBalanceId: Route = (path("slotInfo" / IntNumber) & get) { slotId =>
+  def mintingAverageBalanceId: Route = (path("slotInfo" / IntNumber) & get) { slotId =>
     state.slotAddress(slotId) match {
       case None if slotId >= 0 && slotId < fs.numOfSlots =>
         complete(Json.obj(
           "slotId"-> slotId,
           "address" -> "None",
-          "mintingBalance" -> 0,
+          "mintingAverageBalance" -> 0,
           "height" -> state.height))
       case Some(address) =>
         Address.fromString(address) match {
@@ -103,7 +103,7 @@ case class SposConsensusApiRoute(
             complete(Json.obj(
               "slotId"-> slotId,
               "address" -> account.address,
-              "mintingBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
+              "mintingAverageBalance" -> SPoSCalc.mintingBalance(state, fs, account, state.height),
               "height" -> state.height))
         }
       case _ => complete(InvalidSlotId(slotId))
