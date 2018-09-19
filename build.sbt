@@ -7,7 +7,7 @@ enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, Sys
 
 name := "vee"
 organization := "vee.tech"
-version := "0.1.0"
+version := "0.0.3"
 scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
 publishArtifact in (Compile, packageDoc) := false
@@ -111,7 +111,7 @@ inConfig(Linux)(Seq(
 ))
 
 network := Network(sys.props.get("network"))
-normalizedName := "vee"
+normalizedName := network.value.name
 
 javaOptions in Universal ++= Seq(
   // -J prefix is required by the bash script
