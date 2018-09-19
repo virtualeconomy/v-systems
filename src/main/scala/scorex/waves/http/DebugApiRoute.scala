@@ -57,7 +57,7 @@ case class DebugApiRoute(settings: RestAPISettings,
       paramType = "path")
   ))
   def blocks: Route = {
-    (path("blocks" / IntNumber) & get) { howMany =>
+    (path("blocks" / IntNumber) & get & withAuth) { howMany =>
       complete(JsArray(history.lastBlocks(howMany).map { block =>
         val bytes = block.bytes
         Json.obj(bytes.length.toString -> Base58.encode(FastCryptographicHash(bytes)))
@@ -68,7 +68,7 @@ case class DebugApiRoute(settings: RestAPISettings,
   @Path("/state")
   @ApiOperation(value = "State", notes = "Get current state", httpMethod = "GET")
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json state")))
-  def state: Route = (path("state") & get) {
+  def state: Route = (path("state") & get & withAuth) {
     complete(stateReader.accountPortfolios
       .map { case (k, v) =>
         k.address -> v.balance
@@ -101,7 +101,7 @@ case class DebugApiRoute(settings: RestAPISettings,
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json portfolio")))
   def portfolios: Route = path("portfolios" / Segment) { (rawAddress) =>
-    (get & parameter('considerUnspent.as[Boolean])) { (considerUnspent) =>
+    (get & withAuth & parameter('considerUnspent.as[Boolean])) { (considerUnspent) =>
       Address.fromString(rawAddress) match {
         case Left(_) => complete(InvalidAddress)
         case Right(address) =>
@@ -116,7 +116,7 @@ case class DebugApiRoute(settings: RestAPISettings,
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "height", value = "height", required = true, dataType = "integer", paramType = "path")
   ))
-  def stateVee: Route = (path("stateVee" / IntNumber) & get) { height =>
+  def stateVee: Route = (path("stateVee" / IntNumber) & get & withAuth) { height =>
     val result = stateReader.accountPortfolios.keys
       .map(acc => acc.stringRepr -> stateReader.balanceAtHeight(acc, height))
       .filter(_._2 != 0)
@@ -169,7 +169,7 @@ case class DebugApiRoute(settings: RestAPISettings,
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Json state")
   ))
-  def info: Route = (path("info") & get) {
+  def info: Route = (path("info") & get & withAuth) {
     complete(Json.obj(
       "stateHeight" -> stateReader.height,
       "stateHash" -> stateReader.accountPortfoliosHash

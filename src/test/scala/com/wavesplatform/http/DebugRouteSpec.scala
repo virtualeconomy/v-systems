@@ -40,7 +40,7 @@ class DebugRouteSpec
       val portfolioMap = portfolios.toMap
       (state.accountPortfolios _).expects().returning(portfolioMap).once()
 
-      Get(routePath("/state")) ~> route ~> check {
+      Get(routePath("/state")) ~> api_key(apiKey) ~> route ~> check {
         responseAs[JsObject] shouldEqual JsObject(portfolios.map {
           case (account, p) => account.address -> JsNumber(p.balance)
         })
@@ -52,7 +52,7 @@ class DebugRouteSpec
     forAll(Gen.posNum[Int]) { height =>
       (state.height _).expects().returning(height).once()
       (state.accountPortfolios _).expects().returning(Map.empty).once()
-      Get(routePath("/info")) ~> route ~> check {
+      Get(routePath("/info")) ~> api_key(apiKey) ~> route ~> check {
         responseAs[JsObject] should have(
           "stateHeight" -> JsNumber(height),
           "stateHash".ofType[JsNumber]
