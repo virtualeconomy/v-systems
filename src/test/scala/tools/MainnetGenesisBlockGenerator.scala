@@ -53,16 +53,16 @@ object MainnetGenesisBlockGenerator extends App {
     "ARBD7fqPGPq5stYKyk3EbZe1w1FDYhh2KnZ",
     "ARH6GEvr8FV12HN4rZ969K885sukp5qdNJY",
     "AR2pa1RW5jvKV4b7PNnZG7Az6emz5WtiE4r", // with non-zero balance
-    "ARQcQXvUVeZ55cV7VWBzvTZCfGLNcQQ4BSm",
-    "ARPbddZcV3gpXT4WBxVP44HAgroqeQw38kt",
-    "AR73vwfW1sNALXCZTqbypNuEEbPTKccERok",
-    "AR3yL8ALb4oLYqUruLMmi6DYcNiCrCCXXrH",
-    "ARL8X83xFfU9aHXQoP6HW5kPzrCurLjoCT1",
-    "AR2hWH9sugKjdArn7A9yYkUWQdGHjefcJq9",
-    "AR8QbPBWx9x2yeWCWXdJVxftb7RQ6hqwAiU",
-    "AR4SSjr2tuZxSmJpfwHCbxWEp2xQERh4JWL",
-    "AR8n5DjETjUKFApuJNRhkWsTbWPeSYQorBS",
-    "AR7mJnfqmEw5pwCyWkJRqdbcVhGhaycLaVs"  //minters
+    "ARKMDAveps99s5k9ESiXjcXM9Ddp8p3GGAm",
+    "ARKM1PkMevWdBjyEeMPAb7vrWWsJptDj891",
+    "ARCmPJxYBkYAtxnu8qpoLA2iQbf7aJFRX2c",
+    "ARNP2wJbehKh5Ck4Z2iR4pmnWiwgdsYh6Fw",
+    "ARQiW9ckRc1GbbuEN3h4s18H8YH8mke15qB",
+    "ARMfFAXxGZoFpQ7BwSKqjz9u2nxAtBRYXQ5",
+    "ARM1o54Hdo3hHy83NE4BcmJHEdVUdeULZyZ",
+    "ARDVLTDWf9Hwe3PBk16SNW7HCZXJPjJ43qE",
+    "ARNNKhgFhW8ctmQYvckgf81PyHjsxDEzySd",
+    "AR87ef8yc2Ldt1FGrJi85HW479TVeBCgS5V" //minters
   )
 
   val genesis_slots = Array (
