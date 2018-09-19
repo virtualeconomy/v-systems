@@ -12,7 +12,7 @@ class VeeSettingsSpecification extends FlatSpec with Matchers {
     val config = ConfigFactory.load()
     val settings = VeeSettings.fromConfig(config)
 
-    settings.directory should be(home + "/vee")
+    settings.directory should be(home + "/.vee")
     settings.loggingLevel should be(LogLevel.INFO)
     settings.networkSettings should not be null
     settings.walletSettings should not be null
