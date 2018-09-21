@@ -131,16 +131,36 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
-    settings.genesisSettings.blockTimestamp should be(1460678400000L)
-    settings.genesisSettings.timestamp should be(1465742577614L)
-    settings.genesisSettings.signature should be(ByteStr.decodeBase58("FSH8eAAzZNqnG8xgTZtz5xuLqXySsXgAjmFEC25hXMbEufiGjqWPnGCZFt6gLiVLJny16ipxRNAkkzjjhqTjBE2").toOption)
-    settings.genesisSettings.initialBalance should be(1000000000000000000L) //changed the total initialBalance in default setting
+    settings.genesisSettings.blockTimestamp should be(1537343925754686951L)
+    settings.genesisSettings.timestamp should be(1537343925754686951L)
+    settings.genesisSettings.signature should be(ByteStr.decodeBase58("2XrcU7AoEbs1qACVgo6BADf3hbjPWtSaG2L36RVJAUmFvL96dWMrm6ohGb69uFi5CiCKNPaEBc9r6UYPbk5mTGwg").toOption)
+    settings.genesisSettings.initialBalance should be(514285800000000000L) //changed the total initialBalance in default setting
     settings.genesisSettings.transactions should be(Seq(
-      GenesisTransactionSettings("3PAWwWa6GbwcJaFzwqXQN5KQm7H96Y7SHTQ", 999999999500000000L, 0),
-      GenesisTransactionSettings("3P8JdJGYc7vaLu4UXUZc1iRLdzrkGtdCyJM", 100000000L, 1),
-      GenesisTransactionSettings("3PAGPDPqnGkyhcihyjMHe9v36Y4hkAh9yDy", 100000000L, 2),
-      GenesisTransactionSettings("3P9o3ZYwtHkaU1KxsKkFjJqJKS3dLHLC9oF", 100000000L, 3),
-      GenesisTransactionSettings("3PJaDyprvekvPXPuAtxrapacuDJopgJRaU3", 100000000L, 4),
-      GenesisTransactionSettings("3PBWXDFUc86N2EQxKJmW8eFco65xTyMZx6J", 100000000L,5)))
+      GenesisTransactionSettings("ARMxPV8puShq49KzPoQb5XGttxghvLdMFg1",36000006000000000L,-1),
+      GenesisTransactionSettings("ARFHdvqddPNfMXNt9fgH7Lw1aGRgL29wTKY",15428574000000000L,-1),
+      GenesisTransactionSettings("ARQSe9A3DLryBqN4Y1NV1PhERnuWaDLheza",25097147000000000L,-1),
+      GenesisTransactionSettings("ARHY8cocXeGnH3q4bkLpU56sCg28fF5hSWV",36000006000000000L,-1),
+      GenesisTransactionSettings("ARCry9n7JvHF8rooXiEMhesAHP8zv3sBLDr",36000006000000000L,-1),
+      GenesisTransactionSettings("AR7M83ZypZc5WRzdZHjhULnQ7xzoMM8udJt",12342859200000000L,-1),
+      GenesisTransactionSettings("ARPdpZ9PT5kDbi2U6ZUgxoFwJzFchz7Fcsw",36000006000000000L,-1),
+      GenesisTransactionSettings("ARCK84TwkqzQEksj8pQTxbsCuRY9YGsAbSU",36000006000000000L,-1),
+      GenesisTransactionSettings("ARKbFz4N3f8Rgonf1Afd2aix2QtkCUjnWqW",39085720800000000L,-1),
+      GenesisTransactionSettings("ARRo5K1rfLk9wjXhUjAqxdZjK7LTjx7Y7ki",36000006000000000L,-1),
+      GenesisTransactionSettings("ARBLnj5P9XNspGRGj8UjS1Fny3pkvxJUqJV",36000006000000000L,-1),
+      GenesisTransactionSettings("AR5c7ibqGhkyjzYu143E171TiFdmPFHofKb",36000006000000000L,-1),
+      GenesisTransactionSettings("ARJukkvk47P9JKpdpjbvPQFr8Lv4D8Qsqnn",36000006000000000L,-1),
+      GenesisTransactionSettings("ARBD7fqPGPq5stYKyk3EbZe1w1FDYhh2KnZ",36000006000000000L,-1),
+      GenesisTransactionSettings("ARH6GEvr8FV12HN4rZ969K885sukp5qdNJY",36000006000000000L,-1),
+      GenesisTransactionSettings("AR2pa1RW5jvKV4b7PNnZG7Az6emz5WtiE4r",26331433000000000L,-1),
+      GenesisTransactionSettings("ARKMDAveps99s5k9ESiXjcXM9Ddp8p3GGAm",0,0),
+      GenesisTransactionSettings("ARKM1PkMevWdBjyEeMPAb7vrWWsJptDj891",0,4),
+      GenesisTransactionSettings("ARCmPJxYBkYAtxnu8qpoLA2iQbf7aJFRX2c",0,12),
+      GenesisTransactionSettings("ARNP2wJbehKh5Ck4Z2iR4pmnWiwgdsYh6Fw",0,16),
+      GenesisTransactionSettings("ARQiW9ckRc1GbbuEN3h4s18H8YH8mke15qB",0,24),
+      GenesisTransactionSettings("ARMfFAXxGZoFpQ7BwSKqjz9u2nxAtBRYXQ5",0,28),
+      GenesisTransactionSettings("ARM1o54Hdo3hHy83NE4BcmJHEdVUdeULZyZ",0,36),
+      GenesisTransactionSettings("ARDVLTDWf9Hwe3PBk16SNW7HCZXJPjJ43qE",0,40),
+      GenesisTransactionSettings("ARNNKhgFhW8ctmQYvckgf81PyHjsxDEzySd",0,48),
+      GenesisTransactionSettings("AR87ef8yc2Ldt1FGrJi85HW479TVeBCgS5V",0,52)))
   }
 }

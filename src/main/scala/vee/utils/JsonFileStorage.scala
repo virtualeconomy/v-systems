@@ -15,7 +15,7 @@ object JsonFileStorage {
   private val aes               = "AES"
   private val algorithm         = aes + "/ECB/PKCS5Padding"
   private val hashing           = "PBKDF2WithHmacSHA512"
-  private val hashingIterations = 999999
+  private val hashingIterations = 9999
   private val keyLength         = 256
 
   import java.security.NoSuchAlgorithmException
