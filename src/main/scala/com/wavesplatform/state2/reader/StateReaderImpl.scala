@@ -4,7 +4,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.implicits._
 import com.wavesplatform.state2._
-import scorex.account.{Address, Alias}
+//import scorex.account.{Address, Alias}
+import scorex.account.Address
 import scorex.transaction.lease.LeaseTransaction
 import vee.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
@@ -23,12 +24,13 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   override def accountPortfolio(a: Address): Portfolio = read { implicit l =>
     Option(sp().portfolios.get(a.bytes)).map { case (b, (i, o), as) => Portfolio(b, LeaseInfo(i, o), as.map { case (k, v) => ByteStr(k) -> v }) }.orEmpty
   }
-
+/*
   override def assetInfo(id: ByteStr): Option[AssetInfo] = read { implicit l =>
     Option(sp().assets.get(id)).map {
       case (is, amt) => AssetInfo(is, amt)
     }
   }
+*/
 
   override def height: Int = read { implicit l => sp().getHeight }
 
@@ -44,7 +46,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)))
       .reverse
   }
-
+/*
   override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>
     sp().aliasToAddress.asScala
       .collect { case (aliasName, addressBytes) if addressBytes == a.bytes =>
@@ -56,7 +58,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     Option(sp().aliasToAddress.get(a.name))
       .map(b => Address.fromBytes(b.arr).explicitGet())
   }
-
+*/
   override def contractContent(name: String): Option[(Boolean, ByteStr, String)] = read { implicit l =>
     Option(sp().contracts.get(name))
   }
@@ -101,7 +103,9 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     sp().transactions.containsKey(id)
   }
 
+  /*
   override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo = read { _ =>
     Option(p.orderFills.get(orderId)).map(oi => OrderFillInfo(oi._1, oi._2)).orEmpty
   }
+  */
 }

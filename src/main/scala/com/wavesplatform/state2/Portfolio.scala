@@ -24,6 +24,8 @@ case class Portfolio(balance: Long, leaseInfo: LeaseInfo, assets: Map[ByteStr, L
 }
 
 object Portfolio {
+  val empty = Portfolio(0L, Monoid[LeaseInfo].empty, Map.empty)
+
   implicit val longSemigroup: Semigroup[Long] = (x: Long, y: Long) => safeSum(x, y)
 
   implicit val portfolioMonoid = new Monoid[Portfolio] {

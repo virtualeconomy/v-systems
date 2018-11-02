@@ -5,10 +5,10 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.OrderValidationError
+//import scorex.transaction.ValidationError.OrderValidationError
 import scorex.transaction.assets.exchange.ExchangeTransaction
 
-import scala.util.Right
+//import scala.util.Right
 
 object ExchangeTransactionDiff {
 
@@ -59,6 +59,8 @@ object ExchangeTransactionDiff {
 
 
   private def enoughVolume(exTrans: ExchangeTransaction, s: StateReader): Either[ValidationError, ExchangeTransaction] = {
+    throw new NotImplementedError("This method is disabled!")
+    /*
     val filledBuy = s.filledVolumeAndFee(ByteStr(exTrans.buyOrder.id))
     val filledSell = s.filledVolumeAndFee(ByteStr(exTrans.sellOrder.id))
 
@@ -85,5 +87,6 @@ object ExchangeTransactionDiff {
     else if (!buyFeeValid) Left(OrderValidationError(exTrans.buyOrder, s"Insufficient buy fee"))
     else if (!sellFeeValid) Left(OrderValidationError(exTrans.sellOrder, s"Insufficient sell fee"))
     else Right(exTrans)
+    */
   }
 }

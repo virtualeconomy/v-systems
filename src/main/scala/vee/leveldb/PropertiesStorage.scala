@@ -1,4 +1,4 @@
-package com.wavesplatform.db
+package vee.leveldb
 
 import java.nio.charset.StandardCharsets
 

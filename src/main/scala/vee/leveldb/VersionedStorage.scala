@@ -1,4 +1,4 @@
-package com.wavesplatform.db
+package vee.leveldb
 
 trait VersionedStorage {
   this: PropertiesStorage =>

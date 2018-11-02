@@ -2,7 +2,7 @@ package scorex.transaction
 
 import com.wavesplatform.network.{BlockCheckpoint, Checkpoint}
 import com.wavesplatform.state2.{BlockDiff, ByteStr}
-import scorex.block.{Block}
+import scorex.block.Block
 import scorex.transaction.History.BlockchainScore
 import scorex.utils.Synchronized
 

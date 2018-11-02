@@ -1,11 +1,11 @@
-package com.wavesplatform
+package vee
 
 import java.io.File
 
-import com.wavesplatform.utils.ScorexLogging
 import org.iq80.leveldb.{DB, Options}
+import scorex.utils.ScorexLogging
 
-package object db extends ScorexLogging {
+package object leveldb extends ScorexLogging {
 
   def openDB(path: String, recreate: Boolean = false): DB = {
     log.debug(s"Open DB at $path")
