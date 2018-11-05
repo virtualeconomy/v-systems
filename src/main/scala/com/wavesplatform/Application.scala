@@ -28,6 +28,7 @@ import scorex.api.http._
 import vee.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
 import vee.api.http.vee._
 import vee.api.http.database.DbApiRoute
+import vee.leveldb._
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
 import vee.consensus.spos.api.http.SposConsensusApiRoute
@@ -43,8 +44,10 @@ import scala.util.Try
 
 class Application(val actorSystem: ActorSystem, val settings: VeeSettings) extends ScorexLogging {
 
+  private val db = openDB(settings.dataDirectory)
+
   private val checkpointService = new CheckpointServiceImpl(settings.blockchainSettings.checkpointFile, settings.checkpointsSettings)
-  private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
+  private val (history, stateWriter, stateReader, chainState, blockchainUpdater) = StorageFactory(settings, db).get
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
   private val wallet: Wallet = try {
@@ -85,7 +88,7 @@ class Application(val actorSystem: ActorSystem, val settings: VeeSettings) exten
 
     val apiRoutes = Seq(
       BlocksApiRoute(settings.restAPISettings, settings.checkpointsSettings, history, allChannels, checkpointService, blockchainUpdater),
-      TransactionsApiRoute(settings.restAPISettings, stateReader, history, utxStorage),
+      TransactionsApiRoute(settings.restAPISettings, /*Old(Remove later)*/stateReader, history, /*New*/chainState, utxStorage),
       SposConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
       WalletApiRoute(settings.restAPISettings, wallet),
       PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),

@@ -1,12 +1,11 @@
 package scorex.api.http
 
 import javax.ws.rs.Path
-
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import com.wavesplatform.UtxPool
 import com.wavesplatform.settings.RestAPISettings
-import com.wavesplatform.state2.ByteStr
+import com.wavesplatform.state2.{BlockChain, ByteStr}
 import com.wavesplatform.state2.reader.StateReader
 import io.swagger.annotations._
 import play.api.libs.json._
@@ -24,6 +23,7 @@ case class TransactionsApiRoute(
     settings: RestAPISettings,
     state: StateReader,
     history: History,
+    chainState: BlockChain,
     utxPool: UtxPool) extends ApiRoute with CommonApiFunctions {
 
   import TransactionsApiRoute.MaxTransactionsPerRequest
@@ -80,6 +80,61 @@ case class TransactionsApiRoute(
           case Success(id) =>
             state.transactionInfo(id) match {
               case Some((h, tx)) =>
+                complete(processedTxToExtendedJson(tx) + ("height" -> JsNumber(h)))
+              case None =>
+                complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Transaction is not in blockchain"))
+            }
+          case _ => complete(InvalidSignature)
+        }
+      }
+  }
+
+  //TODO/FIXME: Remove when DB changed
+  @Path("/debugForLevelDb/address/{address}/limit/{limit}")
+  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path")
+  ))
+  def addressLimitForLevelDb: Route = (pathPrefix("address") & get) {
+    pathPrefix(Segment) { address =>
+      Address.fromString(address) match {
+        case Left(e) => complete(ApiError.fromValidationError(e))
+        case Right(a) =>
+          pathPrefix("limit") {
+            pathEndOrSingleSlash {
+              complete(invalidLimit)
+            } ~
+              path(Segment) { limitStr =>
+                Exception.allCatch.opt(limitStr.toInt) match {
+                  case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
+                    complete(Json.arr(JsArray(chainState.accountTransactions(a, limit).map(processedTxToExtendedJson))))
+                  case Some(limit) if limit > MaxTransactionsPerRequest =>
+                    complete(TooBigArrayAllocation)
+                  case _ =>
+                    complete(invalidLimit)
+                }
+              }
+          } ~ complete(StatusCodes.NotFound)
+      }
+    }
+  }
+
+  //TODO/FIXME: Remove when DB changed
+  @Path("/debugForLevelDb/info/{id}")
+  @ApiOperation(value = "Info", notes = "Get transaction info", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "id", value = "transaction id ", required = true, dataType = "string", paramType = "path")
+  ))
+  def infoForLevelDb: Route = (pathPrefix("info") & get) {
+    pathEndOrSingleSlash {
+      complete(InvalidSignature)
+    } ~
+      path(Segment) { encoded =>
+        ByteStr.decodeBase58(encoded) match {
+          case Success(id) =>
+            chainState.transactionInfo(id) match {
+              case Some((h: Int, tx: ProcessedTransaction)) =>
                 complete(processedTxToExtendedJson(tx) + ("height" -> JsNumber(h)))
               case None =>
                 complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Transaction is not in blockchain"))

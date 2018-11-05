@@ -7,29 +7,20 @@ import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.wavesplatform.state2._
 import vee.transaction.ProcessedTransaction
 //import com.wavesplatform.state2.diffs.BlockDiffer
-import com.wavesplatform.state2.reader.{LeaseDetails, StateReader}
+//import com.wavesplatform.state2.reader.{LeaseDetails, StateReader}
 import scorex.transaction.ValidationError.GenericError
 //import scorex.block.Block
 import scorex.transaction.ValidationError
 //import scorex.account.{Address, Alias}
 import scorex.account.Address
 import scorex.block.Block
-import scorex.transaction.HistoryWriter
+//import scorex.transaction.HistoryWriter
 //import com.wavesplatform.transaction.smart.script.Script
 import scorex.transaction.Transaction
 //import scorex.transaction.AssetId
 
 import scala.collection.JavaConverters._
 
-trait BlockChain extends HistoryWriter with StateReader {
-  def score: BigInt
-  def lastBlock: Option[Block]
-  def transactionHeight(id: ByteStr): Option[Int]
-  def leaseDetails(leaseId: ByteStr): Option[LeaseDetails]
-  def blockBytes(blockId: ByteStr): Option[Array[Byte]]
-  def blockIdsAfter(parentSignature: ByteStr, howMany: Int): Option[Seq[ByteStr]]
-  def parent(block: Block, back: Int): Option[Block]
-}
 
 trait Caches extends BlockChain {
   import Caches._
@@ -217,8 +208,9 @@ trait Caches extends BlockChain {
           for ((address, portfolio) <- newPortfolios.result()) portfolioCache.put(address, portfolio)
         //for (id                      <- diff.issuedAssets.keySet ++ diff.sponsorship.keySet) assetDescriptionCache.invalidate(id)
         //scriptCache.putAll(diff.scripts.asJava)
+          consensusValidation
+        case Left(_) => consensusValidation
       }
-      consensusValidation
     } else {
       Left(GenericError(s"Parent ${block.reference} of block ${block.uniqueId} does not match last local block ${this.lastBlock.map(_.uniqueId)}"))
     }

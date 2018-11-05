@@ -15,7 +15,7 @@ import vee.transaction.proof.EllipticCurve25519Proof
 import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2._
 import com.wavesplatform.state2.reader.LeaseDetails
-import scorex.transaction.Transaction.Type
+//import scorex.transaction.Transaction.Type
 //import scorex.transaction.ValidationError.{AliasDoesNotExist, AliasIsDisabled}
 import scorex.transaction._
 import scorex.transaction.assets._
@@ -29,8 +29,8 @@ import org.iq80.leveldb.DB
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.{immutable, mutable}
-//import scala.collection.immutable
+//import scala.collection.{immutable, mutable}
+import scala.collection.immutable
 
 object LevelDBWriter {
 
@@ -641,8 +641,7 @@ class LevelDBWriter(writableDB: DB, fs: FunctionalitySettings, val maxCacheSize:
     txs.collect { case lt: LeaseTransaction => lt.id }
   }
 
-  //Todo: Remove this method(??)
-  /*override*/ def collectSposPortfolios[A](pf: PartialFunction[(Address, Portfolio), A]): Map[Address, A] = readOnly { db =>
+  override def collectSposPortfolios[A](pf: PartialFunction[(Address, Portfolio), A]): Map[Address, A] = readOnly { db =>
     val b = Map.newBuilder[Address, A]
     for (id <- BigInt(1) to db.get(Keys.lastAddressId).getOrElse(BigInt(0))) {
       val address = db.get(Keys.idToAddress(id))
@@ -721,8 +720,7 @@ class LevelDBWriter(writableDB: DB, fs: FunctionalitySettings, val maxCacheSize:
   }
   */
 
-  //Todo: Remove this method(??)
-  /*override*/ def veeDistribution(height: Int): Map[Address, Long] = readOnly { db =>
+  override def veeDistribution(height: Int): Map[Address, Long] = readOnly { db =>
     (for {
       seqNr     <- (1 to db.get(Keys.addressesForVeeSeqNr)).par
       addressId <- db.get(Keys.addressesForVee(seqNr)).par
