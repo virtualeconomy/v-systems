@@ -63,12 +63,13 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       bottomMemoryDiff.set(topMemoryDiff())
       topMemoryDiff.set(BlockDiff.empty)
     }
-    //TODO/FIXME: old store method (remove later)
-    historyWriter.appendBlock(block)(BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)).map { newBlockDiff =>
+    //TODO/FIXME: remove old store method later
+    val blockDiff = BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)
+    historyWriter.appendBlock(block)(blockDiff).map { newBlockDiff =>
       topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
     }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${historyWriter.height()}, new score: ${historyWriter.score()}"))
-    //TODO/FIXME: new store method
-    chainState.appendBlock(block)(BlockDiffer.fromBlock(settings, currentPersistedBlocksState, chainState.lastBlock.map(_.timestamp))(block)).map { newBlockDiff =>
+    //TODO/FIXME: implement new store method
+    chainState.appendBlock(block)(blockDiff).map { newBlockDiff =>
       topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
     }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${chainState.height}, new score: ${chainState.score}"))
   }

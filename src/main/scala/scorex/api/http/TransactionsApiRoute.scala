@@ -30,7 +30,7 @@ case class TransactionsApiRoute(
 
   override lazy val route =
     pathPrefix("transactions") {
-      unconfirmed ~ addressLimit ~ info
+      unconfirmed ~ addressLimit ~ info ~ addressLimitForLevelDb ~ infoForLevelDb
     }
 
   private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
