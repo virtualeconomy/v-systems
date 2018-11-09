@@ -63,74 +63,71 @@ trait Caches extends BlockChain {
                         ): Unit
 
   override def appendBlock(block: Block)(consensusValidation: => Either[ValidationError, BlockDiff]): Either[ValidationError, BlockDiff] = {
-    if ((heightCache == 0) || (this.lastBlock.get.uniqueId == block.reference)) {
-      consensusValidation match {
-        case Right(blockDiff) =>
-          heightCache += 1
-          scoreCache += block.blockScore
-          lastBlockCache = Some(block)
+    if ((heightCache == 0) || (this.lastBlock.get.uniqueId == block.reference)) consensusValidation.map { blockDiff =>
+      heightCache += 1
+      scoreCache += block.blockScore
+      lastBlockCache = Some(block)
 
-          val diff = blockDiff.txsDiff
-          val newAddresses = Set.newBuilder[Address]
-          newAddresses ++= diff.portfolios.keys.filter(addressIdCache.get(_).isEmpty)
-          for ((_, _, addresses) <- diff.transactions.values; address <- addresses if addressIdCache.get(address).isEmpty) {
-            newAddresses += address
-          }
-
-          val newAddressIds = (for {
-            (address, offset) <- newAddresses.result().zipWithIndex
-          } yield address -> (lastAddressId + offset + 1)).toMap
-
-          def addressId(address: Address): BigInt = (newAddressIds.get(address) orElse addressIdCache.get(address)).get
-
-          lastAddressId += newAddressIds.size
-
-          val veeBalances = Map.newBuilder[BigInt, Long]
-          val assetBalances = Map.newBuilder[BigInt, Map[ByteStr, Long]]
-          val leaseBalances = Map.newBuilder[BigInt, LeaseInfo]
-          val newPortfolios = Map.newBuilder[Address, Portfolio]
-
-          for ((address, portfolioDiff) <- diff.portfolios) {
-            val newPortfolio = portfolioCache.get(address).combine(portfolioDiff)
-            if (portfolioDiff.balance != 0) {
-              veeBalances += addressId(address) -> newPortfolio.balance
-            }
-
-            if (portfolioDiff.leaseInfo != LeaseInfo.empty) {
-              leaseBalances += addressId(address) -> newPortfolio.leaseInfo
-            }
-
-            if (portfolioDiff.assets.nonEmpty) {
-              val newAssetBalances = for {(k, v) <- portfolioDiff.assets if v != 0} yield k -> newPortfolio.assets(k)
-              if (newAssetBalances.nonEmpty) {
-                assetBalances += addressId(address) -> newAssetBalances
-              }
-            }
-
-            newPortfolios += address -> newPortfolio
-          }
-
-          val newTransactions = Map.newBuilder[ByteStr, (ProcessedTransaction, Set[BigInt])]
-          for ((id, (_, tx, addresses)) <- diff.transactions) {
-            transactionIds.put(id, tx.transaction.timestamp)
-            newTransactions += id -> ((tx, addresses.map(addressId)))
-          }
-
-          doAppend(
-            block,
-            newAddressIds,
-            veeBalances.result(),
-            leaseBalances.result(),
-            diff.leaseState,
-            newTransactions.result(),
-            diff.accountTransactionIds.map({ case (addr, txs) => addressId(addr) -> txs })
-          )
-
-          for ((address, id) <- newAddressIds) addressIdCache.put(address, Some(id))
-          for ((address, portfolio) <- newPortfolios.result()) portfolioCache.put(address, portfolio)
-        case Left(_) => None
+      val diff = blockDiff.txsDiff
+      val newAddresses = Set.newBuilder[Address]
+      newAddresses ++= diff.portfolios.keys.filter(addressIdCache.get(_).isEmpty)
+      for ((_, _, addresses) <- diff.transactions.values; address <- addresses if addressIdCache.get(address).isEmpty) {
+        newAddresses += address
       }
-      consensusValidation
+
+      val newAddressIds = (for {
+        (address, offset) <- newAddresses.result().zipWithIndex
+      } yield address -> (lastAddressId + offset + 1)).toMap
+
+      def addressId(address: Address): BigInt = (newAddressIds.get(address) orElse addressIdCache.get(address)).get
+
+      lastAddressId += newAddressIds.size
+
+      val veeBalances = Map.newBuilder[BigInt, Long]
+      val assetBalances = Map.newBuilder[BigInt, Map[ByteStr, Long]]
+      val leaseBalances = Map.newBuilder[BigInt, LeaseInfo]
+      val newPortfolios = Map.newBuilder[Address, Portfolio]
+
+      for ((address, portfolioDiff) <- diff.portfolios) {
+        val newPortfolio = portfolioCache.get(address).combine(portfolioDiff)
+        if (portfolioDiff.balance != 0) {
+          veeBalances += addressId(address) -> newPortfolio.balance
+        }
+
+        if (portfolioDiff.leaseInfo != LeaseInfo.empty) {
+          leaseBalances += addressId(address) -> newPortfolio.leaseInfo
+        }
+
+        if (portfolioDiff.assets.nonEmpty) {
+          val newAssetBalances = for {(k, v) <- portfolioDiff.assets if v != 0} yield k -> newPortfolio.assets(k)
+          if (newAssetBalances.nonEmpty) {
+            assetBalances += addressId(address) -> newAssetBalances
+          }
+        }
+
+        newPortfolios += address -> newPortfolio
+      }
+
+      val newTransactions = Map.newBuilder[ByteStr, (ProcessedTransaction, Set[BigInt])]
+      for ((id, (_, tx, addresses)) <- diff.transactions) {
+        transactionIds.put(id, tx.transaction.timestamp)
+        newTransactions += id -> ((tx, addresses.map(addressId)))
+      }
+
+      doAppend(
+        block,
+        newAddressIds,
+        veeBalances.result(),
+        leaseBalances.result(),
+        diff.leaseState,
+        newTransactions.result(),
+        diff.accountTransactionIds.map({ case (addr, txs) => addressId(addr) -> txs })
+      )
+
+      for ((address, id) <- newAddressIds) addressIdCache.put(address, Some(id))
+      for ((address, portfolio) <- newPortfolios.result()) portfolioCache.put(address, portfolio)
+
+      blockDiff
     } else {
       Left(GenericError(s"Parent ${block.reference} of block ${block.uniqueId} does not match last local block ${this.lastBlock.map(_.uniqueId)}"))
     }
@@ -138,7 +135,7 @@ trait Caches extends BlockChain {
 
   protected def doRollback(targetBlockId: ByteStr): Seq[Block]
 
-  def rollbackTo(targetBlockId: ByteStr): Seq[Block] = {
+  override def rollbackTo(targetBlockId: ByteStr): Seq[Block] = {
     val discardedBlocks = doRollback(targetBlockId)
 
     heightCache = loadHeight()

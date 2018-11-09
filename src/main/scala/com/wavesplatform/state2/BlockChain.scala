@@ -15,4 +15,5 @@ trait BlockChain extends HistoryWriter with StateReader {
   def parent(block: Block, back: Int): Option[Block]
   def collectSposPortfolios[A](pf: PartialFunction[(Address, Portfolio), A]): Map[Address, A]
   def veeDistribution(height: Int): Map[Address, Long]
+  def rollbackTo(targetBlockId: ByteStr): Seq[Block]
 }
