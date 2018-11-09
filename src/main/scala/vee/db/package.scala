@@ -10,9 +10,6 @@ import com.wavesplatform.state2._
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.hash.FastCryptographicHash
 import vee.transaction.{ProcessedTransaction, ProcessedTransactionParser}
-//import com.wavesplatform.transaction.smart.script.{Script, ScriptReader}
-//import scorex.transaction.{Transaction, TransactionParser}
-//import scorex.transaction.Transaction
 import org.iq80.leveldb.{DB, ReadOptions}
 import java.util.{Map => JMap}
 
@@ -25,16 +22,6 @@ package object db {
       output.write(b)
     }
 
-    /*
-    def writeScriptOption(v: Option[Script]): Unit = {
-      output.writeBoolean(v.isDefined)
-      v.foreach { s =>
-        val b = s.bytes().arr
-        output.writeShort(b.length)
-        output.write(b)
-      }
-    }
-    */
   }
 
   implicit class ByteArrayDataInputExt(val input: ByteArrayDataInput) extends AnyVal {
@@ -45,16 +32,6 @@ package object db {
       BigInt(b)
     }
 
-    /*
-    def readScriptOption(): Option[Script] = {
-      if (input.readBoolean()) {
-        val len = input.readShort()
-        val b   = new Array[Byte](len)
-        input.readFully(b)
-        Some(ScriptReader.fromBytes(b).explicitGet())
-      } else None
-    }
-    */
   }
 
   def writeIntSeq(values: Seq[Int]): Array[Byte] = {
@@ -143,20 +120,6 @@ package object db {
     LeaseInfo(ndi.readLong(), ndi.readLong())
   }
 
-    /*
-  def readVolumeAndFee(data: Array[Byte]): VolumeAndFee = Option(data).fold(VolumeAndFee.empty) { d =>
-    val ndi = newDataInput(d)
-    VolumeAndFee(ndi.readLong(), ndi.readLong())
-  }
-
-  def writeVolumeAndFee(vf: VolumeAndFee): Array[Byte] = {
-    val ndo = newDataOutput()
-    ndo.writeLong(vf.volume)
-    ndo.writeLong(vf.fee)
-    ndo.toByteArray
-  }
-  */
-
   def readTransactionInfo(data: Array[Byte]): (Int, ProcessedTransaction) =
     (Ints.fromByteArray(data), ProcessedTransactionParser.parseBytes(data.drop(4)).get)
 
@@ -207,32 +170,6 @@ package object db {
 
     b.array()
   }
-
-    /*
-  def readSponsorship(data: Array[Byte]): SponsorshipValue = {
-    val ndi = newDataInput(data)
-    SponsorshipValue(ndi.readLong())
-  }
-
-  def writeSponsorship(ai: SponsorshipValue): Array[Byte] = {
-    val ndo = newDataOutput()
-    ndo.writeLong(ai.minFee)
-    ndo.toByteArray
-  }
-
-  def readAssetInfo(data: Array[Byte]): AssetInfo = {
-    val ndi = newDataInput(data)
-    AssetInfo(ndi.readBoolean(), ndi.readBigInt(), ndi.readScriptOption())
-  }
-
-  def writeAssetInfo(ai: AssetInfo): Array[Byte] = {
-    val ndo = newDataOutput()
-    ndo.writeBoolean(ai.isReissuable)
-    ndo.writeBigInt(ai.volume)
-    ndo.writeScriptOption(ai.script)
-    ndo.toByteArray
-  }
-  */
 
   implicit class EntryExt(val e: JMap.Entry[Array[Byte], Array[Byte]]) extends AnyVal {
     def extractId(offset: Int = 2, length: Int = FastCryptographicHash.DigestSize): ByteStr = {

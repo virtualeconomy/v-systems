@@ -5,7 +5,6 @@ import org.iq80.leveldb.{DB, ReadOptions, WriteBatch}
 class RW(db: DB, readOptions: ReadOptions, batch: WriteBatch) extends ReadOnlyDB(db, readOptions) {
   def put[V](key: Key[V], value: V): Unit = {
     val bytes = key.encode(value)
-    //LevelDBStats.write.recordTagged(key, bytes)
     batch.put(key.keyBytes, bytes)
   }
 
