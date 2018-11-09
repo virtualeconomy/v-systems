@@ -1,6 +1,5 @@
 package scorex.transaction
 
-//import com.wavesplatform.state2.{ByteStr, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.ByteStr
 import scorex.serialization.{BytesSerializable, JsonSerializable}
 import scorex.transaction.TransactionParser.TransactionType
@@ -26,12 +25,6 @@ trait Transaction extends BytesSerializable with JsonSerializable with Signed {
     case Some(_) => 0
     case None => assetFee._2
   }
-}
-
-object Transaction {
-
-  type Type = Byte
-
 }
 
 trait Signed {
