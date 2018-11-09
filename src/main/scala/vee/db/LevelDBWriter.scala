@@ -578,7 +578,7 @@ class LevelDBWriter(writableDB: DB, fs: FunctionalitySettings, val maxCacheSize:
         seqNr          <- (db.get(Keys.addressTransactionSeqNr(addressId)) to 1 by -1).view
         txId <- db.get(Keys.addressTransactionIds(addressId, seqNr))
       } yield txId
-      txs.takeRight(limit)
+      txs.takeRight(limit).force
     }
   }
 
