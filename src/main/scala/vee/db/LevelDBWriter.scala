@@ -328,8 +328,9 @@ class LevelDBWriter(writableDB: DB, fs: FunctionalitySettings, val maxCacheSize:
     .recordStats()
     .build[(Int, BigInt), LeaseInfo]()
 
-  //Todo: Use snapshotAtHeight instead(??)
-  /*override*/ def balanceSnapshots(address: Address, from: Int, to: Int): Seq[BalanceSnapshot] = readOnly { db =>
+  //Todo: Implement balanceSnapshots later
+  /*
+  override def balanceSnapshots(address: Address, from: Int, to: Int): Seq[BalanceSnapshot] = readOnly { db =>
     db.get(Keys.addressId(address)).fold(Seq(BalanceSnapshot(1, 0, 0, 0))) { addressId =>
       val wbh = slice(db.get(Keys.veeBalanceHistory(addressId)), from, to)
       val lbh = slice(db.get(Keys.leaseBalanceHistory(addressId)), from, to)
@@ -340,6 +341,7 @@ class LevelDBWriter(writableDB: DB, fs: FunctionalitySettings, val maxCacheSize:
       } yield BalanceSnapshot(wh.max(lh), wb, lb.leaseIn, lb.leaseOut)
     }
   }
+  */
 
   override def activeLeases(): Seq[ByteStr] = readOnly { db =>
     val txs = for {
