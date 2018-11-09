@@ -90,13 +90,13 @@ case class TransactionsApiRoute(
   }
 
   //TODO/FIXME: Remove when DB changed
-  @Path("/debugForLevelDb/address/{address}/limit/{limit}")
-  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
+  @Path("/debug-leveldb-address/{address}/limit/{limit}")
+  @ApiOperation(value = "Address-DebugForLevelDb", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path")
   ))
-  def addressLimitForLevelDb: Route = (pathPrefix("address") & get) {
+  def addressLimitForLevelDb: Route = (pathPrefix("debug-leveldb-address") & get) {
     pathPrefix(Segment) { address =>
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
@@ -121,12 +121,12 @@ case class TransactionsApiRoute(
   }
 
   //TODO/FIXME: Remove when DB changed
-  @Path("/debugForLevelDb/info/{id}")
-  @ApiOperation(value = "Info", notes = "Get transaction info", httpMethod = "GET")
+  @Path("/debug-leveldb-info/{id}")
+  @ApiOperation(value = "Info-DebugForLevelDb", notes = "Get transaction info", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "id", value = "transaction id ", required = true, dataType = "string", paramType = "path")
   ))
-  def infoForLevelDb: Route = (pathPrefix("info") & get) {
+  def infoForLevelDb: Route = (pathPrefix("debug-leveldb-info") & get) {
     pathEndOrSingleSlash {
       complete(InvalidSignature)
     } ~
