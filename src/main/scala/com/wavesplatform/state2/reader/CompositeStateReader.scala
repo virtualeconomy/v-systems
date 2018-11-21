@@ -5,7 +5,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import cats.implicits._
 import cats.kernel.Monoid
 import com.wavesplatform.state2._
-import scorex.account.{Address, Alias}
+//import scorex.account.{Address, Alias}
+import scorex.account.Address
 import vee.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
 
@@ -22,12 +23,12 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def accountPortfolio(a: Address): Portfolio =
     inner.accountPortfolio(a).combine(txDiff.portfolios.get(a).orEmpty)
-
+/*
   override def assetInfo(id: ByteStr): Option[AssetInfo] = (inner.assetInfo(id), txDiff.issuedAssets.get(id)) match {
     case (None, None) => None
     case (existing, upd) => Some(existing.orEmpty.combine(upd.orEmpty))
   }
-
+*/
   override def height: Int = inner.height + blockDiff.heightDiff
 
   override def slotAddress(id: Int): Option[String] =
@@ -61,12 +62,12 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] =
     blockDiff.snapshots.get(acc).flatMap(_.get(h)).orElse(inner.snapshotAtHeight(acc, h))
-
+/*
   override def aliasesOfAddress(a: Address): Seq[Alias] =
     txDiff.aliases.filter(_._2 == a).keys.toSeq ++ inner.aliasesOfAddress(a)
 
   override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
-
+*/
   override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
     txDiff.contracts.get(name)
       .map(t=>(t._1, t._2.bytes, t._3))
@@ -90,9 +91,10 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   override def lastUpdateWeightedBalance(acc: Address): Option[Long] = blockDiff.snapshots.get(acc).map(_.last._2.weightedBalance).orElse(inner.lastUpdateWeightedBalance(acc))
 
   override def containsTransaction(id: ByteStr): Boolean = blockDiff.txsDiff.transactions.contains(id) || inner.containsTransaction(id)
-
+/*
   override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo =
     blockDiff.txsDiff.orderFills.get(orderId).orEmpty.combine(inner.filledVolumeAndFee(orderId))
+*/
 }
 
 object CompositeStateReader {
@@ -100,10 +102,10 @@ object CompositeStateReader {
   class Proxy(val inner: StateReader, blockDiff: () => BlockDiff) extends StateReader {
 
     override def synchronizationToken: ReentrantReadWriteLock = inner.synchronizationToken
-
+/*
     override def aliasesOfAddress(a: Address): Seq[Alias] =
       new CompositeStateReader(inner, blockDiff()).aliasesOfAddress(a)
-
+*/
     override def accountPortfolio(a: Address): Portfolio =
       new CompositeStateReader(inner, blockDiff()).accountPortfolio(a)
 
@@ -115,19 +117,19 @@ object CompositeStateReader {
 
     override def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)] =
       new CompositeStateReader(inner, blockDiff()).transactionInfo(id)
-
+/*
     override def resolveAlias(a: Alias): Option[Address] =
       new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
-
+*/
     override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
       new CompositeStateReader(inner, blockDiff()).contractContent(name)
 
     override def dbGet(key: ByteStr): Option[ByteStr] =
       new CompositeStateReader(inner, blockDiff()).dbGet(key)
-
+/*
     override def assetInfo(id: ByteStr): Option[AssetInfo] =
       new CompositeStateReader(inner, blockDiff()).assetInfo(id)
-
+*/
     override def height: Int =
       new CompositeStateReader(inner, blockDiff()).height
 
@@ -157,9 +159,10 @@ object CompositeStateReader {
 
     override def containsTransaction(id: ByteStr): Boolean =
       new CompositeStateReader(inner, blockDiff()).containsTransaction(id)
-
+/*
     override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo =
       new CompositeStateReader(inner, blockDiff()).filledVolumeAndFee(orderId)
+*/
   }
 
   def composite(inner: StateReader, blockDiff: () => BlockDiff): Proxy = new Proxy(inner, blockDiff)

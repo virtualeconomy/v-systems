@@ -31,7 +31,7 @@ class OrderValidatorSpecification extends WordSpec
   val utxPool: UtxPool = stub[UtxPool]
 
   val ss: StateReader = stub[StateReader]
-  (ss.assetInfo _).when(*).returns(Some(AssetInfo(true, 10000000000L)))
+  //(ss.assetInfo _).when(*).returns(Some(AssetInfo(true, 10000000000L)))
   val i1: IssueTransaction = IssueTransaction.create(PrivateKeyAccount(Array.empty), "WBTC".getBytes(), Array.empty, 10000000000L, 8.toByte, true, 100000L, 10000L).right.get
   (ss.transactionInfo _).when(*).returns(Some((1, ProcessedTransaction(TransactionStatus.Success, i1.fee, i1))))
 

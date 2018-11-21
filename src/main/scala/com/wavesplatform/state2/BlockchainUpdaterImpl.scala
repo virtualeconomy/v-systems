@@ -18,6 +18,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
                                     settings: FunctionalitySettings,
                                     minimumInMemoryDiffSize: Int,
                                     historyWriter: HistoryWriter,
+                                    chainState: BlockChain,
                                     val synchronizationToken: ReentrantReadWriteLock) extends BlockchainUpdater with ScorexLogging {
 
   private val topMemoryDiff = Synchronized(Monoid[BlockDiff].empty)
@@ -62,9 +63,18 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       bottomMemoryDiff.set(topMemoryDiff())
       topMemoryDiff.set(BlockDiff.empty)
     }
-    historyWriter.appendBlock(block)(BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)).map { newBlockDiff =>
+    //TODO/FIXME: remove old store method later
+    val blockDiff = BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)
+    historyWriter.appendBlock(block)(blockDiff)
+    /*
+    historyWriter.appendBlock(block)(blockDiff).map { newBlockDiff =>
       topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
     }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${historyWriter.height()}, new score: ${historyWriter.score()}"))
+    */
+    //TODO/FIXME: implement new store method
+    chainState.appendBlock(block)(blockDiff).map { newBlockDiff =>
+      topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
+    }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${chainState.height}, new score: ${chainState.score}"))
   }
 
   override def removeAfter(blockId: ByteStr): Either[ValidationError, Seq[Transaction]] = write { implicit l =>
@@ -110,11 +120,12 @@ object BlockchainUpdaterImpl {
   def apply(
                persistedState: StateWriter with StateReader,
                history: HistoryWriter,
+               chainState: BlockChain,
                functionalitySettings: FunctionalitySettings,
                minimumInMemoryDiffSize: Int,
                synchronizationToken: ReentrantReadWriteLock): BlockchainUpdaterImpl = {
     val blockchainUpdater =
-      new BlockchainUpdaterImpl(persistedState, functionalitySettings, minimumInMemoryDiffSize, history, synchronizationToken)
+      new BlockchainUpdaterImpl(persistedState, functionalitySettings, minimumInMemoryDiffSize, history, chainState, synchronizationToken)
     blockchainUpdater.logHeights("Constructing BlockchainUpdaterImpl")
     blockchainUpdater.updatePersistedAndInMemory()
     blockchainUpdater

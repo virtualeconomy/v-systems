@@ -2,8 +2,10 @@ package com.wavesplatform.state2.reader
 
 import com.google.common.base.Charsets
 import com.wavesplatform.state2._
-import scorex.account.{AddressOrAlias, Address, Alias}
-import scorex.transaction.ValidationError.AliasNotExists
+//import scorex.account.{AddressOrAlias, Address, Alias}
+import scorex.account.{AddressOrAlias, Address}
+//import scorex.transaction.ValidationError.AliasNotExists
+import scorex.transaction.ValidationError.InvalidAddress
 import scorex.transaction._
 import vee.transaction._
 import scorex.transaction.assets.IssueTransaction
@@ -12,7 +14,7 @@ import scorex.utils.{ScorexLogging, Synchronized}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import scala.util.Right
+//import scala.util.Right
 
 trait StateReader extends Synchronized {
 
@@ -24,7 +26,7 @@ trait StateReader extends Synchronized {
 
   def accountPortfolio(a: Address): Portfolio
 
-  def assetInfo(id: ByteStr): Option[AssetInfo]
+  //def assetInfo(id: ByteStr): Option[AssetInfo]
 
   def height: Int
 
@@ -36,9 +38,9 @@ trait StateReader extends Synchronized {
 
   def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr]
 
-  def aliasesOfAddress(a: Address): Seq[Alias]
+  //def aliasesOfAddress(a: Address): Seq[Alias]
 
-  def resolveAlias(a: Alias): Option[Address]
+  //def resolveAlias(a: Alias): Option[Address]
 
   def contractContent(name: String): Option[(Boolean, ByteStr, String)]
 
@@ -54,16 +56,18 @@ trait StateReader extends Synchronized {
 
   def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot]
 
-  def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo
+  //def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo
 }
 
 object StateReader {
 
   implicit class StateReaderExt(s: StateReader) extends ScorexLogging {
+    /*
     def assetDistribution(assetId: ByteStr): Map[Address, Long] =
       s.accountPortfolios
         .mapValues(portfolio => portfolio.assets.get(assetId))
         .collect { case (acc, Some(amt)) => acc -> amt }
+     */
 
     def findTransaction[T <: Transaction](signature: ByteStr)(implicit ct: ClassTag[T]): Option[T]
     = s.transactionInfo(signature).map(_._2.transaction)
@@ -76,10 +80,13 @@ object StateReader {
     def resolveAliasEi[T <: Transaction](aoa: AddressOrAlias): Either[ValidationError, Address] = {
       aoa match {
         case a: Address => Right(a)
+        case _ => Left(InvalidAddress)
+          /*
         case a: Alias => s.resolveAlias(a) match {
           case None => Left(AliasNotExists(a))
           case Some(acc) => Right(acc)
         }
+        */
       }
     }
 
@@ -99,6 +106,7 @@ object StateReader {
       }
     }
 
+    /*
     def getAccountBalance(account: Address): Map[AssetId, (Long, Boolean, Long, IssueTransaction)] = s.read { _ =>
       s.accountPortfolio(account).assets.map { case (id, amt) =>
         val assetInfo = s.assetInfo(id).get
@@ -110,6 +118,7 @@ object StateReader {
     def assetDistribution(assetId: Array[Byte]): Map[String, Long] =
       s.assetDistribution(ByteStr(assetId))
         .map { case (acc, amt) => (acc.address, amt) }
+     */
 
     def effectiveBalance(account: Address): Long = s.accountPortfolio(account).effectiveBalance
 
@@ -120,13 +129,13 @@ object StateReader {
         case None => accountPortfolio.spendableBalance
       }
     }
-
+/*
     def isReissuable(id: Array[Byte]): Boolean =
       s.assetInfo(ByteStr(id)).get.isReissuable
 
     def totalAssetQuantity(assetId: AssetId): Long =
       s.assetInfo(assetId).get.volume
-
+*/
     def assetExists(assetId: AssetId): Boolean = {
       s.findTransaction[IssueTransaction](assetId).nonEmpty
     }
@@ -225,6 +234,7 @@ object StateReader {
     def accountPortfoliosHash: Int = {
       Hash.accountPortfolios(s.accountPortfolios)
     }
+
   }
 
 }

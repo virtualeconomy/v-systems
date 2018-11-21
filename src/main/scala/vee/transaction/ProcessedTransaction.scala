@@ -6,6 +6,7 @@ import scorex.serialization.{BytesSerializable, JsonSerializable}
 import com.google.common.primitives.{Bytes, Longs}
 import scorex.transaction.Transaction
 
+
 case class ProcessedTransaction(
   status: TransactionStatus.Value,
   feeCharged: Long,

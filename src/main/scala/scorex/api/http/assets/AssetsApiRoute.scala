@@ -13,14 +13,16 @@ import play.api.libs.json._
 import scorex.BroadcastRoute
 import scorex.account.Address
 import scorex.api.http.{ApiError, ApiRoute, InvalidAddress}
-import scorex.crypto.encode.Base58
+//import scorex.crypto.encode.Base58
 import scorex.transaction.assets.exchange.Order
 import scorex.transaction.assets.exchange.OrderJson._
-import scorex.transaction.{AssetAcc, AssetIdStringLength, TransactionFactory}
+//import scorex.transaction.{AssetAcc, AssetIdStringLength, TransactionFactory}
+import scorex.transaction.{AssetAcc, TransactionFactory}
 import scorex.utils.Time
 import vee.wallet.Wallet
 
-import scala.util.{Failure, Success}
+//import scala.util.{Failure, Success}
+import scala.util.Success
 
 @Path("/assets")
 @Api(value = "assets")
@@ -30,7 +32,7 @@ case class AssetsApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPoo
 
   override lazy val route =
     pathPrefix("assets") {
-      balance ~ balances ~ issue ~ reissue ~ burnRoute ~ transfer ~ signOrder ~ balanceDistribution
+      balance /*~ balances*/ ~ issue ~ reissue ~ burnRoute ~ transfer ~ signOrder /*~ balanceDistribution*/
     }
 
   @Path("/balance/{address}/{assetId}")
@@ -44,6 +46,7 @@ case class AssetsApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPoo
       complete(balanceJson(address, assetId))
     }
 
+  /*
   @Path("/{assetId}/distribution")
   @ApiOperation(value = "Asset balance distribution", notes = "Asset balance distribution by account", httpMethod = "GET")
   @ApiImplicitParams(Array(
@@ -58,8 +61,9 @@ case class AssetsApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPoo
         }
       }
     }
+    */
 
-
+  /*
   @Path("/balance/{address}")
   @ApiOperation(value = "Account's balance", notes = "Account's balances for all assets", httpMethod = "GET")
   @ApiImplicitParams(Array(
@@ -69,6 +73,7 @@ case class AssetsApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPoo
     (get & path("balance" / Segment)) { address =>
       complete(fullAccountAssetsInfo(address))
     }
+  */
 
   @Path("/transfer")
   @ApiOperation(value = "Transfer asset",
@@ -160,6 +165,7 @@ case class AssetsApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPoo
     }
   }
 
+  /*
   private def fullAccountAssetsInfo(address: String): Either[ApiError, JsObject] = (for {
     acc <- Address.fromString(address)
   } yield {
@@ -177,6 +183,7 @@ case class AssetsApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPoo
       "balances" -> JsArray(balances)
     )
   }).left.map(ApiError.fromValidationError)
+  */
 
 
   @Path("/order")

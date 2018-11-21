@@ -1,6 +1,6 @@
-package com.wavesplatform.db
+package vee.leveldb
 
-import com.wavesplatform.utils.ScorexLogging
+import scorex.utils.ScorexLogging
 import org.iq80.leveldb.DBFactory
 
 import scala.util.Try

@@ -3,7 +3,7 @@ package com.wavesplatform.state2.diffs
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{AssetInfo, Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError.GenericError
-import scorex.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction}
+import scorex.transaction.assets.{BurnTransaction, IssueTransaction}
 import scorex.transaction.{AssetId, SignedTransaction, ValidationError}
 
 import scala.util.{Left, Right}
@@ -23,6 +23,7 @@ object AssetTransactionsDiff {
       assetInfos = Map(tx.assetId -> info)))
   }
 
+  /*
   def reissue(state: StateReader, blockTime: Long, height: Int)(tx: ReissueTransaction): Either[ValidationError, Diff] = {
     findReferencedAsset(tx, state, tx.assetId).flatMap(itx => {
       val oldInfo = state.assetInfo(tx.assetId).get
@@ -41,6 +42,7 @@ object AssetTransactionsDiff {
       }
     })
   }
+  */
 
   def burn(state: StateReader, height: Int)(tx: BurnTransaction): Either[ValidationError, Diff] = {
     findReferencedAsset(tx, state, tx.assetId).map(itx => {

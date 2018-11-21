@@ -10,7 +10,7 @@ import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, Json}
 import scorex.BroadcastRoute
-import scorex.account.Alias
+//import scorex.account.Alias
 import scorex.api.http._
 import scorex.transaction._
 import scorex.utils.Time
@@ -22,7 +22,7 @@ case class AliasApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("alias") {
-    alias ~ addressOfAlias ~ aliasOfAddress
+    alias /*~ addressOfAlias ~ aliasOfAddress*/
   }
 
   @Path("/create")
@@ -43,7 +43,7 @@ case class AliasApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def alias: Route = processRequest("create", (t: CreateAliasRequest) => doBroadcast(TransactionFactory.alias(t, wallet, time)))
 
-
+/*
   @Path("/by-alias/{alias}")
   @ApiOperation(value = "Account", notes = "Returns an address associated with an Alias. Alias should be plain text without an 'alias' prefix and network code.", httpMethod = "GET")
   @ApiImplicitParams(Array(
@@ -72,7 +72,7 @@ case class AliasApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       .left.map(ApiError.fromValidationError)
     complete(result)
   }
-
+*/
   case class Address(address: String)
 
   implicit val addressFormat: Format[Address] = Json.format

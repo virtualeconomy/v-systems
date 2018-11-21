@@ -1,4 +1,4 @@
-package com.wavesplatform.database
+package vee.db
 import java.util
 
 trait Key[V] {

@@ -1,4 +1,4 @@
-package com.wavesplatform
+package vee
 
 import java.nio.ByteBuffer
 
@@ -6,13 +6,14 @@ import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.ByteStreams.{newDataInput, newDataOutput}
 import com.google.common.io.{ByteArrayDataInput, ByteArrayDataOutput}
 import com.google.common.primitives.{Ints, Shorts}
-import com.wavesplatform.state._
-import com.wavesplatform.transaction.smart.script.{Script, ScriptReader}
-import com.wavesplatform.transaction.{Transaction, TransactionParsers}
+import com.wavesplatform.state2._
+import scorex.crypto.EllipticCurveImpl
+import scorex.crypto.hash.FastCryptographicHash
+import vee.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 import org.iq80.leveldb.{DB, ReadOptions}
 import java.util.{Map => JMap}
 
-package object database {
+package object db {
   implicit class ByteArrayDataOutputExt(val output: ByteArrayDataOutput) extends AnyVal {
     def writeBigInt(v: BigInt): Unit = {
       val b = v.toByteArray
@@ -21,14 +22,6 @@ package object database {
       output.write(b)
     }
 
-    def writeScriptOption(v: Option[Script]): Unit = {
-      output.writeBoolean(v.isDefined)
-      v.foreach { s =>
-        val b = s.bytes().arr
-        output.writeShort(b.length)
-        output.write(b)
-      }
-    }
   }
 
   implicit class ByteArrayDataInputExt(val input: ByteArrayDataInput) extends AnyVal {
@@ -39,14 +32,6 @@ package object database {
       BigInt(b)
     }
 
-    def readScriptOption(): Option[Script] = {
-      if (input.readBoolean()) {
-        val len = input.readShort()
-        val b   = new Array[Byte](len)
-        input.readFully(b)
-        Some(ScriptReader.fromBytes(b).explicitGet())
-      } else None
-    }
   }
 
   def writeIntSeq(values: Seq[Int]): Array[Byte] = {
@@ -64,8 +49,8 @@ package object database {
 
     while (b.remaining() > 0) {
       val buffer = b.get() match {
-        case crypto.DigestSize      => new Array[Byte](crypto.DigestSize)
-        case crypto.SignatureLength => new Array[Byte](crypto.SignatureLength)
+        case FastCryptographicHash.DigestSize      => new Array[Byte](FastCryptographicHash.DigestSize)
+        case EllipticCurveImpl.SignatureLength => new Array[Byte](EllipticCurveImpl.SignatureLength)
       }
       b.get(buffer)
       ids += ByteStr(buffer)
@@ -79,9 +64,9 @@ package object database {
       .foldLeft(ByteBuffer.allocate(ids.map(_.arr.length + 1).sum)) {
         case (b, id) =>
           b.put(id.arr.length match {
-              case crypto.DigestSize      => crypto.DigestSize.toByte
-              case crypto.SignatureLength => crypto.SignatureLength.toByte
-            })
+            case FastCryptographicHash.DigestSize      => FastCryptographicHash.DigestSize.toByte
+            case EllipticCurveImpl.SignatureLength => EllipticCurveImpl.SignatureLength.toByte
+          })
             .put(id.arr)
       }
       .array()
@@ -123,38 +108,26 @@ package object database {
     for (_ <- 0 until length) yield ndi.readBigInt()
   }
 
-  def writeLeaseBalance(lb: LeaseBalance): Array[Byte] = {
+  def writeLeaseBalance(lb: LeaseInfo): Array[Byte] = {
     val ndo = newDataOutput()
-    ndo.writeLong(lb.in)
-    ndo.writeLong(lb.out)
+    ndo.writeLong(lb.leaseIn)
+    ndo.writeLong(lb.leaseOut)
     ndo.toByteArray
   }
 
-  def readLeaseBalance(data: Array[Byte]): LeaseBalance = Option(data).fold(LeaseBalance.empty) { d =>
+  def readLeaseBalance(data: Array[Byte]): LeaseInfo = Option(data).fold(LeaseInfo.empty) { d =>
     val ndi = newDataInput(d)
-    LeaseBalance(ndi.readLong(), ndi.readLong())
+    LeaseInfo(ndi.readLong(), ndi.readLong())
   }
 
-  def readVolumeAndFee(data: Array[Byte]): VolumeAndFee = Option(data).fold(VolumeAndFee.empty) { d =>
-    val ndi = newDataInput(d)
-    VolumeAndFee(ndi.readLong(), ndi.readLong())
-  }
-
-  def writeVolumeAndFee(vf: VolumeAndFee): Array[Byte] = {
-    val ndo = newDataOutput()
-    ndo.writeLong(vf.volume)
-    ndo.writeLong(vf.fee)
-    ndo.toByteArray
-  }
-
-  def readTransactionInfo(data: Array[Byte]): (Int, Transaction) =
-    (Ints.fromByteArray(data), TransactionParsers.parseBytes(data.drop(4)).get)
+  def readTransactionInfo(data: Array[Byte]): (Int, ProcessedTransaction) =
+    (Ints.fromByteArray(data), ProcessedTransactionParser.parseBytes(data.drop(4)).get)
 
   def readTransactionHeight(data: Array[Byte]): Int = Ints.fromByteArray(data)
 
-  def writeTransactionInfo(txInfo: (Int, Transaction)) = {
+  def writeTransactionInfo(txInfo: (Int, ProcessedTransaction)): Array[Byte] = {
     val (h, tx) = txInfo
-    val txBytes = tx.bytes()
+    val txBytes = tx.bytes
     ByteBuffer.allocate(4 + txBytes.length).putInt(h).put(txBytes).array()
   }
 
@@ -198,33 +171,8 @@ package object database {
     b.array()
   }
 
-  def readSponsorship(data: Array[Byte]): SponsorshipValue = {
-    val ndi = newDataInput(data)
-    SponsorshipValue(ndi.readLong())
-  }
-
-  def writeSponsorship(ai: SponsorshipValue): Array[Byte] = {
-    val ndo = newDataOutput()
-    ndo.writeLong(ai.minFee)
-    ndo.toByteArray
-  }
-
-  def readAssetInfo(data: Array[Byte]): AssetInfo = {
-    val ndi = newDataInput(data)
-    AssetInfo(ndi.readBoolean(), ndi.readBigInt(), ndi.readScriptOption())
-  }
-
-  def writeAssetInfo(ai: AssetInfo): Array[Byte] = {
-    val ndo = newDataOutput()
-    ndo.writeBoolean(ai.isReissuable)
-    ndo.writeBigInt(ai.volume)
-    ndo.writeScriptOption(ai.script)
-    ndo.toByteArray
-  }
-
   implicit class EntryExt(val e: JMap.Entry[Array[Byte], Array[Byte]]) extends AnyVal {
-    import com.wavesplatform.crypto.DigestSize
-    def extractId(offset: Int = 2, length: Int = DigestSize): ByteStr = {
+    def extractId(offset: Int = 2, length: Int = FastCryptographicHash.DigestSize): ByteStr = {
       val id = ByteStr(new Array[Byte](length))
       Array.copy(e.getKey, offset, id.arr, 0, length)
       id

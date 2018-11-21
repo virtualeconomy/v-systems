@@ -33,6 +33,7 @@ object TransferTransactionDiff {
             Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.fee)))
         }
       )
+      /*
       assetIssued = tx.assetId match {
         case None => true
         case Some(aid) => state.assetInfo(aid).isDefined
@@ -41,7 +42,8 @@ object TransferTransactionDiff {
         case None => true
         case Some(aid) => state.assetInfo(aid).isDefined
       }
-    } yield (portfolios, !(assetIssued && feeAssetIssued))
+      */
+    } yield (portfolios, false) //yield (portfolios, !(assetIssued && feeAssetIssued))
 
     isInvalidEi match {
       case Left(e) => Left(e)

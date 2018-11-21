@@ -15,17 +15,19 @@ object LogLevel extends Enumeration {
 }
 
 case class VeeSettings(directory: String,
-                         loggingLevel: LogLevel.Value,
-                         networkSettings: NetworkSettings,
-                         walletSettings: WalletSettings,
-                         blockchainSettings: BlockchainSettings,
-                         checkpointsSettings: CheckpointsSettings,
-                         feesSettings: FeesSettings,
-                         matcherSettings: MatcherSettings,
-                         minerSettings: MinerSettings,
-                         restAPISettings: RestAPISettings,
-                         synchronizationSettings: SynchronizationSettings,
-                         utxSettings: UtxSettings)
+                       dataDirectory: String,
+                       maxCacheSize: Int,
+                       loggingLevel: LogLevel.Value,
+                       networkSettings: NetworkSettings,
+                       walletSettings: WalletSettings,
+                       blockchainSettings: BlockchainSettings,
+                       checkpointsSettings: CheckpointsSettings,
+                       feesSettings: FeesSettings,
+                       matcherSettings: MatcherSettings,
+                       minerSettings: MinerSettings,
+                       restAPISettings: RestAPISettings,
+                       synchronizationSettings: SynchronizationSettings,
+                       utxSettings: UtxSettings)
 
 object VeeSettings {
   import NetworkSettings.networkSettingsValueReader
@@ -33,6 +35,8 @@ object VeeSettings {
   val configPath: String = "vee"
   def fromConfig(config: Config): VeeSettings = {
     val directory = config.as[String](s"$configPath.directory")
+    val dataDirectory = config.as[String](s"$configPath.data-directory")
+    val maxCacheSize = config.as[Int](s"$configPath.max-cache-size")
     val loggingLevel = config.as[LogLevel.Value](s"$configPath.logging-level")
 
     val networkSettings = config.as[NetworkSettings]("vee.network")
@@ -46,7 +50,7 @@ object VeeSettings {
     val synchronizationSettings = SynchronizationSettings.fromConfig(config)
     val utxSettings = config.as[UtxSettings]("vee.utx")
 
-    VeeSettings(directory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
+    VeeSettings(directory, dataDirectory, maxCacheSize, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
       feesSettings, matcherSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
   }
 }
