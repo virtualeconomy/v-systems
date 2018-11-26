@@ -21,53 +21,58 @@ object MainnetGenesisBlockGenerator extends App {
     250971470L * UnitsInVee,
     360000060L * UnitsInVee,
     360000060L * UnitsInVee,
-    123428592L * UnitsInVee,
     360000060L * UnitsInVee,
     360000060L * UnitsInVee,
-    390857208L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
+    154285740L * UnitsInVee,
     360000060L * UnitsInVee,
     360000060L * UnitsInVee,
     360000060L * UnitsInVee,
     263314330L * UnitsInVee,
-    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L
+    360000060L * UnitsInVee,
+    360000060L * UnitsInVee,
+    360000060L * UnitsInVee,
+    360000060L * UnitsInVee,
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L
   )
 
   // add wallet address
   val wallet_addresses = Array (
-    "ARMxPV8puShq49KzPoQb5XGttxghvLdMFg1",
-    "ARFHdvqddPNfMXNt9fgH7Lw1aGRgL29wTKY",
-    "ARQSe9A3DLryBqN4Y1NV1PhERnuWaDLheza",
-    "ARHY8cocXeGnH3q4bkLpU56sCg28fF5hSWV",
-    "ARCry9n7JvHF8rooXiEMhesAHP8zv3sBLDr",
-    "AR7M83ZypZc5WRzdZHjhULnQ7xzoMM8udJt",
-    "ARPdpZ9PT5kDbi2U6ZUgxoFwJzFchz7Fcsw",
-    "ARCK84TwkqzQEksj8pQTxbsCuRY9YGsAbSU",
-    "ARKbFz4N3f8Rgonf1Afd2aix2QtkCUjnWqW",
-    "ARRo5K1rfLk9wjXhUjAqxdZjK7LTjx7Y7ki",
-    "ARBLnj5P9XNspGRGj8UjS1Fny3pkvxJUqJV",
-    "AR5c7ibqGhkyjzYu143E171TiFdmPFHofKb",
-    "ARJukkvk47P9JKpdpjbvPQFr8Lv4D8Qsqnn",
-    "ARBD7fqPGPq5stYKyk3EbZe1w1FDYhh2KnZ",
-    "ARH6GEvr8FV12HN4rZ969K885sukp5qdNJY",
-    "AR2pa1RW5jvKV4b7PNnZG7Az6emz5WtiE4r", // with non-zero balance
-    "ARKMDAveps99s5k9ESiXjcXM9Ddp8p3GGAm",
-    "ARKM1PkMevWdBjyEeMPAb7vrWWsJptDj891",
-    "ARCmPJxYBkYAtxnu8qpoLA2iQbf7aJFRX2c",
-    "ARNP2wJbehKh5Ck4Z2iR4pmnWiwgdsYh6Fw",
-    "ARQiW9ckRc1GbbuEN3h4s18H8YH8mke15qB",
-    "ARMfFAXxGZoFpQ7BwSKqjz9u2nxAtBRYXQ5",
-    "ARM1o54Hdo3hHy83NE4BcmJHEdVUdeULZyZ",
-    "ARDVLTDWf9Hwe3PBk16SNW7HCZXJPjJ43qE",
-    "ARNNKhgFhW8ctmQYvckgf81PyHjsxDEzySd",
-    "AR87ef8yc2Ldt1FGrJi85HW479TVeBCgS5V" //minters
+    "ARKwwhnX2mk9V79kuvb3tEWVyri5Z2HFsPR",
+    "AR2vo3jQjoyJLQysg99AYTR1SQ5mHqGhS1P",
+    "AR8ejrETNWLaABp27fYEdh291MR1kDC92ue",
+    "ARBdeGKBfd2aJd5BEBJz2npX55nPVa4Tn6V",
+    "ARAA6uz8dthMQaNSr3K4UhQY279UrJHQ37x",
+    "ARGsRvusZpKpt4XFdVHAiWNCKmwoCG7Fm3n",
+    "AR8fEYgWobHthXWNgUvhNbHaV3npVwqssM3",
+    "AR5uQhUb5pp2PFLC6CMHdXzrSstaw55EQFb",
+    "ARErPEJhWFzsnVAMDczUkYZ1LCbYRkPmYLT",
+    "AR8HGzodYPzsUHtx15hfP2dytwN8t88HoXz",
+    "ARMVYz7Nw2gJUrfLoQYZns9QgYTGnUnup9q",
+    "AR5i6EcHeTAXxyAFwRvaT3VFBZW34hohj1C",
+    "ARMhBmbgkFBpXAeGR3JEC6ynjKC4d83K7rH",
+    "AR8DGjK1xrSAq3JvbvemCydsrByd5NgJPZP",
+    "ARDX6cr3hdqAVUGH57bdNzj13wyWnXcTLWa",
+    "ARQXTpJAxSME8G7eUuRhJM8MFtuXZhU8TZv", // with non-zero balance
+    "AREi5xZQkffJdXbLmgmESYJZAkrGJUu6qBV",
+    "AR3d9ELYQkfQpHut4hURAP5FQZ88iRHUAto",
+    "ARLnNUEHqJshHPmauToNytZuWvXH5ZQk8jX",
+    "AR9GT7DZyLxvofVLsoYtcrDzMYX6Q2VvXVU",
+    "AR4v6KX8eTLTa7hGrNMVJsPWfqxWKh6Mf7o",
+    "AR3JVT7Z4BvAjdUf7Y593WB7pFnEuQQuFFj",
+    "ARKSxgC7m8S5uLAtYusWYTykd6YyUHUA5Uj",
+    "ARLa44HK7iuvfJ7yCc1Y6rUJVCS9KSuLfxa",
+    "AR9fDBBdQzeGmQY2ZikX2yUZMEMyjKEC5EW",
+    "ARAsvWqn71V93NzMm7C7k2zkRwnpMLDRTR5",
+    "ARQcD8MVftg2HhbufU2RWB9cTtnVe4b6BqG",
+    "ARRf8LUEayHeYpqzmMTj6QB9iH76gh75qkg",
+    "ARQ4rDViLmPT7oEgEX6JRpA6qWQXhLypEYx",
+    "ARCkTMPANUYYZudAHTnJUjUYfV3UMnSqYCC",
+    "ARPnxBFbMzQQn4SncJ2WdH61ynqcPcninV4"//minters
   )
 
   val genesis_slots = Array (
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    0, 4, 12, 16, 24, 28, 36, 40, 48, 52
+    0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56
   )
 
   def generate(networkByte: Char, averageBlockDelay: FiniteDuration) :(IndexedSeq[(Int, Address)], GenesisSettings) = {
