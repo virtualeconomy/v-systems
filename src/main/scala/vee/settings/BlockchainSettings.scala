@@ -18,8 +18,8 @@ case class GenesisSettings(
   averageBlockDelay: FiniteDuration)
 
 object GenesisSettings {
-  val MAINNET = GenesisSettings(1543229696468282122L, 1543229696468282122L, 514285800000000000L,
-    ByteStr.decodeBase58("2DdRknMqC8cbXDQ75aV8XRMuFbGnwo7ck6yngKytiEJcE2o8vNEFF2hH2NzFgaXJcaHpxsU6eQWrw3J612mmb7py").toOption,
+  val MAINNET = GenesisSettings(1543286357457333127L, 1543286357457333127L, 514285800000000000L,
+    ByteStr.decodeBase58("3yYNd7quEWaWytrAug4yGwQvpL3PVJegf9d9NTv9PVE3ouBYJs5PTQqxCjd294uK1zPLj6G5Tk447LqFMWdSFvaQ").toOption,
     List(
         GenesisTransactionSettings("AR2vo3jQjoyJLQysg99AYTR1SQ5mHqGhS1P",15428574000000000L,-1),
         GenesisTransactionSettings("AR8ejrETNWLaABp27fYEdh291MR1kDC92ue",25097147000000000L,-1),
@@ -51,7 +51,7 @@ object GenesisSettings {
         GenesisTransactionSettings("ARQ4rDViLmPT7oEgEX6JRpA6qWQXhLypEYx",0L,48),
         GenesisTransactionSettings("ARCkTMPANUYYZudAHTnJUjUYfV3UMnSqYCC",0L,52),
         GenesisTransactionSettings("ARPnxBFbMzQQn4SncJ2WdH61ynqcPcninV4",0L,56)),
-    1543229696000000000L, 60.seconds)
+    1543286357000000000L, 60.seconds)
 
   val TESTNET = GenesisSettings(1535356447650226656L, 1535356447650226656L, Constants.UnitsInVee * Constants.TotalVee,
     ByteStr.decodeBase58("5n4ewwZh9F4MMpSvtdxLCu5MUKnhEyUth2w3zEfpuiX3vwS1STNCdi51fmowJuLT1CfFg1DuodSvxwBZDANvGNej").toOption,
