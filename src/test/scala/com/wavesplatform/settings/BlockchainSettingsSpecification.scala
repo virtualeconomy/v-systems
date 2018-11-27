@@ -136,6 +136,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("3yYNd7quEWaWytrAug4yGwQvpL3PVJegf9d9NTv9PVE3ouBYJs5PTQqxCjd294uK1zPLj6G5Tk447LqFMWdSFvaQ").toOption)
     settings.genesisSettings.initialBalance should be(514285800000000000L) //changed the total initialBalance in default setting
     settings.genesisSettings.transactions should be(Seq(
+        GenesisTransactionSettings("ARKwwhnX2mk9V79kuvb3tEWVyri5Z2HFsPR",36000006000000000L,-1),
         GenesisTransactionSettings("AR2vo3jQjoyJLQysg99AYTR1SQ5mHqGhS1P",15428574000000000L,-1),
         GenesisTransactionSettings("AR8ejrETNWLaABp27fYEdh291MR1kDC92ue",25097147000000000L,-1),
         GenesisTransactionSettings("ARBdeGKBfd2aJd5BEBJz2npX55nPVa4Tn6V",36000006000000000L,-1),

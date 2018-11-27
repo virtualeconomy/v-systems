@@ -21,6 +21,7 @@ object GenesisSettings {
   val MAINNET = GenesisSettings(1543286357457333127L, 1543286357457333127L, 514285800000000000L,
     ByteStr.decodeBase58("3yYNd7quEWaWytrAug4yGwQvpL3PVJegf9d9NTv9PVE3ouBYJs5PTQqxCjd294uK1zPLj6G5Tk447LqFMWdSFvaQ").toOption,
     List(
+        GenesisTransactionSettings("ARKwwhnX2mk9V79kuvb3tEWVyri5Z2HFsPR",36000006000000000L,-1),
         GenesisTransactionSettings("AR2vo3jQjoyJLQysg99AYTR1SQ5mHqGhS1P",15428574000000000L,-1),
         GenesisTransactionSettings("AR8ejrETNWLaABp27fYEdh291MR1kDC92ue",25097147000000000L,-1),
         GenesisTransactionSettings("ARBdeGKBfd2aJd5BEBJz2npX55nPVa4Tn6V",36000006000000000L,-1),
