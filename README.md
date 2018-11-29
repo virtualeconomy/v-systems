@@ -1,10 +1,10 @@
 # VSYS
 
-The code in master branch is under development. The latest release for each network can be found in the [Releases section](https://github.com/excelsia/vee/releases). You can switch to the corresponding tag and build the application.
+The code in master branch is under development. The latest release for each network can be found in the [Releases section](https://github.com/virtualeconomy/vsys/releases). You can switch to the corresponding tag and build the application.
 
 # Installation
 
-[How to configure VEE node](https://github.com/excelsia/vee/wiki/How-to-install-VEE-testnet-node)
+[[How to configure VSYS node]]
 
 ## Compiling Packages from source
 
