@@ -1,6 +1,6 @@
 package com.wavesplatform
 
-import vee.settings.{GenesisSettings, GenesisTransactionSettings}
+import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
 import scorex.account.Address
 
 import scala.concurrent.duration._

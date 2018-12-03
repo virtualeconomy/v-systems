@@ -13,7 +13,7 @@ class FeeCalculator(settings: FeesSettings) {
     settings.fees.flatMap { fs =>
       val transactionType = fs._1
       fs._2.map { v =>
-        val maybeAsset = if (v.asset.toUpperCase == "VEE") None else ByteStr.decodeBase58(v.asset).toOption
+        val maybeAsset = if (v.asset.toUpperCase == "VSYS") None else ByteStr.decodeBase58(v.asset).toOption
         val fee = v.fee
 
         TransactionAssetFee(transactionType, maybeAsset).key -> fee
@@ -27,7 +27,7 @@ class FeeCalculator(settings: FeesSettings) {
         if (minimumFee <= tx.assetFee._2) {
           Right(tx)
         } else {
-          Left(GenericError(s"Fee in ${tx.assetFee._1.fold("VEE")(_.toString)} for ${tx.transactionType} transaction does not exceed minimal value of $minimumFee"))
+          Left(GenericError(s"Fee in ${tx.assetFee._1.fold("VSYS")(_.toString)} for ${tx.transactionType} transaction does not exceed minimal value of $minimumFee"))
         }
       case None =>
         Left(GenericError(s"Minimum fee is not defined for ${TransactionAssetFee(tx.transactionType.id, tx.assetFee._1).key}"))

@@ -362,7 +362,7 @@ object MatcherTestSuite {
 
   private val generatingMatcherConfig = ConfigFactory.parseString(
     s"""
-      |vee.matcher {
+      |vsys.matcher {
       |  enable=yes
       |  account="3HevUqdcHuiLvpeVLo4sGVqxSsZczJuCYHo"
       |  bind-address="0.0.0.0"
@@ -373,7 +373,7 @@ object MatcherTestSuite {
 
   private val nonGeneratingPeersConfig = ConfigFactory.parseString(
     """
-      |vee.miner.enable=no
+      |vsys.miner.enable=no
     """.stripMargin
   )
 

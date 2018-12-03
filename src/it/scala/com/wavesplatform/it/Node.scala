@@ -2,7 +2,7 @@ package com.wavesplatform.it
 
 import com.typesafe.config.Config
 import com.wavesplatform.it.api._
-import com.wavesplatform.settings.VeeSettings
+import com.wavesplatform.settings.VsysSettings
 import org.asynchttpclient._
 import org.slf4j.LoggerFactory
 import scorex.transaction.TransactionParser.TransactionType
@@ -17,7 +17,7 @@ class Node(config: Config, val nodeInfo: NodeInfo, override val client: AsyncHtt
   val publicKey: String = config.getString("public-key")
   val address: String = config.getString("address")
   val accountSeed: String = config.getString("account-seed")
-  val settings: VeeSettings = VeeSettings.fromConfig(config)
+  val settings: VsysSettings = VsysSettings.fromConfig(config)
 
   override protected val log = LoggerFacade(LoggerFactory.getLogger(s"${getClass.getName}.${settings.networkSettings.nodeName}"))
 
@@ -30,6 +30,6 @@ class Node(config: Config, val nodeInfo: NodeInfo, override val client: AsyncHtt
   override val networkPort: Int = nodeInfo.hostNetworkPort
   override val blockDelay: FiniteDuration = settings.blockchainSettings.genesisSettings.averageBlockDelay
 
-  def fee(txValue: TransactionType.Value, asset: String = "VEE"): Long =
+  def fee(txValue: TransactionType.Value, asset: String = "VSYS"): Long =
     settings.feesSettings.fees(txValue.id).find(_.asset == asset).get.fee
 }

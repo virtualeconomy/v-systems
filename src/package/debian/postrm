@@ -12,8 +12,8 @@ if [ "$1" = purge ]; then
         rm -f /etc/init/${{app_name}}.conf
     fi
 
-    userdel vee >/dev/null 2>&1 || true
-    groupdel vee >/dev/null 2>&1 || true
+    userdel vsys >/dev/null 2>&1 || true
+    groupdel vsys >/dev/null 2>&1 || true
 fi
 
 exit 0

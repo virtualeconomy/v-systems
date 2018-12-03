@@ -9,8 +9,8 @@ import scorex.transaction.assets.exchange.AssetPair
 class MatcherSettingsSpecification extends FlatSpec with Matchers {
   "MatcherSettings" should "read values" in {
     val config = loadConfig(ConfigFactory.parseString(
-      """vee {
-        |  directory: "/vee"
+      """vsys {
+        |  directory: "/vsys"
         |  matcher {
         |    enable: yes
         |    account: "BASE58MATCHERACCOUNT"
@@ -21,13 +21,13 @@ class MatcherSettingsSpecification extends FlatSpec with Matchers {
         |    snapshots-interval: 1d
         |    max-open-orders: 1000
         |    price-assets: [
-        |      "VEE",
+        |      "VSYS",
         |      "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
         |      "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J"
         |    ]
         |    predefined-pairs: [
-        |      {amountAsset = "VEE", priceAsset = "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"},
-        |      {amountAsset = "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J", priceAsset = "VEE"},
+        |      {amountAsset = "VSYS", priceAsset = "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"},
+        |      {amountAsset = "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J", priceAsset = "VSYS"},
         |      {amountAsset = "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J", priceAsset = "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"},
         |    ]
         |    max-timestamp-diff = 3h
@@ -43,14 +43,14 @@ class MatcherSettingsSpecification extends FlatSpec with Matchers {
     settings.port should be(9925)
     settings.minOrderFee should be(100000)
     settings.orderMatchTxFee should be(100000)
-    settings.journalDataDir should be("/vee/matcher/journal")
-    settings.snapshotsDataDir should be("/vee/matcher/snapshots")
+    settings.journalDataDir should be("/vsys/matcher/journal")
+    settings.snapshotsDataDir should be("/vsys/matcher/snapshots")
     settings.snapshotsInterval should be(1.day)
     settings.maxOpenOrders should be(1000)
-    settings.priceAssets should be(Seq("VEE", "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS", "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J"))
+    settings.priceAssets should be(Seq("VSYS", "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS", "DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J"))
     settings.predefinedPairs should be(Seq(
-      AssetPair.createAssetPair("VEE", "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS").get,
-      AssetPair.createAssetPair("DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J", "VEE").get,
+      AssetPair.createAssetPair("VSYS", "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS").get,
+      AssetPair.createAssetPair("DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J", "VSYS").get,
       AssetPair.createAssetPair("DHgwrRvVyqJsepd32YbBqUeDH4GJ1N984X8QoekjgH8J", "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS").get
     ))
   }

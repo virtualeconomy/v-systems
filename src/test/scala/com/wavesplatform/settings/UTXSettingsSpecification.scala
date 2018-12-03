@@ -10,13 +10,13 @@ import scala.concurrent.duration._
 class UTXSettingsSpecification extends FlatSpec with Matchers {
   "UTXSettins" should "read values" in {
     val config = ConfigFactory.parseString(
-      """vee {
+      """vsys {
         |  utx {
         |    max-size = 100
         |    max-transaction-age = 100m
         |  }
         |}""".stripMargin).resolve()
-    val settings = config.as[UtxSettings]("vee.utx")
+    val settings = config.as[UtxSettings]("vsys.utx")
     settings.maxSize should be(100)
     settings.maxTransactionAge shouldBe 100.minutes
   }

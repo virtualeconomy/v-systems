@@ -1,12 +1,12 @@
 package tools
 
-import vee.settings.{GenesisSettings, GenesisTransactionSettings}
+import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
 import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.transaction.{GenesisTransaction, Transaction}
-import vee.transaction.{TransactionStatus, ProcessedTransaction}
+import vsys.transaction.{TransactionStatus, ProcessedTransaction}
 import scorex.transaction.TransactionParser.SignatureLength
 import com.wavesplatform.settings.Constants._
 
@@ -16,22 +16,22 @@ object MainnetGenesisBlockGenerator extends App {
 
   val genesisSigner = PrivateKeyAccount(Array.empty)
   val reference = ByteStr(Array.fill(SignatureLength)(-1: Byte))
-  val balanceDistributions = Seq(360000060L * UnitsInVee,
-    154285740L * UnitsInVee,
-    250971470L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    154285740L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    263314330L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
-    360000060L * UnitsInVee,
+  val balanceDistributions = Seq(360000060L * UnitsInVsys,
+    154285740L * UnitsInVsys,
+    250971470L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    154285740L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    263314330L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
+    360000060L * UnitsInVsys,
     0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L
   )
 

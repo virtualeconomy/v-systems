@@ -18,28 +18,28 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
 
   private val defaultQuantity = 100000
 
-  test("asset transfer changes sender's and recipient's asset balance; issuer's.vee balance is decreased by fee") {
+  test("asset transfer changes sender's and recipient's asset balance; issuer's.vsys balance is decreased by fee") {
     val f = for {
-      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
-      _ <- assertBalances(secondAddress, 100.vee, 100.vee)
+      _ <- assertBalances(firstAddress, 100.vsys, 100.vsys)
+      _ <- assertBalances(secondAddress, 100.vsys, 100.vsys)
 
-      issuedAssetId <- sender.issue(firstAddress, "name", "description", defaultQuantity, 2, reissuable = false, fee = 10.vee).map(_.id)
+      issuedAssetId <- sender.issue(firstAddress, "name", "description", defaultQuantity, 2, reissuable = false, fee = 10.vsys).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(issuedAssetId))
 
-      _ <- assertBalances(firstAddress, 90.vee, 90.vee)
+      _ <- assertBalances(firstAddress, 90.vsys, 90.vsys)
       _ <- assertAssetBalance(firstAddress, issuedAssetId, defaultQuantity)
 
-      transferTransaction <- sender.transfer(firstAddress, secondAddress, defaultQuantity, fee = 10.vee, Some(issuedAssetId)).map(_.id)
+      transferTransaction <- sender.transfer(firstAddress, secondAddress, defaultQuantity, fee = 10.vsys, Some(issuedAssetId)).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(transferTransaction))
 
-      _ <- assertBalances(firstAddress, 80.vee, 80.vee)
-      _ <- assertBalances(secondAddress, 100.vee, 100.vee)
+      _ <- assertBalances(firstAddress, 80.vsys, 80.vsys)
+      _ <- assertBalances(secondAddress, 100.vsys, 100.vsys)
 
       _ <- assertAssetBalance(firstAddress, issuedAssetId, 0)
       _ <- assertAssetBalance(secondAddress, issuedAssetId, defaultQuantity)
@@ -48,25 +48,25 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
     Await.result(f, 1.minute)
   }
 
-  test("vee transfer changes vee balances and eff.b.") {
+  test("vsys transfer changes vsys balances and eff.b.") {
     val f = for {
-      _ <- assertBalances(firstAddress, 80.vee, 80.vee)
-      _ <- assertBalances(secondAddress, 100.vee, 100.vee)
+      _ <- assertBalances(firstAddress, 80.vsys, 80.vsys)
+      _ <- assertBalances(secondAddress, 100.vsys, 100.vsys)
 
-      transferId <- sender.transfer(firstAddress, secondAddress, 5.vee, fee = 5.vee).map(_.id)
+      transferId <- sender.transfer(firstAddress, secondAddress, 5.vsys, fee = 5.vsys).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(transferId))
 
-      _ <- assertBalances(firstAddress, 70.vee, 70.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 105.vee)
+      _ <- assertBalances(firstAddress, 70.vsys, 70.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 105.vsys)
     } yield succeed
 
     Await.result(f, 1.minute)
   }
 
-  test("invalid signed vee transfer should not be in UTX or blockchain") {
+  test("invalid signed vsys transfer should not be in UTX or blockchain") {
     def createSignedTransferRequest(tx: TransferTransaction): SignedTransferRequest = {
       import tx._
       SignedTransferRequest(
@@ -88,7 +88,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
       1,
       System.currentTimeMillis() + (1.day).toMillis,
       None,
-      1.vee,
+      1.vsys,
       Array.emptyByteArray
     ).right.get
 
@@ -110,34 +110,34 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 70.vee, 70.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 105.vee)
+      _ <- assertBalances(firstAddress, 70.vsys, 70.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 105.vsys)
 
-      transferFailureAssertion <- assertBadRequest(sender.transfer(secondAddress, firstAddress, 104.vee, fee = 2.vee))
+      transferFailureAssertion <- assertBadRequest(sender.transfer(secondAddress, firstAddress, 104.vsys, fee = 2.vsys))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 70.vee, 70.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 105.vee)
+      _ <- assertBalances(firstAddress, 70.vsys, 70.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 105.vsys)
     } yield transferFailureAssertion
 
     Await.result(f, 1.minute)
   }
 
 
-  test("can not make transfer without having enough of vee") {
+  test("can not make transfer without having enough of vsys") {
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 70.vee, 70.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 105.vee)
+      _ <- assertBalances(firstAddress, 70.vsys, 70.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 105.vsys)
 
-      transferFailureAssertion <- assertBadRequest(sender.transfer(secondAddress, firstAddress, 106.vee, fee = 1.vee))
+      transferFailureAssertion <- assertBadRequest(sender.transfer(secondAddress, firstAddress, 106.vsys, fee = 1.vsys))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 70.vee, 70.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 105.vee)
+      _ <- assertBalances(firstAddress, 70.vsys, 70.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 105.vsys)
     } yield transferFailureAssertion
 
     Await.result(f, 1.minute)
@@ -147,51 +147,51 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 70.vee, 70.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 105.vee)
+      _ <- assertBalances(firstAddress, 70.vsys, 70.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 105.vsys)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.vee, fee = 5.vee, feeScale = 100).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.vsys, fee = 5.vsys, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 65.vee, 60.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 110.vee)
+      _ <- assertBalances(firstAddress, 65.vsys, 60.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 110.vsys)
 
-      transferFailureAssertion <- assertBadRequest(sender.transfer(firstAddress, secondAddress, 64.vee, fee = 1.vee))
+      transferFailureAssertion <- assertBadRequest(sender.transfer(firstAddress, secondAddress, 64.vsys, fee = 1.vsys))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 65.vee, 60.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 110.vee)
+      _ <- assertBalances(firstAddress, 65.vsys, 60.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 110.vsys)
     } yield transferFailureAssertion
 
     Await.result(f, 1.minute)
   }
 
-  test("can not make transfer without having enough of your own vee") {
+  test("can not make transfer without having enough of your own vsys") {
     val f = for {
       fb <- traverse(allNodes)(_.height).map(_.min)
 
-      _ <- assertBalances(firstAddress, 65.vee, 60.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 110.vee)
+      _ <- assertBalances(firstAddress, 65.vsys, 60.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 110.vsys)
 
-      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.vee, fee = 5.vee, feeScale = 100).map(_.id)
+      createdLeaseTxId <- sender.lease(firstAddress, secondAddress, 5.vsys, fee = 5.vsys, feeScale = 100).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(createdLeaseTxId))
 
-      _ <- assertBalances(firstAddress, 60.vee, 50.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 115.vee)
+      _ <- assertBalances(firstAddress, 60.vsys, 50.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 115.vsys)
 
-      transferFailureAssertion <- assertBadRequest(sender.transfer(secondAddress, firstAddress, 109.vee, fee = 1.vee))
+      transferFailureAssertion <- assertBadRequest(sender.transfer(secondAddress, firstAddress, 109.vsys, fee = 1.vsys))
 
       _ <- traverse(allNodes)(_.waitForHeight(fb + 2))
 
-      _ <- assertBalances(firstAddress, 60.vee, 50.vee)
-      _ <- assertBalances(secondAddress, 105.vee, 115.vee)
+      _ <- assertBalances(firstAddress, 60.vsys, 50.vsys)
+      _ <- assertBalances(secondAddress, 105.vsys, 115.vsys)
     } yield transferFailureAssertion
 
     Await.result(f, 1.minute)

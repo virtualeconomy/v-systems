@@ -7,7 +7,7 @@ Type=simple
 EnvironmentFile=${{env_config}}
 ExecStart=/usr/share/${{app_name}}/bin/${{exec}} \
   -Dlogback.pattern="%%-5level %%logger{26} - %%msg%%n" \
-  -- /etc/${{app_name}}/vee.conf
+  -- /etc/${{app_name}}/vsys.conf
 Restart=always
 RestartSec=${{retryTimeout}}
 SuccessExitStatus=143

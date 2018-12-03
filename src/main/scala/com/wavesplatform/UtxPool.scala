@@ -16,7 +16,7 @@ import scorex.consensus.TransactionsOrdering
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction._
-import vee.transaction._
+import vsys.transaction._
 import scorex.utils.{ScorexLogging, Synchronized, Time}
 
 import scala.concurrent.duration._

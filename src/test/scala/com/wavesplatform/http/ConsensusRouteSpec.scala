@@ -12,7 +12,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.JsObject
 import scorex.api.http.BlockNotExists
-import vee.consensus.spos.api.http.SposConsensusApiRoute
+import vsys.consensus.spos.api.http.SposConsensusApiRoute
 
 class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHelper with PropertyChecks with MockFactory with BlockGen with HistoryTest {
   private val state = mock[StateReader]

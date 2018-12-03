@@ -5,7 +5,7 @@ import com.wavesplatform.state2._
 import scorex.account.{AddressOrAlias, Address, Alias}
 import scorex.transaction.ValidationError.AliasNotExists
 import scorex.transaction._
-import vee.transaction._
+import vsys.transaction._
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.lease.LeaseTransaction
 import scorex.utils.{ScorexLogging, Synchronized}

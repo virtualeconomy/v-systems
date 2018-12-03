@@ -22,13 +22,13 @@ object BalanceDiffValidation {
       val newPortfolio = oldPortfolio.combine(portfolioDiff)
 
       val err = if (newPortfolio.balance < 0) {
-        Some(s"negative vee balance: $acc, old: ${oldPortfolio.balance}, new: ${newPortfolio.balance}")
+        Some(s"negative vsys balance: $acc, old: ${oldPortfolio.balance}, new: ${newPortfolio.balance}")
       } else if (newPortfolio.assets.values.exists(_ < 0)) {
         Some(s"negative asset balance: $acc, new portfolio: ${negativeAssetsInfo(newPortfolio)}")
       } else if (newPortfolio.effectiveBalance < 0) {
-        Some(s"negative effective balance: $acc, old: ${leaseVEEInfo(oldPortfolio)}, new: ${leaseVEEInfo(newPortfolio)}")
+        Some(s"negative effective balance: $acc, old: ${leaseVSYSInfo(oldPortfolio)}, new: ${leaseVSYSInfo(newPortfolio)}")
       } else if (newPortfolio.balance < newPortfolio.leaseInfo.leaseOut) {
-        Some(s"leased being more than own: $acc, old: ${leaseVEEInfo(oldPortfolio)}, new: ${leaseVEEInfo(newPortfolio)}")
+        Some(s"leased being more than own: $acc, old: ${leaseVSYSInfo(oldPortfolio)}, new: ${leaseVSYSInfo(newPortfolio)}")
       } else None
       err.map(acc -> _)
     }).toMap
@@ -40,7 +40,7 @@ object BalanceDiffValidation {
     }
   }
 
-  private def leaseVEEInfo(p: Portfolio): (Long, LeaseInfo) = (p.balance, p.leaseInfo)
+  private def leaseVSYSInfo(p: Portfolio): (Long, LeaseInfo) = (p.balance, p.leaseInfo)
 
   private def negativeAssetsInfo(p: Portfolio): Map[ByteStr, Long] = p.assets.filter(_._2 < 0)
 }

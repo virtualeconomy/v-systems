@@ -46,11 +46,11 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
     close()
   }
 
-  private def knownPeers = seedAddress.fold("")(sa => s"-Dvee.network.known-peers.0=$sa")
+  private def knownPeers = seedAddress.fold("")(sa => s"-Dvsys.network.known-peers.0=$sa")
 
-  private val networkName = "vee-" + this.##.toLong.toHexString
+  private val networkName = "vsys-" + this.##.toLong.toHexString
 
-  private val veeNetwork = client.createNetwork(NetworkConfig.builder().driver("bridge").name(networkName).build())
+  private val vsysNetwork = client.createNetwork(NetworkConfig.builder().driver("bridge").name(networkName).build())
 
   def startNode(nodeConfig: Config): Node = {
     val configOverrides = s"$knownPeers ${renderProperties(asProperties(nodeConfig.withFallback(suiteConfig)))}"
@@ -61,9 +61,9 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       .withFallback(ConfigFactory.defaultReference())
       .resolve()
 
-    val restApiPort = actualConfig.getString("vee.rest-api.port")
-    val networkPort = actualConfig.getString("vee.network.port")
-    val matcherApiPort = actualConfig.getString("vee.matcher.port")
+    val restApiPort = actualConfig.getString("vsys.rest-api.port")
+    val networkPort = actualConfig.getString("vsys.network.port")
+    val matcherApiPort = actualConfig.getString("vsys.matcher.port")
 
     val portBindings = new ImmutableMap.Builder[String, java.util.List[PortBinding]]()
       .put(restApiPort, Collections.singletonList(PortBinding.randomPort("0.0.0.0")))
@@ -76,13 +76,13 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       .build()
 
     val containerConfig = ContainerConfig.builder()
-      .image("vee.tech/vee-core:latest")
+      .image("systems.v/vsys-core:latest")
       .exposedPorts(restApiPort, networkPort, matcherApiPort)
       .hostConfig(hostConfig)
-      .env(s"VEE_OPTS=$configOverrides", s"VEE_PORT=$networkPort")
+      .env(s"VSYS_OPTS=$configOverrides", s"VSYS_PORT=$networkPort")
       .build()
 
-    val containerId = client.createContainer(containerConfig, actualConfig.getString("vee.network.node-name") + "-" +
+    val containerId = client.createContainer(containerConfig, actualConfig.getString("vsys.network.node-name") + "-" +
       this.##.toLong.toHexString).id()
     connectToNetwork(containerId)
     client.startContainer(containerId)
@@ -116,16 +116,16 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       log.info("Stopping containers")
       nodes.values.foreach(n => n.close())
       nodes.keys.foreach(id => client.removeContainer(id, RemoveContainerParam.forceKill()))
-      client.removeNetwork(veeNetwork.id())
+      client.removeNetwork(vsysNetwork.id())
       client.close()
       http.close()
     }
   }
 
-  def disconnectFromNetwork(containerId: String): Unit =  client.disconnectFromNetwork(containerId, veeNetwork.id())
+  def disconnectFromNetwork(containerId: String): Unit =  client.disconnectFromNetwork(containerId, vsysNetwork.id())
   def disconnectFromNetwork(node: Node): Unit = disconnectFromNetwork(node.nodeInfo.containerId)
 
-  def connectToNetwork(containerId: String): Unit = client.connectToNetwork(containerId, veeNetwork.id())
+  def connectToNetwork(containerId: String): Unit = client.connectToNetwork(containerId, vsysNetwork.id())
   def connectToNetwork(node: Node): Unit = connectToNetwork(node.nodeInfo.containerId)
 }
 

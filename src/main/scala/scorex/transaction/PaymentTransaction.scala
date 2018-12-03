@@ -9,8 +9,8 @@ import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.TransactionParser._
 import scorex.crypto.encode.Base58
 
-import vee.transaction.ProvenTransaction
-import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.transaction.ProvenTransaction
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Failure, Success, Try}
 

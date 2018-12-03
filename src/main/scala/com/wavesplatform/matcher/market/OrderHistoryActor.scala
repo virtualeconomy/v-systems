@@ -17,7 +17,7 @@ import scorex.transaction.AssetAcc
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.assets.exchange.{AssetPair, Order}
 import scorex.utils.NTP
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

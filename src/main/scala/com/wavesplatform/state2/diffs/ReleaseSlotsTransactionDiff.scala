@@ -3,13 +3,13 @@ package com.wavesplatform.state2.diffs
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError
-import vee.transaction.spos.ReleaseSlotsTransaction
+import vsys.transaction.spos.ReleaseSlotsTransaction
 import com.wavesplatform.settings.FunctionalitySettings
 
 import scala.util.{Left, Right}
 import scorex.transaction.ValidationError.GenericError
-import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
-import vee.spos.SPoSCalc._
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.spos.SPoSCalc._
 
 object ReleaseSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ReleaseSlotsTransaction): Either[ValidationError, Diff] = {

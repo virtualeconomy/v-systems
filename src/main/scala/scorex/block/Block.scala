@@ -1,18 +1,18 @@
 package scorex.block
 
 import com.google.common.primitives.{Bytes, Ints, Longs}
-import vee.settings.GenesisSettings
+import vsys.settings.GenesisSettings
 import com.wavesplatform.state2.{ByteStr, Diff}
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
-import vee.consensus.spos.{SposConsensusBlockField, SposConsensusBlockData}
+import vsys.consensus.spos.{SposConsensusBlockField, SposConsensusBlockData}
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser._
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{AssetAcc, _}
 import scorex.utils.ScorexLogging
-import vee.fee.{ResourcePricingBlockField, ResourcePricingBlockData}
-import vee.transaction._
+import vsys.fee.{ResourcePricingBlockField, ResourcePricingBlockData}
+import vsys.transaction._
 
 import scala.util.{Failure, Try}
 

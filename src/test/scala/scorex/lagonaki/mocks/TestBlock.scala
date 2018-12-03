@@ -3,11 +3,11 @@ package scorex.lagonaki.mocks
 import com.wavesplatform.state2.ByteStr
 import scorex.account.PrivateKeyAccount
 import scorex.block._
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.TransactionParser._
 import scorex.transaction.{Transaction, TransactionParser}
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 import scala.util.{Random, Try}
 

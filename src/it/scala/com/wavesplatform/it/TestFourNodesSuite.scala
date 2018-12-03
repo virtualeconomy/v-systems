@@ -17,7 +17,7 @@ class TestFourNodesSuite extends FreeSpec with BeforeAndAfterAll with ScorexLogg
 
   private val nonGeneratingPeerConfig = ConfigFactory.parseString(
     """
-      |vee.miner.enable=no
+      |vsys.miner.enable=no
     """.stripMargin
   )
 

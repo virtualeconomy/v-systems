@@ -3,13 +3,13 @@ package com.wavesplatform.state2.diffs
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError
-import vee.transaction.TransactionStatus
-import vee.transaction.spos.ContendSlotsTransaction
+import vsys.transaction.TransactionStatus
+import vsys.transaction.spos.ContendSlotsTransaction
 import scorex.account.Address
 import com.wavesplatform.settings.FunctionalitySettings
 import scorex.transaction.ValidationError.GenericError
-import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
-import vee.spos.SPoSCalc._
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.spos.SPoSCalc._
 
 import scala.util.Right
 import scala.util.Left

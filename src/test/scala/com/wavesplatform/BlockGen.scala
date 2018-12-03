@@ -4,9 +4,9 @@ import com.wavesplatform.state2.ByteStr
 import org.scalacheck.Gen
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.transaction.{SignedTransaction, Transaction}
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 trait BlockGen extends TransactionGen {
 

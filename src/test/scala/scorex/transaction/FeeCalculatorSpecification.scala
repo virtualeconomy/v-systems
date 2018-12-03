@@ -9,8 +9,8 @@ import org.scalatest.{Assertion, Matchers, PropSpec}
 import scorex.account.{Address, PrivateKeyAccount}
 import scorex.transaction.assets._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vee.transaction.database.DbPutTransaction
-import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.transaction.database.DbPutTransaction
+import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 
 class FeeCalculatorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks
@@ -18,41 +18,41 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
 
 
   private val configString =
-    """vee {
+    """vsys {
       |  fees {
       |    payment {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    issue {
-      |      VEE = 100000000
+      |      VSYS = 100000000
       |    }
       |    transfer {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |      "JAudr64y6YxTgLn9T5giKKqWGkbMfzhdRAxmNNfn6FJN" = 2
       |    }
       |    reissue {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    burn {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    lease {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    lease-cancel {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    create-alias {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    contend-slots {
-      |      VEE = 100000000000
+      |      VSYS = 100000000000
       |    }
       |    release-slots {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |    db-put {
-      |      VEE = 10000000
+      |      VSYS = 10000000
       |    }
       |  }
       |}""".stripMargin

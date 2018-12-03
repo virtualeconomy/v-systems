@@ -12,8 +12,8 @@ import play.api.libs.json._
 import scorex.account.{Address, PublicKeyAccount}
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
-import vee.spos.SPoSCalc
-import vee.wallet.Wallet
+import vsys.spos.SPoSCalc
+import vsys.wallet.Wallet
 
 import scala.util.{Failure, Success, Try}
 

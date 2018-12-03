@@ -8,8 +8,8 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.GenesisTransaction
-import vee.transaction.database.DbPutTransaction
-import vee.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.database.DbPutTransaction
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -48,7 +48,7 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
   property("Insufficient amount") {
     forAll(preconditionsWithoutEnoughAmtAndDbPut) { case (genesis, dbPutTx) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(dbPutTx))) { blockDiffEi =>
-        blockDiffEi should produce("negative vee balance")
+        blockDiffEi should produce("negative vsys balance")
       }
     }
   }

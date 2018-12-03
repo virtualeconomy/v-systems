@@ -8,7 +8,7 @@ class CheckpointsSettingsSpecification extends FlatSpec with Matchers {
   "CheckpointsSettings" should "read values" in {
     val config = ConfigFactory.parseString(
       """
-        |vee {
+        |vsys {
         |  checkpoints {
         |    public-key: "BASE58PUBKEY"
         |  }

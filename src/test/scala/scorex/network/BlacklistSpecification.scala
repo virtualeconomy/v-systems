@@ -10,13 +10,13 @@ import org.scalatest.{FeatureSpec, GivenWhenThen}
 
 class BlacklistSpecification extends FeatureSpec with GivenWhenThen {
   private val config = ConfigFactory.parseString(
-    """vee.network {
+    """vsys.network {
       |  known-peers = []
       |  file = null
       |  black-list-residence-time: 1s
       |}""".stripMargin).withFallback(ConfigFactory.load()).resolve()
 
-  private val networkSettings = config.as[NetworkSettings]("vee.network")
+  private val networkSettings = config.as[NetworkSettings]("vsys.network")
 
   info("As a Peer")
   info("I want to blacklist other peers for certain time")
