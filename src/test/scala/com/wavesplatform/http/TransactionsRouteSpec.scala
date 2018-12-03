@@ -14,7 +14,7 @@ import scorex.account.Address
 import scorex.api.http.{InvalidAddress, InvalidSignature, TooBigArrayAllocation, TransactionsApiRoute}
 import scorex.crypto.encode.Base58
 import scorex.transaction._
-import vee.transaction._
+import vsys.transaction._
 
 class TransactionsRouteSpec extends RouteSpec("/transactions")
   with RestAPISettingsHelper with MockFactory with Matchers with TransactionGen with BlockGen with PropertyChecks {

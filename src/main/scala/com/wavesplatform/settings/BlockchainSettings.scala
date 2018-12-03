@@ -7,7 +7,7 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.EnumerationReader._
 
-import vee.settings._
+import vsys.settings._
 
 case class FunctionalitySettings(numOfSlots: Int,
                                  mintingSpeed: Int)
@@ -21,7 +21,7 @@ object FunctionalitySettings {
     numOfSlots = 60,
     mintingSpeed = 1)
 
-  val configPath = "vee.blockchain.custom.functionality"
+  val configPath = "vsys.blockchain.custom.functionality"
 }
 
 case class BlockchainSettings(blockchainFile: Option[File],
@@ -39,7 +39,7 @@ object BlockchainType extends Enumeration {
 }
 
 object BlockchainSettings {
-  val configPath: String = "vee.blockchain"
+  val configPath: String = "vsys.blockchain"
 
   def fromConfig(config: Config): BlockchainSettings = {
     val blockchainType = config.as[BlockchainType.Value](s"$configPath.type")
@@ -50,8 +50,8 @@ object BlockchainSettings {
         ('M', FunctionalitySettings.MAINNET, GenesisSettings.MAINNET)
       case BlockchainType.CUSTOM =>
         val addressSchemeCharacter = config.as[String](s"$configPath.custom.address-scheme-character").charAt(0)
-        val functionalitySettings = config.as[FunctionalitySettings]("vee.blockchain.custom.functionality")
-        val genesisSettings = config.as[GenesisSettings]("vee.blockchain.custom.genesis")
+        val functionalitySettings = config.as[FunctionalitySettings]("vsys.blockchain.custom.functionality")
+        val genesisSettings = config.as[GenesisSettings]("vsys.blockchain.custom.genesis")
         (addressSchemeCharacter, functionalitySettings, genesisSettings)
     }
 

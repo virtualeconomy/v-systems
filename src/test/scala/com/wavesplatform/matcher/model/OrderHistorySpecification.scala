@@ -55,7 +55,7 @@ class OrderHistorySpecification extends PropSpec
     oh.ordersByPairAndAddress(pair, ord1.senderPublicKey.address) shouldBe Set(ord1.idStr)
   }
 
-  property("New buy VEE order added") {
+  property("New buy VSYS order added") {
     val pair = AssetPair(None, Some(ByteStr("BTC".getBytes)))
     val ord1 = buy(pair, 0.0008, 10000)
 
@@ -68,7 +68,7 @@ class OrderHistorySpecification extends PropSpec
     oh.ordersByPairAndAddress(pair, ord1.senderPublicKey.address) shouldBe Set(ord1.idStr)
   }
 
-  property("New sell VEE order added") {
+  property("New sell VSYS order added") {
     val pair = AssetPair(None, Some(ByteStr("BTC".getBytes)))
     val ord1 = sell(pair, 0.0008, 10000)
 
@@ -80,7 +80,7 @@ class OrderHistorySpecification extends PropSpec
     oh.ordersByPairAndAddress(pair, ord1.senderPublicKey.address) shouldBe Set(ord1.idStr)
   }
 
-  property("New buy and sell VEE order  added") {
+  property("New buy and sell VSYS order  added") {
     val pk = PrivateKeyAccount("private".getBytes("utf-8"))
     val pair = AssetPair(None, Some(ByteStr("BTC".getBytes)))
     val ord1 = buy(pair, 0.0008, 100000000, Some(pk))
@@ -100,7 +100,7 @@ class OrderHistorySpecification extends PropSpec
     oh.ordersByPairAndAddress(pair, ord1.senderPublicKey.address) shouldBe Set(ord1.idStr, ord2.idStr)
   }
 
-  property("Buy VEE order filled") {
+  property("Buy VSYS order filled") {
     val pair = AssetPair(None, Some(ByteStr("BTC".getBytes)))
     val ord1 = buy(pair, 0.0008, 10000)
     val ord2 = sell(pair, 0.0007, 10000)
@@ -121,7 +121,7 @@ class OrderHistorySpecification extends PropSpec
 
   }
 
-  property("Sell VEE order - filled, buy order - partial") {
+  property("Sell VSYS order - filled, buy order - partial") {
     val pair = AssetPair(None, Some(ByteStr("BTC".getBytes)))
     val ord1 = sell(pair, 0.0008, 100000000)
     val ord2 = buy(pair, 0.00085, 120000000)
@@ -145,7 +145,7 @@ class OrderHistorySpecification extends PropSpec
 
   }
 
-  property("Buy VEE order - filled with 2 steps, sell order - partial") {
+  property("Buy VSYS order - filled with 2 steps, sell order - partial") {
     val pair = AssetPair(None, Some(ByteStr("BTC".getBytes)))
     val ord1 = buy(pair, 0.0008, 100000000, matcherFee = Some(300001L))
     val ord2 = sell(pair, 0.00075, 50000000, matcherFee = Some(300001L))

@@ -12,7 +12,7 @@ import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
-import vee.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
 import scorex.transaction._
 import com.wavesplatform.state2.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
@@ -56,7 +56,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
   }
 
-  property("can lease/cancel lease preserving vee invariant") {
+  property("can lease/cancel lease preserving vsys invariant") {
 
     val sunnyDayLeaseLeaseCancel: Gen[(GenesisTransaction, LeaseTransaction, LeaseCancelTransaction, Long, Long)] = for {
       master <- accountGen

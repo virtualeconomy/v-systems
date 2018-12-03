@@ -3,9 +3,9 @@ package com.wavesplatform.state2
 import cats.Monoid
 import cats.implicits._
 import scorex.account.{Address, Alias}
-import vee.database.Entry
+import vsys.database.Entry
 import scorex.transaction.Transaction
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)
 

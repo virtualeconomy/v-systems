@@ -15,7 +15,7 @@ import io.netty.channel.group.ChannelGroup
 import scorex.api.http.CompositeHttpService
 import scorex.transaction.History
 import scorex.utils.ScorexLogging
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

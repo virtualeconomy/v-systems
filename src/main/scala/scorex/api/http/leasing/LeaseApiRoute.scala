@@ -14,7 +14,7 @@ import scorex.api.http.leasing.LeaseCancelRequest.leaseCancelRequestFormat
 import scorex.api.http.leasing.LeaseRequest.leaseCancelRequestFormat
 import scorex.transaction._
 import scorex.utils.Time
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 @Path("/leasing")
 @Api(value = "/leasing")

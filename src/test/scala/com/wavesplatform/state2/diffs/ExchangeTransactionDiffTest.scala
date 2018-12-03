@@ -25,7 +25,7 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  property("preserves vee invariant, stores match info, rewards matcher") {
+  property("preserves vsys invariant, stores match info, rewards matcher") {
 
     val preconditionsAndExchange: Gen[(GenesisTransaction, GenesisTransaction, IssueTransaction, IssueTransaction, ExchangeTransaction)] = for {
       buyer <- accountGen
@@ -52,12 +52,12 @@ class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with Gene
     }
   }
 
-  property("buy vee without enough money for fee") {
+  property("buy vsys without enough money for fee") {
     val preconditions: Gen[(GenesisTransaction, GenesisTransaction, IssueTransaction, ExchangeTransaction)] = for {
       buyer <- accountGen
       seller <- accountGen
       ts <- timestampGen
-      gen1: GenesisTransaction = GenesisTransaction.create(buyer, 1 * Constants.UnitsInVee, -1, ts).right.get
+      gen1: GenesisTransaction = GenesisTransaction.create(buyer, 1 * Constants.UnitsInVsys, -1, ts).right.get
       gen2: GenesisTransaction = GenesisTransaction.create(seller, ENOUGH_AMT, -1, ts).right.get
       issue1: IssueTransaction <- issueGen(buyer)
       exchange <- exchangeGeneratorP(buyer, seller, None, Some(issue1.id), fixedMatcherFee = Some(300000))

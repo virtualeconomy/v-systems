@@ -5,8 +5,8 @@ import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.ValidationError
-import vee.transaction.MintingTransaction
-import vee.spos.SPoSCalc._
+import vsys.transaction.MintingTransaction
+import vsys.spos.SPoSCalc._
 
 import scala.util.{Left, Right}
 

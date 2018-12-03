@@ -8,7 +8,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.{GenesisTransaction, PaymentTransaction}
-import vee.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

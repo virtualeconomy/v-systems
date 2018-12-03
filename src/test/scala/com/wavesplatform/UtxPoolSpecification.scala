@@ -14,10 +14,10 @@ import scorex.block.Block
 //import scorex.transaction.assets.TransferTransaction
 import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
 import scorex.utils.Time
-import vee.spos.SPoSCalc._
+import vsys.spos.SPoSCalc._
 
 import scala.concurrent.duration._
-import vee.transaction.MintingTransaction
+import vsys.transaction.MintingTransaction
 
 class UtxPoolSpecification extends FreeSpec
   with Matchers

@@ -12,18 +12,18 @@ class DebugPortfoliosSpecification(override val allNodes: Seq[Node], override va
 
   test("getting a balance considering pessimistic transactions from UTX pool - changed after UTX") {
     val f = for {
-      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
-      _ <- assertBalances(secondAddress, 100.vee, 100.vee)
+      _ <- assertBalances(firstAddress, 100.vsys, 100.vsys)
+      _ <- assertBalances(secondAddress, 100.vsys, 100.vsys)
 
       portfolioBefore <- sender.debugPortfoliosFor(firstAddress, considerUnspent = true)
       utxSizeBefore <- sender.utxSize
 
-      _ <- sender.payment(firstAddress, secondAddress, 5.vee, fee = 5.vee, feeScale = 100)
+      _ <- sender.payment(firstAddress, secondAddress, 5.vsys, fee = 5.vsys, feeScale = 100)
       _ <- sender.waitForUtxIncreased(utxSizeBefore)
 
       portfolioAfter <- sender.debugPortfoliosFor(firstAddress, considerUnspent = true)
     } yield {
-      val expectedBalance = portfolioBefore.balance - 10.vee // withdraw + fee
+      val expectedBalance = portfolioBefore.balance - 10.vsys // withdraw + fee
       assert(portfolioAfter.balance == expectedBalance)
     }
 
@@ -32,13 +32,13 @@ class DebugPortfoliosSpecification(override val allNodes: Seq[Node], override va
 
   test("getting a balance without pessimistic transactions from UTX pool - not changed after UTX") {
     val f = for {
-      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
-      _ <- assertBalances(secondAddress, 100.vee, 100.vee)
+      _ <- assertBalances(firstAddress, 100.vsys, 100.vsys)
+      _ <- assertBalances(secondAddress, 100.vsys, 100.vsys)
 
       portfolioBefore <- sender.debugPortfoliosFor(firstAddress, considerUnspent = false)
       utxSizeBefore <- sender.utxSize
 
-      _ <- sender.payment(firstAddress, secondAddress, 5.vee, fee = 5.vee, feeScale = 100)
+      _ <- sender.payment(firstAddress, secondAddress, 5.vsys, fee = 5.vsys, feeScale = 100)
       _ <- sender.waitForUtxIncreased(utxSizeBefore)
 
       portfolioAfter <- sender.debugPortfoliosFor(firstAddress, considerUnspent = false)

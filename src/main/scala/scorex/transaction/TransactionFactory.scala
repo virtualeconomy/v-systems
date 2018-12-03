@@ -5,19 +5,19 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
-import vee.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest, SignedChangeContractStatusRequest}
-import vee.api.http.database.DbPutRequest
+import vsys.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest, SignedChangeContractStatusRequest}
+import vsys.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
-import vee.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
-import vee.contract.Contract
+import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
+import vsys.contract.Contract
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
-import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vee.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
-import vee.transaction.database.DbPutTransaction
+import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 object TransactionFactory {
 

@@ -21,7 +21,7 @@ class GenesisTransactionDiffTest extends PropSpec with PropertyChecks with Gener
     }
   }
 
-  property("Diff establishes VEE invariant") {
+  property("Diff establishes VSYS invariant") {
     forAll(nelMax(genesisGen)) { gtxs =>
       assertDiffAndState(Seq.empty, TestBlock.create(gtxs)) { (blockDiff, state) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)

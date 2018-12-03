@@ -6,8 +6,8 @@ import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
 import scorex.transaction.TransactionParser._
 import scorex.transaction._
-import vee.transaction.ProvenTransaction
-import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.transaction.ProvenTransaction
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Failure, Success, Try}
 

@@ -4,8 +4,8 @@ import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vee.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
-import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Left, Right}
 

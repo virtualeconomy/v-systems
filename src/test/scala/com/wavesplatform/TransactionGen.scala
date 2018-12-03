@@ -7,18 +7,18 @@ import org.scalacheck.{Arbitrary, Gen}
 import scorex.account.PublicKeyAccount._
 import scorex.account._
 import scorex.transaction._
-import vee.transaction.MintingTransaction
-import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.transaction.MintingTransaction
+import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
-import vee.database.{Entry, DataType}
-import vee.transaction.database.DbPutTransaction
-import vee.contract.Contract
-import vee.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
-import vee.spos.SPoSCalc._
+import vsys.database.{Entry, DataType}
+import vsys.transaction.database.DbPutTransaction
+import vsys.contract.Contract
+import vsys.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
+import vsys.spos.SPoSCalc._
 
 trait TransactionGen {
 
@@ -113,8 +113,8 @@ trait TransactionGen {
 
   val mintingAmountGen: Gen[Long] = Gen.const(MintingReward)
 
-  val veeAssetGen: Gen[Option[ByteStr]] = Gen.const(None)
-  val assetIdGen: Gen[Option[ByteStr]] = Gen.frequency((1, veeAssetGen), (10, Gen.option(bytes32gen.map(ByteStr(_)))))
+  val vsysAssetGen: Gen[Option[ByteStr]] = Gen.const(None)
+  val assetIdGen: Gen[Option[ByteStr]] = Gen.frequency((1, vsysAssetGen), (10, Gen.option(bytes32gen.map(ByteStr(_)))))
 
   val assetPairGen = assetIdGen.flatMap {
     case None => bytes32gen.map(b => AssetPair(None, Some(ByteStr(b))))
@@ -208,11 +208,11 @@ trait TransactionGen {
   } yield TransferTransaction.create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, attachment).right.get)
     .label("transferTransaction")
 
-  val transferWithVeeFeeGen = for {
+  val transferWithVsysFeeGen = for {
     (assetId, sender, recipient, amount, timestamp, _, feeAmount, attachment) <- transferParamGen
   } yield TransferTransaction.create(assetId, sender, recipient, amount, timestamp, None, feeAmount, attachment).right.get
 
-  val selfTransferWithVeeFeeGen: Gen[TransferTransaction] = for {
+  val selfTransferWithVsysFeeGen: Gen[TransferTransaction] = for {
     (assetId, sender, _, amount, timestamp, _, feeAmount, attachment) <- transferParamGen
   } yield TransferTransaction.create(assetId, sender, sender, amount, timestamp, None, feeAmount, attachment).right.get
 
@@ -352,7 +352,7 @@ trait TransactionGen {
   def issueGen(sender: PrivateKeyAccount, fixedQuantity: Option[Long] = None): Gen[IssueTransaction] = for {
     (_, assetName, description, quantity, decimals, _, iFee, timestamp) <- issueParamGen
   } yield {
-    IssueTransaction.create(sender, assetName, description, fixedQuantity.getOrElse(quantity), decimals, reissuable = false, 1*Constants.UnitsInVee, timestamp).right.get
+    IssueTransaction.create(sender, assetName, description, fixedQuantity.getOrElse(quantity), decimals, reissuable = false, 1*Constants.UnitsInVsys, timestamp).right.get
   }
 
   val issueGen: Gen[IssueTransaction] = issueReissueBurnGen.map(_._1)

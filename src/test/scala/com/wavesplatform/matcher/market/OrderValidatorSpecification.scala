@@ -12,10 +12,10 @@ import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.transaction.ValidationError
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order}
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 class OrderValidatorSpecification extends WordSpec
   with PropertyChecks
@@ -59,18 +59,18 @@ class OrderValidatorSpecification extends WordSpec
   }
 
   val wbtc = ByteStr("WBTC".getBytes)
-  val pairVeeBtc = AssetPair(None, Some(wbtc))
+  val pairVsysBtc = AssetPair(None, Some(wbtc))
 
   "OrderValidator" should {
-    "allows buy VEE for BTC without balance for order fee" in {
+    "allows buy VSYS for BTC without balance for order fee" in {
       validateNewOrderTest(Portfolio(0, LeaseInfo.empty, Map(
-        wbtc -> 10 * Constants.UnitsInVee
+        wbtc -> 10 * Constants.UnitsInVsys
       ))) shouldBe an[Right[_, _]]
     }
 
-    "does not allow buy VEE for BTC when assets number is negative" in {
+    "does not allow buy Vsys for BTC when assets number is negative" in {
       validateNewOrderTest(Portfolio(0, LeaseInfo.empty, Map(
-        wbtc -> -10 * Constants.UnitsInVee
+        wbtc -> -10 * Constants.UnitsInVsys
       ))) shouldBe a[Left[_, _]]
     }
   }
@@ -78,10 +78,10 @@ class OrderValidatorSpecification extends WordSpec
   private def validateNewOrderTest(expectedPortfolio: Portfolio): Either[ValidationError.GenericError, Order] = {
     (ov.utxPool.portfolio _).when(*).returns(expectedPortfolio)
     val o = buy(
-      pair = pairVeeBtc,
+      pair = pairVsysBtc,
       price = 0.0022,
-      amount = 100 * Constants.UnitsInVee,
-      matcherFee = Some((0.003 * Constants.UnitsInVee).toLong)
+      amount = 100 * Constants.UnitsInVsys,
+      matcherFee = Some((0.003 * Constants.UnitsInVsys).toLong)
     )
     ov.validateNewOrder(o)
   }

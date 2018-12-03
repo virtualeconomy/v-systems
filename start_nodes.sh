@@ -38,7 +38,7 @@ ORIGIN_PEER="known-peers = \[\]"
 NEW_PEER="known-peers = [\"$IP_PORT\"]"
 sed -i "" "s|$ORIGIN_PEER|$NEW_PEER|" minter_target/docker/1/template.conf
 cp $1/wallet.dat minter_target/docker/1
-gsed -i "s|RUN|ADD 1/wallet.dat /tmp/vee/wallet/\n&|" minter_target/docker/Dockerfile
+gsed -i "s|RUN|ADD 1/wallet.dat /tmp/vsys/wallet/\n&|" minter_target/docker/Dockerfile
 docker rmi minter_node_img
 docker build -t minter_node_img minter_target/docker
 echo "[-----INFO-----] Image for minter node built!"

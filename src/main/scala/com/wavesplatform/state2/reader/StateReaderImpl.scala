@@ -6,7 +6,7 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
-import vee.transaction.{ProcessedTransaction, ProcessedTransactionParser}
+import vsys.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
 import scala.collection.JavaConverters._
 

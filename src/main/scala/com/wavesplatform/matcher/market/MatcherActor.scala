@@ -16,7 +16,7 @@ import scorex.transaction.assets.exchange.Validation.booleanOperators
 import scorex.transaction.assets.exchange.{AssetPair, Order, Validation}
 import scorex.transaction.{AssetId, History}
 import scorex.utils._
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 import scala.collection.{immutable, mutable}
 import scala.language.reflectiveCalls
@@ -30,10 +30,10 @@ class MatcherActor(orderHistory: ActorRef, storedState: StateReader, wallet: Wal
   val tradedPairs = mutable.Map.empty[AssetPair, MarketData]
 
   def getAssetName(asset: Option[AssetId]): String =
-    asset.map(storedState.getAssetName).getOrElse(AssetPair.VEEName)
+    asset.map(storedState.getAssetName).getOrElse(AssetPair.VSYSName)
 
   def createOrderBook(pair: AssetPair): ActorRef = {
-    def getAssetName(asset: Option[AssetId]): String = asset.map(storedState.getAssetName).getOrElse(AssetPair.VEEName)
+    def getAssetName(asset: Option[AssetId]): String = asset.map(storedState.getAssetName).getOrElse(AssetPair.VSYSName)
 
     val md = MarketData(pair, getAssetName(pair.amountAsset), getAssetName(pair.priceAsset), NTP.correctedTime(),
       pair.amountAsset.flatMap(storedState.getIssueTransaction).map(t => AssetInfo(t.decimals)),

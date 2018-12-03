@@ -4,7 +4,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import com.wavesplatform.mining.Miner
-import com.wavesplatform.settings.VeeSettings
+import com.wavesplatform.settings.VsysSettings
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.{Coordinator, UtxPool}
 import io.netty.channel.ChannelHandler.Sharable
@@ -29,7 +29,7 @@ class CoordinatorHandler(
     blockchainReadiness:
     AtomicBoolean,
     miner: Miner,
-    settings: VeeSettings,
+    settings: VsysSettings,
     peerDatabase: PeerDatabase,
     allChannels: ChannelGroup)
   extends ChannelInboundHandlerAdapter with ScorexLogging {

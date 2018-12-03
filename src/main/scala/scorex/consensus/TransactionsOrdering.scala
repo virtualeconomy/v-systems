@@ -3,7 +3,7 @@ package scorex.consensus
 import scorex.transaction.Transaction
 
 object TransactionsOrdering {
-  trait VEEOrdering extends Ordering[Transaction] {
+  trait VSYSOrdering extends Ordering[Transaction] {
     def txTimestampOrder(ts: Long): Long
     private def orderBy(t: Transaction): (Short, Long, Long, String) = {
       val byFeeScale: Short = (-t.assetFee._3).toShort
@@ -18,12 +18,12 @@ object TransactionsOrdering {
     }
   }
 
-  object InBlock extends VEEOrdering {
+  object InBlock extends VSYSOrdering {
     // sorting from network start
     override def txTimestampOrder(ts: Long): Long = -ts
   }
 
-  object InUTXPool extends VEEOrdering {
+  object InUTXPool extends VSYSOrdering {
     override def txTimestampOrder(ts: Long): Long = ts
   }
 }

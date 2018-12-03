@@ -5,9 +5,9 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSuite, Matchers}
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.transaction._
-import vee.transaction._
+import vsys.transaction._
 import scorex.transaction.assets.TransferTransaction
 
 import scala.util.Random

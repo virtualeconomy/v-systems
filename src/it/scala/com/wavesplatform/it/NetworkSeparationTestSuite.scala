@@ -57,7 +57,7 @@ object NetworkSeparationTestSuite {
 
   private val generatingNodeConfig = ConfigFactory.parseString(
     """
-      |vee.miner.offline = yes
+      |vsys.miner.offline = yes
     """.stripMargin)
 
   private val configs = Docker.NodeConfigs.getConfigList("nodes").asScala

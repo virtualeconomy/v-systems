@@ -9,7 +9,7 @@ import scorex.account.Address
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vee.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 import scala.util.{Left, Right}
 

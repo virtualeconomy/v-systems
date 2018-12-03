@@ -29,7 +29,7 @@ class TransferTransactionDiffTest extends PropSpec with PropertyChecks with Gene
     transfer <- transferGeneratorP(master, recepient, maybeAsset.map(_.id), maybeFeeAsset.map(_.id))
   } yield (genesis, issue1, issue2, transfer)
 
-  property("transfers assets to recipient preserving vee invariant") {
+  property("transfers assets to recipient preserving vsys invariant") {
     forAll(preconditionsAndTransfer) { case ((genesis, issue1, issue2, transfer)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis, issue1, issue2))), TestBlock.create(Seq(transfer))) { case (totalDiff, newState) =>
         val totalPortfolioDiff = Monoid.combineAll(totalDiff.txsDiff.portfolios.values)

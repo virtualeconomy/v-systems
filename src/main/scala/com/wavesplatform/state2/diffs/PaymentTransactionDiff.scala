@@ -6,7 +6,7 @@ import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.{PaymentTransaction, ValidationError}
 
-import vee.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 import scala.util.Right
 

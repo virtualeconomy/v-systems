@@ -9,7 +9,7 @@ import scorex.api.http.leasing.{SignedLeaseCancelRequest, SignedLeaseRequest}
 import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser
 import scorex.transaction.assets.{IssueTransaction, TransferTransaction}
-import vee.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 trait RequestGen extends TransactionGen {
   val nonPositiveLong: G[Long] = choose(Long.MinValue, 0).label("non-positive value")

@@ -26,7 +26,7 @@ class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
   } yield ((genesis, issue), (reissue, burn))
 
 
-  property("Issue+Reissue+Burn do not break vee invariant and updates state") {
+  property("Issue+Reissue+Burn do not break vsys invariant and updates state") {
     forAll(issueReissueBurnTxs(isReissuable = true)) { case (((gen, issue), (reissue, burn))) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(gen, issue))), TestBlock.create(Seq(reissue, burn))) { case (blockDiff, newState) =>
         val totalPortfolioDiff = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)

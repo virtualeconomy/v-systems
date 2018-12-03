@@ -4,8 +4,8 @@ import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vee.transaction.database.DbPutTransaction
-import vee.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.transaction.database.DbPutTransaction
+import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Left, Right}
 

@@ -3,11 +3,11 @@ package scorex.transaction
 import com.wavesplatform.utils.base58Length
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
-import vee.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
-import vee.transaction.database.DbPutTransaction
+import vsys.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vee.transaction.MintingTransaction
-import vee.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.transaction.MintingTransaction
+import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 
 import scala.util.{Failure, Try}
 

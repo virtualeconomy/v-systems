@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.wavesplatform.mining.Miner
 import com.wavesplatform.network.{BlockCheckpoint, Checkpoint}
-import com.wavesplatform.settings.{BlockchainSettings, VeeSettings}
+import com.wavesplatform.settings.{BlockchainSettings, VsysSettings}
 import com.wavesplatform.state2.ByteStr
 import com.wavesplatform.state2.reader.StateReader
 import scorex.account.PublicKeyAccount
@@ -16,11 +16,11 @@ import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time}
 import kamon.Kamon
 import kamon.metric.instrument
-import vee.spos.SPoSCalc._
+import vsys.spos.SPoSCalc._
 
 object Coordinator extends ScorexLogging {
   def processFork(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater, stateReader: StateReader,
-                  utxStorage: UtxPool, time: Time, settings: VeeSettings, miner: Miner, blockchainReadiness: AtomicBoolean)
+                  utxStorage: UtxPool, time: Time, settings: VsysSettings, miner: Miner, blockchainReadiness: AtomicBoolean)
                  (newBlocks: Seq[Block]): Either[ValidationError, BigInt] = {
     val extension = newBlocks.dropWhile(history.contains)
 
@@ -64,7 +64,7 @@ object Coordinator extends ScorexLogging {
 
   def processBlock(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater, time: Time,
                    stateReader: StateReader, utxStorage: UtxPool, blockchainReadiness: AtomicBoolean, miner: Miner,
-                   settings: VeeSettings)(newBlock: Block, local: Boolean): Either[ValidationError, BigInt] = {
+                   settings: VsysSettings)(newBlock: Block, local: Boolean): Either[ValidationError, BigInt] = {
     val newScore = for {
       _ <- appendBlock(checkpoint, history, blockchainUpdater, stateReader, utxStorage, time, settings.blockchainSettings)(newBlock)
     } yield history.score()

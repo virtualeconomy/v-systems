@@ -25,15 +25,15 @@ import io.netty.util.concurrent.GlobalEventExecutor
 import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
-import vee.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
-import vee.api.http.vee._
-import vee.api.http.database.DbApiRoute
+import vsys.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
+import vsys.api.http.vsys._
+import vsys.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
-import vee.consensus.spos.api.http.SposConsensusApiRoute
+import vsys.consensus.spos.api.http.SposConsensusApiRoute
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 import scorex.waves.http.DebugApiRoute
 
 import scala.concurrent.Await
@@ -41,7 +41,7 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.util.Try
 
-class Application(val actorSystem: ActorSystem, val settings: VeeSettings) extends ScorexLogging {
+class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
 
   private val checkpointService = new CheckpointServiceImpl(settings.blockchainSettings.checkpointFile, settings.checkpointsSettings)
   private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
@@ -197,7 +197,7 @@ class Application(val actorSystem: ActorSystem, val settings: VeeSettings) exten
 
 object Application extends ScorexLogging {
 
-  private def configureLogging(settings: VeeSettings) = {
+  private def configureLogging(settings: VsysSettings) = {
     import ch.qos.logback.classic.{Level, LoggerContext}
     import org.slf4j._
 
@@ -227,10 +227,10 @@ object Application extends ScorexLogging {
       // application config needs to be resolved wrt both system properties *and* user-supplied config.
       case Some(file) =>
         val cfg = ConfigFactory.parseFile(file)
-        if (!cfg.hasPath("vee")) {
+        if (!cfg.hasPath("vsys")) {
           log.error("Malformed configuration file was provided! Aborting!")
           log.error("Please, read following article about configuration file format:")
-          //log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file") // need to be replaced by vee wiki
+          //log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file") // need to be replaced by vsys wiki
           forceStopApplication()
         }
         loadConfig(cfg)
@@ -250,7 +250,7 @@ object Application extends ScorexLogging {
     log.info("Starting...")
 
     val config = readConfig(args.headOption)
-    val settings = VeeSettings.fromConfig(config)
+    val settings = VsysSettings.fromConfig(config)
     Kamon.start(config)
 
     RootActorSystem.start("wavesplatform", config) { actorSystem =>

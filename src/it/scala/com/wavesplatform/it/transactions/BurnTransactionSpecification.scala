@@ -12,26 +12,26 @@ class BurnTransactionSpecification(override val allNodes: Seq[Node], override va
   extends IntegrationSuiteWithThreeAddresses {
 
   private val defaultQuantity = 100000
-  test("burning assets changes issuer's asset balance; issuer's vee balance is decreased by fee") {
+  test("burning assets changes issuer's asset balance; issuer's vsys balance is decreased by fee") {
     val f = for {
-      _ <- assertBalances(firstAddress, 100.vee, 100.vee)
+      _ <- assertBalances(firstAddress, 100.vsys, 100.vsys)
 
-      issuedAssetId <- sender.issue(firstAddress, "name", "description", defaultQuantity, 2, reissuable = false, fee = 1.vee).map(_.id)
+      issuedAssetId <- sender.issue(firstAddress, "name", "description", defaultQuantity, 2, reissuable = false, fee = 1.vsys).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(issuedAssetId))
 
-      _ <- assertBalances(firstAddress, 99.vee, 99.vee)
+      _ <- assertBalances(firstAddress, 99.vsys, 99.vsys)
       _ <- assertAssetBalance(firstAddress, issuedAssetId, defaultQuantity)
 
-      burnId <- sender.burn(firstAddress, issuedAssetId, defaultQuantity / 2, fee = 1.vee).map(_.id)
+      burnId <- sender.burn(firstAddress, issuedAssetId, defaultQuantity / 2, fee = 1.vsys).map(_.id)
 
       height <- traverse(allNodes)(_.height).map(_.max)
       _ <- traverse(allNodes)(_.waitForHeight(height + 1))
       _ <- traverse(allNodes)(_.waitForTransaction(burnId))
 
-      _ <- assertBalances(firstAddress, 98.vee, 98.vee)
+      _ <- assertBalances(firstAddress, 98.vsys, 98.vsys)
 
       _ <- assertAssetBalance(firstAddress, issuedAssetId, defaultQuantity / 2)
     } yield succeed

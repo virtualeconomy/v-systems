@@ -1,7 +1,7 @@
 package com.wavesplatform
 
 import com.wavesplatform.settings.WalletSettings
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 trait TestWallet {
   protected val testWallet = {

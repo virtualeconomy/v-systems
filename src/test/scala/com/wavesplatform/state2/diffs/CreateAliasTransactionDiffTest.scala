@@ -10,7 +10,7 @@ import scorex.account.PrivateKeyAccount
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.{CreateAliasTransaction, GenesisTransaction}
-import vee.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 @Ignore
 class CreateAliasTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -31,7 +31,7 @@ class CreateAliasTransactionDiffTest extends PropSpec with PropertyChecks with G
     anotherAliasTx = CreateAliasTransaction.create(master, alias2, fee + 3, ts).right.get
   } yield (genesis, aliasTx, sameAliasTx, sameAliasOtherSenderTx, anotherAliasTx)
 
-  property("can create and resolve aliases preserving vee invariant") {
+  property("can create and resolve aliases preserving vsys invariant") {
     forAll(preconditionsAndAliasCreations) { case (gen, aliasTx, _, _, anotherAliasTx) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(gen, aliasTx))), TestBlock.create(Seq(anotherAliasTx))) { case (blockDiff, newState) =>
         val totalPortfolioDiff = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)

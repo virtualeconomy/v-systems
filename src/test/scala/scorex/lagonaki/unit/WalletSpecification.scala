@@ -2,7 +2,7 @@ package scorex.lagonaki.unit
 
 import com.wavesplatform.settings.WalletSettings
 import org.scalatest.{FunSuite, Matchers}
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 class WalletSpecification extends FunSuite with Matchers {
 

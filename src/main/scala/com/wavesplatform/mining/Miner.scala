@@ -4,7 +4,7 @@ import java.time.{Duration, Instant}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.wavesplatform.network._
-import com.wavesplatform.settings.VeeSettings
+import com.wavesplatform.settings.VsysSettings
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.{Coordinator, UtxPool}
 import io.netty.channel.group.ChannelGroup
@@ -15,13 +15,13 @@ import monix.execution._
 import monix.execution.cancelables.{CompositeCancelable, SerialCancelable}
 import scorex.account.{PrivateKeyAccount, Address}
 import scorex.block.Block
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.transaction.{BlockchainUpdater, CheckpointService, History}
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 import scorex.utils.{ScorexLogging, Time}
-import vee.transaction.MintingTransaction
-import vee.wallet.Wallet
-import vee.spos.SPoSCalc._
+import vsys.transaction.MintingTransaction
+import vsys.wallet.Wallet
+import vsys.spos.SPoSCalc._
 
 import scala.concurrent.duration._
 import scala.math.Ordering.Implicits._
@@ -33,7 +33,7 @@ class Miner(
                checkpoint: CheckpointService,
                history: History,
                stateReader: StateReader,
-               settings: VeeSettings,
+               settings: VsysSettings,
                timeService: Time,
                utx: UtxPool,
                wallet: Wallet) extends ScorexLogging {

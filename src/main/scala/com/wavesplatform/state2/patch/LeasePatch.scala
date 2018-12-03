@@ -2,7 +2,7 @@ package com.wavesplatform.state2.patch
 
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
-import vee.transaction.TransactionStatus
+import vsys.transaction.TransactionStatus
 
 object LeasePatch {
   def apply(s: StateReader): Diff = {

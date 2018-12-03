@@ -1,14 +1,14 @@
 package tools
 
-import vee.settings.{GenesisSettings, GenesisTransactionSettings}
+import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
 import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.transaction.{GenesisTransaction, Transaction}
-import vee.transaction.{TransactionStatus, ProcessedTransaction}
+import vsys.transaction.{TransactionStatus, ProcessedTransaction}
 import scorex.transaction.TransactionParser.SignatureLength
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 import scala.concurrent.duration._
 

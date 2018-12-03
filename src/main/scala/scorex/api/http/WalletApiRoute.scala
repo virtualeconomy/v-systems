@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Route
 import com.wavesplatform.settings.RestAPISettings
 import io.swagger.annotations._
 import play.api.libs.json.Json
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 @Path("/wallet")
 @Api(value = "/wallet")

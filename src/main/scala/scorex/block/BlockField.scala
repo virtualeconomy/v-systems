@@ -7,7 +7,7 @@ import scorex.account.PublicKeyAccount
 import scorex.crypto.encode.Base58
 import scorex.serialization.{BytesSerializable, JsonSerializable}
 import scorex.transaction.Transaction
-import vee.transaction.ProcessedTransaction
+import vsys.transaction.ProcessedTransaction
 import scorex.crypto.authds.merkle.MerkleTree
 
 

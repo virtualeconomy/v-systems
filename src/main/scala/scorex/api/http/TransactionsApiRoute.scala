@@ -13,7 +13,7 @@ import play.api.libs.json._
 import scorex.account.Address
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.{History, Transaction}
-import vee.transaction.ProcessedTransaction
+import vsys.transaction.ProcessedTransaction
 
 import scala.util.Success
 import scala.util.control.Exception

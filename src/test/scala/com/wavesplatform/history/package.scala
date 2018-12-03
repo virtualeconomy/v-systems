@@ -4,11 +4,11 @@ import com.wavesplatform.settings.BlockchainSettings
 import com.wavesplatform.state2._
 import scorex.account.PrivateKeyAccount
 import scorex.block.Block
-import vee.consensus.spos.SposConsensusBlockData
+import vsys.consensus.spos.SposConsensusBlockData
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.{Transaction, TransactionParser}
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 package object history {
   val MinInMemoryDiffSize = 5

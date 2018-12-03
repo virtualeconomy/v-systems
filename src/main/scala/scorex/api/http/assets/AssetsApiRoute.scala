@@ -18,7 +18,7 @@ import scorex.transaction.assets.exchange.Order
 import scorex.transaction.assets.exchange.OrderJson._
 import scorex.transaction.{AssetAcc, AssetIdStringLength, TransactionFactory}
 import scorex.utils.Time
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 import scala.util.{Failure, Success}
 

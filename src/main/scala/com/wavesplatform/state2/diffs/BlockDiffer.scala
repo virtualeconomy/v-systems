@@ -8,9 +8,9 @@ import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationErr
 import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
 import scorex.block.Block
 import scorex.transaction.{Signed, ValidationError}
-import vee.transaction.ProcessedTransaction
+import vsys.transaction.ProcessedTransaction
 import scorex.utils.ScorexLogging
-import vee.spos.SPoSCalc
+import vsys.spos.SPoSCalc
 
 import scala.collection.SortedMap
 

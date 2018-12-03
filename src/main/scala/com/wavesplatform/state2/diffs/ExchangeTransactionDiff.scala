@@ -23,12 +23,12 @@ object ExchangeTransactionDiff {
     val buyer = t.buyOrder.senderPublicKey.toAddress
     val seller = t.sellOrder.senderPublicKey.toAddress
 
-    def veePortfolio(amt: Long) = Portfolio(amt, LeaseInfo.empty, Map.empty)
+    def vsysPortfolio(amt: Long) = Portfolio(amt, LeaseInfo.empty, Map.empty)
 
     val feeDiff = Monoid.combineAll(Seq(
-      Map(matcher -> veePortfolio(t.buyMatcherFee + t.sellMatcherFee - t.fee)),
-      Map(buyer -> veePortfolio(-t.buyMatcherFee)),
-      Map(seller -> veePortfolio(-t.sellMatcherFee))))
+      Map(matcher -> vsysPortfolio(t.buyMatcherFee + t.sellMatcherFee - t.fee)),
+      Map(buyer -> vsysPortfolio(-t.buyMatcherFee)),
+      Map(seller -> vsysPortfolio(-t.sellMatcherFee))))
 
     val priceDiff = t.buyOrder.assetPair.priceAsset match {
       case Some(assetId) => Monoid.combine(

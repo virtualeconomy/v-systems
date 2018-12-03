@@ -21,7 +21,7 @@ import scorex.api.http._
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.FastCryptographicHash
 import scorex.transaction.{BlockchainUpdater, History}
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -43,7 +43,7 @@ case class DebugApiRoute(settings: RestAPISettings,
                          utxStorage: UtxPool) extends ApiRoute {
 
   override lazy val route = pathPrefix("debug") {
-    blocks ~ state ~ info ~ stateVee ~ rollback ~ rollbackTo ~ blacklist ~ portfolios
+    blocks ~ state ~ info ~ stateVsys ~ rollback ~ rollbackTo ~ blacklist ~ portfolios
   }
 
   @Path("/blocks/{howMany}")
@@ -111,12 +111,12 @@ case class DebugApiRoute(settings: RestAPISettings,
     }
   }
 
-  @Path("/stateVee/{height}")
+  @Path("/stateVsys/{height}")
   @ApiOperation(value = "State at block", notes = "Get state at specified height", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "height", value = "height", required = true, dataType = "integer", paramType = "path")
   ))
-  def stateVee: Route = (path("stateVee" / IntNumber) & get & withAuth) { height =>
+  def stateVsys: Route = (path("stateVsys" / IntNumber) & get & withAuth) { height =>
     val result = stateReader.accountPortfolios.keys
       .map(acc => acc.stringRepr -> stateReader.balanceAtHeight(acc, height))
       .filter(_._2 != 0)

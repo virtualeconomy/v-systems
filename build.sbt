@@ -5,8 +5,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, SystemdPlugin)
 
-name := "vee"
-organization := "vee.tech"
+name := "vsys"
+organization := "systems.v"
 version := "0.1.0"
 scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
@@ -21,7 +21,7 @@ scalacOptions ++= Seq(
 logBuffered := false
 
 //assembly settings
-assemblyJarName in assembly := s"vee-all-${version.value}.jar"
+assemblyJarName in assembly := s"vsys-all-${version.value}.jar"
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.concat
   case other => (assemblyMergeStrategy in assembly).value(other)
@@ -81,14 +81,14 @@ inConfig(IntegrationTest)(Seq(
 
 dockerfile in docker := {
   val configTemplate = (resourceDirectory in IntegrationTest).value / "template.conf"
-  val startVee = (sourceDirectory in IntegrationTest).value / "container" / "start-vee.sh"
+  val startVsys = (sourceDirectory in IntegrationTest).value / "container" / "start-vsys.sh"
 
   new Dockerfile {
     from("anapsix/alpine-java:8_server-jre")
-    add(assembly.value, "/opt/vee/vee.jar")
-    add(Seq(configTemplate, startVee), "/opt/vee/")
-    run("chmod", "+x", "/opt/vee/start-vee.sh")
-    entryPoint("/opt/vee/start-vee.sh")
+    add(assembly.value, "/opt/vsys/vsys.jar")
+    add(Seq(configTemplate, startVsys), "/opt/vsys/")
+    run("chmod", "+x", "/opt/vsys/start-vsys.sh")
+    entryPoint("/opt/vsys/start-vsys.sh")
   }
 }
 
@@ -105,13 +105,13 @@ commands += Command.command("packageAll") { state =>
 }
 
 inConfig(Linux)(Seq(
-  maintainer := "vee.tech",
-  packageSummary := "VEE full node",
-  packageDescription := "VEE full node"
+  maintainer := "v.systems",
+  packageSummary := "VSYS full node",
+  packageDescription := "VSYS full node"
 ))
 
 network := Network(sys.props.get("network"))
-normalizedName := "vee"
+normalizedName := "vsys"
 
 javaOptions in Universal ++= Seq(
   // -J prefix is required by the bash script
@@ -130,7 +130,7 @@ javaOptions in Universal ++= Seq(
   "-J-XX:+ParallelRefProcEnabled",
   "-J-XX:+UseStringDeduplication")
 
-mappings in Universal += (baseDirectory.value / s"vee-${network.value}.conf" -> "doc/vee.conf.sample")
+mappings in Universal += (baseDirectory.value / s"vsys-${network.value}.conf" -> "doc/vsys.conf.sample")
 packageSource := sourceDirectory.value / "package"
 upstartScript := {
   val src = packageSource.value / "upstart.conf"

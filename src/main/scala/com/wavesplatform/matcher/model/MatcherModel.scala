@@ -33,9 +33,9 @@ sealed trait  LimitOrder {
   def rcvAcc: AssetAcc = AssetAcc(order.senderPublicKey, order.getReceiveAssetId)
   def feeAcc: AssetAcc = AssetAcc(order.senderPublicKey, None)
 
-  def spentAsset: String = order.getSpendAssetId.map(_.base58).getOrElse(AssetPair.VEEName)
-  def rcvAsset: String = order.getReceiveAssetId.map(_.base58).getOrElse(AssetPair.VEEName)
-  def feeAsset: String = AssetPair.VEEName
+  def spentAsset: String = order.getSpendAssetId.map(_.base58).getOrElse(AssetPair.VSYSName)
+  def rcvAsset: String = order.getReceiveAssetId.map(_.base58).getOrElse(AssetPair.VSYSName)
+  def feeAsset: String = AssetPair.VSYSName
 }
 
 case class BuyLimitOrder(price: Price, amount: Long, order: Order) extends LimitOrder {

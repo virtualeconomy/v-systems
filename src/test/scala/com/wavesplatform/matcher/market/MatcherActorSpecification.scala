@@ -24,9 +24,9 @@ import scorex.account.PrivateKeyAccount
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
 import scorex.transaction.{AssetId, History}
-import vee.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 import scorex.utils.{NTP, ScorexLogging}
-import vee.wallet.Wallet
+import vsys.wallet.Wallet
 
 class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"))
   with WordSpecLike
@@ -179,7 +179,7 @@ class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"
 
   "GetMarketsResponse" should {
     "serialize to json" in {
-      val vee = "VEE"
+      val vsys = "VSYS"
       val a1Name = "BITCOIN"
       val a1 = strToSomeAssetId(a1Name)
 
@@ -190,11 +190,11 @@ class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"
       val pair2 = AssetPair(a1, a2)
 
       val now = NTP.correctedTime()
-      val json = GetMarketsResponse(Array(), Seq(MarketData(pair1, a1Name, vee, now, None, None),
+      val json = GetMarketsResponse(Array(), Seq(MarketData(pair1, a1Name, vsys, now, None, None),
         MarketData(pair2, a1Name, a2Name, now, None, None))).json
 
-      ((json \ "markets") (0) \ "priceAsset").as[String] shouldBe AssetPair.VEEName
-      ((json \ "markets") (0) \ "priceAssetName").as[String] shouldBe vee
+      ((json \ "markets") (0) \ "priceAsset").as[String] shouldBe AssetPair.VSYSName
+      ((json \ "markets") (0) \ "priceAssetName").as[String] shouldBe vsys
       ((json \ "markets") (0) \ "amountAsset").as[String] shouldBe a1.get.base58
       ((json \ "markets") (0) \ "amountAssetName").as[String] shouldBe a1Name
       ((json \ "markets") (0) \ "created").as[Long] shouldBe now

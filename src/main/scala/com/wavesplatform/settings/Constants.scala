@@ -8,9 +8,9 @@ import scorex.utils.ScorexLogging
   */
 
 object Constants extends ScorexLogging {
-  val ApplicationName = "vee"
-  val AgentName = s"VEE Core v${Version.VersionString}"
+  val ApplicationName = "V SYSTEMS"
+  val AgentName = s"VSYS Core v${Version.VersionString}"
 
-  val UnitsInVee = 100000000L
-  val TotalVee = 10000000000L // unuse in mainnet
+  val UnitsInVsys = 100000000L
+  val TotalVsys = 10000000000L // unuse in mainnet
 }
