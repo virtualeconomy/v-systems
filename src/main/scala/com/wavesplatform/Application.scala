@@ -35,6 +35,7 @@ import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
 import vsys.wallet.Wallet
 import scorex.waves.http.DebugApiRoute
+import vee.db.openDB
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -43,7 +44,9 @@ import scala.util.Try
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
 
-  private val checkpointService = new CheckpointServiceImpl(settings.blockchainSettings.checkpointFile, settings.checkpointsSettings)
+  private val db = openDB(settings.dataDirectory)
+
+  private val checkpointService = new CheckpointServiceImpl(db, settings.checkpointsSettings)
   private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
@@ -189,6 +192,8 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       log.debug("Closing storage")
       stateWriter.close()
       history.close()
+      log.info("Closing db")
+      db.close()
       log.info("Shutdown complete")
     }
   }
