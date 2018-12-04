@@ -40,7 +40,8 @@ object Dependencies {
   lazy val akka = Seq("actor", "slf4j").map(akkaModule)
 
   lazy val db = Seq(
-    "com.h2database" % "h2-mvstore" % "1.4.196"
+    "com.h2database" % "h2-mvstore" % "1.4.196",
+    ("org.iq80.leveldb" % "leveldb" % "0.9").exclude("com.google.guava", "guava"),
   )
 
   lazy val logging = Seq(
