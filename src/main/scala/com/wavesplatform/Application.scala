@@ -47,7 +47,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
   private val db = openDB(settings.dataDirectory)
 
   private val checkpointService = new CheckpointServiceImpl(db, settings.checkpointsSettings)
-  private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
+  private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings).get
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
   private val wallet: Wallet = try {
@@ -191,7 +191,6 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
         .failed.map(e => log.error("Failed to terminate actor system: " + e.getMessage))
       log.debug("Closing storage")
       stateWriter.close()
-      history.close()
       log.info("Closing db")
       db.close()
       log.info("Shutdown complete")
