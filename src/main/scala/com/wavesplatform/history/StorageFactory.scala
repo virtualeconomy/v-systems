@@ -9,6 +9,7 @@ import com.wavesplatform.state2.{BlockchainUpdaterImpl, StateStorage, StateWrite
 import scorex.transaction.{BlockchainUpdater, History}
 
 import scala.util.{Success, Try}
+import org.iq80.leveldb.DB
 
 object StorageFactory {
 
@@ -20,11 +21,10 @@ object StorageFactory {
       }
     }
 
-  def apply(settings: BlockchainSettings): Try[(History with AutoCloseable, AutoCloseable, StateReader, BlockchainUpdater)] = {
+  def apply(db: DB, settings: BlockchainSettings): Try[(History, AutoCloseable, StateReader, BlockchainUpdater)] = {
     val lock = new RWL(true)
-
+    val historyWriter = new HistoryWriterImpl(db, lock)
     for {
-      historyWriter <- HistoryWriterImpl(settings.blockchainFile, lock)
       ss <- createStateStorage(historyWriter, settings.stateFile)
       stateWriter = new StateWriterImpl(ss, lock)
     } yield {

@@ -1,37 +1,26 @@
 package com.wavesplatform.history
 
-import java.io.File
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.nio.charset.StandardCharsets
 
-import com.wavesplatform.state2.{BlockDiff, ByteStr, DataTypes}
-import com.wavesplatform.utils._
+import com.wavesplatform.state2.{BlockDiff, ByteStr}
 import kamon.Kamon
 import scorex.block.Block
 import scorex.transaction.History.BlockchainScore
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{HistoryWriter, Transaction, ValidationError}
-import scorex.utils.{LogMVMapBuilder, ScorexLogging}
 import vee.db.{ByteStrCodec, SubStorage}
 
-import scala.util.Try
 import org.iq80.leveldb.DB
 import com.google.common.primitives.Ints
 
-class HistoryWriterImpl private(db: DB, val synchronizationToken: ReentrantReadWriteLock) extends SubStorage(db, "history") with HistoryWriter {
-
-  import HistoryWriterImpl._
+class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock) extends SubStorage(db, "history") with HistoryWriter {
 
   private val HeightPrefix: Array[Byte] = "height".getBytes(StandardCharsets.UTF_8)
   private val BlockBodyByHeightPrefix: Array[Byte] = "blocks".getBytes(StandardCharsets.UTF_8)
   private val BlockIdByHeightPrefix: Array[Byte] = "signatures".getBytes(StandardCharsets.UTF_8)
   private val HeightByBlockIdPrefix: Array[Byte] = "signaturesReverse".getBytes(StandardCharsets.UTF_8)
   private val ScoreByHeightPrefix:  Array[Byte] = "score".getBytes(StandardCharsets.UTF_8)
-
-
-  private val blockBodyByHeight = Synchronized(db.openMap("blocks", new LogMVMapBuilder[Int, Array[Byte]]))
-  private val blockIdByHeight = Synchronized(db.openMap("signatures", new LogMVMapBuilder[Int, ByteStr].valueType(DataTypes.byteStr)))
-  private val heightByBlockId = Synchronized(db.openMap("signaturesReverse", new LogMVMapBuilder[ByteStr, Int].keyType(DataTypes.byteStr)))
-  private val scoreByHeight = Synchronized(db.openMap("score", new LogMVMapBuilder[Int, BigInt]))
 
   private val blockHeightStats = Kamon.metrics.histogram("block-height")
 
@@ -64,11 +53,11 @@ class HistoryWriterImpl private(db: DB, val synchronizationToken: ReentrantReadW
   override def discardBlock(): Seq[Transaction] = write { implicit lock =>
     val h = height()
     val transactions =
-      blockBytes(h).flatmap(b => Block.parseBytes(b).fold(_ => Seq.empty[Transaction], _.transactionData.map(_.transaction)))
+      Block.parseBytes(blockBytes(h).getOrElse(Array[Byte]())).fold(_ => Seq.empty[Transaction], _.transactionData.map(_.transaction))
 
     delete(blockBodyByHeightKey(h), None)
     delete(scoreByHeightKey(h), None)
-    get(blockBodyByHeightKey(h)).foreach(b => delete(heightByBlockIdKey(ByteStrCodec.decode(b))), None))
+    get(blockBodyByHeightKey(h)).foreach(b => ByteStrCodec.decode(b).toOption.foreach(r => delete(heightByBlockIdKey(r.value), None)))
     delete(blockIdByHeightKey(h), None)
     put(heightKey(), Ints.toByteArray(h - 1), None)
 
@@ -84,25 +73,19 @@ class HistoryWriterImpl private(db: DB, val synchronizationToken: ReentrantReadW
   }
 
   override def height(): Int = read { implicit lock => 
-    get(makeKey(HeightPrefix, HeightPrefix)).map(Ints.fromByteArray).getOrElse(0)
+    get(heightKey()).map(Ints.fromByteArray).getOrElse(0)
   }
 
   override def scoreOf(id: ByteStr): Option[BlockchainScore] = read { implicit lock =>
-    heightOf(id).flatMap(h => get(makeKey(ScoreByHeightPrefix, Ints.toByteArray(h))).flatMap(b => BigInt(b).toOption.map(r => r.value)))
+    heightOf(id).map(h => get(scoreByHeightKey(h)).map(b => BigInt(b)).getOrElse(BigInt(0)))
   }
 
   override def heightOf(blockSignature: ByteStr): Option[Int] = read { implicit lock =>
-    get(makeKey(HeightByBlockIdPrefix, ByteStrCodec.encode(blockSignature))).map(Ints.fromByteArray)
+    get(heightByBlockIdKey(blockSignature)).map(Ints.fromByteArray)
   }
 
   override def blockBytes(height: Int): Option[Array[Byte]] = read { implicit lock =>
-    get(makeKey(BlockBodyByHeightPrefix, Ints.toByteArray(height)))
+    get(blockBodyByHeightKey(height))
   }
 
-}
-
-object HistoryWriterImpl extends ScorexLogging {
-
-  def apply(db: DB, synchronizationToken: ReentrantReadWriteLock): Try[HistoryWriterImpl] =
-    new HistoryWriterImpl(db, synchronizationToken)
 }
