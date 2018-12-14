@@ -35,16 +35,22 @@ class HistoryWriterImpl private(db: DB, val synchronizationToken: ReentrantReadW
 
   private val blockHeightStats = Kamon.metrics.histogram("block-height")
 
+  private def blockBodyByHeightKey(height: Int): Array[Byte] = makeKey(BlockBodyByHeightPrefix, Ints.toByteArray(height))
+  private def blockIdByHeightKey(height: Int): Array[Byte] = makeKey(BlockIdByHeightPrefix, Ints.toByteArray(height))
+  private def heightByBlockIdKey(blockId: ByteStr): Array[Byte] = makeKey(HeightByBlockIdPrefix, ByteStrCodec.encode(blockId))
+  private def scoreByHeightKey(height: Int): Array[Byte] = makeKey(ScoreByHeightPrefix, Ints.toByteArray(height))
+  private def heightKey(): Array[Byte] = makeKey(HeightPrefix, HeightPrefix)
+
   override def appendBlock(block: Block)(consensusValidation: => Either[ValidationError, BlockDiff]): Either[ValidationError, BlockDiff] = write { implicit lock =>
     if ((height() == 0) || (this.lastBlock.get.uniqueId == block.reference)) consensusValidation.map { blockDiff =>
       val h = height() + 1
       val score = (if (height() == 0) BigInt(0) else this.score()) + block.blockScore
 
-      put(makeKey(BlockBodyByHeightPrefix, Ints.toByteArray(h)), block.bytes, None)
-      put(makeKey(ScoreByHeightPrefix, Ints.toByteArray(h)), score.toByteArray, None)
-      put(makeKey(BlockIdByHeightPrefix, Ints.toByteArray(h)), ByteStrCodec.encode(block.uniqueId), None)
-      put(makeKey(HeightByBlockIdPrefix, ByteStrCodec.encode(block.uniqueId)), Ints.toByteArray(h), None)
-      put(makeKey(HeightPrefix, HeightPrefix), Ints.toByteArray(h), None)
+      put(blockBodyByHeightKey(h), block.bytes, None)
+      put(scoreByHeightKey(h), score.toByteArray, None)
+      put(blockIdByHeightKey(h), ByteStrCodec.encode(block.uniqueId), None)
+      put(heightByBlockIdKey(block.uniqueId), Ints.toByteArray(h), None)
+      put(heightKey(), Ints.toByteArray(h), None)
 
       blockHeightStats.record(h)
 
@@ -60,11 +66,11 @@ class HistoryWriterImpl private(db: DB, val synchronizationToken: ReentrantReadW
     val transactions =
       blockBytes(h).flatmap(b => Block.parseBytes(b).fold(_ => Seq.empty[Transaction], _.transactionData.map(_.transaction)))
 
-    delete(makeKey(BlockBodyByHeightPrefix, Ints.toByteArray(h)), None)
-    delete(makeKey(ScoreByHeightPrefix, Ints.toByteArray(h)), None)
-    delete(makeKey(BlockIdByHeightPrefix, Ints.toByteArray(h)), None)
-    delete(makeKey(HeightByBlockIdPrefix, ByteStrCodec.encode(block.uniqueId)), None)
-    put(makeKey(HeightPrefix, HeightPrefix), Ints.toByteArray(h - 1), None)
+    delete(blockBodyByHeightKey(h), None)
+    delete(scoreByHeightKey(h), None)
+    get(blockBodyByHeightKey(h)).foreach(b => delete(heightByBlockIdKey(ByteStrCodec.decode(b))), None))
+    delete(blockIdByHeightKey(h), None)
+    put(heightKey(), Ints.toByteArray(h - 1), None)
 
     transactions
   }
@@ -72,7 +78,7 @@ class HistoryWriterImpl private(db: DB, val synchronizationToken: ReentrantReadW
 
   override def lastBlockIds(howMany: Int): Seq[ByteStr] = read { implicit lock =>
     (Math.max(1, height() - howMany + 1) to height()).flatMap(i => 
-      get(makeKey(BlockIdByHeightPrefix, Ints.toByteArray(height)))
+      get(blockBodyByHeightKey(i))
       .flatMap(b => ByteStrCodec.decode(b).toOption.map(r => r.value)))
       .reverse
   }
