@@ -33,7 +33,7 @@ Clone this repo and execute
 sbt packageAll
 ```
 
-.deb and .jar packages will be in /package folder. To build testnet packages use
+.deb and .jar packages will be in /package folder. To build testnet .deb packages use
 
 ```
 sbt -Dnetwork=testnet packageAll
