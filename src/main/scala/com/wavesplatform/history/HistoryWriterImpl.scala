@@ -67,7 +67,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
 
   override def lastBlockIds(howMany: Int): Seq[ByteStr] = read { implicit lock =>
     (Math.max(1, height() - howMany + 1) to height()).flatMap(i => 
-      get(blockBodyByHeightKey(i))
+      get(blockIdByHeightKey(i))
       .flatMap(b => ByteStrCodec.decode(b).toOption.map(r => r.value)))
       .reverse
   }
