@@ -85,8 +85,9 @@ object StateReader {
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 
-    def accountTransactions(account: Address, limit: Int): Seq[_ <: ProcessedTransaction] = s.read { _ =>
-      s.accountTransactionIds(account, limit).flatMap(s.transactionInfo).map(_._2)
+    def accountTransactions(account: Address, limit: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
+      s.accountTransactionIds(account, limit)
+        .flatMap(s.transactionInfo)
     }
 
     def balance(account: Address): Long = s.accountPortfolio(account).balance
