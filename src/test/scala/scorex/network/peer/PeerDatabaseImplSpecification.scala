@@ -1,6 +1,6 @@
 package scorex.network.peer
 
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.InetSocketAddress
 
 import com.typesafe.config.ConfigFactory
 import com.wavesplatform.network.PeerDatabaseImpl
@@ -72,12 +72,12 @@ class PeerDatabaseImplSpecification extends path.FreeSpecLike with Matchers {
       database.knownPeers.keys should contain(address1)
       database.knownPeers.keys should not contain address2
 
-      database.blacklist(InetAddress.getByName(host1))
+      database.blacklist(address1, "")
       database.knownPeers.keys should not contain address1
       database.knownPeers should be(empty)
 
       database.randomPeer(Set()) should contain(address2)
-      database.blacklist(InetAddress.getByName(host2))
+      database.blacklist(address2, "")
       database.randomPeer(Set()) should not contain address2
       database.randomPeer(Set()) should be(empty)
     }

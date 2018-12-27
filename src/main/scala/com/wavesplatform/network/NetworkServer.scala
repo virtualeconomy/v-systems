@@ -166,7 +166,7 @@ class NetworkServer(checkpointService: CheckpointService,
           if (connFuture.isDone) {
             if (connFuture.cause() != null) {
               log.debug(s"${id(connFuture.channel())} Connection failed, blacklisting $remoteAddress", connFuture.cause())
-              peerDatabase.blacklist(remoteAddress.getAddress)
+              peerDatabase.suspendAndClose(connFuture.channel())
             } else if (connFuture.isSuccess) {
               log.info(s"${id(connFuture.channel())} Connection established")
               peerDatabase.touch(remoteAddress)
@@ -176,7 +176,7 @@ class NetworkServer(checkpointService: CheckpointService,
                 log.info(s"${id(closeFuture.channel)} Connection closed, $remainingCount outgoing channel(s) remaining")
                 allChannels.remove(closeFuture.channel())
                 outgoingChannels.remove(remoteAddress, closeFuture.channel())
-                if (!shutdownInitiated) peerDatabase.blacklist(remoteAddress.getAddress)
+                if (!shutdownInitiated) peerDatabase.suspendAndClose(closeFuture.channel())
               }
               allChannels.add(connFuture.channel())
             }
