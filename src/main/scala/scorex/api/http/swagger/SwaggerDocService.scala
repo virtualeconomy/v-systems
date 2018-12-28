@@ -17,9 +17,9 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
   override val info: Info = Info("The Web Interface to the VSYS Full Node API",
     Version.VersionString,
     "VSYS Full Node",
-    "License: Apache License, Version 2.0",
+    "License: MIT License",
     None,
-    Some(License("Apache License, Version 2.0", "https://github.com/virtualeconomy/vsys/blob/master/LICENSE"))
+    Some(License("MIT License", "https://github.com/virtualeconomy/vsys/blob/master/LICENSE"))
   )
 
   //Let swagger-ui determine the host and port
