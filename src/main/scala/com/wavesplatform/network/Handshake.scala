@@ -28,7 +28,7 @@ case class Handshake(
       case None => out.writeInt(0)
       case Some(addr) =>
         val addressBytes = addr.getAddress.getAddress
-        out.writeInt(addressBytes.length + 4)
+        out.writeInt(addressBytes.length + Integer.BYTES)
         out.writeBytes(addressBytes)
         out.writeInt(addr.getPort)
     }
@@ -64,7 +64,7 @@ object Handshake {
     }
 
     val isa = if (declaredAddressLength == 0) None else {
-      val addressBytes = new Array[Byte](declaredAddressLength - 4)
+      val addressBytes = new Array[Byte](declaredAddressLength - Integer.BYTES)
       in.readBytes(addressBytes)
       val address = InetAddress.getByAddress(addressBytes)
       val port = in.readInt()
