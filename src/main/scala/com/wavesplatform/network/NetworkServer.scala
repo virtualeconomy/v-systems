@@ -1,6 +1,7 @@
 package com.wavesplatform.network
 
 import java.net.{InetSocketAddress, NetworkInterface}
+import java.nio.channels.ClosedChannelException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
@@ -158,6 +159,8 @@ class NetworkServer(checkpointService: CheckpointService,
     }
   }
 
+  def formatOutgoingChannelEvent(channel: Channel, event: String) = s"${id(channel)} $event, outgoing channel count: ${outgoingChannels.size()}"
+
   def connect(remoteAddress: InetSocketAddress): Unit =
     outgoingChannels.computeIfAbsent(remoteAddress, _ => {
       log.debug(s"Connecting to $remoteAddress")
@@ -165,8 +168,18 @@ class NetworkServer(checkpointService: CheckpointService,
         .addListener { (connFuture: ChannelFuture) =>
           if (connFuture.isDone) {
             if (connFuture.cause() != null) {
-              log.debug(s"${id(connFuture.channel())} Connection failed, blacklisting $remoteAddress", connFuture.cause())
               peerDatabase.suspendAndClose(connFuture.channel())
+              outgoingChannels.remove(remoteAddress, connFuture.channel())
+              connFuture.cause() match {
+                case e: ClosedChannelException =>
+                  // this can happen when the node is shut down before connection attempt succeeds
+                  log.trace(
+                    formatOutgoingChannelEvent(
+                      connFuture.channel(),
+                      s"Channel closed by connection issue: ${Option(e.getMessage).getOrElse("no message")}"
+                    ))
+                case other => log.debug(formatOutgoingChannelEvent(connFuture.channel(), other.getMessage))
+              }
             } else if (connFuture.isSuccess) {
               log.info(s"${id(connFuture.channel())} Connection established")
               peerDatabase.touch(remoteAddress)
