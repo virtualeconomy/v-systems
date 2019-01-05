@@ -11,7 +11,7 @@ class LegacyChannelInitializer(handshakeHandler: HandshakeHandler) extends Chann
   override def initChannel(ch: SocketChannel): Unit =
   ch.pipeline()
     .addLast(
-      new HandshakeDecoder,
+      new HandshakeDecoder(NopPeerDatabase),
       new HandshakeTimeoutHandler(30.seconds),
       handshakeHandler,
       new LengthFieldPrepender(4),

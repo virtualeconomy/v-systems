@@ -25,7 +25,7 @@ case class PeersApiRoute(
 
   override lazy val route =
     pathPrefix("peers") {
-      allPeers ~ connectedPeers ~ blacklistedPeers ~ connect
+      allPeers ~ connectedPeers ~ blacklistedPeers ~ connect ~ suspendedPeers ~ clearBlacklist
     }
 
   @Path("/all")
@@ -83,13 +83,43 @@ case class PeersApiRoute(
   }
 
   @Path("/blacklisted")
-  @ApiOperation(value = "Blacklisted peers list", notes = "Connected peers list", httpMethod = "GET")
-  @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with connected peers or error")
-  ))
+  @ApiOperation(value = "Blacklisted peers list", notes = "Blacklisted peers list", httpMethod = "GET")
+  @ApiResponses(
+    Array(
+      new ApiResponse(code = 200, message = "Json with blacklisted peers or error")
+    ))
   def blacklistedPeers: Route = (path("blacklisted") & get) {
-    complete(JsArray(peerDatabase.blacklistedHosts.take(MaxPeersInResponse).map(a => JsString(a.toString)).toSeq))
+    complete(
+      JsArray(
+        peerDatabase.detailedBlacklist
+          .take(MaxPeersInResponse)
+          .map { case (h, (t, r)) => Json.obj("hostname" -> h.toString, "timestamp" -> t, "reason" -> r) }
+          .toList))
   }
+
+  @Path("/suspended")
+  @ApiOperation(value = "Suspended peers list", notes = "Suspended peers list", httpMethod = "GET")
+  @ApiResponses(
+    Array(
+      new ApiResponse(code = 200, message = "JSON with suspended peers or error")
+    ))
+  def suspendedPeers: Route = (path("suspended") & get) {
+    complete(
+      JsArray(
+        peerDatabase.detailedSuspended.take(MaxPeersInResponse).map { case (h, t) => Json.obj("hostname" -> h.toString, "timestamp" -> t) }.toList))
+  }
+
+  @Path("/clearblacklist")
+  @ApiOperation(value = "Remove all blacklisted peers", notes = "Clear blacklist", httpMethod = "POST")
+  @ApiResponses(
+    Array(
+      new ApiResponse(code = 200, message = "200")
+    ))
+  def clearBlacklist: Route = (path("clearblacklist") & post & withAuth) {
+    peerDatabase.clearBlacklist()
+    complete(Json.obj("result" -> "blacklist cleared"))
+  }
+
 }
 
 object PeersApiRoute {
