@@ -1,4 +1,4 @@
-# VSYS
+# V Systems
 
 The code in master branch is under development. The latest release for each network can be found in the [Releases section](https://github.com/virtualeconomy/vsys/releases). You can switch to the corresponding tag and build the application.
 
