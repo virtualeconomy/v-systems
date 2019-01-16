@@ -4,9 +4,9 @@ The code in master branch is under development. The latest release for each netw
 
 # Installation
 
-[How to configure VSYS Testnet node](https://github.com/virtualeconomy/vsys/wiki/How-to-Install-VSYS-Testnet-Node)
+[How to configure V SYSTEMS Testnet node](https://github.com/virtualeconomy/v-systems/wiki/How-to-Install-V-Systems-Testnet-Node)
 
-[How to configure VSYS Mainnet node](https://github.com/virtualeconomy/vsys/wiki/How-to-Install-VSYS-Mainnet-Node)
+[How to configure V SYSTEMS Mainnet node](https://github.com/virtualeconomy/v-systems/wiki/How-to-install-V-Systems-mainnet-Node)
 
 ## Compiling Packages from source
 
