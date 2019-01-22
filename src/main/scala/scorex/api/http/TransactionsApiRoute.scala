@@ -30,7 +30,7 @@ case class TransactionsApiRoute(
 
   override lazy val route =
     pathPrefix("transactions") {
-      unconfirmed ~ addressLimit ~ info
+      unconfirmed ~ addressLimit ~ info ~ activeLeaseList
     }
 
   private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
@@ -65,6 +65,24 @@ case class TransactionsApiRoute(
                 }
               }
           } ~ complete(StatusCodes.NotFound)
+      }
+    }
+  }
+
+  @Path("/activeLeaseList/{address}")
+  @ApiOperation(value = "Address", notes = "Get list of active lease transactions", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
+  ))
+  def activeLeaseList: Route = (pathPrefix("activeLeaseList") & get) {
+    pathPrefix(Segment) { address =>
+      Address.fromString(address) match {
+        case Left(e) => complete(ApiError.fromValidationError(e))
+        case Right(a) =>
+          complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo).map{ case (h, tx) =>
+            processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+          }
+          )))
       }
     }
   }
