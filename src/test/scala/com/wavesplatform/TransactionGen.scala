@@ -14,10 +14,10 @@ import scorex.transaction.assets.exchange._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
-import vsys.database.{Entry, DataType}
+import vsys.database.{DataType, Entry}
 import vsys.transaction.database.DbPutTransaction
 import vsys.contract.Contract
-import vsys.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
+import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction, ExecuteContractTransaction}
 import vsys.spos.SPoSCalc._
 
 trait TransactionGen {
@@ -273,6 +273,19 @@ trait TransactionGen {
     timestamp: Long <- positiveLongGen
     feeScale: Short <- feeScaleGen
   } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp).right.get
+
+  val executeContractGen: Gen[ExecuteContractTransaction] = for {
+    sender: PrivateKeyAccount <- accountGen
+    contract: Contract <- contractGen
+    fee: Long <- smallFeeGen
+    timestamp: Long <- positiveLongGen
+    feeScale: Short <- feeScaleGen
+    contractTx = CreateContractTransaction.create(sender, contract, fee, feeScale, timestamp).right.get
+    otherSender: PrivateKeyAccount <- accountGen
+    fee2: Long <- smallFeeGen
+    feeScale2: Short <- feeScaleGen
+    timestamp2: Long <- positiveLongGen
+  } yield ExecuteContractTransaction.create(otherSender, contractTx.id, fee2, feeScale2, timestamp2).right.get
 
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
