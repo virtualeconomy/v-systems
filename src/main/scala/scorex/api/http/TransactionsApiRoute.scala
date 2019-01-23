@@ -15,6 +15,8 @@ import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.{History, Transaction}
 import vsys.transaction.ProcessedTransaction
 
+import vsys.transaction.proof.EllipticCurve25519Proof
+
 import scala.util.Success
 import scala.util.control.Exception
 
@@ -79,9 +81,14 @@ case class TransactionsApiRoute(
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
-          complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo).map{ case (h, tx) =>
-            processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
-          }
+          complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
+              .map(a => (a._1,a._2,a._2.transaction))
+              .collect{
+                case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
+                  if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address
+                  || state.resolveAliasEi(lt.recipient).toOption.get.address == address =>
+                  processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+              }
           )))
       }
     }
