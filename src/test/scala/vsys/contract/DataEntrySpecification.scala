@@ -45,14 +45,24 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
   property("report invalid data type") {
     val byteArray1 = Array[Byte](0, 118, 97, 108, 117, 101, 49)
     val byteArray2 = Array[Byte](4, 118, 97, 108, 117, 101, 49)
-    val byteArray3 = Array[Byte](1, 118, 97, 108, 117, 101, 49)
-    val byteArray4 = Array[Byte](2, 118, 97, 108, 117, 101, 49)
-    val byteArray5 = Array[Byte](3, 118, 97, 108, 117, 101, 49)
+    val byteArray3 = Array.fill[Byte](1 + 32)(1)
+    val byteArray4 = Array.fill[Byte](1 + 26)(2)
+    val byteArray5 = Array.fill[Byte](1 + 8)(3)
+    val byteArray6 = Array[Byte](1, 118, 97, 108, 117, 101, 49)
+    val byteArray7 = Array[Byte](2, 118, 97, 108, 117, 101, 49)
+    val byteArray8 = Array[Byte](3, 118, 97, 108, 117, 101, 49)
+    val byteArray9 = byteArray3 ++ byteArray4 ++ byteArray5
     DataEntry.fromBytes(byteArray1) should be (Left(ValidationError.InvalidDataType))
     DataEntry.fromBytes(byteArray2) should be (Left(ValidationError.InvalidDataType))
     DataEntry.fromBytes(byteArray3).map(_.dataType) should be (Right(DataType.PublicKeyAccount))
     DataEntry.fromBytes(byteArray4).map(_.dataType) should be (Right(DataType.Address))
     DataEntry.fromBytes(byteArray5).map(_.dataType) should be (Right(DataType.Amount))
+    DataEntry.fromArrayBytes(byteArray6) should be (Left(ValidationError.InvalidDataLength))
+    DataEntry.fromArrayBytes(byteArray7) should be (Left(ValidationError.InvalidDataLength))
+    DataEntry.fromArrayBytes(byteArray8) should be (Left(ValidationError.InvalidDataLength))
+    DataEntry.fromArrayBytes(byteArray9).map(_.head.dataType) should be (Right(DataType.PublicKeyAccount))
+    DataEntry.fromArrayBytes(byteArray9).map(_.last.dataType) should be (Right(DataType.Amount))
+    DataEntry.fromArrayBytes(byteArray9).map(_(1).dataType) should be (Right(DataType.Address))
   }
 
   private def assertEys(first: DataEntry, second: DataEntry): Unit = {

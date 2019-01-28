@@ -16,7 +16,7 @@ import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
 import vsys.database.{DataType, Entry}
 import vsys.transaction.database.DbPutTransaction
-import vsys.contract.Contract
+import vsys.contract.{Contract, DataEntry, DataType => ContractDataType}
 import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction, ExecuteContractTransaction}
 import vsys.spos.SPoSCalc._
 
@@ -92,6 +92,9 @@ trait TransactionGen {
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
+  val dataEntryGen: Gen[Seq[DataEntry]] = for {
+    data: Array[Byte] <- byteArrayGen(1 + 7)
+  } yield Seq(DataEntry(data, ContractDataType.Amount))
 
   val invalidUtf8StringGen: Gen[String] = for {
     data <- Gen.listOfN(2, invalidUtf8Char)
@@ -285,7 +288,8 @@ trait TransactionGen {
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     timestamp2: Long <- positiveLongGen
-  } yield ExecuteContractTransaction.create(otherSender, contractTx.id, fee2, feeScale2, timestamp2).right.get
+    dataStack: Seq[DataEntry] <- dataEntryGen
+  } yield ExecuteContractTransaction.create(otherSender, contractTx.id, dataStack, fee2, feeScale2, timestamp2).right.get
 
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
