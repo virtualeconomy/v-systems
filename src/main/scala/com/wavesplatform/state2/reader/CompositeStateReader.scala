@@ -84,11 +84,7 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   override def activeLeases(): Seq[ByteStr] = {
     blockDiff.txsDiff.leaseState.collect { case (id, isActive) if isActive => id }
       .toSeq ++ inner.activeLeases()
-      .collect { case id
-        if inner.transactionInfo(id).map(a => (a._1,a._2,a._2.transaction)).collect {
-          case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
-            if blockDiff.txsDiff.leaseState.getOrElse(lt.id, inner.isLeaseActive(lt)) => true
-        }.toSeq.nonEmpty => id
+      .collect { case id if blockDiff.txsDiff.leaseState.getOrElse(id, true) => id
       }
   }
 
