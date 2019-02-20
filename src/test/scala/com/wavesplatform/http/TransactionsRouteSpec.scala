@@ -148,4 +148,14 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
       }
     }
   }
+
+  routePath("/activeLeaseList/{address}") - {
+    "handles invalid address in active lease check" in {
+      forAll(bytes32gen) { case (bytes) =>
+        Get(routePath(s"/activeLeaseList/${Base58.encode(bytes)}")) ~> route should produce(InvalidAddress)
+      }
+    }
+
+  }
+
 }
