@@ -10,12 +10,13 @@ import scorex.serialization.Deser
 import scorex.transaction.TransactionParser._
 import scorex.transaction.{AssetId, ValidationError}
 import scorex.crypto.encode.Base58
+import vsys.account.ContractAccount
 import vsys.transaction.proof._
 import vsys.transaction.ProvenTransaction
 
 import scala.util.{Failure, Success, Try}
 
-case class ExecuteContractTransaction (contractId: ByteStr,
+case class ExecuteContractTransaction (contractId: ContractAccount,
                                        //contractEntryPoint: Array[Short],
                                        dataStack: Seq[DataEntry],
                                        fee: Long,
@@ -31,17 +32,17 @@ case class ExecuteContractTransaction (contractId: ByteStr,
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp),
-    contractId.arr,
+    contractId.bytes.arr,
     Deser.serializeArray(dataStack.flatMap(_.bytes).toArray)
     //BytesSerializable.arrayWithSize(contractEntryPoint.map(_.toByte)),
   )
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
+    "contractId" -> contractId.address,
+    "dataStack" -> Base58.encode(dataStack.flatMap(_.bytes).toArray),
     "fee" -> fee,
     "feeScale" -> feeScale,
-    "timestamp" -> timestamp,
-    "contractId" -> contractId,
-    "dataStack" -> Base58.encode(dataStack.flatMap(_.bytes).toArray)
+    "timestamp" -> timestamp
   )
 
   override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
@@ -52,21 +53,21 @@ case class ExecuteContractTransaction (contractId: ByteStr,
 object ExecuteContractTransaction {
 
   def parseTail(bytes: Array[Byte]): Try[ExecuteContractTransaction] = Try {
-    val fee = Longs.fromByteArray(bytes.slice(0, 8))
-    val feeScale = Shorts.fromByteArray(bytes.slice(8, 10))
-    val timestamp = Longs.fromByteArray(bytes.slice(10, 18))
-    val contractId = ByteStr(bytes.slice(18, 18 + DigestSize))
-    val (dataStackBytes, ps) = Deser.parseArraySize(bytes, 18 + DigestSize)
+    val fee = Longs.fromByteArray(bytes.slice(0, 0 + 8))
+    val feeScale = Shorts.fromByteArray(bytes.slice(8 + 0, 8 + 2))
+    val timestamp = Longs.fromByteArray(bytes.slice(10 + 0, 10 + 8))
+    val contractId = ContractAccount.fromBytes(bytes.slice(18 + 0, 18 + DigestSize)).right.get
+    val (dataStackBytes, dataStackEnd) = Deser.parseArraySize(bytes, 18 + DigestSize)
     val dataStack = DataEntry.fromArrayBytes(dataStackBytes).right.get
     //val (contractEntryPointBytes, ss) = Deser.parseArraySize(bytes, 18 + DigestSize)
     //val contractEntryPoint = contractEntryPointBytes.map(_.toShort)
     (for {
-      proofs <- Proofs.fromBytes(bytes.slice(ps, bytes.length))
+      proofs <- Proofs.fromBytes(bytes.slice(dataStackEnd, bytes.length))
       tx <- ExecuteContractTransaction.createWithProof(contractId, dataStack, fee, feeScale, timestamp, proofs)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
-  def createWithProof(contractId: ByteStr,
+  def createWithProof(contractId: ContractAccount,
                       //contractEntryPoint: Array[Short],
                       dataStack: Seq[DataEntry],
                       fee: Long,
@@ -82,7 +83,7 @@ object ExecuteContractTransaction {
     }
 
   def create(sender: PrivateKeyAccount,
-             contractId: ByteStr,
+             contractId: ContractAccount,
              //contractEntryPoint: Array[Short],
              dataStack: Seq[DataEntry],
              fee: Long,
@@ -94,7 +95,7 @@ object ExecuteContractTransaction {
   } yield tx
 
   def create(sender: PublicKeyAccount,
-             contractId: ByteStr,
+             contractId: ContractAccount,
              //contractEntryPoint: Array[Short],
              dataStack: Seq[DataEntry],
              fee: Long,

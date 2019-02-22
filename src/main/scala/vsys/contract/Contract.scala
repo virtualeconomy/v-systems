@@ -1,34 +1,36 @@
 package vsys.contract
 
 import com.wavesplatform.state2.ByteStr
+import scorex.crypto.encode.Base58
 import scorex.serialization.{BytesSerializable, Deser}
 import scorex.transaction.ValidationError
 
 sealed trait Contract {
 
-  lazy val stringRepr: String = Contract.Prefix + ":" + name
-  lazy val bytes: ByteStr = ByteStr(BytesSerializable.arrayWithSize(name.getBytes("UTF-8")) ++
-    (if (enabled) Array(1: Byte) else Array(0: Byte)) ++
-    content.getBytes("UTF-8"))
+  lazy val stringRepr: String = Contract.Prefix + Base58.encode(languageCode) + ":" + Base58.encode(languageVersion)
+  lazy val bytes: ByteStr = ByteStr(languageCode ++ languageVersion ++ Deser.serializeArrays(descriptor))
 
-  val name: String
-  val content: String
-  val enabled: Boolean
+  val descriptor: Seq[Array[Byte]]
+  val languageCode: Array[Byte]
+  val languageVersion: Array[Byte]
+
 }
 
 object Contract {
 
   val Prefix: String = "contract:"
 
-  def buildContract(content: String, name: String, enabled: Boolean): Either[ValidationError, Contract] = {
-    case class ContractImpl(content: String, name: String, enabled: Boolean) extends Contract
-    Right(ContractImpl(content, name, enabled))
+  def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte], descriptor: Seq[Array[Byte]]):
+  Either[ValidationError, Contract] = {
+    case class ContractImpl(languageCode: Array[Byte], languageVersion: Array[Byte], descriptor: Seq[Array[Byte]])
+      extends Contract
+    Right(ContractImpl(languageCode, languageVersion, descriptor))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Contract] = {
-    val (nameBytes, nameEnd) = Deser.parseArraySize(bytes, 0)
-
-    val enabled= bytes.slice(nameEnd, nameEnd + 1).head == (1: Byte)
-    buildContract(new String(bytes.slice(nameEnd+1, bytes.length), "UTF-8"), new String(nameBytes, "UTF-8"), enabled)
+    val languageCode = bytes.slice(0, 0 + 4)
+    val languageVersion = bytes.slice(4 + 0, 4 + 4)
+    val descriptor = Deser.parseArrays(bytes.slice(8 + 0, bytes.length))
+    buildContract(languageCode, languageVersion, descriptor)
   }
 }

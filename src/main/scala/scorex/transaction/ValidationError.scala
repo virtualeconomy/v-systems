@@ -8,6 +8,7 @@ trait ValidationError
 object ValidationError {
 
   case object InvalidAddress extends ValidationError
+  case object InvalidContractAddress extends ValidationError
   case object InvalidDataType extends ValidationError
   case object InvalidDataLength extends ValidationError
   case class TooLongDbEntry(actualLength: Int, maxLength: Int) extends ValidationError
