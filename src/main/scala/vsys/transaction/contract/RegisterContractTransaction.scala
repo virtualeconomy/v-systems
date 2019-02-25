@@ -16,16 +16,16 @@ import vsys.transaction.ProvenTransaction
 
 import scala.util.{Failure, Success, Try}
 
-case class CreateContractTransaction private(contract: Contract,
-                                             dataStack: Seq[DataEntry],
-                                             description: Array[Byte],
-                                             fee: Long,
-                                             feeScale: Short,
-                                             timestamp: Long,
-                                             proofs: Proofs)
+case class RegisterContractTransaction private(contract: Contract,
+                                               dataStack: Seq[DataEntry],
+                                               description: Array[Byte],
+                                               fee: Long,
+                                               feeScale: Short,
+                                               timestamp: Long,
+                                               proofs: Proofs)
   extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.CreateContractTransaction
+  override val transactionType: TransactionType.Value = TransactionType.RegisterContractTransaction
 
   lazy val contractId: ContractAccount = ContractAccount.fromId(id)
 
@@ -57,23 +57,23 @@ case class CreateContractTransaction private(contract: Contract,
 
 }
 
-object CreateContractTransaction {
+object RegisterContractTransaction {
 
   val MaxDescriptionSize = 140
   val maxDescriptionStringSize: Int = base58Length(MaxDescriptionSize)
 
-  def parseTail(bytes: Array[Byte]): Try[CreateContractTransaction] = Try {
+  def parseTail(bytes: Array[Byte]): Try[RegisterContractTransaction] = Try {
     val (contractBytes, contractEnd) = Deser.parseArraySize(bytes, 0)
     (for {
       contract <- Contract.fromBytes(contractBytes)
-      (dataStackBytes, dataStackEnd) <- Deser.parseArraySize(bytes, contractEnd)
+      (dataStackBytes, dataStackEnd) = Deser.parseArraySize(bytes, contractEnd)
       dataStack = DataEntry.fromArrayBytes(dataStackBytes).right.get
       (description, descriptionEnd) = Deser.parseArraySize(bytes, dataStackEnd)
       fee = Longs.fromByteArray(bytes.slice(descriptionEnd, descriptionEnd + 8))
       feeScale = Shorts.fromByteArray(bytes.slice(descriptionEnd + 8, descriptionEnd + 10))
       timestamp = Longs.fromByteArray(bytes.slice(descriptionEnd + 10, descriptionEnd + 18))
       proofs <- Proofs.fromBytes(bytes.slice(descriptionEnd + 18, bytes.length))
-      tx <- CreateContractTransaction.createWithProof(contract, dataStack, description, fee, feeScale, timestamp, proofs)
+      tx <- RegisterContractTransaction.createWithProof(contract, dataStack, description, fee, feeScale, timestamp, proofs)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
@@ -83,7 +83,7 @@ object CreateContractTransaction {
                       fee: Long,
                       feeScale: Short,
                       timestamp: Long,
-                      proofs: Proofs): Either[ValidationError, CreateContractTransaction] =
+                      proofs: Proofs): Either[ValidationError, RegisterContractTransaction] =
     if (description.length > MaxDescriptionSize) {
       Left(ValidationError.TooBigArray)
     } else if(fee <= 0) {
@@ -91,7 +91,7 @@ object CreateContractTransaction {
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
     }  else {
-      Right(CreateContractTransaction(contract, dataStack, description, fee, feeScale, timestamp, proofs))
+      Right(RegisterContractTransaction(contract, dataStack, description, fee, feeScale, timestamp, proofs))
     }
 
   def create(sender: PrivateKeyAccount,
@@ -100,7 +100,7 @@ object CreateContractTransaction {
              description: Array[Byte],
              fee: Long,
              feeScale: Short,
-             timestamp: Long): Either[ValidationError, CreateContractTransaction] = for {
+             timestamp: Long): Either[ValidationError, RegisterContractTransaction] = for {
     unsigned <- createWithProof(contract, dataStack, description, fee, feeScale, timestamp, Proofs.empty)
     proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
     tx <- createWithProof(contract, dataStack, description, fee, feeScale, timestamp, proofs)
@@ -114,7 +114,7 @@ object CreateContractTransaction {
              fee: Long,
              feeScale: Short,
              timestamp: Long,
-             signature: ByteStr): Either[ValidationError, CreateContractTransaction] = for {
+             signature: ByteStr): Either[ValidationError, RegisterContractTransaction] = for {
     proofs <- Proofs.create(List(EllipticCurve25519Proof.buildProof(sender, signature).bytes))
     tx <- createWithProof(contract, dataStack, description, fee, feeScale, timestamp, proofs)
   } yield tx

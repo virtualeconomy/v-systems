@@ -40,7 +40,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
-  def create: Route = processRequest("create", (t: CreateContractRequest) => doBroadcast(TransactionFactory.createContract(t, wallet, time)))
+  def create: Route = processRequest("create", (t: RegisterContractRequest) => doBroadcast(TransactionFactory.registerContract(t, wallet, time)))
 
 
   @Path("/by-name/{name}")

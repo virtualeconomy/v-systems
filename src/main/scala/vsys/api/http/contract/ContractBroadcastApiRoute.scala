@@ -39,7 +39,7 @@ case class ContractBroadcastApiRoute(
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def signedCreate: Route = (path("create") & post) {
-    json[SignedCreateContractRequest] { contractReq =>
+    json[SignedRegisterContractRequest] { contractReq =>
       doBroadcast(contractReq.toTx)
     }
   }

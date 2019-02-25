@@ -2,8 +2,12 @@ package vsys.contract
 
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.Address
+import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser.KeyLength
 import scorex.transaction.ValidationError
+import scorex.transaction.ValidationError.InvalidDataEntry
+
+import scala.util.Success
 
 case class DataEntry(data: Array[Byte],
                      dataType: DataType.Value) {
@@ -83,6 +87,13 @@ object DataEntry {
       }
     } else {
       Right(Seq[DataEntry]())
+    }
+  }
+
+  def fromBase58String(base58String: String): Either[ValidationError, Seq[DataEntry]] = {
+    Base58.decode(base58String) match {
+      case Success(byteArray) => Right(fromArrayBytes(byteArray).right.get)
+      case _ => Left(InvalidDataEntry)
     }
   }
 }

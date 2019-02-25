@@ -5,15 +5,15 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
-import vsys.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest, SignedChangeContractStatusRequest}
+import vsys.api.http.contract.{ChangeContractStatusRequest, RegisterContractRequest, SignedChangeContractStatusRequest}
 import vsys.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
-import vsys.contract.Contract
+import vsys.contract.{Contract, DataEntry}
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, RegisterContractTransaction}
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
@@ -88,10 +88,18 @@ object TransactionFactory {
     tx <- ReleaseSlotsTransaction.create(senderPrivateKey, request.slotId, request.fee, request.feeScale, time.getTimestamp())
   } yield tx
     
-  def createContract(request: CreateContractRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateContractTransaction] = for {
+  def registerContract(request: RegisterContractRequest, wallet: Wallet, time: Time): Either[ValidationError, RegisterContractTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    contract <- Contract.buildContract(request.content, request.name, true)
-    tx <- CreateContractTransaction.create(senderPrivateKey, contract, request.fee, request.feeScale, time.getTimestamp())
+    contract <- Contract.fromBase58String(request.contract)
+    dataStack <- DataEntry.fromBase58String(request.dataStack)
+    tx <- RegisterContractTransaction
+      .create(senderPrivateKey,
+        contract,
+        dataStack,
+        request.description.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray),
+        request.fee,
+        request.feeScale,
+        time.getTimestamp())
   } yield tx
 
   def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {

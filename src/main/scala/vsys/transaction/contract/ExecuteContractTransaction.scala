@@ -4,7 +4,6 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.crypto.hash.FastCryptographicHash.DigestSize
 import vsys.contract.DataEntry
 import scorex.serialization.Deser
 import scorex.transaction.TransactionParser._
@@ -56,8 +55,8 @@ object ExecuteContractTransaction {
     val fee = Longs.fromByteArray(bytes.slice(0, 0 + 8))
     val feeScale = Shorts.fromByteArray(bytes.slice(8 + 0, 8 + 2))
     val timestamp = Longs.fromByteArray(bytes.slice(10 + 0, 10 + 8))
-    val contractId = ContractAccount.fromBytes(bytes.slice(18 + 0, 18 + DigestSize)).right.get
-    val (dataStackBytes, dataStackEnd) = Deser.parseArraySize(bytes, 18 + DigestSize)
+    val contractId = ContractAccount.fromBytes(bytes.slice(18 + 0, 18 + ContractAccount.AddressLength)).right.get
+    val (dataStackBytes, dataStackEnd) = Deser.parseArraySize(bytes, 18 + ContractAccount.AddressLength)
     val dataStack = DataEntry.fromArrayBytes(dataStackBytes).right.get
     //val (contractEntryPointBytes, ss) = Deser.parseArraySize(bytes, 18 + DigestSize)
     //val contractEntryPoint = contractEntryPointBytes.map(_.toShort)

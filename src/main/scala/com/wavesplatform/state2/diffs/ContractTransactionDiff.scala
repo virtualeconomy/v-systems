@@ -4,13 +4,13 @@ import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, RegisterContractTransaction}
 import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Left, Right}
 
 object ContractTransactionDiff {
-  def create(s: StateReader, height: Int)(tx: CreateContractTransaction): Either[ValidationError, Diff] = {
+  def create(s: StateReader, height: Int)(tx: RegisterContractTransaction): Either[ValidationError, Diff] = {
     //no need to validate the name duplication coz that will create a duplicate transacion and
     // will fail with duplicated transaction id
     if (tx.proofs.proofs.length > Proofs.MaxProofs){
@@ -18,10 +18,10 @@ object ContractTransactionDiff {
     }
     else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-      val contractInfo = (tx.contract.enabled, sender.toAddress, tx.contract.content)
+      val contractInfo = (true, sender.toAddress, tx.contract.stringRepr)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        contracts = Map(tx.contract.name -> contractInfo),
+        contracts = Map(tx.contractId.address -> contractInfo),
         chargedFee = tx.fee
       ))
     }
