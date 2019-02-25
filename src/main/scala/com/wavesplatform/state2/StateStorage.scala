@@ -31,6 +31,10 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
   val addressToID: MVMap[String, Int] = db.openMap("addressToID")
 
   def setSlotAddress(i: Int, add: String):Unit = {
+    if (getSlotAddress(i).isDefined) {
+      addressToID.remove(addressList.get(i))
+      addressList.remove(i)
+    }
     addressList.put(i,add)
     addressToID.put(add,i)
   }

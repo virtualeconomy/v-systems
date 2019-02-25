@@ -1,18 +1,20 @@
 package vsys.state.diffs
 
 import cats.Monoid
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.TransactionGen
 import com.wavesplatform.state2._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.GenesisTransaction
+import scorex.transaction.{GenesisTransaction, PaymentTransaction, ValidationError}
 import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import com.wavesplatform.state2.diffs._
 import com.wavesplatform.state2.diffs.TransactionDiffer._
-import scorex.transaction.ValidationError
+import scorex.serialization.BytesSerializable
 import scorex.settings.TestFunctionalitySettings
+import scorex.transaction.TransactionParser.TransactionType
 import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -61,6 +63,30 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(invalid2))) { blockDiffEi =>
         blockDiffEi shouldBe Left(TransactionValidationError(ValidationError.InvalidSlotId(invalid2.slotId), invalid2))
+      }
+    }
+  }
+
+  val preconditionsAndContendx: Gen[(GenesisTransaction, GenesisTransaction,
+    ContendSlotsTransaction, ContendSlotsTransaction, Long)] = for {
+    master <- accountGen
+    master1 <- accountGen
+    ts <- positiveIntGen
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, 0, ts).right.get
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, 2*ENOUGH_AMT, -1, ts).right.get
+    contend: ContendSlotsTransaction <- contendGeneratorP(master1, 0)
+    contend1: ContendSlotsTransaction <- contendGeneratorP(master, 1)
+  } yield (genesis, genesis1, contend, contend1, contend.fee)
+
+
+  property("contend transaction is successful") {
+    forAll(preconditionsAndContendx) { case (genesis, genesis1, contend, contend1, feeContend) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1))), TestBlock.create(Seq(contend))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+      }
+
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1)), TestBlock.create(Seq(contend))), TestBlock.create(Seq(contend1))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
       }
     }
   }
