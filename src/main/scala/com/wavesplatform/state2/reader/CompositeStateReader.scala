@@ -8,6 +8,7 @@ import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import vsys.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
+import vsys.contract.Contract
 
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {
 
@@ -67,10 +68,10 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
 
-  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
-    txDiff.contracts.get(name)
-      .map(t=>(t._1, t._2.bytes, t._3))
-      .orElse(inner.contractContent(name))
+  override def contractContent(id: ByteStr): Option[(Int, Contract)] =
+    txDiff.contracts.get(id)
+      .map(t=>(t._1, t._2))
+      .orElse(inner.contractContent(id))
 
   override def dbGet(key: ByteStr): Option[ByteStr] =
     txDiff.dbEntries.get(key).map(v=>v.bytes)
@@ -119,8 +120,8 @@ object CompositeStateReader {
     override def resolveAlias(a: Alias): Option[Address] =
       new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
 
-    override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
-      new CompositeStateReader(inner, blockDiff()).contractContent(name)
+    override def contractContent(id: ByteStr): Option[(Int, Contract)] =
+      new CompositeStateReader(inner, blockDiff()).contractContent(id)
 
     override def dbGet(key: ByteStr): Option[ByteStr] =
       new CompositeStateReader(inner, blockDiff()).dbGet(key)

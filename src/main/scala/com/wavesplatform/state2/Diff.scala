@@ -5,6 +5,7 @@ import cats.implicits._
 import scorex.account.{Address, Alias}
 import vsys.database.Entry
 import scorex.transaction.Transaction
+import vsys.contract.Contract
 import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)
@@ -49,7 +50,7 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 slotNum: Int,
                 txStatus: TransactionStatus.Value,
                 chargedFee: Long,
-                contracts: Map[String, (Boolean, Address, String)],
+                contracts: Map[ByteStr, (Int, Contract, Set[Address])],
                 dbEntries: Map[ByteStr, Entry],
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
@@ -64,6 +65,17 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
       .mapValues(l => l.toList.sortBy { case ((h, t, _)) => (-h, -t) }) // fresh head ([h=2, h=1, h=0])
       .mapValues(_.map(_._3))
   }
+
+  lazy val accountContractIds: Map[Address, List[ByteStr]] = {
+    val map: List[(Address, Set[(Int, ByteStr)])] = contracts.toList
+      .flatMap { case (id, (h, ct, accs)) => accs.map(acc => acc -> Set((h, id))) }
+    val groupedByAcc = map.foldLeft(Map.empty[Address, Set[(Int, ByteStr)]]) { case (m, (acc, set)) =>
+      m.combine(Map(acc -> set))
+    }
+    groupedByAcc
+      .mapValues(l => l.toList.sortBy { case ((h, _)) => (-h) }) // fresh head ([h=2, h=1, h=0])
+      .mapValues(_.map(_._2))
+  }
 }
 
 object Diff {
@@ -75,7 +87,7 @@ object Diff {
             slotNum: Int = 0,
             txStatus: TransactionStatus.Value = TransactionStatus.Success,
             chargedFee: Long = 0,
-            contracts: Map[String, (Boolean, Address, String)] = Map.empty,
+            contracts: Map[ByteStr, (Int, Contract, Set[Address])] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
