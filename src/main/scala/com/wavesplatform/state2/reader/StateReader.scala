@@ -9,7 +9,7 @@ import vsys.transaction._
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.lease.LeaseTransaction
 import scorex.utils.{ScorexLogging, Synchronized}
-import vsys.contract.Contract
+import vsys.contract.{Contract, DataEntry}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -42,6 +42,12 @@ trait StateReader extends Synchronized {
   def resolveAlias(a: Alias): Option[Address]
 
   def contractContent(id: ByteStr): Option[(Int, Contract)]
+
+  def contractInfo(id: ByteStr): Option[DataEntry]
+
+  def contractTokens(id: ByteStr): Option[Int]
+
+  def tokenAccountBalance(id: ByteStr): Option[Long]
 
   def dbGet(key: ByteStr): Option[ByteStr]
 

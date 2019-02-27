@@ -51,6 +51,9 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 txStatus: TransactionStatus.Value,
                 chargedFee: Long,
                 contracts: Map[ByteStr, (Int, Contract, Set[Address])],
+                contractDB: Map[ByteStr, Array[Byte]],
+                contractTokens: Map[ByteStr, Int],
+                tokenAccountBalance: Map[ByteStr, Long],
                 dbEntries: Map[ByteStr, Entry],
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
@@ -88,6 +91,9 @@ object Diff {
             txStatus: TransactionStatus.Value = TransactionStatus.Success,
             chargedFee: Long = 0,
             contracts: Map[ByteStr, (Int, Contract, Set[Address])] = Map.empty,
+            contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
+            contractTokens: Map[ByteStr, Int] = Map.empty,
+            tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
@@ -100,11 +106,16 @@ object Diff {
     txStatus = txStatus,
     chargedFee = chargedFee,
     contracts = contracts,
+    contractDB = contractDB,
+    contractTokens = contractTokens,
+    tokenAccountBalance = tokenAccountBalance,
     dbEntries = dbEntries,
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty, Map.empty, Map.empty)
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
+    TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty,
+    Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -123,6 +134,9 @@ object Diff {
       txStatus = newer.txStatus,
       chargedFee = newer.chargedFee,
       contracts = older.contracts ++ newer.contracts,
+      contractDB = older.contractDB ++ newer.contractDB,
+      contractTokens = Monoid.combine(older.contractTokens, newer.contractTokens),
+      tokenAccountBalance = Monoid.combine(older.tokenAccountBalance, newer.tokenAccountBalance),
       dbEntries = older.dbEntries ++ newer.dbEntries,
       orderFills = older.orderFills.combine(newer.orderFills),
       leaseState = older.leaseState ++ newer.leaseState)

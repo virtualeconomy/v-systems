@@ -111,6 +111,30 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       }
     }
 
+    measureSizeLog("contractDB")(blockDiff.txsDiff.contractDB) {
+      _.foreach { case (id, contractData) =>
+        sp().contractDB.put(id, contractData)
+      }
+    }
+
+    measureSizeLog("contractTokens")(blockDiff.txsDiff.contractTokens) {
+      _.foreach { case (id, tokenNum) =>
+        Option(sp().contractTokens.get(id)) match {
+          case Some(num) => sp().contractTokens.put(id, num + tokenNum)
+          case None => sp().contractTokens.put(id, tokenNum)
+        }
+      }
+    }
+
+    measureSizeLog("tokenAccountBalance")(blockDiff.txsDiff.tokenAccountBalance) {
+      _.foreach { case (id, balance) =>
+        Option(sp().tokenAccountBalance.get(id)) match {
+          case Some(bl) => sp().tokenAccountBalance.put(id, safeSum(bl, balance))
+          case None => sp().tokenAccountBalance.put(id, balance)
+        }
+      }
+    }
+
     measureSizeLog("dbEntries")(blockDiff.txsDiff.dbEntries) {
       _.foreach { case (key, value) =>
         sp().dbEntries.put(key, value.bytes)
@@ -126,7 +150,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       _.foreach {
         case (id, acc) => acc.length match {
           case 0 => sp().releaseSlotAddress(id)
-          case _ => sp ().setSlotAddress (id, acc)
+          case _ => sp().setSlotAddress(id, acc)
         }
       })
 
@@ -152,6 +176,11 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().addressToID.clear()
     sp().dbEntries.clear()
     sp().contracts.clear()
+    sp().accountContractIds.clear()
+    sp().accountContractsLengths.clear()
+    sp().contractDB.clear()
+    sp().contractTokens.clear()
+    sp().tokenAccountBalance.clear()
     sp().setHeight(0)
     sp().commit()
   }

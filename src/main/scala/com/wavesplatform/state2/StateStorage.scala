@@ -88,6 +88,12 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
   val accountContractsLengths: MVMap[ByteStr, Int] = db.openMap("accountContractsLengths",
     new LogMVMapBuilder[ByteStr, Int].keyType(DataTypes.byteStr))
 
+  val contractDB: MVMap[ByteStr, Array[Byte]] = db.openMap("contractDB", new LogMVMapBuilder[ByteStr, Array[Byte]])
+
+  val contractTokens: MVMap[ByteStr, Int] = db.openMap("contractTokens", new LogMVMapBuilder[ByteStr, Int])
+
+  val tokenAccountBalance: MVMap[ByteStr, Long] = db.openMap("tokenAccountBalance", new LogMVMapBuilder[ByteStr, Long])
+
   // only support Entry.bytes, in case later we want to support different types and not sure how to serialize here?
   val dbEntries: MVMap[ByteStr, ByteStr] = db.openMap("dbEntries", new LogMVMapBuilder[ByteStr, ByteStr]
     .keyType(DataTypes.byteStr).valueType(DataTypes.byteStr))
