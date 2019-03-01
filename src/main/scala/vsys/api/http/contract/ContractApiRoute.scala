@@ -55,7 +55,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   def contentFromId: Route = (get & path("info" / Segment)) { encoded =>
     ByteStr.decodeBase58(encoded) match {
       case Success(id) => state.contractContent(id) match {
-        case Some((h, ct)) => complete(Json.obj("height" -> JsNumber(h), "contract" -> ct.stringRepr))
+        case Some((h, ct)) => complete(ct.json + ("height" -> JsNumber(h)))
         case None => complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Contract is not in blockchain"))
       }
       case _ => complete(InvalidAddress)

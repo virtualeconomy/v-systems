@@ -1,7 +1,9 @@
 package vsys.contract
 
+import com.google.common.primitives.Ints
 import com.wavesplatform.state2.ByteStr
 import com.wavesplatform.utils.base58Length
+import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
@@ -20,6 +22,12 @@ sealed trait Contract {
   val languageCode: Array[Byte]
   val languageVersion: Array[Byte]
 
+  lazy val json: JsObject = Json.obj(
+    "languageCode" -> Ints.fromByteArray(languageCode),
+    "languageVersion" -> Ints.fromByteArray(languageVersion),
+    "initializer" -> Base58.encode(initializer),
+    "descriptor" -> Base58.encode(Deser.serializeArrays(descriptor))
+  )
 }
 
 object Contract {
