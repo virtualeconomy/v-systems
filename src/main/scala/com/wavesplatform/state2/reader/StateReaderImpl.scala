@@ -6,6 +6,7 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
+import vsys.contract.{Contract, DataEntry}
 import vsys.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
 import scala.collection.JavaConverters._
@@ -57,8 +58,20 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .map(b => Address.fromBytes(b.arr).explicitGet())
   }
 
-  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] = read { implicit l =>
-    Option(sp().contracts.get(name))
+  override def contractContent(id: ByteStr): Option[(Int, Contract)] = read { implicit l =>
+    Option((sp().contracts.get(id)._1, Contract.fromBytes(sp().contracts.get(id)._2).right.get))
+  }
+
+  override def contractInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
+    Option(DataEntry.fromBytes(sp().contractDB.get(id)).right.get)
+  }
+
+  override def contractTokens(id: ByteStr): Option[Int] = read { implicit l =>
+    Option(sp().contractTokens.get(id))
+  }
+
+  override def tokenAccountBalance(id: ByteStr): Option[Long] = read { implicit l =>
+    Option(sp().tokenAccountBalance.get(id))
   }
 
   override def dbGet(key: ByteStr): Option[ByteStr] = read { implicit l =>

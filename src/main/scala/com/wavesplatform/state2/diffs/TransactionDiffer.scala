@@ -41,7 +41,7 @@ object TransactionDiffer {
         case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings,currentBlockHeight)(cstx)
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
         case rctx: RegisterContractTransaction => ContractTransactionDiff.create(s, currentBlockHeight)(rctx)
-        case ccstx: ChangeContractStatusTransaction => ContractTransactionDiff.changeStatus(s, currentBlockHeight)(ccstx)
+        //case ccstx: ChangeContractStatusTransaction => ContractTransactionDiff.changeStatus(s, currentBlockHeight)(ccstx)
         case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }

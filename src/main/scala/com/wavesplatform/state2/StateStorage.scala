@@ -80,7 +80,19 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
   val lastBalanceSnapshotWeightedBalance: MVMap[ByteStr, Long] = db.openMap("lastUpdateWeightedBalance", new LogMVMapBuilder[ByteStr, Long]
     .keyType(DataTypes.byteStr))
 
-  val contracts: MVMap[String, (Boolean, ByteStr, String)] = db.openMap("contracts", new LogMVMapBuilder[String, (Boolean, ByteStr, String)])
+  val contracts: MVMap[ByteStr, (Int, Array[Byte])] = db.openMap("contracts", new LogMVMapBuilder[ByteStr, (Int, Array[Byte])])
+
+  val accountContractIds: MVMap[AccountIdxKey, ByteStr] = db.openMap("accountContractIds",
+    new LogMVMapBuilder[AccountIdxKey, ByteStr].valueType(DataTypes.byteStr))
+
+  val accountContractsLengths: MVMap[ByteStr, Int] = db.openMap("accountContractsLengths",
+    new LogMVMapBuilder[ByteStr, Int].keyType(DataTypes.byteStr))
+
+  val contractDB: MVMap[ByteStr, Array[Byte]] = db.openMap("contractDB", new LogMVMapBuilder[ByteStr, Array[Byte]])
+
+  val contractTokens: MVMap[ByteStr, Int] = db.openMap("contractTokens", new LogMVMapBuilder[ByteStr, Int])
+
+  val tokenAccountBalance: MVMap[ByteStr, Long] = db.openMap("tokenAccountBalance", new LogMVMapBuilder[ByteStr, Long])
 
   // only support Entry.bytes, in case later we want to support different types and not sure how to serialize here?
   val dbEntries: MVMap[ByteStr, ByteStr] = db.openMap("dbEntries", new LogMVMapBuilder[ByteStr, ByteStr]

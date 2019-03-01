@@ -32,7 +32,10 @@ class ExecuteContractTransactionSpecification extends PropSpec with PropertyChec
   }
 
   private def assertTxs(first: ExecuteContractTransaction, second: ExecuteContractTransaction): Unit = {
-    first.contractId shouldEqual second.contractId
+    first.contractId.bytes.arr shouldEqual second.contractId.bytes.arr
+    first.entryPoints shouldEqual second.entryPoints
+    first.dataStack.flatMap(_.bytes).toArray shouldEqual second.dataStack.flatMap(_.bytes).toArray
+    first.description shouldEqual second.description
     first.fee shouldEqual second.fee
     first.feeScale shouldEqual second.feeScale
     first.proofs.bytes shouldEqual second.proofs.bytes

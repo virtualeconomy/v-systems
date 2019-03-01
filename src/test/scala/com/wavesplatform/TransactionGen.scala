@@ -41,6 +41,10 @@ trait TransactionGen {
     bytes <- byteArrayGen(length)
   } yield Seq(bytes)
 
+  def genSeqInts(minSize: Int, maxSize: Int): Gen[Seq[Int]] = for {
+    i <- Gen.choose(minSize, maxSize)
+  } yield Seq(i)
+
   val ntpTimestampGen: Gen[Long] = Gen.choose(1, 1000).map(NTP.correctedTime() - _)
 
   val accountGen: Gen[PrivateKeyAccount] = bytes32gen.map(seed => PrivateKeyAccount(seed))
@@ -298,8 +302,10 @@ trait TransactionGen {
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     timestamp2: Long <- positiveLongGen
+    entryPoints: Seq[Int] <- genSeqInts(0, 10 + 0)
     dataStack: Seq[DataEntry] <- dataEntryGen
-  } yield ExecuteContractTransaction.create(otherSender, contractTx.contractId, dataStack, fee2, feeScale2, timestamp2).right.get
+    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
+  } yield ExecuteContractTransaction.create(otherSender, contractTx.contractId, entryPoints, dataStack, description, fee2, feeScale2, timestamp2).right.get
 
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
