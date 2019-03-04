@@ -78,7 +78,7 @@ class StateStorage private(db: DB) {
 object StateStorage {
 
   private val heightKey = "height"
-  private val stateVersion = "stateVersion"
+  // private val stateVersion = "stateVersion"
 
 
   def apply(db:DB, dropExisting: Boolean): StateStorage = {
