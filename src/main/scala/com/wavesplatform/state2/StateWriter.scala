@@ -37,7 +37,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("orderFills")(blockDiff.txsDiff.orderFills) {
       _.par.foreach { case (oid, orderFillInfo) =>
-        Option(sp().orderFills.get(oid)) match {
+        sp().orderFills.get(oid) match {
           case Some(ll) =>
             sp().orderFills.put(oid, (ll._1 + orderFillInfo.volume, ll._2 + orderFillInfo.fee))
           case None =>
@@ -59,7 +59,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("assets")(txsDiff.issuedAssets) {
       _.foreach { case (id, assetInfo) =>
-        val updated = (Option(sp().assets.get(id)) match {
+        val updated = (sp().assets.get(id) match {
           case None => Monoid[AssetInfo].empty
           case Some(existing) => AssetInfo(existing._1, existing._2)
         }).combine(assetInfo)
@@ -70,7 +70,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("accountTransactionIds")(blockDiff.txsDiff.accountTransactionIds) {
       _.foreach { case (acc, txIds) =>
-        val startIdxShift = sp().accountTransactionsLengths.getOrDefault(acc.bytes, 0)
+        val startIdxShift = sp().accountTransactionsLengths.get(acc.bytes).getOrElse(0)
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
           sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId)
           shift + 1
