@@ -18,7 +18,6 @@ import scala.concurrent.duration._
 import vsys.spos.SPoSCalc._
 import vsys.db.openDB
 import vsys.transaction.MintingTransaction
-import org.iq80.leveldb.DB
 
 class UtxPoolSpecification extends FreeSpec
   with Matchers
@@ -39,7 +38,7 @@ class UtxPoolSpecification extends FreeSpec
   private def mkState(senderAccount: Address, senderBalance: Long) = {
     val genesisSettings = TestHelpers.genesisSettings(Map(senderAccount -> senderBalance))
     val (history, _, state, bcu) =
-      StorageFactory(db, BlockchainSettings(None, None, None, 'T', 5, FunctionalitySettings.TESTNET, genesisSettings)).get
+      StorageFactory(db, BlockchainSettings(None, None, None, 'T', 5, FunctionalitySettings.TESTNET, genesisSettings))
 
     bcu.processBlock(Block.genesis(genesisSettings).right.get)
 

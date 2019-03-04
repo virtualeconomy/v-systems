@@ -14,7 +14,7 @@ package object diffs {
 
   private val lock = new ReentrantReadWriteLock()
 
-  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(None, db, dropExisting = true).get, lock)
+  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(db, dropExisting = true), lock)
 
   def newHistory(): History = new HistoryWriterImpl(db, lock)
 
