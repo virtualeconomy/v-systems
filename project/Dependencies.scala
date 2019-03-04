@@ -59,8 +59,7 @@ object Dependencies {
 
   lazy val matcher = Seq(
     akkaModule("persistence"),
-    "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.4.18.1" % "test",
-    "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
+    "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.4.18.1" % "test"
   )
 
   lazy val kamon = Seq("core", "statsd", "system-metrics").map(kamonModule)
