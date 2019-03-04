@@ -1,120 +1,92 @@
 package com.wavesplatform.state2
 
-import java.io.File
-
 import com.google.common.primitives.Ints
-import com.wavesplatform.utils._
-import org.h2.mvstore.MVMap
 import scorex.account.Address
-import scorex.utils.LogMVMapBuilder
+import org.iq80.leveldb.DB
 
-import scala.util.Try
+import vsys.db.SubStorage
+import vsys.db.StateMap
 
-class StateStorage private(file: Option[File]) extends AutoCloseable {
+class StateStorage private(db: DB) {
 
   import StateStorage._
 
-  private val db = createMVStore(file)
+  private val variables: StateMap[String, Int] = new StateMap(db, "variables")
 
-  private val variables: MVMap[String, Int] = db.openMap("variables")
+  // private def setPersistedVersion(version: Int) = variables.put(stateVersion, version)
 
-  private def setPersistedVersion(version: Int) = variables.put(stateVersion, version)
+  // private def persistedVersion: Option[Int] = variables.get(stateVersion)
 
-  private def persistedVersion: Option[Int] = Option(variables.get(stateVersion))
-
-  def getHeight: Int = variables.get(heightKey)
+  def getHeight: Int = variables.get(heightKey).get
 
   def setHeight(i: Int): Unit = variables.put(heightKey, i)
 
-  val addressList: MVMap[Int, String] = db.openMap("addressList")
+  setHeight(0)
 
-  val addressToID: MVMap[String, Int] = db.openMap("addressToID")
+  val addressList: StateMap[Int, String] = new StateMap(db, "addressList")
+
+  val addressToID: StateMap[String, Int] = new StateMap(db, "addressToID")
 
   def setSlotAddress(i: Int, add: String):Unit = {
     addressList.put(i,add)
     addressToID.put(add,i)
   }
 
-  def getSlotAddress(i: Int): Option[String] = Option(addressList.get(i))
+  def getSlotAddress(i: Int): Option[String] = addressList.get(i)
 
   def releaseSlotAddress(i: Int): Unit = {
-    addressToID.remove(addressList.get(i))
+    addressToID.remove(addressList.get(i).get)
     addressList.remove(i)
   }
 
-  def addressToSlotID(add: String): Option[Int] = Option(addressToID.get(add))
+  def addressToSlotID(add: String): Option[Int] = addressToID.get(add)
 
   def getEffectiveSlotAddressSize: Int = addressList.size()
 
-  val transactions: MVMap[ByteStr, (Int, Array[Byte])] = db.openMap("txs", new LogMVMapBuilder[ByteStr, (Int, Array[Byte])]
-    .keyType(DataTypes.byteStr).valueType(DataTypes.transactions))
+  val transactions: StateMap[ByteStr, (Int, Array[Byte])] = new StateMap(db, "txs", DataTypes.byteStr, DataTypes.transactions)
 
-  val portfolios: MVMap[ByteStr, (Long, (Long, Long), Map[Array[Byte], Long])] = db.openMap("portfolios",
-    new LogMVMapBuilder[ByteStr, (Long, (Long, Long), Map[Array[Byte], Long])]
-      .keyType(DataTypes.byteStr).valueType(DataTypes.portfolios))
+  val portfolios: StateMap[ByteStr, (Long, (Long, Long), Map[Array[Byte], Long])] = new StateMap(db, "portfolios", DataTypes.byteStr, DataTypes.portfolios)
 
-  val assets: MVMap[ByteStr, (Boolean, Long)] = db.openMap("assets",
-    new LogMVMapBuilder[ByteStr, (Boolean, Long)].keyType(DataTypes.byteStr).valueType(DataTypes.assets))
+  val assets: StateMap[ByteStr, (Boolean, Long)] = new StateMap(db, "assets", DataTypes.byteStr, DataTypes.assets)
 
-  val accountTransactionIds: MVMap[AccountIdxKey, ByteStr] = db.openMap("accountTransactionIds",
-    new LogMVMapBuilder[AccountIdxKey, ByteStr].valueType(DataTypes.byteStr))
+  val accountTransactionIds: StateMap[AccountIdxKey, ByteStr] = new StateMap(db, "accountTransactionIds", valueType=DataTypes.byteStr)
 
-  val accountTransactionsLengths: MVMap[ByteStr, Int] = db.openMap("accountTransactionsLengths",
-    new LogMVMapBuilder[ByteStr, Int].keyType(DataTypes.byteStr))
+  val accountTransactionsLengths: StateMap[ByteStr, Int] = new StateMap(db, "accountTransactionsLengths", keyType=DataTypes.byteStr)
 
-  val balanceSnapshots: MVMap[AccountIdxKey, (Int, Long, Long, Long)] = db.openMap("balanceSnapshots",
-    new LogMVMapBuilder[AccountIdxKey, (Int, Long, Long, Long)].valueType(DataTypes.balanceSnapshots))
+  val balanceSnapshots: StateMap[AccountIdxKey, (Int, Long, Long, Long)] = new StateMap(db, "balanceSnapshots", valueType=DataTypes.balanceSnapshots)
 
-  val aliasToAddress: MVMap[String, ByteStr] = db.openMap("aliasToAddress", new LogMVMapBuilder[String, ByteStr]
-    .valueType(DataTypes.byteStr))
+  val aliasToAddress: StateMap[String, ByteStr] = new StateMap(db, "aliasToAddress", valueType=DataTypes.byteStr)
 
-  val orderFills: MVMap[ByteStr, (Long, Long)] = db.openMap("orderFills", new LogMVMapBuilder[ByteStr, (Long, Long)]
-    .keyType(DataTypes.byteStr).valueType(DataTypes.orderFills))
+  val orderFills: StateMap[ByteStr, (Long, Long)] = new StateMap(db, "orderFills", keyType=DataTypes.byteStr, valueType=DataTypes.orderFills)
 
-  val leaseState: MVMap[ByteStr, Boolean] = db.openMap("leaseState", new LogMVMapBuilder[ByteStr, Boolean]
-    .keyType(DataTypes.byteStr))
+  val leaseState: StateMap[ByteStr, Boolean] = new StateMap(db, "leaseState", keyType=DataTypes.byteStr)
 
-  val lastBalanceSnapshotHeight: MVMap[ByteStr, Int] = db.openMap("lastUpdateHeight", new LogMVMapBuilder[ByteStr, Int]
-    .keyType(DataTypes.byteStr))
+  val lastBalanceSnapshotHeight: StateMap[ByteStr, Int] = new StateMap(db, "lastUpdateHeight", keyType=DataTypes.byteStr)
 
-  val lastBalanceSnapshotWeightedBalance: MVMap[ByteStr, Long] = db.openMap("lastUpdateWeightedBalance", new LogMVMapBuilder[ByteStr, Long]
-    .keyType(DataTypes.byteStr))
+  val lastBalanceSnapshotWeightedBalance: StateMap[ByteStr, Long] = new StateMap(db, "lastUpdateWeightedBalance", keyType=DataTypes.byteStr)
 
-  val contracts: MVMap[String, (Boolean, ByteStr, String)] = db.openMap("contracts", new LogMVMapBuilder[String, (Boolean, ByteStr, String)])
+  val contracts: StateMap[String, (Boolean, ByteStr, String)] = new StateMap(db, "contracts")
 
   // only support Entry.bytes, in case later we want to support different types and not sure how to serialize here?
-  val dbEntries: MVMap[ByteStr, ByteStr] = db.openMap("dbEntries", new LogMVMapBuilder[ByteStr, ByteStr]
-    .keyType(DataTypes.byteStr).valueType(DataTypes.byteStr))
+  val dbEntries: StateMap[ByteStr, ByteStr] = new StateMap(db, "dbEntries", keyType=DataTypes.byteStr, valueType=DataTypes.byteStr)
 
-  def commit(): Unit = {
-     db.commit()
-    db.compact(CompactFillRate, CompactMemorySize)
+  def commit(): Unit = {//add code here after integration test
   }
 
-  override def close(): Unit = db.close()
 }
 
 object StateStorage {
-  private val Version = 1
-
-  private val CompactFillRate = 80
-  private val CompactMemorySize = 19 * 1024 * 1024
 
   private val heightKey = "height"
   private val stateVersion = "stateVersion"
 
-  private def validateVersion(ss: StateStorage): Boolean =
-    ss.persistedVersion match {
-      case None =>
-        ss.setPersistedVersion(Version)
-        ss.commit()
-        true
-      case Some(v) => v == Version
 
+  def apply(db:DB, dropExisting: Boolean): StateStorage = {
+    if (dropExisting) {
+      new SubStorage(db, "states").removeEverything(None)
     }
-
-  def apply(file: Option[File], dropExisting: Boolean): Try[StateStorage] =
-    createWithStore(file, new StateStorage(file), validateVersion, dropExisting)
+    new StateStorage(db)
+  }
 
   type AccountIdxKey = Array[Byte]
 
