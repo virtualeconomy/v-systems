@@ -30,7 +30,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
   private def scoreByHeightKey(height: Int): Array[Byte] = makeKey(ScoreByHeightPrefix, Ints.toByteArray(height))
   private def heightKey(): Array[Byte] = makeKey(HeightPrefix, HeightPrefix)
 
-  put(heightKey(), Ints.toByteArray(0), None)
+  if(get(heightKey()).isEmpty) put(heightKey(), Ints.toByteArray(0), None)
   
   override def appendBlock(block: Block)(consensusValidation: => Either[ValidationError, BlockDiff]): Either[ValidationError, BlockDiff] = write { implicit lock =>
     if ((height() == 0) || (this.lastBlock.get.uniqueId == block.reference)) consensusValidation.map { blockDiff =>

@@ -21,7 +21,7 @@ class StateStorage private(db: DB) {
 
   def setHeight(i: Int): Unit = variables.put(heightKey, i)
 
-  setHeight(0)
+  if (variables.get(heightKey).isEmpty) setHeight(0)
 
   val addressList: StateMap[Int, String] = new StateMap(db, "addressList")
 
