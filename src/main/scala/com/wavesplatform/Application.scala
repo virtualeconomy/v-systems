@@ -35,7 +35,7 @@ import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
 import vsys.wallet.Wallet
 import scorex.waves.http.DebugApiRoute
-import vee.db.openDB
+import vsys.db.openDB
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

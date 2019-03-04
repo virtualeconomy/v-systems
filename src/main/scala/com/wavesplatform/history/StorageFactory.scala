@@ -13,11 +13,11 @@ import org.iq80.leveldb.DB
 
 object StorageFactory {
 
-  private def createStateStorage(history: History, stateFile: Option[File]): Try[StateStorage] =
-    StateStorage(stateFile, dropExisting = false).flatMap { ss =>
+  private def createStateStorage(history: History, db:DB, stateFile: Option[File]): Try[StateStorage] =
+    StateStorage(stateFile, db, dropExisting = false).flatMap { ss =>
       if (ss.getHeight <= history.height()) Success(ss) else {
         ss.close()
-        StateStorage(stateFile, dropExisting = true)
+        StateStorage(stateFile, db, dropExisting = true)
       }
     }
 
@@ -25,7 +25,7 @@ object StorageFactory {
     val lock = new RWL(true)
     val historyWriter = new HistoryWriterImpl(db, lock)
     for {
-      ss <- createStateStorage(historyWriter, settings.stateFile)
+      ss <- createStateStorage(historyWriter, db, settings.stateFile)
       stateWriter = new StateWriterImpl(ss, lock)
     } yield {
       val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, lock)
