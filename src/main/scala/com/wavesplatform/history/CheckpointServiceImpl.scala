@@ -5,7 +5,7 @@ import com.wavesplatform.settings.CheckpointsSettings
 import scorex.crypto.EllipticCurveImpl
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{CheckpointService, ValidationError}
-import vee.db.{CheckpointCodec, PropertiesStorage, SubStorage}
+import vsys.db.{CheckpointCodec, PropertiesStorage, SubStorage}
 
 import org.iq80.leveldb.DB
 
