@@ -92,8 +92,6 @@ class StateMap[K, V](
       
   }
 
-  setSize(0)
-
   def isEmpty(): Boolean = size() == 0
 
   def clear(): Unit = {

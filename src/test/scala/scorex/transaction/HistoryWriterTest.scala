@@ -15,7 +15,7 @@ class HistoryWriterTest extends FunSuite with Matchers with HistoryTest {
 
   test("concurrent access to lastBlock doesn't throw any exception") {
     val db = openDB("./test/historywriter/data", true)
-    val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock())
+    val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock(), true)
     appendGenesisBlock(history)
 
     (1 to 1000).foreach { _ =>

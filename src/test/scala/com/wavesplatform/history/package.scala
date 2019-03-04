@@ -24,7 +24,7 @@ package object history {
 
   val db = openDB("./test/data", true)
   def domain(): Domain = {
-    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings)
+    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, true)
     Domain(history, stateReader, blockchainUpdater)
   }
 

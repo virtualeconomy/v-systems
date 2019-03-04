@@ -38,7 +38,7 @@ class UtxPoolSpecification extends FreeSpec
   private def mkState(senderAccount: Address, senderBalance: Long) = {
     val genesisSettings = TestHelpers.genesisSettings(Map(senderAccount -> senderBalance))
     val (history, _, state, bcu) =
-      StorageFactory(db, BlockchainSettings(None, None, None, 'T', 5, FunctionalitySettings.TESTNET, genesisSettings))
+      StorageFactory(db, BlockchainSettings(None, None, None, 'T', 5, FunctionalitySettings.TESTNET, genesisSettings), true)
 
     bcu.processBlock(Block.genesis(genesisSettings).right.get)
 
@@ -160,7 +160,7 @@ class UtxPoolSpecification extends FreeSpec
       tx2 <- listOfN(count1, payment(sender, senderBalance / 2, new TestTime(ts + offset + 1000000000L)))
     } yield {
       val time = new TestTime()
-      val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock())
+      val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock(), true)
       val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, offset.nanos))
       (utx, time, tx1, (offset + 1000000000L).nanos, tx2)
     }

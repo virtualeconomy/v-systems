@@ -20,7 +20,7 @@ class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHel
 
   private val db = openDB("./test/consensus/data", true)
 
-  private val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock())
+  private val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock(), true)
   appendGenesisBlock(history)
   for (i <- 1 to 10) appendTestBlock(history)
 

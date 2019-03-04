@@ -14,7 +14,7 @@ import vsys.db.{ByteStrCodec, SubStorage}
 import org.iq80.leveldb.DB
 import com.google.common.primitives.Ints
 
-class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock) extends SubStorage(db, "history") with HistoryWriter {
+class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock, renew: Boolean =false) extends SubStorage(db, "history") with HistoryWriter {
 
   private val HeightPrefix: Array[Byte] = "height".getBytes(StandardCharsets.UTF_8)
   private val BlockBodyByHeightPrefix: Array[Byte] = "blocks".getBytes(StandardCharsets.UTF_8)
@@ -28,9 +28,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
   private def blockIdByHeightKey(height: Int): Array[Byte] = makeKey(BlockIdByHeightPrefix, Ints.toByteArray(height))
   private def heightByBlockIdKey(blockId: ByteStr): Array[Byte] = makeKey(HeightByBlockIdPrefix, ByteStrCodec.encode(blockId))
   private def scoreByHeightKey(height: Int): Array[Byte] = makeKey(ScoreByHeightPrefix, Ints.toByteArray(height))
-  private def heightKey(): Array[Byte] = makeKey(HeightPrefix, HeightPrefix)
-
-  if(get(heightKey()).isEmpty) put(heightKey(), Ints.toByteArray(0), None)
+  private val heightKey: Array[Byte] = makeKey(HeightPrefix, HeightPrefix)
   
   override def appendBlock(block: Block)(consensusValidation: => Either[ValidationError, BlockDiff]): Either[ValidationError, BlockDiff] = write { implicit lock =>
     if ((height() == 0) || (this.lastBlock.get.uniqueId == block.reference)) consensusValidation.map { blockDiff =>
@@ -41,7 +39,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
       put(scoreByHeightKey(h), score.toByteArray, None)
       put(blockIdByHeightKey(h), ByteStrCodec.encode(block.uniqueId), None)
       put(heightByBlockIdKey(block.uniqueId), Ints.toByteArray(h), None)
-      put(heightKey(), Ints.toByteArray(h), None)
+      put(heightKey, Ints.toByteArray(h), None)
 
       blockHeightStats.record(h)
 
@@ -61,7 +59,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
     delete(scoreByHeightKey(h), None)
     get(blockBodyByHeightKey(h)).foreach(b => ByteStrCodec.decode(b).toOption.foreach(r => delete(heightByBlockIdKey(r.value), None)))
     delete(blockIdByHeightKey(h), None)
-    put(heightKey(), Ints.toByteArray(h - 1), None)
+    put(heightKey, Ints.toByteArray(h - 1), None)
 
     transactions
   }
@@ -75,7 +73,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
   }
 
   override def height(): Int = read { implicit lock => 
-    get(heightKey()).map(Ints.fromByteArray).get
+    get(heightKey).map(Ints.fromByteArray).get
   }
 
   override def scoreOf(id: ByteStr): Option[BlockchainScore] = read { implicit lock =>
@@ -89,5 +87,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
   override def blockBytes(height: Int): Option[Array[Byte]] = read { implicit lock =>
     get(blockBodyByHeightKey(height))
   }
+
+  if (renew || get(heightKey).isEmpty) put(heightKey, Ints.toByteArray(0), None)
 
 }

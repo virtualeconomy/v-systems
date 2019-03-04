@@ -17,9 +17,9 @@ object StorageFactory {
     else StateStorage(db, dropExisting = true)
   }
 
-  def apply(db: DB, settings: BlockchainSettings): (History, StateWriter, StateReader, BlockchainUpdater) = {
+  def apply(db: DB, settings: BlockchainSettings, renew: Boolean = false): (History, StateWriter, StateReader, BlockchainUpdater) = {
     val lock = new RWL(true)
-    val historyWriter = new HistoryWriterImpl(db, lock)
+    val historyWriter = new HistoryWriterImpl(db, lock, renew)
     val ss = createStateStorage(historyWriter, db)
     val stateWriter = new StateWriterImpl(ss, lock)
     val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, lock)
