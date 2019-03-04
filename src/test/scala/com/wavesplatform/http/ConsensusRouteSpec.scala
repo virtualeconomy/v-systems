@@ -13,11 +13,12 @@ import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.JsObject
 import scorex.api.http.BlockNotExists
 import vsys.consensus.spos.api.http.SposConsensusApiRoute
+import org.iq80.leveldb.DB
 
-class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHelper with PropertyChecks with MockFactory with BlockGen with HistoryTest {
+class ConsensusRouteSpec(db: DB) extends RouteSpec("/consensus") with RestAPISettingsHelper with PropertyChecks with MockFactory with BlockGen with HistoryTest {
   private val state = mock[StateReader]
 
-  private val history = HistoryWriterImpl(None, new ReentrantReadWriteLock()).get
+  private val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock())
   appendGenesisBlock(history)
   for (i <- 1 to 10) appendTestBlock(history)
 

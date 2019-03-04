@@ -6,9 +6,10 @@ import com.wavesplatform.state2.StateStorage
 import com.wavesplatform.state2.StateStorage._
 import org.scalatest.{Matchers, Outcome, fixture}
 import scorex.account.Address
+import org.iq80.leveldb.DB
 
 
-class StateReaderEffectiveBalanceTest extends fixture.FunSuite with Matchers {
+class StateReaderEffectiveBalanceTest(db: DB) extends fixture.FunSuite with Matchers {
 
   val acc: Address = Address.fromPublicKey(Array.emptyByteArray)
   val stateHeight = 100
@@ -16,7 +17,7 @@ class StateReaderEffectiveBalanceTest extends fixture.FunSuite with Matchers {
   override type FixtureParam = StateStorage
 
   override protected def withFixture(test: OneArgTest): Outcome = {
-    val storage = StateStorage(None, dropExisting = false).get
+    val storage = StateStorage(None, db, dropExisting = false).get
     storage.setHeight(stateHeight)
     test(storage)
   }

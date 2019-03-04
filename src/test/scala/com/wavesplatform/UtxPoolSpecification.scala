@@ -11,13 +11,14 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import scorex.block.Block
-//import scorex.transaction.assets.TransferTransaction
 import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
 import scorex.utils.Time
-import vsys.spos.SPoSCalc._
-
 import scala.concurrent.duration._
+
+import vsys.spos.SPoSCalc._
+import vsys.db.openDB
 import vsys.transaction.MintingTransaction
+import org.iq80.leveldb.DB
 
 class UtxPoolSpecification extends FreeSpec
   with Matchers
@@ -27,6 +28,7 @@ class UtxPoolSpecification extends FreeSpec
   with TransactionGen {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
+  private val db = openDB("./test/utx/data", true)
 
   private val calculator = new FeeCalculator(FeesSettings(Map(
     1 -> List(FeeSettings("", 0)),
@@ -37,7 +39,7 @@ class UtxPoolSpecification extends FreeSpec
   private def mkState(senderAccount: Address, senderBalance: Long) = {
     val genesisSettings = TestHelpers.genesisSettings(Map(senderAccount -> senderBalance))
     val (history, _, state, bcu) =
-      StorageFactory(BlockchainSettings(None, None, None, 'T', 5, FunctionalitySettings.TESTNET, genesisSettings)).get
+      StorageFactory(db, BlockchainSettings(None, None, None, 'T', 5, FunctionalitySettings.TESTNET, genesisSettings)).get
 
     bcu.processBlock(Block.genesis(genesisSettings).right.get)
 
@@ -159,7 +161,7 @@ class UtxPoolSpecification extends FreeSpec
       tx2 <- listOfN(count1, payment(sender, senderBalance / 2, new TestTime(ts + offset + 1000000000L)))
     } yield {
       val time = new TestTime()
-      val history = HistoryWriterImpl(None, new ReentrantReadWriteLock()).get
+      val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock())
       val utx = new UtxPool(time, state, history, calculator, FunctionalitySettings.TESTNET, UtxSettings(10, offset.nanos))
       (utx, time, tx1, (offset + 1000000000L).nanos, tx2)
     }

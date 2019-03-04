@@ -8,14 +8,15 @@ import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
 import scorex.block.Block
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.{History, ValidationError}
+import com.wavesplatform.history.db
 
 package object diffs {
 
   private val lock = new ReentrantReadWriteLock()
 
-  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(None, dropExisting = false).get, lock)
+  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(None, db, dropExisting = true).get, lock)
 
-  def newHistory(): History = HistoryWriterImpl(None, lock).get
+  def newHistory(): History = new HistoryWriterImpl(db, lock)
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
