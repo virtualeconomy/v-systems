@@ -9,7 +9,7 @@ import scorex.block.Block
 import scorex.transaction.History.BlockchainScore
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{HistoryWriter, Transaction, ValidationError}
-import vee.db.{ByteStrCodec, SubStorage}
+import vsys.db.{ByteStrCodec, SubStorage}
 
 import org.iq80.leveldb.DB
 import com.google.common.primitives.Ints
@@ -30,6 +30,8 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
   private def scoreByHeightKey(height: Int): Array[Byte] = makeKey(ScoreByHeightPrefix, Ints.toByteArray(height))
   private def heightKey(): Array[Byte] = makeKey(HeightPrefix, HeightPrefix)
 
+  put(heightKey(), Ints.toByteArray(0), None)
+  
   override def appendBlock(block: Block)(consensusValidation: => Either[ValidationError, BlockDiff]): Either[ValidationError, BlockDiff] = write { implicit lock =>
     if ((height() == 0) || (this.lastBlock.get.uniqueId == block.reference)) consensusValidation.map { blockDiff =>
       val h = height() + 1
@@ -73,7 +75,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
   }
 
   override def height(): Int = read { implicit lock => 
-    get(heightKey()).map(Ints.fromByteArray).getOrElse(0)
+    get(heightKey()).map(Ints.fromByteArray).get
   }
 
   override def scoreOf(id: ByteStr): Option[BlockchainScore] = read { implicit lock =>
