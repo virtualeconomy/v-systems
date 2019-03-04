@@ -2,10 +2,11 @@ package com.wavesplatform.state2
 
 import cats.Monoid
 import cats.implicits._
+import com.google.common.primitives.Longs
 import scorex.account.{Address, Alias}
 import vsys.database.Entry
 import scorex.transaction.Transaction
-import vsys.contract.Contract
+import vsys.contract.{Contract, DataEntry, DataType}
 import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)
@@ -42,6 +43,26 @@ object AssetInfo {
   }
 }
 
+case class TokenInfo(isPlusOp: Boolean, info: Array[Byte])
+
+object TokenInfo {
+  val empty = TokenInfo(false, Array[Byte]())
+
+  implicit val TokenInfoMonoid = new Monoid[TokenInfo] {
+    override def empty: TokenInfo = TokenInfo.empty
+
+    override def combine(x: TokenInfo, y: TokenInfo): TokenInfo = {
+      if (x.isPlusOp != y.isPlusOp) x
+      else if (x.isPlusOp) {
+        TokenInfo(true, DataEntry.create(Longs.toByteArray(safeSum(Longs.fromByteArray(x.info),
+          Longs.fromByteArray(y.info))), DataType.Amount).right.get.bytes)
+      } else {
+        TokenInfo(false, y.info)
+      }
+    }
+  }
+}
+
 case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Address])],
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
@@ -53,6 +74,7 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 contracts: Map[ByteStr, (Int, Contract, Set[Address])],
                 contractDB: Map[ByteStr, Array[Byte]],
                 contractTokens: Map[ByteStr, Int],
+                tokenDB: Map[ByteStr, TokenInfo],
                 tokenAccountBalance: Map[ByteStr, Long],
                 dbEntries: Map[ByteStr, Entry],
                 orderFills: Map[ByteStr, OrderFillInfo],
@@ -93,6 +115,7 @@ object Diff {
             contracts: Map[ByteStr, (Int, Contract, Set[Address])] = Map.empty,
             contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
             contractTokens: Map[ByteStr, Int] = Map.empty,
+            tokenDB: Map[ByteStr, TokenInfo] = Map.empty,
             tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
@@ -108,6 +131,7 @@ object Diff {
     contracts = contracts,
     contractDB = contractDB,
     contractTokens = contractTokens,
+    tokenDB = tokenDB,
     tokenAccountBalance = tokenAccountBalance,
     dbEntries = dbEntries,
     orderFills = orderFills,
@@ -115,7 +139,7 @@ object Diff {
 
   val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
     TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty,
-    Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
+    Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -136,6 +160,7 @@ object Diff {
       contracts = older.contracts ++ newer.contracts,
       contractDB = older.contractDB ++ newer.contractDB,
       contractTokens = Monoid.combine(older.contractTokens, newer.contractTokens),
+      tokenDB = older.tokenDB.combine(newer.tokenDB),
       tokenAccountBalance = Monoid.combine(older.tokenAccountBalance, newer.tokenAccountBalance),
       dbEntries = older.dbEntries ++ newer.dbEntries,
       orderFills = older.orderFills.combine(newer.orderFills),

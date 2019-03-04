@@ -11,9 +11,9 @@ case class OpcDiff(contractDB: Map[ByteStr, Array[Byte]],
 }
 
 object OpcDiff {
-  def apply(contractDB: Map[ByteStr, Array[Byte]],
-            contractTokens: Map[ByteStr, Int],
-            tokenAccountBalance: Map[ByteStr, Long]): OpcDiff = new OpcDiff(
+  def apply(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
+            contractTokens: Map[ByteStr, Int] = Map.empty,
+            tokenAccountBalance: Map[ByteStr, Long] = Map.empty): OpcDiff = new OpcDiff(
     contractDB = contractDB,
     contractTokens = contractTokens,
     tokenAccountBalance = tokenAccountBalance)
