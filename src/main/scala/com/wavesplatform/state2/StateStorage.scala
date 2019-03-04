@@ -81,7 +81,7 @@ object StateStorage {
   // private val stateVersion = "stateVersion"
 
 
-  def apply(db:DB, dropExisting: Boolean): StateStorage = {
+  def apply(db: DB, dropExisting: Boolean): StateStorage = {
     if (dropExisting) {
       new SubStorage(db, "states").removeEverything(None)
     }
