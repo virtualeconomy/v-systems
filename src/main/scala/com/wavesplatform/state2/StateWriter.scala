@@ -129,14 +129,8 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     }
 
     measureSizeLog("tokenDB")(blockDiff.txsDiff.tokenDB) {
-      _.foreach { case (id, info) =>
-        Option(sp().tokenDB.get(id)) match {
-          case Some(tk) => if (info.isPlusOp) sp().tokenDB.put(id,
-            (true, DataEntry.create(Longs.toByteArray(safeSum(Longs.fromByteArray(tk._2),
-              Longs.fromByteArray(info.info))), DataType.Amount).right.get.bytes))
-          else sp().tokenDB.put(id, (info.isPlusOp, info.info))
-          case None => sp().tokenDB.put(id, (info.isPlusOp, info.info))
-        }
+      _.foreach { case (id, tokeninfo) =>
+        Option(sp().tokenDB.put(id, tokeninfo))
       }
     }
 

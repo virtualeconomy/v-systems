@@ -43,26 +43,6 @@ object AssetInfo {
   }
 }
 
-case class TokenInfo(isPlusOp: Boolean, info: Array[Byte])
-
-object TokenInfo {
-  val empty = TokenInfo(false, Array[Byte]())
-
-  implicit val TokenInfoMonoid = new Monoid[TokenInfo] {
-    override def empty: TokenInfo = TokenInfo.empty
-
-    override def combine(x: TokenInfo, y: TokenInfo): TokenInfo = {
-      if (x.isPlusOp != y.isPlusOp) x
-      else if (x.isPlusOp) {
-        TokenInfo(true, DataEntry.create(Longs.toByteArray(safeSum(Longs.fromByteArray(x.info),
-          Longs.fromByteArray(y.info))), DataType.Amount).right.get.bytes)
-      } else {
-        TokenInfo(false, y.info)
-      }
-    }
-  }
-}
-
 case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Address])],
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
@@ -74,7 +54,7 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 contracts: Map[ByteStr, (Int, Contract, Set[Address])],
                 contractDB: Map[ByteStr, Array[Byte]],
                 contractTokens: Map[ByteStr, Int],
-                tokenDB: Map[ByteStr, TokenInfo],
+                tokenDB: Map[ByteStr, Array[Byte]],
                 tokenAccountBalance: Map[ByteStr, Long],
                 dbEntries: Map[ByteStr, Entry],
                 orderFills: Map[ByteStr, OrderFillInfo],
@@ -115,7 +95,7 @@ object Diff {
             contracts: Map[ByteStr, (Int, Contract, Set[Address])] = Map.empty,
             contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
             contractTokens: Map[ByteStr, Int] = Map.empty,
-            tokenDB: Map[ByteStr, TokenInfo] = Map.empty,
+            tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
             tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
             orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
@@ -160,7 +140,7 @@ object Diff {
       contracts = older.contracts ++ newer.contracts,
       contractDB = older.contractDB ++ newer.contractDB,
       contractTokens = Monoid.combine(older.contractTokens, newer.contractTokens),
-      tokenDB = older.tokenDB.combine(newer.tokenDB),
+      tokenDB = older.tokenDB ++ newer.tokenDB,
       tokenAccountBalance = Monoid.combine(older.tokenAccountBalance, newer.tokenAccountBalance),
       dbEntries = older.dbEntries ++ newer.dbEntries,
       orderFills = older.orderFills.combine(newer.orderFills),

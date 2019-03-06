@@ -47,6 +47,8 @@ trait StateReader extends Synchronized {
 
   def contractTokens(id: ByteStr): Option[Int]
 
+  def tokenInfo(id: ByteStr): Option[DataEntry]
+
   def tokenAccountBalance(id: ByteStr): Option[Long]
 
   def dbGet(key: ByteStr): Option[ByteStr]

@@ -92,7 +92,7 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
 
   val contractTokens: MVMap[ByteStr, Int] = db.openMap("contractTokens", new LogMVMapBuilder[ByteStr, Int].keyType(DataTypes.byteStr))
 
-  val tokenDB: MVMap[ByteStr, (Boolean, Array[Byte])] = db.openMap("tokenDB", new LogMVMapBuilder[ByteStr, (Boolean, Array[Byte])].keyType(DataTypes.byteStr))
+  val tokenDB: MVMap[ByteStr, Array[Byte]] = db.openMap("tokenDB", new LogMVMapBuilder[ByteStr, Array[Byte]].keyType(DataTypes.byteStr))
 
   val tokenAccountBalance: MVMap[ByteStr, Long] = db.openMap("tokenAccountBalance", new LogMVMapBuilder[ByteStr, Long].keyType(DataTypes.byteStr))
 

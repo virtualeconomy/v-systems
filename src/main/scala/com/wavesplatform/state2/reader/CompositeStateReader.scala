@@ -10,6 +10,7 @@ import vsys.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
 import vsys.contract.{Contract, DataEntry}
 
+
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {
 
   def synchronizationToken: ReentrantReadWriteLock = inner.synchronizationToken
@@ -83,6 +84,12 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       .map(t => t + inner.contractTokens(id).get)
       .orElse(inner.contractTokens(id))
 
+  override def tokenInfo(id: ByteStr): Option[DataEntry] = {
+    txDiff.tokenDB.get(id)
+      .map(t => DataEntry.fromBytes(t).right.get)
+      .orElse(inner.tokenInfo(id))
+  }
+
   override def tokenAccountBalance(id: ByteStr): Option[Long] =
     txDiff.tokenAccountBalance.get(id)
       .map(t => safeSum(t, inner.tokenAccountBalance(id).get))
@@ -143,6 +150,9 @@ object CompositeStateReader {
 
     override def contractTokens(id: ByteStr): Option[Int] =
       new CompositeStateReader(inner, blockDiff()).contractTokens(id)
+
+    override def tokenInfo(id: ByteStr): Option[DataEntry] =
+      new CompositeStateReader(inner, blockDiff()).tokenInfo(id)
 
     override def tokenAccountBalance(id: ByteStr): Option[Long] =
       new CompositeStateReader(inner, blockDiff()).tokenAccountBalance(id)
