@@ -115,7 +115,7 @@ class StateMap[K, V](
     while (it.hasNext) {
       val key = it.next()
       if (key.startsWith(Prefix) && !key.startsWith(SizeKey)) {
-        val kk: K = keyType.read(ByteBuffer.wrap(key)).asInstanceOf[K]
+        val kk: K = keyType.read(ByteBuffer.wrap(key.slice(Prefix.length, key.length))).asInstanceOf[K]
         rtn :+= ((kk, get(kk).get): (K, V))
       }
     }
