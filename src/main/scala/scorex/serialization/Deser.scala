@@ -62,4 +62,18 @@ object Deser {
     }
     r._1
   }
+
+  def serializeShorts(is: Seq[Short]): Array[Byte] = {
+    Shorts.toByteArray(is.length.toShort) ++ Bytes.concat(is.map(Shorts.toByteArray): _*)
+  }
+
+  def deserializeShorts(bytes: Array[Byte]): Seq[Short] = {
+    val length = Shorts.fromByteArray(bytes.slice(0, 2))
+    val r = (0 until length).foldLeft((Seq.empty[Short], 2)) {
+      case ((acc, pos), _) =>
+        val arr = Shorts.fromByteArray(bytes.slice(pos, pos + 2))
+        (acc :+ arr, pos + 2)
+    }
+    r._1
+  }
 }
