@@ -2,24 +2,24 @@ package com.wavesplatform.state2
 
 import com.google.common.primitives.Ints
 import scorex.account.Address
-import org.iq80.leveldb.DB
+import org.iq80.leveldb.{DB, WriteBatch}
 
-import vsys.db.SubStorage
+import vsys.db.{Storage, SubStorage}
 import vsys.db.StateMap
 
-class StateStorage private(db: DB) {
+class StateStorage private(db: DB) extends Storage(db){
 
   import StateStorage._
 
   private val variables: StateMap[String, Int] = new StateMap(db, "variables")
 
-  // private def setPersistedVersion(version: Int) = variables.put(stateVersion, version)
+  private def setPersistedVersion(version: Int) = variables.put(stateVersion, version)
 
-  // private def persistedVersion: Option[Int] = variables.get(stateVersion)
+  private def persistedVersion: Option[Int] = variables.get(stateVersion)
 
   def getHeight: Int = variables.get(heightKey).get
 
-  def setHeight(i: Int): Unit = variables.put(heightKey, i)
+  def setHeight(i: Int, batchOpt: Option[WriteBatch] = None): Unit = variables.put(heightKey, i, batchOpt)
 
   if (variables.get(heightKey).isEmpty) setHeight(0)
 
@@ -27,23 +27,29 @@ class StateStorage private(db: DB) {
 
   val addressToID: StateMap[String, Int] = new StateMap(db, "addressToID")
 
-  def setSlotAddress(i: Int, add: String):Unit = {
-    addressList.put(i,add)
-    addressToID.put(add,i)
+  def setSlotAddress(i: Int, add: String, batchOpt: Option[WriteBatch] = None):Unit = {
+    var batch: Option[WriteBatch] = batchOpt
+    if (batchOpt.isEmpty) batch = createBatch()
+    addressList.put(i, add, batch)
+    addressToID.put(add, i, batch)
+    if (batchOpt.isEmpty) commit(batch)
   }
 
   def getSlotAddress(i: Int): Option[String] = addressList.get(i)
 
-  def releaseSlotAddress(i: Int): Unit = {
-    addressToID.remove(addressList.get(i).get)
-    addressList.remove(i)
+  def releaseSlotAddress(i: Int, batchOpt: Option[WriteBatch] = None): Unit = {
+    var batch: Option[WriteBatch] = batchOpt
+    if (batchOpt.isEmpty) batch = createBatch()
+    addressToID.remove(addressList.get(i).get, batch)
+    addressList.remove(i, batch)
+    if (batchOpt.isEmpty) commit(batch)
   }
 
   def addressToSlotID(add: String): Option[Int] = addressToID.get(add)
 
   def getEffectiveSlotAddressSize: Int = addressList.size()
 
-  val transactions: StateMap[ByteStr, (Int, Array[Byte])] = new StateMap(db, "txs", DataTypes.byteStr, DataTypes.transactions)
+  val transactions: StateMap[ByteStr, (Int, Array[Byte])] = new StateMap(db, "transactions", DataTypes.byteStr, DataTypes.transactions)
 
   val portfolios: StateMap[ByteStr, (Long, (Long, Long), Map[Array[Byte], Long])] = new StateMap(db, "portfolios", DataTypes.byteStr, DataTypes.portfolios)
 
@@ -70,22 +76,38 @@ class StateStorage private(db: DB) {
   // only support Entry.bytes, in case later we want to support different types and not sure how to serialize here?
   val dbEntries: StateMap[ByteStr, ByteStr] = new StateMap(db, "dbEntries", keyType=DataTypes.byteStr, valueType=DataTypes.byteStr)
 
-  def commit(): Unit = {//add code here after integration test
+  override def removeEverything(batchOpt: Option[WriteBatch] = None): Unit = {
+    var batch: Option[WriteBatch] = batchOpt
+    if (batchOpt.isEmpty) batch = createBatch()
+    new SubStorage(db, "states").removeEverything(batch)
+    setHeight(0, batch)
+    if (batchOpt.isEmpty) commit(batch)
   }
 
 }
 
 object StateStorage {
 
-  private val heightKey = "height"
-  // private val stateVersion = "stateVersion"
+  private val Version = 1
 
+  private val heightKey = "height"
+  private val stateVersion = "stateVersion"
+
+  private def validateVersion(ss: StateStorage): Boolean =  
+    ss.persistedVersion match { 
+      case None =>  
+        ss.setPersistedVersion(Version)
+        true  
+      case Some(v) => v == Version
+    }
 
   def apply(db: DB, dropExisting: Boolean): StateStorage = {
-    if (dropExisting) {
-      new SubStorage(db, "states").removeEverything(None)
+    val ss = new StateStorage(db)
+    if (dropExisting || !validateVersion(ss)) {
+      ss.removeEverything()
+      new StateStorage(db)
     }
-    new StateStorage(db)
+    else ss
   }
 
   type AccountIdxKey = Array[Byte]
