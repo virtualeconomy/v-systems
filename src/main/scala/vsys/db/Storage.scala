@@ -21,7 +21,7 @@ abstract class Storage(private val db: DB) extends ScorexLogging {
     } catch {
       case NonFatal(t) =>
         log.error("LevelDB get error", t)
-        throw t
+        None
     }
   }
 

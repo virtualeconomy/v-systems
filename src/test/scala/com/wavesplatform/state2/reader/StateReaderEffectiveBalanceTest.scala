@@ -6,7 +6,6 @@ import com.wavesplatform.state2.StateStorage
 import com.wavesplatform.state2.StateStorage._
 import org.scalatest.{Matchers, Outcome, fixture}
 import scorex.account.Address
-import org.iq80.leveldb.DB
 import vsys.db.openDB
 
 class StateReaderEffectiveBalanceTest extends fixture.FunSuite with Matchers {
