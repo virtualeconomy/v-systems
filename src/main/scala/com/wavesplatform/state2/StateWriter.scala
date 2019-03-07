@@ -113,34 +113,17 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       _.foreach {
         case (id, acc) => acc.length match {
           case 0 => sp().releaseSlotAddress(id)
-          case _ => sp ().setSlotAddress (id, acc)
+          case _ => sp().setSlotAddress(id, acc)
         }
       })
 
     sp().setHeight(sp().getHeight + blockDiff.heightDiff)
-    sp().commit()
 
     log.debug("BlockDiff commit complete")
   }
 
   override def clear(): Unit = write { implicit l =>
-    sp().transactions.clear()
-    sp().portfolios.clear()
-    sp().assets.clear()
-    sp().accountTransactionIds.clear()
-    sp().accountTransactionsLengths.clear()
-    sp().balanceSnapshots.clear()
-    sp().orderFills.clear()
-    sp().aliasToAddress.clear()
-    sp().leaseState.clear()
-    sp().lastBalanceSnapshotHeight.clear()
-    sp().lastBalanceSnapshotWeightedBalance.clear()
-    sp().addressList.clear()
-    sp().addressToID.clear()
-    sp().dbEntries.clear()
-    sp().contracts.clear()
-    sp().setHeight(0)
-    sp().commit()
+    sp().removeEverything()
   }
 
 }
