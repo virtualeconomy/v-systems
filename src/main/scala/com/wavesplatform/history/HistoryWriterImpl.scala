@@ -35,11 +35,13 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
       val h = height() + 1
       val score = (if (height() == 0) BigInt(0) else this.score()) + block.blockScore
 
-      put(blockBodyByHeightKey(h), block.bytes, None)
-      put(scoreByHeightKey(h), score.toByteArray, None)
-      put(blockIdByHeightKey(h), ByteStrCodec.encode(block.uniqueId), None)
-      put(heightByBlockIdKey(block.uniqueId), Ints.toByteArray(h), None)
-      put(heightKey, Ints.toByteArray(h), None)
+      val batch = createBatch()
+      put(blockBodyByHeightKey(h), block.bytes, batch)
+      put(scoreByHeightKey(h), score.toByteArray, batch)
+      put(blockIdByHeightKey(h), ByteStrCodec.encode(block.uniqueId), batch)
+      put(heightByBlockIdKey(block.uniqueId), Ints.toByteArray(h), batch)
+      put(heightKey, Ints.toByteArray(h), batch)
+      commit(batch)
 
       blockHeightStats.record(h)
 
@@ -55,11 +57,13 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
     val transactions =
       Block.parseBytes(blockBytes(h).getOrElse(Array[Byte]())).fold(_ => Seq.empty[Transaction], _.transactionData.map(_.transaction))
 
-    delete(blockBodyByHeightKey(h), None)
-    delete(scoreByHeightKey(h), None)
-    get(blockBodyByHeightKey(h)).foreach(b => ByteStrCodec.decode(b).toOption.foreach(r => delete(heightByBlockIdKey(r.value), None)))
-    delete(blockIdByHeightKey(h), None)
-    put(heightKey, Ints.toByteArray(h - 1), None)
+    val batch = createBatch()
+    delete(blockBodyByHeightKey(h), batch)
+    delete(scoreByHeightKey(h), batch)
+    get(blockIdByHeightKey(h)).foreach(b => ByteStrCodec.decode(b).toOption.foreach(r => delete(heightByBlockIdKey(r.value), batch)))
+    delete(blockIdByHeightKey(h), batch)
+    put(heightKey, Ints.toByteArray(h - 1), batch)
+    commit(batch)
 
     transactions
   }
