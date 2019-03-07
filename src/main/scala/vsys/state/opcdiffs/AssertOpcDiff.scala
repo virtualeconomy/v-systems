@@ -11,9 +11,9 @@ import scala.util.{Left, Right}
 
 object AssertOpcDiff {
 
-  def gteq0(v: DataEntry): Either[ValidationError, Diff] = {
+  def gteq0(v: DataEntry): Either[ValidationError, OpcDiff] = {
     if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) >= 0)
-      Right(Diff.empty)
+      Right(OpcDiff.empty)
     else
       Left(GenericError(s"Invalid Assert (gteq0): Value ${Longs.fromByteArray(v.data)} is negative"))
   }
@@ -49,6 +49,11 @@ object AssertOpcDiff {
       Right(Diff.empty)
     else
       Left(GenericError(s"Invalid Assert (eq): DataEntry $add1 is not equal to $add2"))
+  }
+
+  object AssertType extends Enumeration {
+    val GteqZeroAssert = Value(1)
+    val LteqAssert = Value(2)
   }
 
 

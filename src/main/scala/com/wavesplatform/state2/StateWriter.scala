@@ -4,8 +4,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.Monoid
 import cats.implicits._
+import com.google.common.primitives.Longs
 import com.wavesplatform.state2.reader.StateReaderImpl
 import scorex.utils.ScorexLogging
+import vsys.contract.{DataEntry, DataType}
 
 import scala.language.higherKinds
 
@@ -123,6 +125,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
           case Some(num) => sp().contractTokens.put(id, num + tokenNum)
           case None => sp().contractTokens.put(id, tokenNum)
         }
+      }
+    }
+
+    measureSizeLog("tokenDB")(blockDiff.txsDiff.tokenDB) {
+      _.foreach { case (id, tokeninfo) =>
+        Option(sp().tokenDB.put(id, tokeninfo))
       }
     }
 

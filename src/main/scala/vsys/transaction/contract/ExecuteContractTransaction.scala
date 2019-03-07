@@ -17,7 +17,7 @@ import vsys.transaction.ProvenTransaction
 import scala.util.{Failure, Success, Try}
 
 case class ExecuteContractTransaction (contractId: ContractAccount,
-                                       entryPoints: Seq[Int],
+                                       entryPoints: Array[Byte],
                                        dataStack: Seq[DataEntry],
                                        description: Array[Byte],
                                        fee: Long,
@@ -31,7 +31,7 @@ case class ExecuteContractTransaction (contractId: ContractAccount,
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     contractId.bytes.arr,
-    Deser.serializeArray(Deser.serializeInts(entryPoints)),
+    BytesSerializable.arrayWithSize(entryPoints),
     Deser.serializeArray(dataStack.flatMap(_.bytes).toArray),
     BytesSerializable.arrayWithSize(description),
     Longs.toByteArray(fee),
@@ -41,7 +41,7 @@ case class ExecuteContractTransaction (contractId: ContractAccount,
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contractId" -> contractId.address,
-    "entryPoints" -> entryPoints,
+    "entryPoints" -> Base58.encode(entryPoints),
     "dataStack" -> Base58.encode(dataStack.flatMap(_.bytes).toArray),
     "description" -> Base58.encode(description),
     "fee" -> fee,
@@ -61,8 +61,7 @@ object ExecuteContractTransaction {
 
   def parseTail(bytes: Array[Byte]): Try[ExecuteContractTransaction] = Try {
     val contractId = ContractAccount.fromBytes(bytes.slice(0, ContractAccount.AddressLength)).right.get
-    val (entryPointsBytes, entryPointsEnd) = Deser.parseArraySize(bytes, ContractAccount.AddressLength)
-    val entryPoints = Deser.deserializeInts(entryPointsBytes)
+    val (entryPoints, entryPointsEnd) = Deser.parseArraySize(bytes, ContractAccount.AddressLength)
     val (dataStackBytes, dataStackEnd) = Deser.parseArraySize(bytes, entryPointsEnd)
     val dataStack = DataEntry.fromArrayBytes(dataStackBytes).right.get
     val (description, descriptionEnd) = Deser.parseArraySize(bytes, dataStackEnd)
@@ -77,7 +76,7 @@ object ExecuteContractTransaction {
   }.flatten
 
   def createWithProof(contractId: ContractAccount,
-                      entryPoints: Seq[Int],
+                      entryPoints: Array[Byte],
                       dataStack: Seq[DataEntry],
                       description: Array[Byte],
                       fee: Long,
@@ -96,7 +95,7 @@ object ExecuteContractTransaction {
 
   def create(sender: PrivateKeyAccount,
              contractId: ContractAccount,
-             entryPoints: Seq[Int],
+             entryPoints: Array[Byte],
              dataStack: Seq[DataEntry],
              description: Array[Byte],
              fee: Long,
@@ -109,7 +108,7 @@ object ExecuteContractTransaction {
 
   def create(sender: PublicKeyAccount,
              contractId: ContractAccount,
-             entryPoints: Seq[Int],
+             entryPoints: Array[Byte],
              dataStack: Seq[DataEntry],
              description: Array[Byte],
              fee: Long,
