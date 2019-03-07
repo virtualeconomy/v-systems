@@ -28,15 +28,15 @@ class StateStorage private(db: DB) extends Storage(db){
   val addressToID: StateMap[String, Int] = new StateMap(db, "addressToID")
 
   def setSlotAddress(i: Int, add: String, batchOpt: Option[WriteBatch] = None):Unit = {
-    addressList.put(i, add, batch)
-    addressToID.put(add, i, batch)
+    addressList.put(i, add, batchOpt)
+    addressToID.put(add, i, batchOpt)
   }
 
   def getSlotAddress(i: Int): Option[String] = addressList.get(i)
 
   def releaseSlotAddress(i: Int, batchOpt: Option[WriteBatch] = None): Unit = {
-    addressToID.remove(addressList.get(i).get, batch)
-    addressList.remove(i, batch)
+    addressToID.remove(addressList.get(i).get, batchOpt)
+    addressList.remove(i, batchOpt)
   }
 
   def addressToSlotID(add: String): Option[Int] = addressToID.get(add)
