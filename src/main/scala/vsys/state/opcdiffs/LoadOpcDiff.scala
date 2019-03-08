@@ -15,9 +15,10 @@ object LoadOpcDiff {
   def issuer (dataStack: Seq[DataEntry])(tx: IssueTransaction): Either[ValidationError, Seq[DataEntry]] = {
     // contractId ++ "issuer"
     val issuer = tx.sender.address
-    dataStack ++ Seq(DataEntry(issuer.getBytes, DataType.Address))
-    if (issuer.isEmpty)
+    if (issuer != null) {
+      dataStack ++ Seq(DataEntry(issuer.getBytes, DataType.Address))
       Right(dataStack)
+    }
     else
       Left(GenericError(s"Invalid Issuer"))
   }
@@ -25,11 +26,12 @@ object LoadOpcDiff {
   def sender (dataStack: Seq[DataEntry])(tx: TransferTransaction): Either[ValidationError, Seq[DataEntry]] = {
     // contractId ++ "issuer"
     val sender = tx.sender.address
-    dataStack ++ Seq(DataEntry(sender.getBytes, DataType.Address))
-    if (sender.isEmpty)
+    if (sender != null) {
+      dataStack ++ Seq(DataEntry(sender.getBytes, DataType.Address))
       Right(dataStack)
+    }
     else
-      Left(GenericError(s"Invalid Issuer"))
+      Left(GenericError(s"Invalid Sender"))
   }
 
   def max(tokenId: ByteStr, s: StateReader, dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
@@ -37,14 +39,9 @@ object LoadOpcDiff {
     val id: ByteStr = ByteStr(Bytes.concat(tokenId.arr, Array("max".toByte)))
     val max = s.tokenInfo(id)
     max match {
-      case Some(i) => dataStack ++ max
+      case Some(i) => Right(dataStack ++ max)
+      case None => Left(GenericError("Transaction cannot appear in invalid block"))
     }
-    if (max.isEmpty)
-      Right(
-        dataStack
-      )
-    else
-      Left(GenericError("Transaction cannot appear in invalid block"))
   }
 
   def total(s: StateReader, tokenId: ByteStr, dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
@@ -52,14 +49,9 @@ object LoadOpcDiff {
     val id: ByteStr = ByteStr(Bytes.concat(tokenId.arr, Array("total".toByte)))
     val total = s.tokenInfo(id)
     total match {
-      case Some(i) => dataStack ++ total
+      case Some(i) => Right(dataStack ++ total)
+      case None => Left(GenericError("Transaction cannot appear in invalid block"))
     }
-    if (total.isEmpty)
-      Right(
-        dataStack
-      )
-    else
-      Left(GenericError("Transaction cannot appear in invalid block"))
   }
 
   def issuerBalance(s: StateReader, tokenId: ByteStr, dataStack: Seq[DataEntry])(tx: IssueTransaction): Either[ValidationError, Seq[DataEntry]] = {
@@ -68,14 +60,9 @@ object LoadOpcDiff {
     val id: ByteStr = ByteStr(Bytes.concat(tokenId.arr, senderAddress.getBytes, Array("balance".toByte)))
     val balance: Option[Long] = s.tokenAccountBalance(id)
     balance match {
-      case Some(i) => dataStack ++ Seq(DataEntry(Longs.toByteArray(balance.asInstanceOf[Long]), DataType.Amount))
+      case Some(i) => Right(dataStack ++ Seq(DataEntry(Longs.toByteArray(balance.asInstanceOf[Long]), DataType.Amount)))
+      case None => Left(GenericError("Transaction cannot appear in invalid block"))
     }
-    if (balance.asInstanceOf[Long] < 0)
-      Right(
-        dataStack
-      )
-    else
-      Left(GenericError("Transaction cannot appear in invalid block"))
   }
 
   def senderBalance(s: StateReader, tokenId: ByteStr, dataStack: Seq[DataEntry])(tx: TransferTransaction): Either[ValidationError, Seq[DataEntry]] = {
@@ -84,14 +71,9 @@ object LoadOpcDiff {
     val id: ByteStr = ByteStr(Bytes.concat(tokenId.arr, senderAddress.getBytes, Array("balance".toByte)))
     val balance: Option[Long] = s.tokenAccountBalance(id)
     balance match {
-      case Some(i) => dataStack ++ Seq(DataEntry(Longs.toByteArray(balance.asInstanceOf[Long]), DataType.Amount))
+      case Some(i) => Right(dataStack ++ Seq(DataEntry(Longs.toByteArray(balance.asInstanceOf[Long]), DataType.Amount)))
+      case None => Left(GenericError("Transaction cannot appear in invalid block"))
     }
-    if (balance.asInstanceOf[Long] < 0)
-      Right(
-        dataStack
-      )
-    else
-      Left(GenericError("Transaction cannot appear in invalid block"))
   }
 
   def recipientBalance(s: StateReader, tokenId: ByteStr, dataStack: Seq[DataEntry])(tx: TransferTransaction): Either[ValidationError, Seq[DataEntry]] = {
@@ -100,16 +82,10 @@ object LoadOpcDiff {
     val id: ByteStr = ByteStr(Bytes.concat(tokenId.arr, senderAddress.getBytes, Array("balance".toByte)))
     val balance: Option[Long] = s.tokenAccountBalance(id)
     balance match {
-      case Some(i) => dataStack ++ Seq(DataEntry(Longs.toByteArray(balance.asInstanceOf[Long]), DataType.Amount))
+      case Some(i) => Right(dataStack ++ Seq(DataEntry(Longs.toByteArray(balance.asInstanceOf[Long]), DataType.Amount)))
+      case None => Left(GenericError("Transaction cannot appear in invalid block"))
     }
-    if (balance.asInstanceOf[Long] < 0)
-      Right(
-        dataStack
-      )
-    else
-      Left(GenericError("Transaction cannot appear in invalid block"))
   }
-
 }
 
 
