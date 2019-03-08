@@ -33,8 +33,8 @@ class StateMap[K, V](
     if (batchOpt.isEmpty) batch = createBatch()
     val Array(keyBytes, valBytes) = 
       Array((key, keyType), (value, valueType)).map {case(i, iType) => getItemBytes(i, iType)}
+    if (!containsKey(K)) setSize(sizeAsLong() + 1, batch)
     put(makeKey(StateNameBytes, keyBytes), valBytes, batch)
-    setSize(sizeAsLong() + 1, batch)
     if (batchOpt.isEmpty) commit(batch)
     value
 

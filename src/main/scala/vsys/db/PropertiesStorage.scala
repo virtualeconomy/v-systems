@@ -11,9 +11,9 @@ trait PropertiesStorage {
   private val PropertiesPrefix: Array[Byte] = "prop".getBytes(StandardCharsets.UTF_8)
 
   def putIntProperty(property: String, value: Int, batch: Option[WriteBatch]): Unit =
-    put(makeKey(PropertiesPrefix, property), Ints.toByteArray(value), batch)
+    putProperty(property, Ints.toByteArray(value), batch)
 
-  def getIntProperty(property: String): Option[Int] = get(makeKey(PropertiesPrefix, property)).map(Ints.fromByteArray)
+  def getIntProperty(property: String): Option[Int] = getProperty(property).map(Ints.fromByteArray)
 
   def getProperty(property: String): Option[Array[Byte]] = get(makeKey(PropertiesPrefix, property))
 
