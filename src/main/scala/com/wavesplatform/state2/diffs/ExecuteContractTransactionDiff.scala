@@ -2,7 +2,6 @@ package com.wavesplatform.state2.diffs
 
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.reader.StateReader
-import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.state.opcdiffs.OpcFuncDiffer
@@ -17,7 +16,7 @@ object ExecuteContractTransactionDiff {
     } else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       val contract = s.contractContent(tx.contractId.bytes).get._2
-      val entryPoints = Deser.deserializeShorts(tx.entryPoints)
+      val entryPoints = tx.entryPoints
       val opcfuncs = for (entry <- entryPoints) yield contract.descriptor(entry)
       val opcDiff = OpcFuncDiffer(s, height, tx)(opcfuncs, tx.dataStack).right.get
       Diff(height = height, tx = tx)

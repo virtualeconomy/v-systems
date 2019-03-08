@@ -42,7 +42,7 @@ object OpcFuncDiffer extends ScorexLogging {
     } else {
       listOpcodes.foldLeft(right(OpcDiff.empty)) { case (ei, opcode) => ei.flatMap(opcDiff => {
         val blockDiff = opcDiff.asBlockDiff(height, tx)
-        OpcDiffer(new CompositeStateReader(s, blockDiff))(opcode, dataStack) match {
+        OpcDiffer(new CompositeStateReader(s, blockDiff), tx)(opcode, dataStack) match {
           case Right(newOpcDiff) => if (newOpcDiff == opcDiff) Right(newOpcDiff)
           else Left(TransactionValidationError(ValidationError.InvalidContract, tx))
           case Left(l) => Left(l)
@@ -52,14 +52,15 @@ object OpcFuncDiffer extends ScorexLogging {
     Right(OpcDiff.empty)
   }
 
-  private def fromBytes(bytes: Array[Byte]): Try[(Short, Byte, Array[Byte], Seq[Array[Byte]], Seq[Short])] = Try {
+  private def fromBytes(bytes: Array[Byte]): Try[(Short, Byte, Array[Byte], Seq[Array[Byte]], Seq[String])] = Try {
     val funcIdx = Shorts.fromByteArray(bytes.slice(0, 2))
     val (protoTypeBytes, protoTypeEnd) = Deser.parseArraySize(bytes, 2)
     val returnType = protoTypeBytes.head
     val listParaTypes = protoTypeBytes.tail
     val (listOpcodesBytes, listOpcodesEnd) = Deser.parseArraySize(bytes, protoTypeEnd)
     val listOpcodes = Deser.parseArrays(listOpcodesBytes)
-    val listVarNames = Deser.deserializeShorts(bytes.slice(listOpcodesEnd, bytes.length))
+    val listVarNamesBytes = Deser.parseArrays(bytes.slice(listOpcodesEnd, bytes.length))
+    val listVarNames = listVarNamesBytes.map(x => Deser.deserilizeString(x))
     (funcIdx, returnType, listParaTypes, listOpcodes, listVarNames)
   }
 
