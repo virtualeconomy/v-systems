@@ -146,7 +146,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  minting {
         |    VSYS = 100000
         |  }
-        |  create-contract{
+        |  register-contract{
         |    VSYS = 20000000
         |  }
         |  change-contract-status{

@@ -8,6 +8,8 @@ import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import vsys.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
+import vsys.contract.{Contract, DataEntry}
+
 
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {
 
@@ -67,10 +69,31 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
 
-  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
-    txDiff.contracts.get(name)
-      .map(t=>(t._1, t._2.bytes, t._3))
-      .orElse(inner.contractContent(name))
+  override def contractContent(id: ByteStr): Option[(Int, Contract)] =
+    txDiff.contracts.get(id)
+      .map(t => (t._1, t._2))
+      .orElse(inner.contractContent(id))
+
+  override def contractInfo(id: ByteStr): Option[DataEntry] =
+    txDiff.contractDB.get(id)
+      .map(t => DataEntry.fromBytes(t).right.get)
+      .orElse(inner.contractInfo(id))
+
+  override def contractTokens(id: ByteStr): Option[Int] =
+    txDiff.contractTokens.get(id)
+      .map(t => t + inner.contractTokens(id).get)
+      .orElse(inner.contractTokens(id))
+
+  override def tokenInfo(id: ByteStr): Option[DataEntry] = {
+    txDiff.tokenDB.get(id)
+      .map(t => DataEntry.fromBytes(t).right.get)
+      .orElse(inner.tokenInfo(id))
+  }
+
+  override def tokenAccountBalance(id: ByteStr): Option[Long] =
+    txDiff.tokenAccountBalance.get(id)
+      .map(t => safeSum(t, inner.tokenAccountBalance(id).get))
+      .orElse(inner.tokenAccountBalance(id))
 
   override def dbGet(key: ByteStr): Option[ByteStr] =
     txDiff.dbEntries.get(key).map(v=>v.bytes)
@@ -122,8 +145,20 @@ object CompositeStateReader {
     override def resolveAlias(a: Alias): Option[Address] =
       new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
 
-    override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
-      new CompositeStateReader(inner, blockDiff()).contractContent(name)
+    override def contractContent(id: ByteStr): Option[(Int, Contract)] =
+      new CompositeStateReader(inner, blockDiff()).contractContent(id)
+
+    override def contractInfo(id: ByteStr): Option[DataEntry] =
+      new CompositeStateReader(inner, blockDiff()).contractInfo(id)
+
+    override def contractTokens(id: ByteStr): Option[Int] =
+      new CompositeStateReader(inner, blockDiff()).contractTokens(id)
+
+    override def tokenInfo(id: ByteStr): Option[DataEntry] =
+      new CompositeStateReader(inner, blockDiff()).tokenInfo(id)
+
+    override def tokenAccountBalance(id: ByteStr): Option[Long] =
+      new CompositeStateReader(inner, blockDiff()).tokenAccountBalance(id)
 
     override def dbGet(key: ByteStr): Option[ByteStr] =
       new CompositeStateReader(inner, blockDiff()).dbGet(key)

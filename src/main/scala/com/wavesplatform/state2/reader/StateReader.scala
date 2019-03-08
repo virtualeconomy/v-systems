@@ -2,13 +2,14 @@ package com.wavesplatform.state2.reader
 
 import com.google.common.base.Charsets
 import com.wavesplatform.state2._
-import scorex.account.{AddressOrAlias, Address, Alias}
+import scorex.account.{Address, AddressOrAlias, Alias}
 import scorex.transaction.ValidationError.AliasNotExists
 import scorex.transaction._
 import vsys.transaction._
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.lease.LeaseTransaction
 import scorex.utils.{ScorexLogging, Synchronized}
+import vsys.contract.{Contract, DataEntry}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -40,7 +41,15 @@ trait StateReader extends Synchronized {
 
   def resolveAlias(a: Alias): Option[Address]
 
-  def contractContent(name: String): Option[(Boolean, ByteStr, String)]
+  def contractContent(id: ByteStr): Option[(Int, Contract)]
+
+  def contractInfo(id: ByteStr): Option[DataEntry]
+
+  def contractTokens(id: ByteStr): Option[Int]
+
+  def tokenInfo(id: ByteStr): Option[DataEntry]
+
+  def tokenAccountBalance(id: ByteStr): Option[Long]
 
   def dbGet(key: ByteStr): Option[ByteStr]
 

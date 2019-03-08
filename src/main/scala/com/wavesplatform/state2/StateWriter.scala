@@ -4,8 +4,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.Monoid
 import cats.implicits._
+import com.google.common.primitives.Longs
 import com.wavesplatform.state2.reader.StateReaderImpl
 import scorex.utils.ScorexLogging
+import vsys.contract.{DataEntry, DataType}
 
 import scala.language.higherKinds
 
@@ -95,8 +97,49 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     }
 
     measureSizeLog("contracts")(blockDiff.txsDiff.contracts) {
-      _.foreach { case (name, (status, account, content)) =>
-        sp().contracts.put(name, (status, account.bytes, content))
+      _.foreach { case (id, (h, contract, _)) =>
+        sp().contracts.put(id, (h, contract.bytes.arr))
+      }
+    }
+
+    measureSizeLog("accountContractIds")(blockDiff.txsDiff.accountContractIds) {
+      _.foreach { case (acc, ctIds) =>
+        val startIdxShift = sp().accountContractsLengths.getOrDefault(acc.bytes, 0)
+        ctIds.reverse.foldLeft(startIdxShift) { case (shift, ctId) =>
+          sp().accountContractIds.put(accountIndexKey(acc, shift), ctId)
+          shift + 1
+        }
+        sp().accountContractsLengths.put(acc.bytes, startIdxShift + ctIds.length)
+      }
+    }
+
+    measureSizeLog("contractDB")(blockDiff.txsDiff.contractDB) {
+      _.foreach { case (id, contractData) =>
+        sp().contractDB.put(id, contractData)
+      }
+    }
+
+    measureSizeLog("contractTokens")(blockDiff.txsDiff.contractTokens) {
+      _.foreach { case (id, tokenNum) =>
+        Option(sp().contractTokens.get(id)) match {
+          case Some(num) => sp().contractTokens.put(id, num + tokenNum)
+          case None => sp().contractTokens.put(id, tokenNum)
+        }
+      }
+    }
+
+    measureSizeLog("tokenDB")(blockDiff.txsDiff.tokenDB) {
+      _.foreach { case (id, tokeninfo) =>
+        Option(sp().tokenDB.put(id, tokeninfo))
+      }
+    }
+
+    measureSizeLog("tokenAccountBalance")(blockDiff.txsDiff.tokenAccountBalance) {
+      _.foreach { case (id, balance) =>
+        Option(sp().tokenAccountBalance.get(id)) match {
+          case Some(bl) => sp().tokenAccountBalance.put(id, safeSum(bl, balance))
+          case None => sp().tokenAccountBalance.put(id, balance)
+        }
       }
     }
 
@@ -115,7 +158,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       _.foreach {
         case (id, acc) => acc.length match {
           case 0 => sp().releaseSlotAddress(id)
-          case _ => sp ().setSlotAddress (id, acc)
+          case _ => sp().setSlotAddress(id, acc)
         }
       })
 
@@ -141,6 +184,11 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().addressToID.clear()
     sp().dbEntries.clear()
     sp().contracts.clear()
+    sp().accountContractIds.clear()
+    sp().accountContractsLengths.clear()
+    sp().contractDB.clear()
+    sp().contractTokens.clear()
+    sp().tokenAccountBalance.clear()
     sp().setHeight(0)
     sp().commit()
   }
