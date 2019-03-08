@@ -6,6 +6,7 @@ import scorex.account.Address
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.contract.{DataEntry, DataType}
+import vsys.transaction.contract.ExecuteContractTransaction
 
 import scala.util.{Left, Right}
 
@@ -49,6 +50,14 @@ object AssertOpcDiff {
       Right(Diff.empty)
     else
       Left(GenericError(s"Invalid Assert (eq): DataEntry $add1 is not equal to $add2"))
+  }
+
+  def intxsigners(tx: ExecuteContractTransaction)(add: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (add.dataType == DataType.Address && (add.data sameElements tx.proofs.proofs.head.bytes.arr))
+      Right(OpcDiff.empty)
+    else
+      Left(GenericError(s"Address $add does not equal Signer's address"))
+
   }
 
   object AssertType extends Enumeration {
