@@ -6,7 +6,7 @@ import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
 import scorex.serialization.Deser
 import scorex.transaction.{Transaction, ValidationError}
 import scorex.utils.ScorexLogging
-import vsys.contract.DataEntry
+import vsys.contract.{ContractContext, DataEntry}
 
 import scala.util.Try
 
@@ -15,34 +15,20 @@ object OpcFuncDiffer extends ScorexLogging {
 
   def right(diff: OpcDiff): Either[ValidationError, OpcDiff] = Right(diff)
 
-  def apply(s: StateReader, height: Int, tx: Transaction)(opcfuncs: Seq[Array[Byte]],
-                                                          dataStack: Seq[DataEntry]): Either[ValidationError,
-    OpcDiff] = {
-    val opcDiffEi = opcfuncs.foldLeft(right(OpcDiff.empty)) { case (ei, opcfunc) => ei.flatMap(opcDiff => {
-      val blockDiff = opcDiff.asBlockDiff(height, tx)
-      opcFuncDiffer(new CompositeStateReader(s, blockDiff), height, tx)(opcfunc, dataStack) match {
-        case Right(newOpcDiff) => if (newOpcDiff == opcDiff) Right(newOpcDiff)
-        else Left(TransactionValidationError(ValidationError.InvalidContract, tx))
-        case Left(l) => Left(l)
-      }
-    })
-    }
-    opcDiffEi.map {d => d}
-  }
-
-  private def opcFuncDiffer(s: StateReader,
-                            height: Int,
-                            tx: Transaction)(opc: Array[Byte],
-                                             dataStack: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
-    val (_, _, listParaTypes, listOpcodes, _) = fromBytes(opc).get
-    if (listParaTypes.toSeq != dataStack.map(_.dataType.id)) {
+  def apply(contractContext: ContractContext)(data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    val opcFunc = contractContext.opcFunc
+    val height = contractContext.height
+    val tx = contractContext.transaction
+    val s = contractContext.state
+    val (_, _, listParaTypes, listOpcLines, _) = fromBytes(opcFunc).get
+    if (listParaTypes.toSeq != data.map(_.dataType.id)) {
       Left(ValidationError.InvalidDataEntry)
-    } else if (listOpcodes.forall(_.length >= 2)) {
+    } else if (listOpcLines.forall(_.length >= 2)) {
       Left(ValidationError.InvalidContract)
     } else {
-      listOpcodes.foldLeft(right(OpcDiff.empty)) { case (ei, opcode) => ei.flatMap(opcDiff => {
+      listOpcLines.foldLeft(right(OpcDiff.empty)) { case (ei, opc) => ei.flatMap(opcDiff => {
         val blockDiff = opcDiff.asBlockDiff(height, tx)
-        OpcDiffer(new CompositeStateReader(s, blockDiff), tx)(opcode, dataStack) match {
+        OpcDiffer(new CompositeStateReader(s, blockDiff), tx)(opc, data) match {
           case Right(newOpcDiff) => if (newOpcDiff == opcDiff) Right(newOpcDiff)
           else Left(TransactionValidationError(ValidationError.InvalidContract, tx))
           case Left(l) => Left(l)
@@ -50,6 +36,7 @@ object OpcFuncDiffer extends ScorexLogging {
       })}
     }
     Right(OpcDiff.empty)
+
   }
 
   private def fromBytes(bytes: Array[Byte]): Try[(Short, Byte, Array[Byte], Seq[Array[Byte]], Seq[String])] = Try {
@@ -57,11 +44,11 @@ object OpcFuncDiffer extends ScorexLogging {
     val (protoTypeBytes, protoTypeEnd) = Deser.parseArraySize(bytes, 2)
     val returnType = protoTypeBytes.head
     val listParaTypes = protoTypeBytes.tail
-    val (listOpcodesBytes, listOpcodesEnd) = Deser.parseArraySize(bytes, protoTypeEnd)
-    val listOpcodes = Deser.parseArrays(listOpcodesBytes)
-    val listVarNamesBytes = Deser.parseArrays(bytes.slice(listOpcodesEnd, bytes.length))
+    val (listOpcLinesBytes, listOpcLinesEnd) = Deser.parseArraySize(bytes, protoTypeEnd)
+    val listOpcLines = Deser.parseArrays(listOpcLinesBytes)
+    val listVarNamesBytes = Deser.parseArrays(bytes.slice(listOpcLinesEnd, bytes.length))
     val listVarNames = listVarNamesBytes.map(x => Deser.deserilizeString(x))
-    (funcIdx, returnType, listParaTypes, listOpcodes, listVarNames)
+    (funcIdx, returnType, listParaTypes, listOpcLines, listVarNames)
   }
 
 }

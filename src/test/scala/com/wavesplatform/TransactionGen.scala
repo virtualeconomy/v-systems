@@ -285,7 +285,7 @@ trait TransactionGen {
     feeScale: Short <- feeScaleGen
   } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp).right.get
 
-  val executeContractGen: Gen[ExecuteContractTransaction] = for {
+  val executeContractGen: Gen[ExecuteContractFunctionTransaction] = for {
     sender: PrivateKeyAccount <- accountGen
     contract: Contract <- contractGen
     fee: Long <- smallFeeGen
@@ -298,10 +298,10 @@ trait TransactionGen {
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     timestamp2: Long <- positiveLongGen
-    entryPoints: Array[Byte] <- genBoundedString(0, 10 + 0)
-    dataStack: Seq[DataEntry] <- dataEntryGen
+    funcIdx: Short <- positiveShortGen
+    data: Seq[DataEntry] <- dataEntryGen
     description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
-  } yield ExecuteContractTransaction.create(otherSender, contractTx.contractId, entryPoints, dataStack, description, fee2, feeScale2, timestamp2).right.get
+  } yield ExecuteContractFunctionTransaction.create(otherSender, contractTx.contractId, funcIdx, data, description, fee2, feeScale2, timestamp2).right.get
 
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen
