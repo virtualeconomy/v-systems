@@ -1,33 +1,24 @@
 package vsys.db
 
-import org.iq80.leveldb.DBFactory
 import scorex.utils.ScorexLogging
+import org.iq80.leveldb.DBFactory
+
+import scala.util.Try
 
 object LevelDBFactory extends ScorexLogging {
+  private val nativeFactory = "org.fusesource.leveldbjni.JniDBFactory"
   private val javaFactory   = "org.iq80.leveldb.impl.Iq80DBFactory"
 
-  lazy val factory: DBFactory = load
+  lazy val factory: DBFactory = {
+    val pairs = for {
+      loader      <- List(ClassLoader.getSystemClassLoader, this.getClass.getClassLoader).view
+      factoryName <- List(nativeFactory, javaFactory)
+      factory     <- Try(loader.loadClass(factoryName).getConstructor().newInstance().asInstanceOf[DBFactory]).toOption
+    } yield (factoryName, factory)
 
-  private def load: DBFactory = {
-    val loaders = Seq(ClassLoader.getSystemClassLoader, this.getClass.getClassLoader)
-
-    val names = Seq(javaFactory)
-
-    val pairs = names.flatMap(x => loaders.map(y => (x, y)))
-
-    pairs.view
-      .flatMap {
-        case (name, loader) =>
-          try {
-            val c = loader.loadClass(name).getConstructor().newInstance().asInstanceOf[DBFactory]
-            log.trace(s"Loaded ${c.getClass.getName} with $loader")
-            Some(c)
-          } catch {
-            case _: Throwable =>
-              None
-          }
-      }
-      .headOption
-      .getOrElse(throw new Exception(s"Could not load the factory classes: $javaFactory"))
+    val (fName, f) = pairs.headOption.getOrElse(throw new Exception(s"Could not load any of the factory classes: $nativeFactory, $javaFactory"))
+    if (fName == javaFactory) log.info("Using the pure java LevelDB implementation which is still experimental")
+    else log.trace(s"Loaded $fName with $f")
+    f
   }
 }
