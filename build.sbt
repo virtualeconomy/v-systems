@@ -21,6 +21,7 @@ scalacOptions ++= Seq(
 logBuffered := false
 
 fork in run := true
+Test / fork := true
 
 //assembly settings
 assemblyJarName in assembly := s"vsys-all-${version.value}.jar"
