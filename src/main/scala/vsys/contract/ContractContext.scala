@@ -2,15 +2,16 @@ package vsys.contract
 
 import com.wavesplatform.state2.reader.StateReader
 import scorex.account.PublicKeyAccount
-import scorex.transaction.{Transaction, ValidationError}
+import scorex.transaction.ValidationError
 import vsys.account.ContractAccount
+import vsys.transaction.ProvenTransaction
 import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.transaction.proof.EllipticCurve25519Proof
 
 case class ContractContext(signers: Seq[PublicKeyAccount],
                            state: StateReader,
                            height: Int,
-                           transaction: Transaction,
+                           transaction: ProvenTransaction,
                            contractId: ContractAccount,
                            opcFunc: Array[Byte],
                            description: Array[Byte]) {
