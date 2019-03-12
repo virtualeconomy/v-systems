@@ -2,11 +2,10 @@ package com.wavesplatform.state2
 
 import cats.Monoid
 import cats.implicits._
-import com.google.common.primitives.Longs
 import scorex.account.{Address, Alias}
 import vsys.database.Entry
 import scorex.transaction.Transaction
-import vsys.contract.{Contract, DataEntry, DataType}
+import vsys.contract.Contract
 import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long, weightedBalance: Long)

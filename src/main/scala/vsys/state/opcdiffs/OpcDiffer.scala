@@ -1,8 +1,7 @@
 package vsys.state.opcdiffs
 
-import com.wavesplatform.state2.reader.StateReader
-import scorex.transaction.{Transaction, ValidationError}
-import vsys.contract.DataEntry
+import scorex.transaction.ValidationError
+import vsys.contract.{ContractContext, DataEntry}
 import vsys.state.opcdiffs.AssertOpcDiff.AssertType
 import vsys.state.opcdiffs.AssertOpcDiff._
 
@@ -13,17 +12,17 @@ object OpcDiffer {
     val LoadOpc = Value(2)
   }
 
-  def apply(s: StateReader,
-            tx: Transaction)(opc: Array[Byte],
-                             dataStack: Seq[DataEntry]): Either[ValidationError, OpcDiff] = opc.head match {
+  def apply(contractContext: ContractContext)
+           (opc: Array[Byte],
+            data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = opc.head match {
     case opcType: Byte if opcType == OpcType.AssertOpc.id => opc(1) match {
       case assertType: Byte if assertType == AssertType.GteqZeroAssert.id =>
-        gtEq0(dataStack(opc(2)))
+        Right((gtEq0(data(opc(2))).right.get, data))
     }
 
     case opcType: Byte if opcType == OpcType.LoadOpc.id => opc(1) match {
       case assertType: Byte if assertType == AssertType.GteqZeroAssert.id =>
-        gtEq0(dataStack(opc(2)))
+        Right((gtEq0(data(opc(2))).right.get, data))
     }
 
   }

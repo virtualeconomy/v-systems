@@ -33,7 +33,7 @@ class RegisterContractTransactionSpecification extends PropSpec with PropertyChe
     first.contract.initializer shouldEqual second.contract.initializer
     first.contract.languageCode shouldEqual second.contract.languageCode
     first.contract.languageVersion shouldEqual second.contract.languageVersion
-    first.dataStack.flatMap(_.bytes).toArray shouldEqual second.dataStack.flatMap(_.bytes).toArray
+    first.data.flatMap(_.bytes).toArray shouldEqual second.data.flatMap(_.bytes).toArray
     first.description shouldEqual second.description
   }
 }

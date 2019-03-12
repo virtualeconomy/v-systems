@@ -4,12 +4,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.Monoid
 import cats.implicits._
-import com.google.common.primitives.Longs
 import com.wavesplatform.state2.reader.StateReaderImpl
 import scorex.utils.ScorexLogging
-import vsys.contract.{DataEntry, DataType}
 
 import scala.language.higherKinds
+
 
 trait StateWriter {
   def applyBlockDiff(blockDiff: BlockDiff): Unit

@@ -1,10 +1,13 @@
 package com.wavesplatform.state2.diffs
 
+import cats.implicits._
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
+import vsys.contract.ContractContext
+import vsys.state.opcdiffs.OpcFuncDiffer
 import vsys.transaction.contract.RegisterContractTransaction
 import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
@@ -21,6 +24,9 @@ object RegisterContractTransactionDiff {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       val issuer = Deser.serializeArrays(Seq(sender.toAddress.bytes.arr))
       val contractInfo = (height, tx.contract, Set(sender.toAddress))
+      //val contractContext = ContractContext.fromRegConTx(s, height, tx).right.get
+      //val opcDiff = OpcFuncDiffer(contractContext)(tx.data).right.get
+      //val diff  = opcDiff.asTransactionDiff(height, tx)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
         contracts = Map(tx.contractId.bytes -> contractInfo),

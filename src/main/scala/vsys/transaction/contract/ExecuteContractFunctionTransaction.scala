@@ -16,14 +16,14 @@ import vsys.transaction.ProvenTransaction
 
 import scala.util.{Failure, Success, Try}
 
-case class ExecuteContractFunctionTransaction(contractId: ContractAccount,
-                                              funcIdx: Short,
-                                              data: Seq[DataEntry],
-                                              description: Array[Byte],
-                                              fee: Long,
-                                              feeScale: Short,
-                                              timestamp: Long,
-                                              proofs: Proofs)
+case class ExecuteContractFunctionTransaction private(contractId: ContractAccount,
+                                                      funcIdx: Short,
+                                                      data: Seq[DataEntry],
+                                                      description: Array[Byte],
+                                                      fee: Long,
+                                                      feeScale: Short,
+                                                      timestamp: Long,
+                                                      proofs: Proofs)
   extends ProvenTransaction {
 
   override val transactionType: TransactionType.Value = TransactionType.ExecuteContractFunctionTransaction

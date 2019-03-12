@@ -15,10 +15,11 @@ sealed trait Contract {
 
   lazy val stringRepr: String = Contract.Prefix + Base58.encode(languageCode) + ":" + Base58.encode(languageVersion)
   lazy val bytes: ByteStr = ByteStr(languageCode ++ languageVersion ++ Deser.serializeArray(initializer)
-    ++ Deser.serializeArrays(descriptor))
+    ++ Deser.serializeArray(Deser.serializeArrays(descriptor)) ++ Deser.serializeArrays(textual))
 
   val initializer: Array[Byte]
   val descriptor: Seq[Array[Byte]]
+  val textual: Seq[Array[Byte]]
   val languageCode: Array[Byte]
   val languageVersion: Array[Byte]
 
@@ -26,7 +27,8 @@ sealed trait Contract {
     "languageCode" -> Ints.fromByteArray(languageCode),
     "languageVersion" -> Ints.fromByteArray(languageVersion),
     "initializer" -> Base58.encode(initializer),
-    "descriptor" -> Base58.encode(Deser.serializeArrays(descriptor))
+    "descriptor" -> Base58.encode(Deser.serializeArrays(descriptor)),
+    "textual" -> Base58.encode(Deser.serializeArrays(textual))
   )
 }
 
@@ -36,21 +38,25 @@ object Contract {
 
   val MinContractByteSize = 8
   val MinContractStringSize: Int = base58Length(MinContractByteSize)
+  val LanguageCodeByteLength = 4
+  val LanguageVersionByteLength = 4
 
   def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte], initializer: Array[Byte],
-                    descriptor: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
+                    descriptor: Seq[Array[Byte]], textual: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
     case class ContractImpl(languageCode: Array[Byte], languageVersion: Array[Byte], initializer: Array[Byte],
-                            descriptor: Seq[Array[Byte]]) extends Contract
-    Right(ContractImpl(languageCode, languageVersion, initializer, descriptor))
+                            descriptor: Seq[Array[Byte]], textual: Seq[Array[Byte]]) extends Contract
+    Right(ContractImpl(languageCode, languageVersion, initializer, descriptor, textual))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Contract] = {
     if (isByteArrayValid(bytes)) {
-      val languageCode = bytes.slice(0, 0 + 4)
-      val languageVersion = bytes.slice(4 + 0, 4 + 4)
-      val (initializer, initializerEnd) = Deser.parseArraySize(bytes, 4 + 4)
-      val descriptor = Deser.parseArrays(bytes.slice(initializerEnd, bytes.length))
-      buildContract(languageCode, languageVersion, initializer, descriptor)
+      val languageCode = bytes.slice(0, LanguageCodeByteLength)
+      val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
+      val (initializer, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
+      val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
+      val descriptor = Deser.parseArrays(descriptorBytes)
+      val textual = Deser.parseArrays(bytes.slice(descriptorEnd, bytes.length))
+      buildContract(languageCode, languageVersion, initializer, descriptor, textual)
     } else {
       Left(InvalidContract)
     }

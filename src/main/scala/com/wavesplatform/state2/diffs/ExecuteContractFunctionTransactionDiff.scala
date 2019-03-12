@@ -1,5 +1,6 @@
 package com.wavesplatform.state2.diffs
 
+import cats.implicits._
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError
@@ -18,12 +19,9 @@ object ExecuteContractFunctionTransactionDiff {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       val contractContext = ContractContext.fromExeConTx(s, height, tx).right.get
       val opcDiff = OpcFuncDiffer(contractContext)(tx.data).right.get
-      Diff(height = height, tx = tx)
+      val diff = opcDiff.asTransactionDiff(height, tx)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        contractDB = opcDiff.contractDB,
-        contractTokens = opcDiff.contractTokens,
-        tokenAccountBalance = opcDiff.tokenAccountBalance,
         chargedFee = tx.fee
       ))
     }
