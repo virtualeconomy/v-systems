@@ -8,15 +8,15 @@ import scorex.transaction.TransactionParser.TransactionType
 
 import scala.util.Try
 
-class ExecuteContractTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
+class ExecuteContractFunctionTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 
-  def parseBytes(bytes: Array[Byte]): Try[ExecuteContractTransaction] = Try {
-    require(bytes.head == TransactionType.ExecuteContractTransaction.id)
-    ExecuteContractTransaction.parseTail(bytes.tail).get
+  def parseBytes(bytes: Array[Byte]): Try[ExecuteContractFunctionTransaction] = Try {
+    require(bytes.head == TransactionType.ExecuteContractFunctionTransaction.id)
+    ExecuteContractFunctionTransaction.parseTail(bytes.tail).get
   }
 
   property("ExecuteContractTransaction serialization roundtrip") {
-    forAll(executeContractGen) { tx: ExecuteContractTransaction =>
+    forAll(executeContractGen) { tx: ExecuteContractFunctionTransaction =>
       val recovered = parseBytes(tx.bytes).get
 
       assertTxs(recovered, tx)
@@ -24,17 +24,17 @@ class ExecuteContractTransactionSpecification extends PropSpec with PropertyChec
   }
 
   property("ExecuteContractTransaction serialization from TypedTransaction") {
-    forAll(executeContractGen) { tx: ExecuteContractTransaction =>
+    forAll(executeContractGen) { tx: ExecuteContractFunctionTransaction =>
       val recovered = TransactionParser.parseBytes(tx.bytes).get
 
-      assertTxs(recovered.asInstanceOf[ExecuteContractTransaction], tx)
+      assertTxs(recovered.asInstanceOf[ExecuteContractFunctionTransaction], tx)
     }
   }
 
-  private def assertTxs(first: ExecuteContractTransaction, second: ExecuteContractTransaction): Unit = {
+  private def assertTxs(first: ExecuteContractFunctionTransaction, second: ExecuteContractFunctionTransaction): Unit = {
     first.contractId.bytes.arr shouldEqual second.contractId.bytes.arr
-    first.entryPoints shouldEqual second.entryPoints
-    first.dataStack.flatMap(_.bytes).toArray shouldEqual second.dataStack.flatMap(_.bytes).toArray
+    first.funcIdx shouldEqual second.funcIdx
+    first.data.flatMap(_.bytes).toArray shouldEqual second.data.flatMap(_.bytes).toArray
     first.description shouldEqual second.description
     first.fee shouldEqual second.fee
     first.feeScale shouldEqual second.feeScale

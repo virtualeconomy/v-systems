@@ -16,23 +16,23 @@ import vsys.transaction.ProvenTransaction
 
 import scala.util.{Failure, Success, Try}
 
-case class ExecuteContractTransaction (contractId: ContractAccount,
-                                       entryPoints: Array[Byte],
-                                       dataStack: Seq[DataEntry],
-                                       description: Array[Byte],
-                                       fee: Long,
-                                       feeScale: Short,
-                                       timestamp: Long,
-                                       proofs: Proofs)
+case class ExecuteContractFunctionTransaction private(contractId: ContractAccount,
+                                                      funcIdx: Short,
+                                                      data: Seq[DataEntry],
+                                                      description: Array[Byte],
+                                                      fee: Long,
+                                                      feeScale: Short,
+                                                      timestamp: Long,
+                                                      proofs: Proofs)
   extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.ExecuteContractTransaction
+  override val transactionType: TransactionType.Value = TransactionType.ExecuteContractFunctionTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     contractId.bytes.arr,
-    BytesSerializable.arrayWithSize(entryPoints),
-    Deser.serializeArray(dataStack.flatMap(_.bytes).toArray),
+    Shorts.toByteArray(funcIdx),
+    Deser.serializeArray(data.flatMap(_.bytes).toArray),
     BytesSerializable.arrayWithSize(description),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
@@ -41,8 +41,8 @@ case class ExecuteContractTransaction (contractId: ContractAccount,
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contractId" -> contractId.address,
-    "entryPoints" -> Base58.encode(entryPoints),
-    "dataStack" -> Base58.encode(dataStack.flatMap(_.bytes).toArray),
+    "funcIdx" -> funcIdx,
+    "data" -> Base58.encode(data.flatMap(_.bytes).toArray),
     "description" -> Base58.encode(description),
     "fee" -> fee,
     "feeScale" -> feeScale,
@@ -54,35 +54,35 @@ case class ExecuteContractTransaction (contractId: ContractAccount,
 
 }
 
-object ExecuteContractTransaction {
+object ExecuteContractFunctionTransaction {
 
   val MaxDescriptionSize = 140
   val maxDescriptionStringSize: Int = base58Length(MaxDescriptionSize)
 
-  def parseTail(bytes: Array[Byte]): Try[ExecuteContractTransaction] = Try {
+  def parseTail(bytes: Array[Byte]): Try[ExecuteContractFunctionTransaction] = Try {
     val contractId = ContractAccount.fromBytes(bytes.slice(0, ContractAccount.AddressLength)).right.get
-    val (entryPoints, entryPointsEnd) = Deser.parseArraySize(bytes, ContractAccount.AddressLength)
-    val (dataStackBytes, dataStackEnd) = Deser.parseArraySize(bytes, entryPointsEnd)
-    val dataStack = DataEntry.fromArrayBytes(dataStackBytes).right.get
-    val (description, descriptionEnd) = Deser.parseArraySize(bytes, dataStackEnd)
+    val funcIdx = Shorts.fromByteArray(bytes.slice(ContractAccount.AddressLength, ContractAccount.AddressLength + 2))
+    val (dataBytes, dataEnd) = Deser.parseArraySize(bytes, ContractAccount.AddressLength + 2)
+    val data = DataEntry.fromArrayBytes(dataBytes).right.get
+    val (description, descriptionEnd) = Deser.parseArraySize(bytes, dataEnd)
     val fee = Longs.fromByteArray(bytes.slice(descriptionEnd, descriptionEnd + 8))
     val feeScale = Shorts.fromByteArray(bytes.slice(descriptionEnd + 8, descriptionEnd + 10))
     val timestamp = Longs.fromByteArray(bytes.slice(descriptionEnd + 10, descriptionEnd + 18))
     (for {
       proofs <- Proofs.fromBytes(bytes.slice(descriptionEnd + 18, bytes.length))
-      tx <- ExecuteContractTransaction.createWithProof(contractId, entryPoints,
-        dataStack, description, fee, feeScale, timestamp, proofs)
+      tx <- ExecuteContractFunctionTransaction.createWithProof(contractId, funcIdx,
+        data, description, fee, feeScale, timestamp, proofs)
     } yield tx).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
   def createWithProof(contractId: ContractAccount,
-                      entryPoints: Array[Byte],
-                      dataStack: Seq[DataEntry],
+                      funcIdx: Short,
+                      data: Seq[DataEntry],
                       description: Array[Byte],
                       fee: Long,
                       feeScale: Short,
                       timestamp: Long,
-                      proofs: Proofs): Either[ValidationError, ExecuteContractTransaction] =
+                      proofs: Proofs): Either[ValidationError, ExecuteContractFunctionTransaction] =
     if (description.length > MaxDescriptionSize) {
       Left(ValidationError.TooBigArray)
     } else if (fee <= 0) {
@@ -90,32 +90,32 @@ object ExecuteContractTransaction {
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(ExecuteContractTransaction(contractId, entryPoints, dataStack, description, fee, feeScale, timestamp, proofs))
+      Right(ExecuteContractFunctionTransaction(contractId, funcIdx, data, description, fee, feeScale, timestamp, proofs))
     }
 
   def create(sender: PrivateKeyAccount,
              contractId: ContractAccount,
-             entryPoints: Array[Byte],
-             dataStack: Seq[DataEntry],
+             funcIdx: Short,
+             data: Seq[DataEntry],
              description: Array[Byte],
              fee: Long,
              feeScale: Short,
-             timestamp: Long): Either[ValidationError, ExecuteContractTransaction] = for {
-    unsigned <- createWithProof(contractId, entryPoints, dataStack, description, fee, feeScale, timestamp, Proofs.empty)
+             timestamp: Long): Either[ValidationError, ExecuteContractFunctionTransaction] = for {
+    unsigned <- createWithProof(contractId, funcIdx, data, description, fee, feeScale, timestamp, Proofs.empty)
     proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
-    tx <- createWithProof(contractId, entryPoints, dataStack, description, fee, feeScale, timestamp, proofs)
+    tx <- createWithProof(contractId, funcIdx, data, description, fee, feeScale, timestamp, proofs)
   } yield tx
 
   def create(sender: PublicKeyAccount,
              contractId: ContractAccount,
-             entryPoints: Array[Byte],
-             dataStack: Seq[DataEntry],
+             funcIdx: Short,
+             data: Seq[DataEntry],
              description: Array[Byte],
              fee: Long,
              feeScale: Short,
              timestamp: Long,
-             signature: ByteStr): Either[ValidationError, ExecuteContractTransaction] = for {
+             signature: ByteStr): Either[ValidationError, ExecuteContractFunctionTransaction] = for {
     proofs <- Proofs.create(List(EllipticCurve25519Proof.buildProof(sender, signature).bytes))
-    tx <- createWithProof(contractId, entryPoints, dataStack, description, fee, feeScale, timestamp, proofs)
+    tx <- createWithProof(contractId, funcIdx, data, description, fee, feeScale, timestamp, proofs)
   } yield tx
 }

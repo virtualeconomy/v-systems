@@ -8,9 +8,9 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.GenesisTransaction
-import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, RegisterContractTransaction}
+import vsys.transaction.contract.RegisterContractTransaction
 import com.wavesplatform.state2.diffs.{produce, _}
-import vsys.contract.{Contract, DataEntry}
+import vsys.contract.DataEntry
 import vsys.transaction.proof.EllipticCurve25519Proof
 
 class ContractTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -24,13 +24,13 @@ class ContractTransactionDiffTest extends PropSpec with PropertyChecks with Gene
     ts <- positiveIntGen
     contract1 <- contractGen
     contract2 <- contractGen
-    dataStack: Seq[DataEntry] <- dataEntryGen
+    data: Seq[DataEntry] <- dataEntryGen
     description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts + 1).right.get
-    create2: RegisterContractTransaction = RegisterContractTransaction.create(master, contract2, dataStack, description, fee, feeScale, ts + 2).right.get
+    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).right.get
+    create2: RegisterContractTransaction = RegisterContractTransaction.create(master, contract2, data, description, fee, feeScale, ts + 2).right.get
   } yield (genesis, create1, create2, create1.fee)
 
   property("register contract transaction doesn't break invariant") {

@@ -16,7 +16,7 @@ object OpcDiff {
   def apply(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
             contractTokens: Map[ByteStr, Int] = Map.empty,
             tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
-            tokenAccountBalance: Map[ByteStr, Long] = Map.empty): OpcDiff = new OpcDiff(
+            tokenAccountBalance: Map[ByteStr, Long] = Map.empty): OpcDiff = OpcDiff(
     contractDB = contractDB,
     contractTokens = contractTokens,
     tokenDB = tokenDB,

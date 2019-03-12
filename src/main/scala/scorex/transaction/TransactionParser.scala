@@ -3,7 +3,7 @@ package scorex.transaction
 import com.wavesplatform.utils.base58Length
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
-import vsys.transaction.contract.{ChangeContractStatusTransaction, ExecuteContractTransaction, RegisterContractTransaction}
+import vsys.transaction.contract.{ChangeContractStatusTransaction, ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.transaction.MintingTransaction
@@ -30,7 +30,7 @@ object TransactionParser {
     val BurnTransaction = Value(14)
     val ExchangeTransaction = Value(15)
     val CreateAliasTransaction = Value(16)
-    val ExecuteContractTransaction = Value(17)
+    val ExecuteContractFunctionTransaction = Value(17)
   }
 
   val TimestampLength = 8
@@ -89,8 +89,8 @@ object TransactionParser {
       case txType: Byte if txType == TransactionType.ChangeContractStatusTransaction.id =>
         ChangeContractStatusTransaction.parseTail(data.tail)
 
-      case txType: Byte if txType == TransactionType.ExecuteContractTransaction.id =>
-        ExecuteContractTransaction.parseTail(data.tail)
+      case txType: Byte if txType == TransactionType.ExecuteContractFunctionTransaction.id =>
+        ExecuteContractFunctionTransaction.parseTail(data.tail)
 
       case txType: Byte if txType == TransactionType.DbPutTransaction.id =>
         DbPutTransaction.parseTail(data.tail)
