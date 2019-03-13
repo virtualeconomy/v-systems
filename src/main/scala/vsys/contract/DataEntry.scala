@@ -26,11 +26,11 @@ object DataEntry {
 
   def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
     dataType match {
-      case DataType.PublicKeyAccount if data.length == KeyLength => Right(DataEntry(data, dataType))
+      case DataType.PublicKey if data.length == KeyLength => Right(DataEntry(data, dataType))
       case DataType.Address if Address.fromBytes(data).isRight => Right(DataEntry(data, dataType))
       case DataType.Amount if data.length == AmountLength && Longs.fromByteArray(data) >= 0 => Right(DataEntry(data, dataType))
-      case DataType.Index if data.length == 4 && Ints.fromByteArray(data) >= 0 => Right(DataEntry(data, dataType))
-      case DataType.Description if Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length
+      case DataType.Int32 if data.length == 4 && Ints.fromByteArray(data) >= 0 => Right(DataEntry(data, dataType))
+      case DataType.ShortText if Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length
         && data.length <= 2 + MaxDescriptionSize => Right(DataEntry(data.slice(2, data.length), dataType))
       case _ => Left(InvalidDataEntry)
     }
@@ -40,11 +40,11 @@ object DataEntry {
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, DataEntry] = {
 
     DataType.fromByte(bytes(0)) match {
-      case Some(DataType.PublicKeyAccount) => create(bytes.tail, DataType.PublicKeyAccount)
+      case Some(DataType.PublicKey) => create(bytes.tail, DataType.PublicKey)
       case Some(DataType.Address) => create(bytes.tail, DataType.Address)
       case Some(DataType.Amount) => create(bytes.tail, DataType.Amount)
-      case Some(DataType.Index) => create(bytes.tail, DataType.Index)
-      case Some(DataType.Description) => create(bytes.tail, DataType.Description)
+      case Some(DataType.Int32) => create(bytes.tail, DataType.Int32)
+      case Some(DataType.ShortText) => create(bytes.tail, DataType.ShortText)
       case _ => Left(InvalidDataEntry)
     }
   }
@@ -59,12 +59,12 @@ object DataEntry {
 
   def parseArraySize(bytes: Array[Byte], position: Int): Either[ValidationError, (DataEntry, Int)] = {
     DataType.fromByte(bytes(position)) match {
-      case Some(DataType.PublicKeyAccount) => Right((create(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKeyAccount).right.get, position + 1 + KeyLength))
+      case Some(DataType.PublicKey) => Right((create(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKey).right.get, position + 1 + KeyLength))
       case Some(DataType.Address) => Right((create(bytes.slice(position + 1, position + 1 + Address.AddressLength), DataType.Address).right.get, position + 1 + Address.AddressLength))
       case Some(DataType.Amount) => Right((create(bytes.slice(position + 1, position + 1 + AmountLength), DataType.Amount).right.get, position + 1 + AmountLength))
-      case Some(DataType.Index) => Right((create(bytes.slice(position + 1, position + 1 + 4), DataType.Index).right.get, position + 1 + 4))
-      case Some(DataType.Description) => Right((create(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))),
-        DataType.Description).right.get, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
+      case Some(DataType.Int32) => Right((create(bytes.slice(position + 1, position + 1 + 4), DataType.Int32).right.get, position + 1 + 4))
+      case Some(DataType.ShortText) => Right((create(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))),
+        DataType.ShortText).right.get, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
       case _ => Left(InvalidDataEntry)
     }
   }

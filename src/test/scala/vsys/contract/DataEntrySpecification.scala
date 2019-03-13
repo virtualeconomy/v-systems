@@ -12,7 +12,7 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
 
   val validPublicKeyEntryGen: Gen[DataEntry] = for {
     data <- accountGen.map(_.publicKey)
-  } yield DataEntry(data, DataType.PublicKeyAccount)
+  } yield DataEntry(data, DataType.PublicKey)
 
   val validAddressEntryGen: Gen[DataEntry] = for {
     data <- accountGen.map(PublicKeyAccount.toAddress(_)).map(_.bytes).map(_.arr)
@@ -50,7 +50,7 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
     val byteArray5 = Array.fill[Byte](1 + 8)(3)
     DataEntry.fromBytes(byteArray1) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray2) should be (Left(InvalidDataEntry))
-    DataEntry.fromBytes(byteArray3).map(_.dataType) should be (Right(DataType.PublicKeyAccount))
+    DataEntry.fromBytes(byteArray3).map(_.dataType) should be (Right(DataType.PublicKey))
     DataEntry.fromBytes(byteArray4).map(_.dataType) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray5).map(_.dataType) should be (Right(DataType.Amount))
   }
