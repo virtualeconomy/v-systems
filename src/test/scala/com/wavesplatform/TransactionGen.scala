@@ -97,9 +97,7 @@ trait TransactionGen {
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
-  val dataEntryGen: Gen[Seq[DataEntry]] = for {
-    data: Array[Byte] <- byteArrayGen(1 + 7)
-  } yield Seq(DataEntry(data, ContractDataType.Amount))
+  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, ContractDataType.Address)))
 
   val invalidUtf8StringGen: Gen[String] = for {
     data <- Gen.listOfN(2, invalidUtf8Char)
