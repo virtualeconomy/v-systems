@@ -1,7 +1,7 @@
 package vsys.state.opcdiffs
 
 import scorex.transaction.ValidationError
-import vsys.contract.{ContractContext, DataEntry}
+import vsys.contract.{ExecutionContext, DataEntry}
 import vsys.state.opcdiffs.AssertOpcDiff.AssertType
 import vsys.state.opcdiffs.AssertOpcDiff._
 
@@ -12,7 +12,7 @@ object OpcDiffer {
     val LoadOpc = Value(2)
   }
 
-  def apply(contractContext: ContractContext)
+  def apply(contractContext: ExecutionContext)
            (opc: Array[Byte],
             data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = opc.head match {
     case opcType: Byte if opcType == OpcType.AssertOpc.id => opc(1) match {

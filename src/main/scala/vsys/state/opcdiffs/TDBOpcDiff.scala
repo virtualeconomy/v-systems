@@ -5,11 +5,11 @@ import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.contract.{DataEntry, DataType}
-import vsys.contract.ContractContext
+import vsys.contract.ExecutionContext
 import scala.util.{Left, Right, Try}
 
 object TDBOpcDiff {
-  def newToken(contractContext: ContractContext)
+  def newToken(contractContext: ExecutionContext)
               (issuer: DataEntry,
                total: DataEntry,
                max: DataEntry): Either[ValidationError, OpcDiff] = {
@@ -33,7 +33,7 @@ object TDBOpcDiff {
     }
   }
 
-  def deposit(contractContext: ContractContext)
+  def deposit(contractContext: ExecutionContext)
              (issuer: DataEntry,
               amount: DataEntry,
               total: DataEntry,
@@ -60,7 +60,7 @@ object TDBOpcDiff {
     }
   }
 
-  def destroy(contractContext: ContractContext)
+  def destroy(contractContext: ExecutionContext)
              (tokenID: DataEntry,
               issuer: DataEntry,
               amount: DataEntry,
@@ -83,7 +83,7 @@ object TDBOpcDiff {
     }
   }
 
-  def transfer(contractContext: ContractContext)
+  def transfer(contractContext: ExecutionContext)
               (tokenID: DataEntry,
                sender: DataEntry,
                senderBalance: DataEntry,

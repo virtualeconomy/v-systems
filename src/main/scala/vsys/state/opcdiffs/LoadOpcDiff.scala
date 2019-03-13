@@ -3,26 +3,26 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.{Bytes, Longs}
 import com.wavesplatform.state2.ByteStr
 import scorex.transaction.ValidationError
-import vsys.contract.{ContractContext, DataEntry, DataType}
+import vsys.contract.{ExecutionContext, DataEntry, DataType}
 import vsys.transaction.proof.EllipticCurve25519Proof
 
 import scala.util.Right
 
 object LoadOpcDiff {
 
-  def issuer(context: ContractContext)(dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+  def issuer(context: ExecutionContext)(dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     val issuer = context.state.contractInfo(context.contractId.bytes).get
     val newDataStack = dataStack :+ issuer
     Right(newDataStack)
   }
 
-  def sender(context: ContractContext)(dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+  def sender(context: ExecutionContext)(dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     val sender = EllipticCurve25519Proof.fromBytes(context.transaction.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     val newDataStack = dataStack :+ DataEntry(sender.bytes.arr, DataType.Address)
     Right(newDataStack)
   }
 
-  def max(context: ContractContext)(tokenIdx: DataEntry,
+  def max(context: ExecutionContext)(tokenIdx: DataEntry,
                                           dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, Array("max".toByte)))
     val max = context.state.tokenInfo(id).get
@@ -30,7 +30,7 @@ object LoadOpcDiff {
     Right(newDataStack)
   }
 
-  def total(context: ContractContext)(tokenIdx: DataEntry,
+  def total(context: ExecutionContext)(tokenIdx: DataEntry,
                                             dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, Array("total".toByte)))
     val total = context.state.tokenAccountBalance(id).get
@@ -38,7 +38,7 @@ object LoadOpcDiff {
     Right(newDataStack)
   }
 
-  def balance(context: ContractContext)(addr: DataEntry,
+  def balance(context: ExecutionContext)(addr: DataEntry,
                                               tokenIdx: DataEntry,
                                               dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, addr.data))

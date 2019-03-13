@@ -6,7 +6,7 @@ import com.wavesplatform.state2.reader.CompositeStateReader
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.utils.ScorexLogging
-import vsys.contract.{ContractContext, DataEntry}
+import vsys.contract.{ExecutionContext, DataEntry}
 
 import scala.util.Try
 
@@ -15,7 +15,7 @@ object OpcFuncDiffer extends ScorexLogging {
 
   def right(structure: (OpcDiff, Seq[DataEntry])): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = Right(structure)
 
-  def apply(contractContext: ContractContext)
+  def apply(contractContext: ExecutionContext)
            (data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
     val opcFunc = contractContext.opcFunc
     val height = contractContext.height
