@@ -3,6 +3,7 @@ package vsys.contract
 import com.wavesplatform.state2.reader.StateReader
 import scorex.account.PublicKeyAccount
 import scorex.transaction.ValidationError
+import scorex.transaction.ValidationError.GenericError
 import vsys.account.ContractAccount
 import vsys.transaction.ProvenTransaction
 import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
@@ -25,7 +26,7 @@ object ExecutionContext {
                    tx: RegisterContractTransaction): Either[ValidationError, ExecutionContext] = {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
-    val opcFunc = s.contractContent(tx.contractId.bytes).get._2.initializer
+    val opcFunc = tx.contract.initializer
     val description = tx.description
     Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, description))
   }
@@ -35,9 +36,11 @@ object ExecutionContext {
                    tx: ExecuteContractFunctionTransaction): Either[ValidationError, ExecutionContext] = {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
-    val opcFunc = s.contractContent(tx.contractId.bytes).get._2.descriptor(tx.funcIdx)
     val description = tx.description
-    Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, description))
+    s.contractContent(tx.contractId.bytes) match {
+      case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._2.descriptor(tx.funcIdx), description))
+      case _ => Left(GenericError(s"Invalid contract id"))
+    }
   }
 
 }

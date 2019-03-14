@@ -12,7 +12,7 @@ object OpcDiffer {
     val LoadOpc = Value(2)
   }
 
-  def apply(contractContext: ExecutionContext)
+  def apply(executionContext: ExecutionContext)
            (opc: Array[Byte],
             data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = opc.head match {
     case opcType: Byte if opcType == OpcType.AssertOpc.id => opc(1) match {

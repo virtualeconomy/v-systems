@@ -15,12 +15,12 @@ object OpcFuncDiffer extends ScorexLogging {
 
   def right(structure: (OpcDiff, Seq[DataEntry])): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = Right(structure)
 
-  def apply(contractContext: ExecutionContext)
+  def apply(executionContext: ExecutionContext)
            (data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
-    val opcFunc = contractContext.opcFunc
-    val height = contractContext.height
-    val tx = contractContext.transaction
-    val s = contractContext.state
+    val opcFunc = executionContext.opcFunc
+    val height = executionContext.height
+    val tx = executionContext.transaction
+    val s = executionContext.state
     val (_, _, listParaTypes, listOpcLines) = fromBytes(opcFunc).get
     if (listParaTypes.toSeq != data.map(_.dataType.id)) {
       Left(ValidationError.InvalidDataEntry)
@@ -28,7 +28,7 @@ object OpcFuncDiffer extends ScorexLogging {
       Left(ValidationError.InvalidContract)
     } else {
       listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>
-        OpcDiffer(contractContext.copy(state = new CompositeStateReader(s,
+        OpcDiffer(executionContext.copy(state = new CompositeStateReader(s,
           st._1.asBlockDiff(height, tx))))(opc, st._2) match {
           case Right((opcDiff, d)) => Right((st._1.combine(opcDiff), d))
           case Left(l) => Left(l)

@@ -1,13 +1,10 @@
 package vsys.state.opcdiffs
 
 import com.google.common.primitives.Longs
-import com.wavesplatform.state2.reader.StateReader
 import scorex.account.Address
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.{DataEntry, DataType}
-import vsys.transaction.contract.ExecuteContractFunctionTransaction
-import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
 
@@ -53,14 +50,15 @@ object AssertOpcDiff {
       Left(GenericError(s"Invalid Assert (eq): DataEntry $add1 is not equal to $add2"))
   }
 
-  def inContractIssuer(s: StateReader, tx: ExecuteContractFunctionTransaction): Either[ValidationError, OpcDiff] = {
-    val issuer = s.contractInfo(tx.contractId.bytes).get
-    val signer = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-    if (issuer.bytes sameElements signer.bytes.arr)
-      Right(OpcDiff.empty)
+  def inContractIssuer(executionContext: ExecutionContext): Either[ValidationError, OpcDiff] = {
+    val issuer = executionContext.state.contractInfo(executionContext.contractId.bytes)
+    val signer = executionContext.signers.head
+    if (issuer.isEmpty)
+      Left(GenericError("Issuer not defined"))
+    else if (issuer.get.bytes sameElements signer.bytes.arr)
+      Left(GenericError(s"Address $issuer does not equal $signer 's address"))
     else
-      Left(GenericError(s"Address $issuer does not equal Signer's address"))
-
+      Right(OpcDiff.empty)
   }
 
   object AssertType extends Enumeration {

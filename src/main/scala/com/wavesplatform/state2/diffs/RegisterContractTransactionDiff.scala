@@ -24,8 +24,8 @@ object RegisterContractTransactionDiff {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       val issuer = Deser.serializeArrays(Seq(sender.toAddress.bytes.arr))
       val contractInfo = (height, tx.contract, Set(sender.toAddress))
-      //val contractContext = ExecutionContext.fromRegConTx(s, height, tx).right.get
-      //val opcDiff = OpcFuncDiffer(contractContext)(tx.data).right.get
+      //val executionContext = ExecutionContext.fromRegConTx(s, height, tx).right.get
+      //val opcDiff = OpcFuncDiffer(executionContext)(tx.data).right.get
       //val diff  = opcDiff.asTransactionDiff(height, tx)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),

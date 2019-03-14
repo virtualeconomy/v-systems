@@ -17,8 +17,8 @@ object ExecuteContractFunctionTransactionDiff {
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     } else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-      val contractContext = ExecutionContext.fromExeConTx(s, height, tx).right.get
-      val opcDiff = OpcFuncDiffer(contractContext)(tx.data).right.get
+      val executionContext = ExecutionContext.fromExeConTx(s, height, tx).right.get
+      val opcDiff = OpcFuncDiffer(executionContext)(tx.data).right.get
       val diff = opcDiff.asTransactionDiff(height, tx)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
