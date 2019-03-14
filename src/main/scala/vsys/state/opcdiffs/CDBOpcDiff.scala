@@ -1,20 +1,29 @@
 package vsys.state.opcdiffs
 
-import com.google.common.primitives.Bytes
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.ExecutionContext
+import vsys.contract.{DataEntry, DataType, ExecutionContext}
+
 import scala.util.{Left, Right}
 
 object CDBOpcDiff {
-  def set(contractContext: ExecutionContext): Either[ValidationError, OpcDiff] = {
-    if (contractContext.height <= 0) {
-      Left(GenericError(s"Height ${contractContext.height} is smaller than 0"))
+
+  def set(context: ExecutionContext)(stateVarIssuer: Array[Byte],
+                                     issuer: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (stateVarIssuer.length != 2 || DataType.fromByte(stateVarIssuer(1)).get != DataType.Address) {
+      Left(GenericError(s"wrong stateVariable $stateVarIssuer"))
+    } else if (issuer.dataType != DataType.Address) {
+      Left(GenericError("Input contains invalid dataType"))
     } else {
-      Right(OpcDiff(contractDB = Map(contractContext.contractId.bytes -> contractContext.signers.head.publicKey,
-        ByteStr(Bytes.concat(contractContext.contractId.bytes.arr, Array("desc".toByte))) -> contractContext.description)
+      Right(OpcDiff(contractDB = Map(ByteStr(context.contractId.bytes.arr
+        ++ Array(stateVarIssuer(0))) -> issuer.bytes)
      ))
     }
   }
+
+  object CDBType extends Enumeration {
+    val SetCDB = Value(1)
+  }
+
 }

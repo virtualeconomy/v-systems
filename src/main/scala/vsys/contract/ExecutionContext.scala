@@ -10,12 +10,13 @@ import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterCo
 import vsys.transaction.proof.EllipticCurve25519Proof
 
 case class ExecutionContext(signers: Seq[PublicKeyAccount],
-                           state: StateReader,
-                           height: Int,
-                           transaction: ProvenTransaction,
-                           contractId: ContractAccount,
-                           opcFunc: Array[Byte],
-                           description: Array[Byte]) {
+                            state: StateReader,
+                            height: Int,
+                            transaction: ProvenTransaction,
+                            contractId: ContractAccount,
+                            opcFunc: Array[Byte],
+                            stateVar: Seq[Array[Byte]],
+                            description: Array[Byte]) {
   
 }
 
@@ -27,8 +28,9 @@ object ExecutionContext {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
     val opcFunc = tx.contract.initializer
+    val stateVar = tx.contract.stateVar
     val description = tx.description
-    Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, description))
+    Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, stateVar, description))
   }
 
   def fromExeConTx(s: StateReader,
@@ -38,7 +40,7 @@ object ExecutionContext {
     val contractId = tx.contractId
     val description = tx.description
     s.contractContent(tx.contractId.bytes) match {
-      case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._2.descriptor(tx.funcIdx), description))
+      case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._2.descriptor(tx.funcIdx), c._2.stateVar, description))
       case _ => Left(GenericError(s"Invalid contract id"))
     }
   }

@@ -45,11 +45,11 @@ trait StateReader extends Synchronized {
 
   def contractInfo(id: ByteStr): Option[DataEntry]
 
-  def contractTokens(id: ByteStr): Option[Int]
+  def contractTokens(id: ByteStr): Int
 
   def tokenInfo(id: ByteStr): Option[DataEntry]
 
-  def tokenAccountBalance(id: ByteStr): Option[Long]
+  def tokenAccountBalance(id: ByteStr): Long
 
   def dbGet(key: ByteStr): Option[ByteStr]
 

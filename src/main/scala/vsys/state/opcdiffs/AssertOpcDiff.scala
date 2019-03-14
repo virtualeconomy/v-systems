@@ -1,6 +1,7 @@
 package vsys.state.opcdiffs
 
 import com.google.common.primitives.Longs
+import com.wavesplatform.state2.ByteStr
 import scorex.account.Address
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
@@ -50,9 +51,9 @@ object AssertOpcDiff {
       Left(GenericError(s"Invalid Assert (eq): DataEntry $add1 is not equal to $add2"))
   }
 
-  def inContractIssuer(executionContext: ExecutionContext): Either[ValidationError, OpcDiff] = {
-    val issuer = executionContext.state.contractInfo(executionContext.contractId.bytes)
-    val signer = executionContext.signers.head
+  def isOrigin(context: ExecutionContext)(stateVarIssuer: Array[Byte]): Either[ValidationError, OpcDiff] = {
+    val issuer = context.state.contractInfo(ByteStr(context.contractId.bytes.arr ++ Array(stateVarIssuer(0))))
+    val signer = context.signers.head
     if (issuer.isEmpty)
       Left(GenericError("Issuer not defined"))
     else if (issuer.get.bytes sameElements signer.bytes.arr)
@@ -64,10 +65,10 @@ object AssertOpcDiff {
   object AssertType extends Enumeration {
     val GteqZeroAssert = Value(1)
     val LteqAssert = Value(2)
-    val LtInt64 = Value(3)
-    val Gt0 = Value(4)
-    val Eq = Value(5)
-    val isTxSigner = Value(6)
+    val LtInt64Assert = Value(3)
+    val Gt0Assert = Value(4)
+    val EqAssert = Value(5)
+    val isOriginAssert = Value(6)
   }
 
 
