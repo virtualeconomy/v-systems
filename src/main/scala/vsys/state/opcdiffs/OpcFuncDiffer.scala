@@ -5,10 +5,11 @@ import com.google.common.primitives.Shorts
 import com.wavesplatform.state2.reader.CompositeStateReader
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
+import scorex.transaction.ValidationError.GenericError
 import scorex.utils.ScorexLogging
-import vsys.contract.{ExecutionContext, DataEntry}
+import vsys.contract.{DataEntry, ExecutionContext}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 
 object OpcFuncDiffer extends ScorexLogging {
@@ -21,22 +22,25 @@ object OpcFuncDiffer extends ScorexLogging {
     val height = executionContext.height
     val tx = executionContext.transaction
     val s = executionContext.state
-    val (_, _, listParaTypes, listOpcLines) = fromBytes(opcFunc).get
-    if (listParaTypes.toSeq != data.map(_.dataType.id)) {
-      Left(ValidationError.InvalidDataEntry)
-    } else if (listOpcLines.forall(_.length >= 2)) {
-      Left(ValidationError.InvalidContract)
-    } else {
-      listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>
-        OpcDiffer(executionContext.copy(state = new CompositeStateReader(s,
-          st._1.asBlockDiff(height, tx))))(opc, st._2) match {
-          case Right((opcDiff, d)) => Right((st._1.combine(opcDiff), d))
-          case Left(l) => Left(l)
+    fromBytes(opcFunc) match {
+      case Success((_, _, listParaTypes, listOpcLines)) =>
+        if (listParaTypes.toSeq != data.map(_.dataType.id)) {
+          Left(ValidationError.InvalidDataEntry)
+        } else if (listOpcLines.forall(_.length >= 2)) {
+          Left(ValidationError.InvalidContract)
+        } else {
+          listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>
+            OpcDiffer(executionContext.copy(state = new CompositeStateReader(s,
+              st._1.asBlockDiff(height, tx))))(opc, st._2) match {
+              case Right((opcDiff, d)) => Right((st._1.combine(opcDiff), d))
+              case Left(l) => Left(l)
+            }
+          )} match {
+            case Right((opcDiff, _)) => Right(opcDiff)
+            case Left(l) => Left(l)
+          }
         }
-      )} match {
-        case Right((opcDiff, _)) => Right(opcDiff)
-        case Left(l) => Left(l)
-      }
+      case Failure(exception) => Left(GenericError("Invalid opc function"))
     }
   }
 

@@ -1,6 +1,6 @@
 package com.wavesplatform.state2.diffs
 
-import cats.implicits._
+//import cats.implicits._
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError

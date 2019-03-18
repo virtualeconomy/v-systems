@@ -1,13 +1,13 @@
 package com.wavesplatform.state2.diffs
 
-import cats.implicits._
+//import cats.implicits._
 import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
-import scorex.serialization.Deser
+import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
+//import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.ExecutionContext
-import vsys.state.opcdiffs.OpcFuncDiffer
+//import vsys.contract.ExecutionContext
+//import vsys.state.opcdiffs.OpcFuncDiffer
 import vsys.transaction.contract.RegisterContractTransaction
 import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 

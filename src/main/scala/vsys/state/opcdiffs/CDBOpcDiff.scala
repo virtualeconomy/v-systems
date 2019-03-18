@@ -9,21 +9,26 @@ import scala.util.{Left, Right}
 
 object CDBOpcDiff {
 
-  def set(context: ExecutionContext)(stateVarIssuer: Array[Byte],
-                                     issuer: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (stateVarIssuer.length != 2 || DataType.fromByte(stateVarIssuer(1)).get != DataType.Address) {
-      Left(GenericError(s"wrong stateVariable $stateVarIssuer"))
-    } else if (issuer.dataType != DataType.Address) {
-      Left(GenericError("Input contains invalid dataType"))
+  def set(context: ExecutionContext)(stateVar: Array[Byte],
+                                     value: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (stateVar.length != 2 || DataType.fromByte(stateVar(1)).get != value.dataType) {
+      Left(GenericError(s"wrong stateVariable $stateVar"))
     } else {
       Right(OpcDiff(contractDB = Map(ByteStr(context.contractId.bytes.arr
-        ++ Array(stateVarIssuer(0))) -> issuer.bytes)
+        ++ Array(stateVar(0))) -> value.bytes)
      ))
     }
   }
 
   object CDBType extends Enumeration {
     val SetCDB = Value(1)
+  }
+
+  def parseBytes(context: ExecutionContext)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
+    case opcType: Byte if opcType == CDBType.SetCDB.id && bytes.length == 3 && bytes(1) < context.stateVar.length
+      && bytes.last < data.length && bytes.tail.min >= 0 => set(context)(context.stateVar(bytes(1)), data(bytes(2)))
+    case _ => Left(GenericError("Wrong opcode"))
   }
 
 }

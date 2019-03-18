@@ -6,24 +6,25 @@ import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
+
 import scala.util.{Left, Right, Try}
 
 object TDBOpcDiff {
 
   def newToken(context: ExecutionContext)
               (stateVarMax: Array[Byte], stateVarTotal: Array[Byte], stateVarDesc: Array[Byte],
-               issuer: DataEntry, max: DataEntry): Either[ValidationError, OpcDiff] = {
+               max: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (stateVarMax.length != 2 || stateVarTotal.length != 2 || stateVarDesc.length != 2
       || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount || DataType.fromByte(stateVarMax(1)).get != DataType.Amount
       || DataType.fromByte(stateVarDesc(1)).get != DataType.ShortText) {
       Left(GenericError(s"wrong stateVariable $stateVarTotal"))
-    } else if ((issuer.dataType != DataType.Address) || (max.dataType != DataType.Amount)) {
+    } else if (max.dataType != DataType.Amount) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, Ints.toByteArray(context.state.contractTokens(context.contractId.bytes))))
       Right(OpcDiff(tokenDB = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0)))) -> max.bytes,
-        ByteStr(Bytes.concat(tokenID.arr, Array(stateVarDesc(0)))) -> context.description),
+        ByteStr(Bytes.concat(tokenID.arr, Array(stateVarDesc(0)))) -> context.description),// wrong description
         contractTokens = Map(context.contractId.bytes -> 1),
         tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> 0L)
       ))
@@ -51,9 +52,9 @@ object TDBOpcDiff {
     }
   }
 
-  def destroy(context: ExecutionContext)
-             (stateVarTotal: Array[Byte], issuer: DataEntry, amount: DataEntry,
-              issuerBalance: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+  def withdraw(context: ExecutionContext)
+              (stateVarTotal: Array[Byte], issuer: DataEntry, amount: DataEntry,
+               issuerBalance: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (stateVarTotal.length != 2 || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount) {
       Left(GenericError(s"wrong stateVariable $stateVarTotal"))
@@ -95,6 +96,23 @@ object TDBOpcDiff {
     val DepositTDB = Value(2)
     val DestroyTDB = Value(3)
     val TransferTDB = Value(4)
+  }
+
+  def parseBytes(context: ExecutionContext)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
+    case opcType: Byte if opcType == TDBType.NewTokenTDB.id && bytes.length == 5
+      && bytes.slice(1, 4).max < context.stateVar.length && bytes.last < data.length && bytes.tail.min >= 0 =>
+      newToken(context)(context.stateVar(bytes(1)), context.stateVar(bytes(2)), context.stateVar(bytes(3)), data(bytes(4)))
+    case opcType: Byte if opcType == TDBType.DepositTDB.id && bytes.length == 7
+      && bytes(1) < context.stateVar.length && bytes.slice(2, 7).max < data.length && bytes.tail.min >= 0 =>
+      deposit(context)(context.stateVar(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)), data(bytes(5)), data(bytes(6)))
+    case opcType: Byte if opcType == TDBType.DestroyTDB.id && bytes.length == 6
+      && bytes(1) < context.stateVar.length && bytes.slice(2, 6).max < data.length && bytes.tail.min >= 0 =>
+      withdraw(context)(context.stateVar(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)), data(bytes(5)))
+    case opcType: Byte if opcType == TDBType.TransferTDB.id && bytes.length == 7
+      && bytes.tail.max < context.stateVar.length && bytes.tail.min >= 0 =>
+      transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)), data(bytes(5)), data(bytes(6)))
+    case _ => Left(GenericError("Wrong opcode"))
   }
 
 }
