@@ -1,13 +1,13 @@
 package com.wavesplatform.state2.diffs
 
-import cats.implicits._
+//import cats.implicits._
 import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{ByteStr, Diff, LeaseInfo, Portfolio}
-import scorex.serialization.Deser
+import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
+//import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.ContractContext
-import vsys.state.opcdiffs.OpcFuncDiffer
+//import vsys.contract.ExecutionContext
+//import vsys.state.opcdiffs.OpcFuncDiffer
 import vsys.transaction.contract.RegisterContractTransaction
 import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
@@ -22,16 +22,19 @@ object RegisterContractTransactionDiff {
     }
     else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-      val issuer = Deser.serializeArrays(Seq(sender.toAddress.bytes.arr))
       val contractInfo = (height, tx.contract, Set(sender.toAddress))
-      //val contractContext = ContractContext.fromRegConTx(s, height, tx).right.get
-      //val opcDiff = OpcFuncDiffer(contractContext)(tx.data).right.get
-      //val diff  = opcDiff.asTransactionDiff(height, tx)
+//      for {
+//        exContext <- ExecutionContext.fromRegConTx(s, height, tx)
+//        opcDiff <- OpcFuncDiffer(exContext)(tx.data)
+//        diff = opcDiff.asTransactionDiff(height, tx)
+//      } yield Diff(height = height, tx = tx,
+//        portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+//        contracts = Map(tx.contractId.bytes -> contractInfo),
+//        chargedFee = tx.fee
+//      ).combine(diff)
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
         contracts = Map(tx.contractId.bytes -> contractInfo),
-        contractDB = Map(ByteStr(tx.contractId.bytes.arr ++ Deser.serilizeString("description")) -> tx.description,
-          ByteStr(tx.contractId.bytes.arr ++ Deser.serilizeString("issuer")) -> issuer),
         chargedFee = tx.fee
       ))
     }

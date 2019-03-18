@@ -97,9 +97,7 @@ trait TransactionGen {
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
-  val dataEntryGen: Gen[Seq[DataEntry]] = for {
-    data: Array[Byte] <- byteArrayGen(1 + 7)
-  } yield Seq(DataEntry(data, ContractDataType.Amount))
+  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, ContractDataType.Address)))
 
   val invalidUtf8StringGen: Gen[String] = for {
     data <- Gen.listOfN(2, invalidUtf8Char)
@@ -114,8 +112,9 @@ trait TransactionGen {
     languageVersion <- genBoundedString(4 + 0, 4 + 0)
     initializer <- genBoundedBytes(0, 4 + 0)
     descriptor <- genSeqBoundedBytes(0, 4 + 0)
+    stateVar <- genSeqBoundedBytes(2, 2)
     textual <- genSeqBoundedBytes(0, 4 + 0)
-  } yield Contract.buildContract(languageCode, languageVersion, initializer, descriptor, textual).right.get
+  } yield Contract.buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, textual).right.get
   val actionGen: Gen[ChangeContractStatusAction.Value] = Gen.oneOf(ChangeContractStatusAction.Enable, ChangeContractStatusAction.Disable)
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())

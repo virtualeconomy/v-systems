@@ -15,10 +15,12 @@ sealed trait Contract {
 
   lazy val stringRepr: String = Contract.Prefix + Base58.encode(languageCode) + ":" + Base58.encode(languageVersion)
   lazy val bytes: ByteStr = ByteStr(languageCode ++ languageVersion ++ Deser.serializeArray(initializer)
-    ++ Deser.serializeArray(Deser.serializeArrays(descriptor)) ++ Deser.serializeArrays(textual))
+    ++ Deser.serializeArray(Deser.serializeArrays(descriptor))
+    ++ Deser.serializeArray(Deser.serializeArrays(stateVar)) ++ Deser.serializeArrays(textual))
 
   val initializer: Array[Byte]
   val descriptor: Seq[Array[Byte]]
+  val stateVar: Seq[Array[Byte]]
   val textual: Seq[Array[Byte]]
   val languageCode: Array[Byte]
   val languageVersion: Array[Byte]
@@ -28,6 +30,7 @@ sealed trait Contract {
     "languageVersion" -> Ints.fromByteArray(languageVersion),
     "initializer" -> Base58.encode(initializer),
     "descriptor" -> Base58.encode(Deser.serializeArrays(descriptor)),
+    "stateVar" -> Base58.encode(Deser.serializeArrays(stateVar)),
     "textual" -> Base58.encode(Deser.serializeArrays(textual))
   )
 }
@@ -41,11 +44,13 @@ object Contract {
   val LanguageCodeByteLength = 4
   val LanguageVersionByteLength = 4
 
-  def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte], initializer: Array[Byte],
-                    descriptor: Seq[Array[Byte]], textual: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
-    case class ContractImpl(languageCode: Array[Byte], languageVersion: Array[Byte], initializer: Array[Byte],
-                            descriptor: Seq[Array[Byte]], textual: Seq[Array[Byte]]) extends Contract
-    Right(ContractImpl(languageCode, languageVersion, initializer, descriptor, textual))
+  def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte],
+                    initializer: Array[Byte], descriptor: Seq[Array[Byte]],
+                    stateVar: Seq[Array[Byte]], textual: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
+    case class ContractImpl(languageCode: Array[Byte], languageVersion: Array[Byte],
+                            initializer: Array[Byte], descriptor: Seq[Array[Byte]],
+                            stateVar: Seq[Array[Byte]], textual: Seq[Array[Byte]]) extends Contract
+    Right(ContractImpl(languageCode, languageVersion, initializer, descriptor, stateVar, textual))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Contract] = {
@@ -55,8 +60,10 @@ object Contract {
       val (initializer, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
       val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
       val descriptor = Deser.parseArrays(descriptorBytes)
-      val textual = Deser.parseArrays(bytes.slice(descriptorEnd, bytes.length))
-      buildContract(languageCode, languageVersion, initializer, descriptor, textual)
+      val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
+      val stateVar = Deser.parseArrays(stateVarBytes)
+      val textual = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
+      buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, textual)
     } else {
       Left(InvalidContract)
     }

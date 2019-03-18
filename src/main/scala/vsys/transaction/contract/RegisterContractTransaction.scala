@@ -32,7 +32,8 @@ case class RegisterContractTransaction private(contract: Contract,
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     BytesSerializable.arrayWithSize(contract.bytes.arr),
-    Deser.serializeArray(data.flatMap(_.bytes).toArray),
+    //Deser.serializeArray(data.flatMap(_.bytes).toArray),
+    Deser.serializeArray(DataEntry.serializeArrays(data)),
     BytesSerializable.arrayWithSize(description),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
@@ -67,7 +68,8 @@ object RegisterContractTransaction {
     (for {
       contract <- Contract.fromBytes(contractBytes)
       (dataBytes, dataEnd) = Deser.parseArraySize(bytes, contractEnd)
-      data = DataEntry.fromArrayBytes(dataBytes).right.get
+      //data = DataEntry.fromArrayBytes(dataBytes).right.get
+      data = DataEntry.parseArrays(dataBytes)
       (description, descriptionEnd) = Deser.parseArraySize(bytes, dataEnd)
       fee = Longs.fromByteArray(bytes.slice(descriptionEnd, descriptionEnd + 8))
       feeScale = Shorts.fromByteArray(bytes.slice(descriptionEnd + 8, descriptionEnd + 10))

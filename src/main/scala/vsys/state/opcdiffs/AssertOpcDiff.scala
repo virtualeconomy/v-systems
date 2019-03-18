@@ -1,13 +1,10 @@
 package vsys.state.opcdiffs
 
 import com.google.common.primitives.Longs
-import com.wavesplatform.state2.reader.StateReader
 import scorex.account.Address
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.{DataEntry, DataType}
-import vsys.transaction.contract.ExecuteContractFunctionTransaction
-import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
 
@@ -50,28 +47,44 @@ object AssertOpcDiff {
       && Longs.fromByteArray(add1.data) == Longs.fromByteArray(add2.data))
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (eq): DataEntry $add1 is not equal to $add2"))
+      Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.data} is not equal to ${add2.data}"))
   }
 
-  def inContractIssuer(s: StateReader, tx: ExecuteContractFunctionTransaction): Either[ValidationError, OpcDiff] = {
-    val issuer = s.contractInfo(tx.contractId.bytes).get
-    val signer = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-    if (issuer.bytes sameElements signer.bytes.arr)
-      Right(OpcDiff.empty)
+  def isOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
+    val signer = context.signers.head
+    if (address.dataType != DataType.Address)
+      Left(GenericError("Issuer not defined"))
+    else if (!(address.data sameElements signer.bytes.arr))
+      Left(GenericError(s"Address ${address.data} does not equal $signer 's address"))
     else
-      Left(GenericError(s"Address $issuer does not equal Signer's address"))
-
+      Right(OpcDiff.empty)
   }
 
   object AssertType extends Enumeration {
     val GteqZeroAssert = Value(1)
     val LteqAssert = Value(2)
-    val LtInt64 = Value(3)
-    val Gt0 = Value(4)
-    val Eq = Value(5)
-    val isTxSigner = Value(6)
+    val LtInt64Assert = Value(3)
+    val GtZeroAssert = Value(4)
+    val EqAssert = Value(5)
+    val isOriginAssert = Value(6)
   }
 
+  def parseBytes(context: ExecutionContext)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
+    case opcType: Byte if opcType == AssertType.GteqZeroAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gtEq0(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.LteqAssert.id && bytes.length == 3
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltEq(data(bytes(1)), data(bytes(2)))
+    case opcType: Byte if opcType == AssertType.LtInt64Assert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltInt64(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.GtZeroAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gt0(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.EqAssert.id && bytes.length == 3
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => eq(data(bytes(1)), data(bytes(2)))
+    case opcType: Byte if opcType == AssertType.isOriginAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isOrigin(context)(data(bytes(1)))
+    case _ => Left(GenericError("Wrong opcode"))
+  }
 
 }
 

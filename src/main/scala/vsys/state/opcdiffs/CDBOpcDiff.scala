@@ -1,20 +1,34 @@
 package vsys.state.opcdiffs
 
-import com.google.common.primitives.Bytes
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.ContractContext
+import vsys.contract.{DataEntry, DataType, ExecutionContext}
+
 import scala.util.{Left, Right}
 
 object CDBOpcDiff {
-  def set(contractContext: ContractContext): Either[ValidationError, OpcDiff] = {
-    if (contractContext.height <= 0) {
-      Left(GenericError(s"Height ${contractContext.height} is smaller than 0"))
+
+  def set(context: ExecutionContext)(stateVar: Array[Byte],
+                                     value: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (stateVar.length != 2 || DataType.fromByte(stateVar(1)).get != value.dataType) {
+      Left(GenericError(s"wrong stateVariable $stateVar"))
     } else {
-      Right(OpcDiff(contractDB = Map(contractContext.contractId.bytes -> contractContext.signers.head.publicKey,
-        ByteStr(Bytes.concat(contractContext.contractId.bytes.arr, Array("desc".toByte))) -> contractContext.description)
+      Right(OpcDiff(contractDB = Map(ByteStr(context.contractId.bytes.arr
+        ++ Array(stateVar(0))) -> value.bytes)
      ))
     }
   }
+
+  object CDBType extends Enumeration {
+    val SetCDB = Value(1)
+  }
+
+  def parseBytes(context: ExecutionContext)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
+    case opcType: Byte if opcType == CDBType.SetCDB.id && bytes.length == 3 && bytes(1) < context.stateVar.length
+      && bytes.last < data.length && bytes.tail.min >= 0 => set(context)(context.stateVar(bytes(1)), data(bytes(2)))
+    case _ => Left(GenericError("Wrong opcode"))
+  }
+
 }
