@@ -25,28 +25,17 @@ case class DataEntry(data: Array[Byte],
 object DataEntry {
 
   def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
-    dataType match {
-      case DataType.PublicKey if data.length == KeyLength => Right(DataEntry(data, dataType))
-      case DataType.Address if Address.fromBytes(data).isRight => Right(DataEntry(data, dataType))
-      case DataType.Amount if data.length == AmountLength && Longs.fromByteArray(data) >= 0 => Right(DataEntry(data, dataType))
-      case DataType.Int32 if data.length == 4 && Ints.fromByteArray(data) >= 0 => Right(DataEntry(data, dataType))
-      case DataType.ShortText if Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length
-        && data.length <= 2 + MaxDescriptionSize => Right(DataEntry(data.slice(2, data.length), dataType))
-      case _ => Left(InvalidDataEntry)
-    }
-
+    if (checkDataType(data, dataType))
+      Right(buildDataEntry(data, dataType))
+    else
+      Left(InvalidDataEntry)
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, DataEntry] = {
-
-    DataType.fromByte(bytes(0)) match {
-      case Some(DataType.PublicKey) => create(bytes.tail, DataType.PublicKey)
-      case Some(DataType.Address) => create(bytes.tail, DataType.Address)
-      case Some(DataType.Amount) => create(bytes.tail, DataType.Amount)
-      case Some(DataType.Int32) => create(bytes.tail, DataType.Int32)
-      case Some(DataType.ShortText) => create(bytes.tail, DataType.ShortText)
-      case _ => Left(InvalidDataEntry)
-    }
+    if (bytes.length == 0 || DataType.fromByte(bytes(0)).isEmpty)
+      Left(InvalidDataEntry)
+    else
+      create(bytes.tail, DataType(bytes(0)))
   }
 
 
@@ -81,6 +70,24 @@ object DataEntry {
         (acc :+ arr, nextPos)
     }
     r._1
+  }
+
+  private def buildDataEntry(data: Array[Byte], dataType: DataType.Value): DataEntry = {
+    dataType match {
+      case DataType.ShortText => DataEntry(data.slice(2, data.length), dataType)
+      case _ => DataEntry(data, dataType)
+    }
+  }
+
+  private def checkDataType(data: Array[Byte], dataType: DataType.Value): Boolean = {
+    dataType match {
+      case DataType.PublicKey => data.length == KeyLength
+      case DataType.Address => Address.fromBytes(data).isRight
+      case DataType.Amount => data.length == AmountLength && Longs.fromByteArray(data) >= 0
+      case DataType.Int32 => data.length == 4 && Ints.fromByteArray(data) >= 0
+      case DataType.ShortText => Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length && data.length <= 2 + MaxDescriptionSize
+      case _ => false
+    }
   }
 
 }
