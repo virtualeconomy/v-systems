@@ -36,7 +36,7 @@ object TDBOpcDiff {
               max: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (stateVarTotal.length != 2 || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount) {
-      Left(GenericError(s"wrong stateVariable $stateVarTotal"))
+      Left(GenericError(s"Wrong stateVariable $stateVarTotal"))
     } else if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (max.dataType != DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
@@ -57,7 +57,7 @@ object TDBOpcDiff {
                issuerBalance: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (stateVarTotal.length != 2 || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount) {
-      Left(GenericError(s"wrong stateVariable $stateVarTotal"))
+      Left(GenericError(s"Wrong stateVariable $stateVarTotal"))
     } else if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (issuerBalance.dataType != DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
