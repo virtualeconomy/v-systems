@@ -79,6 +79,9 @@ object Contract {
     }
   }
 
+  def checkStateVar(stateVar: Array[Byte], dataType: DataType.Value): Boolean =
+    stateVar.length == 2 && dataType == DataType(stateVar(1))
+
   private def isByteArrayValid(bytes: Array[Byte]): Boolean = {
     bytes.length >= MinContractByteSize
   }
