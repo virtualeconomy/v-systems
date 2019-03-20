@@ -9,8 +9,10 @@ object OpcDiffer {
   object OpcType extends Enumeration {
     val AssertOpc = Value(1)
     val LoadOpc = Value(2)
-    val TDBOpc = Value(3)
-    val CDBOpc = Value(4)
+    val CDBOpc = Value(3)
+    val TDBOpc = Value(4)
+    val TDBAOpc = Value(5)
+
   }
 
   def apply(context: ExecutionContext)
@@ -29,14 +31,20 @@ object OpcDiffer {
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
-    case opcType: Byte if opcType == OpcType.TDBOpc.id =>
+    case opcType: Byte if opcType == OpcType.CDBOpc.id =>
       CDBOpcDiff.parseBytes(context)(opc.tail, data) match {
         case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
-    case opcType: Byte if opcType == OpcType.CDBOpc.id =>
+    case opcType: Byte if opcType == OpcType.TDBOpc.id =>
       TDBOpcDiff.parseBytes(context)(opc.tail, data) match {
+        case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
+        case Left(validationError: ValidationError) => Left(validationError)
+      }
+
+    case opcType: Byte if opcType == OpcType.TDBAOpc.id =>
+      TDBAOpcDiff.parseBytes(context)(opc.tail, data) match {
         case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
         case Left(validationError: ValidationError) => Left(validationError)
       }
