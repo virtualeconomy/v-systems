@@ -5,16 +5,17 @@ import com.wavesplatform.state2.ByteStr
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.{GenericError, InvalidDataEntry}
 import vsys.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.contract.Contract.checkStateVar
 
 import scala.util.{Left, Right}
 
 object LoadOpcDiff {
 
+  // may change to cdb get
   def issuer(context: ExecutionContext)(stateVar: Array[Byte],
                                         dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    if (stateVar.length != 2 || DataType.fromByte(stateVar(1)).get != DataType.Address) {
+    if (!checkStateVar(stateVar, DataType.Address)) {
       Left(GenericError(s"Wrong stateVariable $stateVar"))
-    } else {
       context.state.contractInfo(ByteStr(context.contractId.bytes.arr ++ Array(stateVar(0)))) match {
         case Some(i) => Right(dataStack :+ i)
         case _ => Left(GenericError(s"${context.contractId.address}'s issuer not defined"))
@@ -29,7 +30,7 @@ object LoadOpcDiff {
   def max(context: ExecutionContext)(stateVarMax: Array[Byte],
                                      tokenIdx: DataEntry,
                                      dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    if (stateVarMax.length != 2 || DataType.fromByte(stateVarMax(1)).get != DataType.Amount) {
+    if (!checkStateVar(stateVarMax, DataType.Amount)) {
       Left(GenericError(s"Wrong stateVariable $stateVarMax"))
     } else {
       val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, Array(stateVarMax(0))))
@@ -43,7 +44,7 @@ object LoadOpcDiff {
   def total(context: ExecutionContext)(stateVarTotal: Array[Byte],
                                        tokenIdx: DataEntry,
                                        dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    if (stateVarTotal.length != 2) {
+    if (!checkStateVar(stateVarTotal, DataType.Amount)) {
       Left(GenericError(s"Wrong stateVariable $stateVarTotal"))
     } else {
       val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, Array(stateVarTotal(0))))

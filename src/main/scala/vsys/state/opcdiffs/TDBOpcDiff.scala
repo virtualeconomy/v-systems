@@ -6,6 +6,7 @@ import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
+import vsys.contract.Contract.checkStateVar
 
 import scala.util.{Left, Right, Try}
 
@@ -15,16 +16,20 @@ object TDBOpcDiff {
               (stateVarMax: Array[Byte], stateVarTotal: Array[Byte], stateVarDesc: Array[Byte],
                max: DataEntry): Either[ValidationError, OpcDiff] = {
 
-    if (stateVarMax.length != 2 || stateVarTotal.length != 2 || stateVarDesc.length != 2
-      || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount || DataType.fromByte(stateVarMax(1)).get != DataType.Amount
-      || DataType.fromByte(stateVarDesc(1)).get != DataType.ShortText) {
-      Left(GenericError(s"wrong stateVariable $stateVarTotal"))
+    if (!checkStateVar(stateVarMax, DataType.Amount) || !checkStateVar(stateVarTotal, DataType.Amount)
+      || !checkStateVar(stateVarDesc, DataType.ShortText)) {
+      Left(GenericError(s"wrong stateVariable"))
     } else if (max.dataType != DataType.Amount) {
       Left(GenericError("Input contains invalid dataType"))
+    } else if (Longs.fromByteArray(max.data) < 0) {
+      Left(GenericError("Invalid token max"))
     } else {
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, Ints.toByteArray(context.state.contractTokens(context.contractId.bytes))))
-      Right(OpcDiff(tokenDB = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0)))) -> max.bytes,
-        ByteStr(Bytes.concat(tokenID.arr, Array(stateVarDesc(0)))) -> context.description),// wrong description
+      val tokenIndex = context.state.contractTokens(context.contractId.bytes)
+      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, Ints.toByteArray(tokenIndex)))
+      Right(OpcDiff(
+        tokenDB = Map(
+          ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0)))) -> max.bytes,
+          ByteStr(Bytes.concat(tokenID.arr, Array(stateVarDesc(0)))) -> context.description),// wrong description
         contractTokens = Map(context.contractId.bytes -> 1),
         tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> 0L)
       ))
@@ -32,62 +37,87 @@ object TDBOpcDiff {
   }
 
   def deposit(context: ExecutionContext)
-             (stateVarTotal: Array[Byte], issuer: DataEntry, amount: DataEntry, total: DataEntry,
-              max: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+             (stateVarTotal: Array[Byte], stateVarMax: Array[Byte], issuer: DataEntry,
+              amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
-    if (stateVarTotal.length != 2 || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount) {
-      Left(GenericError(s"Wrong stateVariable $stateVarTotal"))
+    if (!checkStateVar(stateVarTotal, DataType.Amount) || !checkStateVar(stateVarMax, DataType.Amount)) {
+      Left(GenericError(s"Wrong stateVariable"))
     } else if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
-      || (max.dataType != DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
+      || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
-    } else if (Try(Math.addExact(Longs.fromByteArray(amount.data), Longs.fromByteArray(total.data))).isFailure) {
-      Left(ValidationError.OverflowError)
-    } else if (Longs.fromByteArray(amount.data) + Longs.fromByteArray(total.data) > Longs.fromByteArray(max.data)) {
-      Left(GenericError(s"New total ${Longs.fromByteArray(amount.data) + Longs.fromByteArray(total.data)} is larger than the max ${Longs.fromByteArray(max.data)}"))
     } else {
+      val depositAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
-      Right(OpcDiff(tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> Longs.fromByteArray(amount.data),
-        ByteStr(Bytes.concat(tokenID.arr, issuer.data)) -> Longs.fromByteArray(amount.data))
-      ))
+      val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
+      val currentTotal = context.state.tokenAccountBalance(tokenTotalKey)
+      val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0))))
+      val tokenMax = Longs.fromByteArray(context.state.tokenInfo(tokenMaxKey).getOrElse(DataEntry(Longs.toByteArray(0), DataType.Amount)).data)
+      if (Try(Math.addExact(depositAmount, currentTotal)).isFailure) {
+        Left(ValidationError.OverflowError)
+      } else if (depositAmount < 0) {
+        Left(GenericError("Invalid deposit amount"))
+      } else if (depositAmount + currentTotal > tokenMax) {
+        Left(GenericError(s"New total ${depositAmount + currentTotal} is larger than the max $tokenMax"))
+      } else {
+        Right(OpcDiff(tokenAccountBalance = Map(tokenTotalKey -> depositAmount,
+          ByteStr(Bytes.concat(tokenID.arr, issuer.data)) -> depositAmount)
+        ))
+      }
     }
   }
 
   def withdraw(context: ExecutionContext)
               (stateVarTotal: Array[Byte], issuer: DataEntry, amount: DataEntry,
-               issuerBalance: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+               tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
-    if (stateVarTotal.length != 2 || DataType.fromByte(stateVarTotal(1)).get != DataType.Amount) {
-      Left(GenericError(s"Wrong stateVariable $stateVarTotal"))
+    if (!checkStateVar(stateVarTotal, DataType.Amount)) {
+      Left(GenericError(s"Wrong stateVariable"))
     } else if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
-      || (issuerBalance.dataType != DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
+      || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
-    } else if (Longs.fromByteArray(amount.data) > Longs.fromByteArray(issuerBalance.data)) {
-      Left(GenericError(s"Amount ${Longs.fromByteArray(amount.data)} is larger than the balance ${Longs.fromByteArray(issuerBalance.data)}"))
     } else {
+      val withdrawAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
-      Right(OpcDiff(tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> -Longs.fromByteArray(amount.data),
-        ByteStr(Bytes.concat(tokenID.arr, issuer.data)) -> -Longs.fromByteArray(amount.data))
-      ))
+      val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
+      val issuerCurrentBalance = context.state.tokenAccountBalance(issuerBalanceKey)
+      if (withdrawAmount > issuerCurrentBalance) {
+        Left(GenericError(s"Amount $withdrawAmount is larger than the current balance $issuerCurrentBalance"))
+      } else if (withdrawAmount < 0){
+        Left(GenericError("Invalid withdraw amount"))
+      }
+      else {
+        Right(OpcDiff(tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> -withdrawAmount,
+          issuerBalanceKey -> -withdrawAmount)
+        ))
+      }
     }
   }
 
   def transfer(context: ExecutionContext)
-              (sender: DataEntry, senderBalance: DataEntry, recipient: DataEntry, recipientBalance: DataEntry,
+              (sender: DataEntry, recipient: DataEntry,
                amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address)
-      || (senderBalance.dataType != DataType.Amount) || (recipientBalance.dataType != DataType.Amount)
       || (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
-    } else if (Longs.fromByteArray(amount.data) > Longs.fromByteArray(senderBalance.data)) {
-      Left(GenericError(s"Amount ${Longs.fromByteArray(amount.data)} is larger than the sender balance ${Longs.fromByteArray(senderBalance.data)}"))
-    } else if (Try(Math.addExact(Longs.fromByteArray(amount.data), Longs.fromByteArray(recipientBalance.data))).isFailure) {
-      Left(ValidationError.OverflowError)
     } else {
+      val transferAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
-      Right(OpcDiff(tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, sender.data)) -> -Longs.fromByteArray(amount.data),
-        ByteStr(Bytes.concat(tokenID.arr, recipient.data)) -> Longs.fromByteArray(amount.data))
-      ))
+      val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
+      val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
+      val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))
+      val recipientCurrentBalance = context.state.tokenAccountBalance(recipientBalanceKey)
+      if (transferAmount > senderCurrentBalance) {
+        Left(GenericError(s"Amount $transferAmount is larger than the sender balance $senderCurrentBalance"))
+      } else if (Try(Math.addExact(transferAmount, recipientCurrentBalance)).isFailure) {
+        Left(ValidationError.OverflowError)
+      } else if (transferAmount < 0) {
+        Left(GenericError("Invalid transfer amount"))
+      } else {
+        Right(OpcDiff(tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
+          recipientBalanceKey -> transferAmount)
+        ))
+      }
     }
   }
 
