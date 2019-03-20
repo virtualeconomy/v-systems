@@ -3,7 +3,8 @@ package vsys.state.opcdiffs
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
-import vsys.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.contract.{DataEntry, ExecutionContext}
+import vsys.contract.Contract.checkStateVar
 
 import scala.util.{Left, Right}
 
@@ -11,7 +12,7 @@ object CDBOpcDiff {
 
   def set(context: ExecutionContext)(stateVar: Array[Byte],
                                      value: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (stateVar.length != 2 || DataType.fromByte(stateVar(1)).get != value.dataType) {
+    if (!checkStateVar(stateVar, value.dataType)) {
       Left(GenericError(s"Wrong stateVariable $stateVar"))
     } else {
       Right(OpcDiff(contractDB = Map(ByteStr(context.contractId.bytes.arr
