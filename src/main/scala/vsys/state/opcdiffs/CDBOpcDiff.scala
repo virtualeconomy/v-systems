@@ -13,7 +13,7 @@ object CDBOpcDiff {
   def set(context: ExecutionContext)(stateVar: Array[Byte],
                                      value: DataEntry): Either[ValidationError, OpcDiff] = {
     if (!checkStateVar(stateVar, value.dataType)) {
-      Left(GenericError(s"Wrong stateVariable $stateVar"))
+      Left(GenericError(s"Wrong stateVariable"))
     } else {
       Right(OpcDiff(contractDB = Map(ByteStr(context.contractId.bytes.arr
         ++ Array(stateVar(0))) -> value.bytes)

@@ -15,7 +15,8 @@ object LoadOpcDiff {
   def issuer(context: ExecutionContext)(stateVar: Array[Byte],
                                         dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateVar(stateVar, DataType.Address)) {
-      Left(GenericError(s"Wrong stateVariable $stateVar"))
+      Left(GenericError(s"Wrong stateVariable"))
+    } else {
       context.state.contractInfo(ByteStr(context.contractId.bytes.arr ++ Array(stateVar(0)))) match {
         case Some(i) => Right(dataStack :+ i)
         case _ => Left(GenericError(s"${context.contractId.address}'s issuer not defined"))
@@ -31,7 +32,7 @@ object LoadOpcDiff {
                                      tokenIdx: DataEntry,
                                      dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateVar(stateVarMax, DataType.Amount)) {
-      Left(GenericError(s"Wrong stateVariable $stateVarMax"))
+      Left(GenericError(s"Wrong stateVariable"))
     } else {
       val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, Array(stateVarMax(0))))
       context.state.tokenInfo(id) match {
@@ -45,7 +46,7 @@ object LoadOpcDiff {
                                        tokenIdx: DataEntry,
                                        dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateVar(stateVarTotal, DataType.Amount)) {
-      Left(GenericError(s"Wrong stateVariable $stateVarTotal"))
+      Left(GenericError(s"Wrong stateVariable"))
     } else {
       val id: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIdx.data, Array(stateVarTotal(0))))
       val total = context.state.tokenAccountBalance(id)

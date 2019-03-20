@@ -13,22 +13,25 @@ import scala.util.{Left, Right}
 object TDBOpcDiff {
 
   def newToken(context: ExecutionContext)
-              (stateVarMax: Array[Byte], stateVarTotal: Array[Byte], stateVarDesc: Array[Byte],
-               max: DataEntry): Either[ValidationError, OpcDiff] = {
+              (stateVarMax: Array[Byte], stateVarTotal: Array[Byte], stateVarUnity: Array[Byte],
+               stateVarDesc: Array[Byte], max: DataEntry, unity: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (!checkStateVar(stateVarMax, DataType.Amount) || !checkStateVar(stateVarTotal, DataType.Amount)
-      || !checkStateVar(stateVarDesc, DataType.ShortText)) {
-      Left(GenericError(s"wrong stateVariable"))
-    } else if (max.dataType != DataType.Amount) {
+      || !checkStateVar(stateVarUnity, DataType.Amount) || !checkStateVar(stateVarDesc, DataType.ShortText)) {
+      Left(GenericError("Wrong stateVariable"))
+    } else if (max.dataType != DataType.Amount || unity.dataType != DataType.Amount) {
       Left(GenericError("Input contains invalid dataType"))
     } else if (Longs.fromByteArray(max.data) < 0) {
-      Left(GenericError("Invalid token max"))
+      Left(GenericError(s"Invalid token max ${Longs.fromByteArray(max.data)}"))
+    } else if (Longs.fromByteArray(unity.data) <= 0) {
+      Left(GenericError(s"Invalid token unity ${Longs.fromByteArray(unity.data)}"))
     } else {
-      val tokenIndex = context.state.contractTokens(context.contractId.bytes)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, Ints.toByteArray(tokenIndex)))
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, Ints.toByteArray(contractTokens)))
       Right(OpcDiff(
         tokenDB = Map(
           ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0)))) -> max.bytes,
+          ByteStr(Bytes.concat(tokenID.arr, Array(stateVarUnity(0)))) -> unity.bytes,
           ByteStr(Bytes.concat(tokenID.arr, Array(stateVarDesc(0)))) -> context.description),// wrong description
         contractTokens = Map(context.contractId.bytes -> 1),
         tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> 0L)
@@ -37,18 +40,22 @@ object TDBOpcDiff {
   }
 
   def split(context: ExecutionContext)
-             (stateVarUnity: Array[Byte], newUnity: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+           (stateVarUnity: Array[Byte], newUnity: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (!checkStateVar(stateVarUnity, DataType.Amount)) {
       Left(GenericError(s"Wrong stateVariable"))
-    } else if (newUnity.dataType != DataType.Amount) {
+    } else if (newUnity.dataType != DataType.Amount || tokenIndex.dataType != DataType.Int32) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val newUnityValue = Longs.fromByteArray(newUnity.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
       val tokenUnityKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarUnity(0))))
-      if (newUnityValue <= 0) {
-        Left(GenericError("Invalid unity value"))
+      if (tokenNumber >= contractTokens || tokenNumber < 0) {
+        Left(GenericError(s"Token $tokenNumber not exist"))
+      } else if (newUnityValue <= 0) {
+        Left(GenericError(s"Invalid unity value $newUnityValue"))
       } else {
         Right(OpcDiff(tokenDB = Map(tokenUnityKey -> newUnity.data)))
       }
@@ -62,8 +69,8 @@ object TDBOpcDiff {
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes, 5, context.stateVar.length, data.length, 4) =>
-      newToken(context)(context.stateVar(bytes(1)), context.stateVar(bytes(2)), context.stateVar(bytes(3)), data(bytes(4)))
+    case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes, 7, context.stateVar.length, data.length, 5) =>
+      newToken(context)(context.stateVar(bytes(1)), context.stateVar(bytes(2)), context.stateVar(bytes(3)), context.stateVar(bytes(4)), data(bytes(5)), data(bytes(6)))
     case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes, 4, context.stateVar.length, data.length, 2) =>
       split(context)(context.stateVar(bytes(1)), data(bytes(2)), data(bytes(3)))
     case _ => Left(GenericError("Wrong TDB opcode"))

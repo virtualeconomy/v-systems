@@ -1,7 +1,8 @@
 package vsys.state.opcdiffs
 
 import scorex.transaction.ValidationError
-import vsys.contract.{ExecutionContext, DataEntry}
+import scorex.transaction.ValidationError.GenericError
+import vsys.contract.{DataEntry, ExecutionContext}
 
 
 object OpcDiffer {
@@ -12,6 +13,7 @@ object OpcDiffer {
     val CDBOpc = Value(3)
     val TDBOpc = Value(4)
     val TDBAOpc = Value(5)
+    val ReturnOpc = Value(6)
 
   }
 
@@ -48,6 +50,10 @@ object OpcDiffer {
         case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
         case Left(validationError: ValidationError) => Left(validationError)
       }
+
+    case opcType: Byte if opcType == OpcType.ReturnOpc.id => Left(GenericError("Invalid Opc type"))
+
+    case _ => Left(GenericError("Invalid Opc type"))
 
   }
 

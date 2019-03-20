@@ -1,6 +1,6 @@
 package vsys.state.opcdiffs
 
-import com.google.common.primitives.{Bytes, Longs}
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
@@ -22,13 +22,17 @@ object TDBAOpcDiff {
       || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val depositAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
       val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
       val currentTotal = context.state.tokenAccountBalance(tokenTotalKey)
       val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0))))
       val tokenMax = Longs.fromByteArray(context.state.tokenInfo(tokenMaxKey).getOrElse(DataEntry(Longs.toByteArray(0), DataType.Amount)).data)
-      if (Try(Math.addExact(depositAmount, currentTotal)).isFailure) {
+      if (tokenNumber >= contractTokens || tokenNumber < 0) {
+        Left(GenericError(s"Token $tokenNumber not exist"))
+      } else if (Try(Math.addExact(depositAmount, currentTotal)).isFailure) {
         Left(ValidationError.OverflowError)
       } else if (depositAmount < 0) {
         Left(GenericError("Invalid deposit amount"))
@@ -52,14 +56,18 @@ object TDBAOpcDiff {
       || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val withdrawAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
       val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val issuerCurrentBalance = context.state.tokenAccountBalance(issuerBalanceKey)
-      if (withdrawAmount > issuerCurrentBalance) {
+      if (tokenNumber >= contractTokens || tokenNumber < 0) {
+        Left(GenericError(s"Token $tokenNumber not exist"))
+      } else if (withdrawAmount > issuerCurrentBalance) {
         Left(GenericError(s"Amount $withdrawAmount is larger than the current balance $issuerCurrentBalance"))
       } else if (withdrawAmount < 0){
-        Left(GenericError("Invalid withdraw amount"))
+        Left(GenericError(s"Invalid withdraw amount $withdrawAmount"))
       }
       else {
         Right(OpcDiff(tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> -withdrawAmount,
@@ -77,18 +85,22 @@ object TDBAOpcDiff {
       || (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val transferAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
       val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
       val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
       val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))
       val recipientCurrentBalance = context.state.tokenAccountBalance(recipientBalanceKey)
-      if (transferAmount > senderCurrentBalance) {
+      if (tokenNumber >= contractTokens || tokenNumber < 0) {
+        Left(GenericError(s"Token $tokenNumber not exist"))
+      } else if (transferAmount > senderCurrentBalance) {
         Left(GenericError(s"Amount $transferAmount is larger than the sender balance $senderCurrentBalance"))
       } else if (Try(Math.addExact(transferAmount, recipientCurrentBalance)).isFailure) {
         Left(ValidationError.OverflowError)
       } else if (transferAmount < 0) {
-        Left(GenericError("Invalid transfer amount"))
+        Left(GenericError(s"Invalid transfer amount $transferAmount"))
       } else {
         Right(OpcDiff(tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
           recipientBalanceKey -> transferAmount)
