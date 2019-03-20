@@ -19,9 +19,9 @@ object OpcDiffer {
 
     case opcType: Byte if opcType == OpcType.AssertOpc.id =>
       AssertOpcDiff.parseBytes(context)(opc.tail, data) match {
-      case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
-      case Left(validationError: ValidationError) => Left(validationError)
-    }
+        case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
+        case Left(validationError: ValidationError) => Left(validationError)
+     }
 
     case opcType: Byte if opcType == OpcType.LoadOpc.id =>
       LoadOpcDiff.parseBytes(context)(opc.tail, data) match {

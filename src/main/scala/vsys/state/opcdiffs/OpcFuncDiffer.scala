@@ -40,7 +40,7 @@ object OpcFuncDiffer extends ScorexLogging {
             case Left(l) => Left(l)
           }
         }
-      case Failure(exception) => Left(GenericError("Invalid opc function"))
+      case Failure(_) => Left(GenericError("Invalid opc function"))
     }
   }
 
