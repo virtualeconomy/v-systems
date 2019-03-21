@@ -13,7 +13,7 @@ import scala.util.{Left, Right, Try}
 object TDBAOpcDiff {
 
   def deposit(context: ExecutionContext)
-             (stateVarTotal: Array[Byte], stateVarMax: Array[Byte], issuer: DataEntry,
+             (stateVarMax: Array[Byte], stateVarTotal: Array[Byte], issuer: DataEntry,
               amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (!checkStateVar(stateVarTotal, DataType.Amount) || !checkStateVar(stateVarMax, DataType.Amount)) {
@@ -29,7 +29,8 @@ object TDBAOpcDiff {
       val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
       val currentTotal = context.state.tokenAccountBalance(tokenTotalKey)
       val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0))))
-      val tokenMax = Longs.fromByteArray(context.state.tokenInfo(tokenMaxKey).getOrElse(DataEntry(Longs.toByteArray(0), DataType.Amount)).data)
+      val tokenMax = Longs.fromByteArray(context.state.tokenInfo(tokenMaxKey).getOrElse(
+        DataEntry(Longs.toByteArray(0), DataType.Amount)).data)
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
         Left(GenericError(s"Token $tokenNumber not exist"))
       } else if (Try(Math.addExact(depositAmount, currentTotal)).isFailure) {
@@ -70,8 +71,8 @@ object TDBAOpcDiff {
         Left(GenericError(s"Invalid withdraw amount $withdrawAmount"))
       }
       else {
-        Right(OpcDiff(tokenAccountBalance = Map(ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> -withdrawAmount,
-          issuerBalanceKey -> -withdrawAmount)
+        Right(OpcDiff(tokenAccountBalance = Map(issuerBalanceKey -> -withdrawAmount,
+          ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> -withdrawAmount)
         ))
       }
     }
@@ -127,8 +128,7 @@ object TDBAOpcDiff {
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, stateVarLength: Int, dataLength: Int, sep: Int): Boolean = {
-    bytes.length == bLength && !bytes.slice(1, sep).isEmpty && !bytes.slice(sep, bLength).isEmpty &&
-      bytes.slice(1, sep).max < stateVarLength && bytes.slice(sep, bLength).max < dataLength && bytes.tail.min >= 0
+    bytes.length == bLength && bytes.slice(1, sep).forall(_ < stateVarLength) && bytes.slice(sep, bLength).forall(_ < dataLength) && bytes.tail.min >= 0
   }
 
 }

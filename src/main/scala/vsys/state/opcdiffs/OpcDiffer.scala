@@ -10,10 +10,13 @@ object OpcDiffer {
   object OpcType extends Enumeration {
     val AssertOpc = Value(1)
     val LoadOpc = Value(2)
-    val CDBOpc = Value(3)
-    val TDBOpc = Value(4)
-    val TDBAOpc = Value(5)
-    val ReturnOpc = Value(6)
+    val CDBVOpc = Value(3)
+    val CDBVROpc = Value(4)
+    val TDBOpc = Value(5)
+    val TDBROpc = Value(6)
+    val TDBAOpc = Value(7)
+    val TDBAROpc = Value(8)
+    val ReturnOpc = Value(9)
 
   }
 
@@ -29,13 +32,19 @@ object OpcDiffer {
 
     case opcType: Byte if opcType == OpcType.LoadOpc.id =>
       LoadOpcDiff.parseBytes(context)(opc.tail, data) match {
-        case Right(data: Seq[DataEntry]) => Right((OpcDiff.empty, data))
+        case Right(d: Seq[DataEntry]) => Right((OpcDiff.empty, d))
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
-    case opcType: Byte if opcType == OpcType.CDBOpc.id =>
-      CDBOpcDiff.parseBytes(context)(opc.tail, data) match {
+    case opcType: Byte if opcType == OpcType.CDBVOpc.id =>
+      CDBVOpcDiff.parseBytes(context)(opc.tail, data) match {
         case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
+        case Left(validationError: ValidationError) => Left(validationError)
+      }
+
+    case opcType: Byte if opcType == OpcType.CDBVROpc.id =>
+      CDBVROpcDiff.parseBytes(context)(opc.tail, data) match {
+        case Right(d: Seq[DataEntry]) => Right((OpcDiff.empty, d))
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
@@ -45,9 +54,21 @@ object OpcDiffer {
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
+    case opcType: Byte if opcType == OpcType.TDBROpc.id =>
+      TDBROpcDiff.parseBytes(context)(opc.tail, data) match {
+        case Right(d: Seq[DataEntry]) => Right((OpcDiff.empty, d))
+        case Left(validationError: ValidationError) => Left(validationError)
+      }
+
     case opcType: Byte if opcType == OpcType.TDBAOpc.id =>
       TDBAOpcDiff.parseBytes(context)(opc.tail, data) match {
         case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
+        case Left(validationError: ValidationError) => Left(validationError)
+      }
+
+    case opcType: Byte if opcType == OpcType.TDBAROpc.id =>
+      TDBAROpcDiff.parseBytes(context)(opc.tail, data) match {
+        case Right(d: Seq[DataEntry]) => Right((OpcDiff.empty, d))
         case Left(validationError: ValidationError) => Left(validationError)
       }
 

@@ -10,17 +10,21 @@ object DataType extends Enumeration {
   val Account = Value(7)
 
   def fromByte(b: Byte): Option[DataType.Value] = {
-    if (b < DataType.PublicKey.id || b > DataType.ContractAccount.id)
+    if (b < DataType.PublicKey.id || b > DataType.Account.id)
       None
     else
       Some(DataType(b))
   }
 
-  def check(a: DataType.Value, b: DataType.Value): Boolean = {
+  private def check(a: Byte, b: Byte): Boolean = {
     if (a == b) true
-    else if (a == DataType.Account) b == DataType.Address || b == DataType.ContractAccount
-    else if (b == DataType.Account) check(b, a)
+    else if (a == DataType.Account.id) b == DataType.Address.id || b == DataType.ContractAccount.id
+    else if (b == DataType.Account.id) check(b, a)
     else false
+  }
+
+  def checkTypes(paraTypes: Array[Byte], dataTypes: Array[Byte]): Boolean = {
+    paraTypes.length == dataTypes.length && (paraTypes, dataTypes).zipped.forall { case (a, b) => check(a, b) }
   }
 
 }

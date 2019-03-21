@@ -71,8 +71,7 @@ object TDBROpcDiff {
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, stateVarLength: Int, dataLength: Int, sep: Int): Boolean = {
-    bytes.length == bLength && !bytes.slice(1, sep).isEmpty && !bytes.slice(sep, bLength).isEmpty &&
-      bytes.slice(1, sep).max < stateVarLength && bytes.slice(sep, bLength).max < dataLength && bytes.tail.min >= 0
+    bytes.length == bLength && bytes.slice(1, sep).forall(_ < stateVarLength) && bytes.slice(sep, bLength).forall(_ < dataLength) && bytes.tail.min >= 0
   }
 
 }
