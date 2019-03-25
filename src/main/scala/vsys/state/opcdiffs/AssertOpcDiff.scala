@@ -50,7 +50,17 @@ object AssertOpcDiff {
       Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.data} is not equal to ${add2.data}"))
   }
 
-  def isOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
+  def isCallerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
+    val signer = context.signers.head
+    if (address.dataType != DataType.Address)
+      Left(GenericError("Issuer not defined"))
+    else if (!(address.data sameElements signer.bytes.arr))
+      Left(GenericError(s"Address ${address.data} does not equal $signer 's address"))
+    else
+      Right(OpcDiff.empty)
+  }
+
+  def isSignerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
     val signer = context.signers.head
     if (address.dataType != DataType.Address)
       Left(GenericError("Issuer not defined"))
@@ -66,7 +76,8 @@ object AssertOpcDiff {
     val LtInt64Assert = Value(3)
     val GtZeroAssert = Value(4)
     val EqAssert = Value(5)
-    val isOriginAssert = Value(6)
+    val IsCallerOriginAssert = Value(6)
+    val IsSignerOriginAssert = Value(7)
   }
 
   def parseBytes(context: ExecutionContext)
@@ -81,8 +92,10 @@ object AssertOpcDiff {
       && bytes.tail.max < data.length && bytes.tail.min >= 0 => gt0(data(bytes(1)))
     case opcType: Byte if opcType == AssertType.EqAssert.id && bytes.length == 3
       && bytes.tail.max < data.length && bytes.tail.min >= 0 => eq(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == AssertType.isOriginAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isOrigin(context)(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isCallerOrigin(context)(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isSignerOrigin(context)(data(bytes(1)))
     case _ => Left(GenericError("Wrong opcode"))
   }
 

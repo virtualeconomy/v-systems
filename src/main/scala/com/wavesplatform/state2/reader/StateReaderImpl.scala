@@ -59,11 +59,13 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def contractContent(id: ByteStr): Option[(Int, Contract)] = read { implicit l =>
-    Option((sp().contracts.get(id)._1, Contract.fromBytes(sp().contracts.get(id)._2).right.get))
+    Option(sp().contracts.get(id)).map {
+      case (h, _, bytes) => (h, Contract.fromBytes(bytes).explicitGet())
+    }
   }
 
   override def contractInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
-    Option(DataEntry.fromBytes(sp().contractDB.get(id)).right.get)
+    Option(sp().contractDB.get(id)).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
   }
 
   override def contractTokens(id: ByteStr): Int = read { implicit l =>
@@ -71,7 +73,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def tokenInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
-    Option(DataEntry.fromBytes(sp().tokenDB.get(id)).right.get)
+    Option(sp().tokenDB.get(id)).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
   }
 
   override def tokenAccountBalance(id: ByteStr): Long = read { implicit l =>

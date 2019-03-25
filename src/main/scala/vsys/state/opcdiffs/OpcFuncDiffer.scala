@@ -8,6 +8,7 @@ import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import scorex.utils.ScorexLogging
 import vsys.contract.{DataEntry, ExecutionContext}
+import vsys.contract.DataType.checkTypes
 
 import scala.util.{Failure, Success, Try}
 
@@ -24,7 +25,7 @@ object OpcFuncDiffer extends ScorexLogging {
     val s = executionContext.state
     fromBytes(opcFunc) match {
       case Success((_, _, listParaTypes, listOpcLines)) =>
-        if (listParaTypes.toSeq != data.map(_.dataType.id)) {
+        if (checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
           Left(ValidationError.InvalidDataEntry)
         } else if (listOpcLines.forall(_.length >= 2)) {
           Left(ValidationError.InvalidContract)
@@ -40,7 +41,7 @@ object OpcFuncDiffer extends ScorexLogging {
             case Left(l) => Left(l)
           }
         }
-      case Failure(exception) => Left(GenericError("Invalid opc function"))
+      case Failure(_) => Left(GenericError("Invalid opc function"))
     }
   }
 

@@ -80,7 +80,8 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
   val lastBalanceSnapshotWeightedBalance: MVMap[ByteStr, Long] = db.openMap("lastUpdateWeightedBalance", new LogMVMapBuilder[ByteStr, Long]
     .keyType(DataTypes.byteStr))
 
-  val contracts: MVMap[ByteStr, (Int, Array[Byte])] = db.openMap("contracts", new LogMVMapBuilder[ByteStr, (Int, Array[Byte])].keyType(DataTypes.byteStr).valueType(DataTypes.transactions))
+  val contracts: MVMap[ByteStr, (Int, ByteStr, Array[Byte])] = db.openMap("contracts",
+    new LogMVMapBuilder[ByteStr, (Int, ByteStr, Array[Byte])].keyType(DataTypes.byteStr))
 
   val accountContractIds: MVMap[AccountIdxKey, ByteStr] = db.openMap("accountContractIds",
     new LogMVMapBuilder[AccountIdxKey, ByteStr].valueType(DataTypes.byteStr))

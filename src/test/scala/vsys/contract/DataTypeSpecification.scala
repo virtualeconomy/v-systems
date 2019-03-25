@@ -12,7 +12,7 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.fromByte(4) should be (Some(DataType.Int32))
     DataType.fromByte(5) should be (Some(DataType.ShortText))
     DataType.fromByte(0) should be (None)
-    DataType.fromByte(6) should be (None)
+    DataType.fromByte(8) should be (None)
   }
 
   property("convert DataType to byte") {

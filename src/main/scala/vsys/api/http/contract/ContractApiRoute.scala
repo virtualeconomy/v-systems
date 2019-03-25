@@ -13,7 +13,6 @@ import play.api.libs.json.{JsNumber, Json}
 import scorex.BroadcastRoute
 import scorex.api.http._
 import scorex.transaction._
-import vsys.transaction.contract.ChangeContractStatusAction
 import scorex.utils.Time
 import vsys.wallet.Wallet
 
@@ -25,7 +24,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ contentFromId ~ enable ~ disable
+    register ~ contentFromId ~ execute
   }
 
   @Path("/register")
@@ -40,7 +39,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       required = true,
       paramType = "body",
       dataType = "vsys.api.http.contract.RegisterContractRequest",
-      defaultValue = "{\n\t\"contract\": \"contractcontract\",\n\t\"name\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
+      defaultValue = "{\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"contract\": \"contract\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -62,8 +61,8 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     }
   }
 
-  @Path("/enable")
-  @ApiOperation(value = "Enables a contract",
+  @Path("/execute")
+  @ApiOperation(value = "Execute a contract function",
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json")
@@ -73,29 +72,11 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.contract.ChangeContractStatusRequest",
-      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
+      dataType = "vsys.api.http.contract.ExecuteContractFunctionRequest",
+      defaultValue = "{\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"contractId\": \"contractId\",\n\t\"funcIdx\": \"0\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
-  def enable: Route = processRequest("enable", (t: ChangeContractStatusRequest) => doBroadcast(TransactionFactory.changeContractStatus(t, ChangeContractStatusAction.Enable, wallet, time)))
-
-  @Path("/disable")
-  @ApiOperation(value = "Disacbles a contract",
-    httpMethod = "POST",
-    produces = "application/json",
-    consumes = "application/json")
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(
-      name = "body",
-      value = "Json with data",
-      required = true,
-      paramType = "body",
-      dataType = "vsys.api.http.contract.ChangeContractStatusRequest",
-      defaultValue = "{\n\t\"contractName\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
-    )
-  ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
-  def disable: Route = processRequest("disable", (t: ChangeContractStatusRequest) => doBroadcast(TransactionFactory.changeContractStatus(t, ChangeContractStatusAction.Disable, wallet, time)))
+  def execute: Route = processRequest("execute", (t: ExecuteContractFunctionRequest) => doBroadcast(TransactionFactory.executeContractFunction(t, wallet, time)))
 
 }

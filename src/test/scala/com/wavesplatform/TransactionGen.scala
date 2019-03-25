@@ -115,7 +115,6 @@ trait TransactionGen {
     stateVar <- genSeqBoundedBytes(2, 2)
     textual <- genSeqBoundedBytes(0, 4 + 0)
   } yield Contract.buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, textual).right.get
-  val actionGen: Gen[ChangeContractStatusAction.Value] = Gen.oneOf(ChangeContractStatusAction.Enable, ChangeContractStatusAction.Disable)
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
@@ -275,15 +274,6 @@ trait TransactionGen {
     dataStack: Seq[DataEntry] <- dataEntryGen
     description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
   } yield RegisterContractTransaction.create(sender, contract, dataStack, description, fee, feeScale, timestamp).right.get
-
-  val changeContractStatusGen: Gen[ChangeContractStatusTransaction] = for {
-    sender: PrivateKeyAccount <- accountGen
-    contractName: String<- validAliasStringGen
-    action: ChangeContractStatusAction.Value <- actionGen
-    fee: Long <- smallFeeGen
-    timestamp: Long <- positiveLongGen
-    feeScale: Short <- feeScaleGen
-  } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp).right.get
 
   val executeContractGen: Gen[ExecuteContractFunctionTransaction] = for {
     sender: PrivateKeyAccount <- accountGen

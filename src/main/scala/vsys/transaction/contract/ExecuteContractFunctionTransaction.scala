@@ -32,7 +32,6 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
     Array(transactionType.id.toByte),
     contractId.bytes.arr,
     Shorts.toByteArray(funcIdx),
-    //Deser.serializeArray(data.flatMap(_.bytes).toArray),
     Deser.serializeArray(DataEntry.serializeArrays(data)),
     BytesSerializable.arrayWithSize(description),
     Longs.toByteArray(fee),
@@ -61,16 +60,15 @@ object ExecuteContractFunctionTransaction {
   val maxDescriptionStringSize: Int = base58Length(MaxDescriptionSize)
 
   def parseTail(bytes: Array[Byte]): Try[ExecuteContractFunctionTransaction] = Try {
-    val contractId = ContractAccount.fromBytes(bytes.slice(0, ContractAccount.AddressLength)).right.get
-    val funcIdx = Shorts.fromByteArray(bytes.slice(ContractAccount.AddressLength, ContractAccount.AddressLength + 2))
-    val (dataBytes, dataEnd) = Deser.parseArraySize(bytes, ContractAccount.AddressLength + 2)
-    //val data = DataEntry.fromArrayBytes(dataBytes).right.get
-    val data = DataEntry.parseArrays(dataBytes)
-    val (description, descriptionEnd) = Deser.parseArraySize(bytes, dataEnd)
-    val fee = Longs.fromByteArray(bytes.slice(descriptionEnd, descriptionEnd + 8))
-    val feeScale = Shorts.fromByteArray(bytes.slice(descriptionEnd + 8, descriptionEnd + 10))
-    val timestamp = Longs.fromByteArray(bytes.slice(descriptionEnd + 10, descriptionEnd + 18))
     (for {
+      contractId <- ContractAccount.fromBytes(bytes.slice(0, ContractAccount.AddressLength))
+      funcIdx = Shorts.fromByteArray(bytes.slice(ContractAccount.AddressLength, ContractAccount.AddressLength + 2))
+      (dataBytes, dataEnd) = Deser.parseArraySize(bytes, ContractAccount.AddressLength + 2)
+      data <- DataEntry.parseArrays(dataBytes)
+      (description, descriptionEnd) = Deser.parseArraySize(bytes, dataEnd)
+      fee = Longs.fromByteArray(bytes.slice(descriptionEnd, descriptionEnd + 8))
+      feeScale = Shorts.fromByteArray(bytes.slice(descriptionEnd + 8, descriptionEnd + 10))
+      timestamp = Longs.fromByteArray(bytes.slice(descriptionEnd + 10, descriptionEnd + 18))
       proofs <- Proofs.fromBytes(bytes.slice(descriptionEnd + 18, bytes.length))
       tx <- ExecuteContractFunctionTransaction.createWithProof(contractId, funcIdx,
         data, description, fee, feeScale, timestamp, proofs)

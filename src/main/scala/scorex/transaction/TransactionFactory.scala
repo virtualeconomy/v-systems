@@ -5,7 +5,7 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
-import vsys.api.http.contract.{ChangeContractStatusRequest, RegisterContractRequest, SignedChangeContractStatusRequest}
+import vsys.api.http.contract.{ExecuteContractFunctionRequest, RegisterContractRequest}
 import vsys.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
@@ -13,10 +13,11 @@ import vsys.contract.{Contract, DataEntry}
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, RegisterContractTransaction}
+import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
+import vsys.account.ContractAccount
 import vsys.wallet.Wallet
 
 object TransactionFactory {
@@ -91,7 +92,7 @@ object TransactionFactory {
   def registerContract(request: RegisterContractRequest, wallet: Wallet, time: Time): Either[ValidationError, RegisterContractTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     contract <- Contract.fromBase58String(request.contract)
-    dataStack <- DataEntry.fromBase58String(request.dataStack)
+    dataStack <- DataEntry.fromBase58String(request.data)
     tx <- RegisterContractTransaction
       .create(senderPrivateKey,
         contract,
@@ -102,15 +103,19 @@ object TransactionFactory {
         time.getTimestamp())
   } yield tx
 
-  def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
+  def executeContractFunction(request: ExecuteContractFunctionRequest, wallet: Wallet, time: Time): Either[ValidationError, ExecuteContractFunctionTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, request.feeScale, time.getTimestamp())
-  } yield tx
-
-  def broadcastChangeContractStatus(request: SignedChangeContractStatusRequest, action: ChangeContractStatusAction.Value): Either[ValidationError, ChangeContractStatusTransaction] = for {
-    _signature <- ByteStr.decodeBase58(request.signature).toOption.toRight(ValidationError.InvalidRequestSignature)
-    _sender <- PublicKeyAccount.fromBase58String(request.senderPublicKey)
-    tx <- ChangeContractStatusTransaction.create(_sender, request.contractName, action, request.fee, request.feeScale, request.timestamp, _signature)
+    contractId <- ContractAccount.fromString(request.contractId)
+    dataStack <- DataEntry.fromBase58String(request.data)
+    tx <- ExecuteContractFunctionTransaction
+      .create(senderPrivateKey,
+        contractId,
+        request.funcIdx,
+        dataStack,
+        request.description.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray),
+        request.fee,
+        request.feeScale,
+        time.getTimestamp())
   } yield tx
 
   def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {

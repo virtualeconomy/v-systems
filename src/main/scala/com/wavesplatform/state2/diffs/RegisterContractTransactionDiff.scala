@@ -22,7 +22,7 @@ object RegisterContractTransactionDiff {
     }
     else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-      val contractInfo = (height, tx.contract, Set(sender.toAddress))
+      val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
 //      for {
 //        exContext <- ExecutionContext.fromRegConTx(s, height, tx)
 //        opcDiff <- OpcFuncDiffer(exContext)(tx.data)
