@@ -12,17 +12,15 @@ import scorex.api.http._
 
 @Path("/contract/broadcast")
 @Api(value = "/contract")
-case class ContractBroadcastApiRoute(
-                                   settings: RestAPISettings,
-                                   utx: UtxPool,
-                                   allChannels: ChannelGroup)
-  extends ApiRoute with BroadcastRoute {
+case class ContractBroadcastApiRoute(settings: RestAPISettings,
+                                     utx: UtxPool,
+                                     allChannels: ChannelGroup) extends ApiRoute with BroadcastRoute {
   override val route = pathPrefix("contract" / "broadcast") {
-    signedCreate
+    signedRegister
   }
 
-  @Path("/create")
-  @ApiOperation(value = "Broadcasts a signed create conract transaction",
+  @Path("/register")
+  @ApiOperation(value = "Broadcasts a signed create contract transaction",
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json")
@@ -37,7 +35,7 @@ case class ContractBroadcastApiRoute(
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
-  def signedCreate: Route = (path("create") & post) {
+  def signedRegister: Route = (path("register") & post) {
     json[SignedRegisterContractRequest] { contractReq =>
       doBroadcast(contractReq.toTx)
     }

@@ -25,21 +25,21 @@ class ContractRequestsTests extends FunSuite with Matchers {
     req shouldBe contract.RegisterContractRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", "vsys test", "vsys test dataStack", Option("vsys test description"), 20000000L, 100)
   }
 
-  test("ChangeContractStatusRequest") {
-    val json =
-      """
-        {
-          "sender": "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7",
-          "fee": 10000000,
-          "feeScale": 100,
-          "contractName": "test"
-        }
-      """
-
-    val req = Json.parse(json).validate[ChangeContractStatusRequest].get
-
-    req shouldBe contract.ChangeContractStatusRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", "test", 10000000L, 100)
-  }
+//  test("ChangeContractStatusRequest") {
+//    val json =
+//      """
+//        {
+//          "sender": "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7",
+//          "fee": 10000000,
+//          "feeScale": 100,
+//          "contractName": "test"
+//        }
+//      """
+//
+//    val req = Json.parse(json).validate[ChangeContractStatusRequest].get
+//
+//    req shouldBe contract.ChangeContractStatusRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", "test", 10000000L, 100)
+//  }
 
   test("SignedCreateContractRequest") {
     val json =
@@ -58,26 +58,26 @@ class ContractRequestsTests extends FunSuite with Matchers {
 
     val req = Json.parse(json).validate[SignedRegisterContractRequest].get
 
-    req shouldBe contract.SignedRegisterContractRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw", 20000000L,
-      100, "vsys test", "vsys test dataStack", Option("vsys test description"), 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+    req shouldBe contract.SignedRegisterContractRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw", "vsys test", "vsys test dataStack", Option("vsys test description"), 20000000L,
+      100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
   }
 
-  test("SignedChangeContractStatusRequest") {
-    val json =
-      """
-        {
-         "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
-         "fee": 10000000,
-         "feeScale": 100,
-         "contractName": "test",
-         "timestamp":0,
-         "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
-         }
-      """
-
-    val req = Json.parse(json).validate[SignedChangeContractStatusRequest].get
-
-    req shouldBe contract.SignedChangeContractStatusRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw", "test",
-      10000000L, 100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
-  }
+//  test("SignedChangeContractStatusRequest") {
+//    val json =
+//      """
+//        {
+//         "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+//         "fee": 10000000,
+//         "feeScale": 100,
+//         "contractName": "test",
+//         "timestamp":0,
+//         "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
+//         }
+//      """
+//
+//    val req = Json.parse(json).validate[SignedChangeContractStatusRequest].get
+//
+//    req shouldBe contract.SignedChangeContractStatusRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw", "test",
+//      10000000L, 100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+//  }
 }
