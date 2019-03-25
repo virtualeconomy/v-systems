@@ -5,7 +5,7 @@ import com.wavesplatform.state2.ByteStr
 import scorex.account._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
-import vsys.api.http.contract.{ChangeContractStatusRequest, RegisterContractRequest, SignedChangeContractStatusRequest}
+import vsys.api.http.contract.RegisterContractRequest
 import vsys.api.http.database.DbPutRequest
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
@@ -13,7 +13,7 @@ import vsys.contract.{Contract, DataEntry}
 import scorex.crypto.encode.Base58
 import scorex.transaction.assets._
 import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vsys.transaction.contract.{ChangeContractStatusAction, ChangeContractStatusTransaction, RegisterContractTransaction}
+import vsys.transaction.contract.RegisterContractTransaction
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.Time
@@ -100,17 +100,6 @@ object TransactionFactory {
         request.fee,
         request.feeScale,
         time.getTimestamp())
-  } yield tx
-
-  def changeContractStatus(request: ChangeContractStatusRequest, action: ChangeContractStatusAction.Value, wallet: Wallet, time: Time): Either[ValidationError, ChangeContractStatusTransaction] = for {
-    senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    tx <- ChangeContractStatusTransaction.create(senderPrivateKey, request.contractName, action, request.fee, request.feeScale, time.getTimestamp())
-  } yield tx
-
-  def broadcastChangeContractStatus(request: SignedChangeContractStatusRequest, action: ChangeContractStatusAction.Value): Either[ValidationError, ChangeContractStatusTransaction] = for {
-    _signature <- ByteStr.decodeBase58(request.signature).toOption.toRight(ValidationError.InvalidRequestSignature)
-    _sender <- PublicKeyAccount.fromBase58String(request.senderPublicKey)
-    tx <- ChangeContractStatusTransaction.create(_sender, request.contractName, action, request.fee, request.feeScale, request.timestamp, _signature)
   } yield tx
 
   def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {

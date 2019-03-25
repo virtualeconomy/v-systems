@@ -149,7 +149,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  register-contract{
         |    VSYS = 20000000
         |  }
-        |  change-contract-status{
+        |  execute-contract-function{
         |    VSYS = 10000000
         |  }
         |  db-put{
