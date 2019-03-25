@@ -71,7 +71,7 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def contractContent(id: ByteStr): Option[(Int, Contract)] =
     txDiff.contracts.get(id)
-      .map(t => (t._1, t._2))
+      .map(t => (t._1, t._3))
       .orElse(inner.contractContent(id))
 
   override def contractInfo(id: ByteStr): Option[DataEntry] =

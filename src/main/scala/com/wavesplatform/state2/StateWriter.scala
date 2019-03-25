@@ -96,8 +96,8 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     }
 
     measureSizeLog("contracts")(blockDiff.txsDiff.contracts) {
-      _.foreach { case (id, (h, contract, _)) =>
-        sp().contracts.put(id, (h, contract.bytes.arr))
+      _.foreach { case (id, (h, txId, contract, _)) =>
+        sp().contracts.put(id, (h, txId, contract.bytes.arr))
       }
     }
 
@@ -187,6 +187,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     sp().accountContractsLengths.clear()
     sp().contractDB.clear()
     sp().contractTokens.clear()
+    sp().tokenDB.clear()
     sp().tokenAccountBalance.clear()
     sp().setHeight(0)
     sp().commit()

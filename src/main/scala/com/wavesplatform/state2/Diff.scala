@@ -50,7 +50,7 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 slotNum: Int,
                 txStatus: TransactionStatus.Value,
                 chargedFee: Long,
-                contracts: Map[ByteStr, (Int, Contract, Set[Address])],
+                contracts: Map[ByteStr, (Int, ByteStr, Contract, Set[Address])],
                 contractDB: Map[ByteStr, Array[Byte]],
                 contractTokens: Map[ByteStr, Int],
                 tokenDB: Map[ByteStr, Array[Byte]],
@@ -72,7 +72,7 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
 
   lazy val accountContractIds: Map[Address, List[ByteStr]] = {
     val map: List[(Address, Set[(Int, ByteStr)])] = contracts.toList
-      .flatMap { case (id, (h, ct, accs)) => accs.map(acc => acc -> Set((h, id))) }
+      .flatMap { case (id, (h, _, _, accs)) => accs.map(acc => acc -> Set((h, id))) }
     val groupedByAcc = map.foldLeft(Map.empty[Address, Set[(Int, ByteStr)]]) { case (m, (acc, set)) =>
       m.combine(Map(acc -> set))
     }
@@ -91,7 +91,7 @@ object Diff {
             slotNum: Int = 0,
             txStatus: TransactionStatus.Value = TransactionStatus.Success,
             chargedFee: Long = 0,
-            contracts: Map[ByteStr, (Int, Contract, Set[Address])] = Map.empty,
+            contracts: Map[ByteStr, (Int, ByteStr, Contract, Set[Address])] = Map.empty,
             contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
             contractTokens: Map[ByteStr, Int] = Map.empty,
             tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
