@@ -19,7 +19,7 @@ case class SignedExecuteContractFunctionRequest(@ApiModelProperty(value = "Base5
                                                 @ApiModelProperty(value = "Base58 encoded func index", required = true)
                                                 funcIdx: Short,
                                                 @ApiModelProperty(value = "Base58 encoded dataStack", required = true)
-                                                dataStack: String,
+                                                data: String,
                                                 @ApiModelProperty(value = "Base58 encoded description of contract")
                                                 description: Option[String],
                                                 @ApiModelProperty(required = true)
@@ -34,7 +34,7 @@ case class SignedExecuteContractFunctionRequest(@ApiModelProperty(value = "Base5
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
     _contractId <- ContractAccount.fromString(contractId)
-    _dataStack <- DataEntry.fromBase58String(dataStack)
+    _dataStack <- DataEntry.fromBase58String(data)
     _description = description.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray)
     _t <- ExecuteContractFunctionTransaction.create(_sender, _contractId, funcIdx, _dataStack, _description, fee, feeScale, timestamp, _signature)
   } yield _t

@@ -20,7 +20,7 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
   }
 
   @Path("/register")
-  @ApiOperation(value = "Broadcasts a signed create contract transaction",
+  @ApiOperation(value = "Broadcasts a signed register contract transaction",
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json")
@@ -31,12 +31,34 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
       required = true,
       paramType = "body",
       dataType = "vsys.api.http.contract.SignedCreateContractRequest",
-      defaultValue = "{\n\t\"content\": \"contractcontent\",\n\t\"name\": \"contractname\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      defaultValue = "{\n\t\"contract\": \"contract\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def signedRegister: Route = (path("register") & post) {
     json[SignedRegisterContractRequest] { contractReq =>
+      doBroadcast(contractReq.toTx)
+    }
+  }
+
+  @Path("/execute")
+  @ApiOperation(value = "Broadcasts a signed execute contract function transaction",
+    httpMethod = "POST",
+    produces = "application/json",
+    consumes = "application/json")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(
+      name = "body",
+      value = "Json with data",
+      required = true,
+      paramType = "body",
+      dataType = "vsys.api.http.contract.SignedCreateContractRequest",
+      defaultValue = "{\n\t\"contractId\": \"contractId\",\n\t\"funcIdx\": \"0\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+    )
+  ))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  def signedExecute: Route = (path("execute") & post) {
+    json[SignedExecuteContractFunctionRequest] { contractReq =>
       doBroadcast(contractReq.toTx)
     }
   }

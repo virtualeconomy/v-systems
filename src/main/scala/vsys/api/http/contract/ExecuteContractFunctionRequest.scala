@@ -11,7 +11,7 @@ case class ExecuteContractFunctionRequest(@ApiModelProperty(value = "Base58 enco
                                           @ApiModelProperty(value = "Base58 encoded func index", required = true)
                                           funcIdx: Short,
                                           @ApiModelProperty(value = "Base58 encoded dataStack", required = true)
-                                          dataStack: String,
+                                          data: String,
                                           @ApiModelProperty(value = "Base58 encoded description of contract")
                                           description: Option[String],
                                           @ApiModelProperty(required = true)

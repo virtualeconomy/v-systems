@@ -24,7 +24,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ contentFromId
+    register ~ contentFromId ~ execute
   }
 
   @Path("/register")
@@ -39,7 +39,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       required = true,
       paramType = "body",
       dataType = "vsys.api.http.contract.RegisterContractRequest",
-      defaultValue = "{\n\t\"contract\": \"contractcontract\",\n\t\"name\": \"contractname\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
+      defaultValue = "{\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"contract\": \"contract\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
     )
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
@@ -60,5 +60,23 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       case _ => complete(InvalidAddress)
     }
   }
+
+  @Path("/execute")
+  @ApiOperation(value = "Execute a contract function",
+    httpMethod = "POST",
+    produces = "application/json",
+    consumes = "application/json")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(
+      name = "body",
+      value = "Json with data",
+      required = true,
+      paramType = "body",
+      dataType = "vsys.api.http.contract.ExecuteContractFunctionRequest",
+      defaultValue = "{\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"contractId\": \"contractId\",\n\t\"funcIdx\": \"0\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
+    )
+  ))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  def execute: Route = processRequest("execute", (t: ExecuteContractFunctionRequest) => doBroadcast(TransactionFactory.executeContractFunction(t, wallet, time)))
 
 }
