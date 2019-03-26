@@ -30,20 +30,9 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def height: Int = inner.height + blockDiff.heightDiff
 
-  override def slotAddress(id: Int): Option[String] =
-    txDiff.slotids.get(id) match {
-      case None => inner.slotAddress(id).orElse(None)
-      case Some(None) => None
-      case Some(add) => add
-    }
+  override def slotAddress(id: Int): Option[String] = txDiff.slotids.getOrElse(id, inner.slotAddress(id))
 
-  override def addressSlot(add: String): Option[Int] = {
-    txDiff.addToSlot.get(add) match {
-      case None => inner.addressSlot(add)
-      case Some(None) => None
-      case Some(id) => id
-    }
-  }
+  override def addressSlot(add: String): Option[Int] = txDiff.addToSlot.getOrElse(add, inner.addressSlot(add))
 
   override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
 
