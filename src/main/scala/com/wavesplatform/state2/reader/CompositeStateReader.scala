@@ -33,13 +33,15 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   override def slotAddress(id: Int): Option[String] =
     txDiff.slotids.get(id) match {
       case None => inner.slotAddress(id).orElse(None)
-      case add => add.get
+      case Some(None) => None
+      case Some(add) => add
     }
 
   override def addressSlot(add: String): Option[Int] = {
     txDiff.addToSlot.get(add) match {
       case None => inner.addressSlot(add)
-      case id => id.get
+      case Some(None) => None
+      case Some(id) => id
     }
   }
 
