@@ -50,8 +50,8 @@ object ContendSlotsTransactionDiff {
           // charge transaction fee and contend the slot
           Right(Diff(height = height, tx = tx,
             portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-            slotids = Map(tx.slotId -> sender.toAddress.address),
-            addToSlot = Map(sender.toAddress.address -> tx.slotId),
+            slotids = Map(tx.slotId -> Option(sender.toAddress.address)),
+            addToSlot = Map(sender.toAddress.address -> Option(tx.slotId)),
             slotNum = slotIncrease,
             chargedFee = tx.fee))
         }

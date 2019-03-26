@@ -113,17 +113,17 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     // if the blockDiff has contend/release transaction issued, change the slot address
     measureSizeLog("slotids_info")(blockDiff.txsDiff.slotids)(
       _.foreach {
-        case (id, acc) => acc.length match {
-          case 0 => sp().releaseSlotAddress(id)
-          case _ => sp().setSlotAddress(id, acc)
+        case (id, acc) => acc match {
+          case None => sp().releaseSlotAddress(id)
+          case _ => sp().setSlotAddress(id, acc.get)
         }
       })
 
     measureSizeLog("address to slot_info")(blockDiff.txsDiff.addToSlot)(
       _.foreach {
         case (acc, id) => id match {
-          case -1 => sp().releaseAddressSlot(acc)
-          case _ => sp().setAddressSlot(acc, id)
+          case None => sp().releaseAddressSlot(acc)
+          case _ => sp().setAddressSlot(acc, id.get)
         }
       })
 

@@ -31,15 +31,14 @@ object ReleaseSlotsTransactionDiff {
 
     // add more ValidationError
 
-    val emptyAddress = ""
     if (proofLength > Proofs.MaxProofs){
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     }
     else if (hasEnoughMiner && isValidAddress && isValidSlotID) {
       Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        slotids = Map(tx.slotId -> emptyAddress),
-        addToSlot = Map(sender.toAddress.address -> -1),
+        slotids = Map(tx.slotId -> None),
+        addToSlot = Map(sender.toAddress.address -> None),
         slotNum = -1, chargedFee = tx.fee))
     }
     else if (!isValidSlotID){

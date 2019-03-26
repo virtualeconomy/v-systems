@@ -45,8 +45,8 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
                 aliases: Map[Alias, Address],
-                slotids: Map[Int, String],
-                addToSlot: Map[String, Int],
+                slotids: Map[Int, Option[String]],
+                addToSlot: Map[String, Option[Int]],
                 slotNum: Int,
                 txStatus: TransactionStatus.Value,
                 chargedFee: Long,
@@ -72,8 +72,8 @@ object Diff {
             portfolios: Map[Address, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
             aliases: Map[Alias, Address] = Map.empty,
-            slotids: Map[Int,String] = Map.empty,
-            addToSlot: Map[String, Int] = Map.empty,
+            slotids: Map[Int, Option[String]] = Map.empty,
+            addToSlot: Map[String, Option[Int]] = Map.empty,
             slotNum: Int = 0,
             txStatus: TransactionStatus.Value = TransactionStatus.Success,
             chargedFee: Long = 0,
@@ -95,7 +95,7 @@ object Diff {
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty,0, TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty, Map.empty, Map.empty)
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
