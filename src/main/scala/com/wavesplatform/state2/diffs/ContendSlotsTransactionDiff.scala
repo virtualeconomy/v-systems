@@ -20,7 +20,7 @@ object ContendSlotsTransactionDiff {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     val proofLength = tx.proofs.proofs.length
 
-    val multiSlotsCheck = s.addressToSlotID(sender.address) match {
+    val multiSlotsCheck = s.addressSlot(sender.address) match {
       case None => false
       case _ => true
     }
@@ -51,6 +51,7 @@ object ContendSlotsTransactionDiff {
           Right(Diff(height = height, tx = tx,
             portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
             slotids = Map(tx.slotId -> sender.toAddress.address),
+            addToSlot = Map(sender.toAddress.address -> tx.slotId),
             slotNum = 1,
             chargedFee = tx.fee))
         }
@@ -65,7 +66,7 @@ object ContendSlotsTransactionDiff {
       }
     }
     else if (multiSlotsCheck){
-      Left(GenericError(s"${sender.address} already own one slot."))
+      Left(GenericError(s"${sender.address} already owned one slot or contended by other node"))
     }
     else{
       Left(ValidationError.InvalidSlotId(tx.slotId))

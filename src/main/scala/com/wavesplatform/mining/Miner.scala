@@ -59,10 +59,11 @@ class Miner(
       s"BlockChain is too old (last block ${parent.uniqueId} generated $blockAge ago)"
     ))
 
-  private def checkSlot(account:PrivateKeyAccount): Either[String,Int] =
-    Either.cond(stateReader.addressToSlotID(account.address).isDefined,
-      stateReader.addressToSlotID(account.address).get,
-      s"Address ${account.address} is not in Slot List.")
+  private def checkSlot(account:PrivateKeyAccount): Either[String, Int] = {
+    val slotID = stateReader.addressSlot(account.address)
+    Either.cond(slotID.isDefined && stateReader.slotAddress(slotID.get).get == account.address,
+      slotID.get, s"Address ${account.address} is not in Slot List.")
+  }
 
   private def generateOneBlockTask(account: PrivateKeyAccount, parentHeight: Int, parent: Block,
                                    greatGrandParent: Option[Block], balance: Long, mintTime: Long)(delay: FiniteDuration): Task[Either[String, Block]] = Task {

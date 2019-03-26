@@ -37,18 +37,15 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       case add => add
     }
 
-  override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
-
-  override def addressToSlotID(add: String): Option[Int] = {
-    inner.addressToSlotID(add) match {
-      case None => txDiff.slotids.filter(_._2 == add).keys.headOption
-      case id => txDiff.slotids.filter(_._1 == id.get).values.headOption match {
-        case None => id
-        case adx if adx.get == add => id
-        case _ => None
-      }
+  override def addressSlot(add: String): Option[Int] = {
+    txDiff.addToSlot.get(add) match {
+      case None => inner.addressSlot(add)
+      case id if id.get == -1 => None
+      case id => id
     }
   }
+
+  override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
 
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = {
     val fromDiff = txDiff.accountTransactionIds.get(a).orEmpty
@@ -140,8 +137,8 @@ object CompositeStateReader {
     override def effectiveSlotAddressSize: Int =
       new CompositeStateReader(inner,blockDiff()).effectiveSlotAddressSize
 
-    override def addressToSlotID(add: String): Option[Int] =
-      new CompositeStateReader(inner,blockDiff()).addressToSlotID(add)
+    override def addressSlot(add: String): Option[Int] =
+      new CompositeStateReader(inner,blockDiff()).addressSlot(add)
 
     override def isLeaseActive(leaseTx: LeaseTransaction): Boolean =
       new CompositeStateReader(inner, blockDiff()).isLeaseActive(leaseTx)

@@ -115,7 +115,15 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       _.foreach {
         case (id, acc) => acc.length match {
           case 0 => sp().releaseSlotAddress(id)
-          case _ => sp ().setSlotAddress (id, acc)
+          case _ => sp().setSlotAddress(id, acc)
+        }
+      })
+
+    measureSizeLog("address to slot_info")(blockDiff.txsDiff.addToSlot)(
+      _.foreach {
+        case (acc, id) => id match {
+          case -1 => sp().releaseAddressSlot(acc)
+          case _ => sp().setAddressSlot(acc, id)
         }
       })
 
