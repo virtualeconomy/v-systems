@@ -45,7 +45,8 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
                 aliases: Map[Alias, Address],
-                slotids: Map[Int,String],
+                slotids: Map[Int, Option[String]],
+                addToSlot: Map[String, Option[Int]],
                 slotNum: Int,
                 txStatus: TransactionStatus.Value,
                 chargedFee: Long,
@@ -71,7 +72,8 @@ object Diff {
             portfolios: Map[Address, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
             aliases: Map[Alias, Address] = Map.empty,
-            slotids: Map[Int,String] = Map.empty,
+            slotids: Map[Int, Option[String]] = Map.empty,
+            addToSlot: Map[String, Option[Int]] = Map.empty,
             slotNum: Int = 0,
             txStatus: TransactionStatus.Value = TransactionStatus.Success,
             chargedFee: Long = 0,
@@ -84,6 +86,7 @@ object Diff {
     issuedAssets = assetInfos,
     aliases = aliases,
     slotids = slotids,
+    addToSlot = addToSlot,
     slotNum = slotNum,
     txStatus = txStatus,
     chargedFee = chargedFee,
@@ -92,7 +95,7 @@ object Diff {
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty, Map.empty, Map.empty)
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0, TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -107,6 +110,7 @@ object Diff {
       issuedAssets = older.issuedAssets.combine(newer.issuedAssets),
       aliases = older.aliases ++ newer.aliases,
       slotids = older.slotids ++ newer.slotids,
+      addToSlot = older.addToSlot ++ newer.addToSlot,
       slotNum = older.slotNum + newer.slotNum,
       txStatus = newer.txStatus,
       chargedFee = newer.chargedFee,

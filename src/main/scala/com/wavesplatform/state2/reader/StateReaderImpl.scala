@@ -36,7 +36,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def effectiveSlotAddressSize: Int = read {implicit l=> sp().getEffectiveSlotAddressSize}
 
-  override def addressToSlotID(add: String): Option[Int] = read {implicit l=> sp().addressToSlotID(add)}
+  override def addressSlot(add: String): Option[Int] = read {implicit l=> sp().getAddressSlot(add)}
 
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = read { implicit l =>
     val totalRecords = sp().accountTransactionsLengths.getOrDefault(a.bytes, 0)

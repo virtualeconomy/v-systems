@@ -30,19 +30,17 @@ class StateStorage private(file: Option[File]) extends AutoCloseable {
 
   val addressToID: MVMap[String, Int] = db.openMap("addressToID")
 
-  def setSlotAddress(i: Int, add: String):Unit = {
-    addressList.put(i,add)
-    addressToID.put(add,i)
-  }
+  def setSlotAddress(i: Int, add: String): Unit = addressList.put(i,add)
+
+  def setAddressSlot(add: String, i: Int): Unit = addressToID.put(add,i)
 
   def getSlotAddress(i: Int): Option[String] = Option(addressList.get(i))
 
-  def releaseSlotAddress(i: Int): Unit = {
-    addressToID.remove(addressList.get(i))
-    addressList.remove(i)
-  }
+  def getAddressSlot(add: String): Option[Int] = Option(addressToID.get(add))
 
-  def addressToSlotID(add: String): Option[Int] = Option(addressToID.get(add))
+  def releaseSlotAddress(i: Int): Unit = addressList.remove(i)
+
+  def releaseAddressSlot(add: String): Unit = addressToID.remove(add)
 
   def getEffectiveSlotAddressSize: Int = addressList.size()
 
