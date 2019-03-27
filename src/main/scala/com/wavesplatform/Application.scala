@@ -270,7 +270,7 @@ object Application extends ScorexLogging {
           Kamon.shutdown()
           super.shutdown()
         }
-      }.run()}
+      }.run()
     }
   }
 }
