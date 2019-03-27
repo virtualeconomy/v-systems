@@ -39,3 +39,6 @@ native
 
 .DS_Store
 minter_target
+
+test
+test/*

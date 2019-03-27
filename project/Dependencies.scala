@@ -1,5 +1,6 @@
 import sbt._
 
+
 object Dependencies {
 
   def akkaModule(module: String) = "com.typesafe.akka" %% s"akka-$module" % "2.4.19"
@@ -40,7 +41,8 @@ object Dependencies {
   lazy val akka = Seq("actor", "slf4j").map(akkaModule)
 
   lazy val db = Seq(
-    "com.h2database" % "h2-mvstore" % "1.4.196"
+    "com.h2database" % "h2-mvstore" % "1.4.196",
+    "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
   )
 
   lazy val logging = Seq(
@@ -58,8 +60,7 @@ object Dependencies {
 
   lazy val matcher = Seq(
     akkaModule("persistence"),
-    "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.4.18.1" % "test",
-    "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
+    "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.4.18.1" % "test"
   )
 
   lazy val kamon = Seq("core", "statsd", "system-metrics").map(kamonModule)
