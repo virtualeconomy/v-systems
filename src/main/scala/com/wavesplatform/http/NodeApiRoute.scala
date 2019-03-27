@@ -51,7 +51,7 @@ case class NodeApiRoute(settings: RestAPISettings,
         "blockchainHeight" -> history.height,
         "stateHeight"      -> s.height,
         "updatedTimestamp" -> lastUpdated,
-        "updatedDate"      -> Instant.ofEpochMilli(lastUpdated).toString
+        "updatedDate"      -> Instant.ofEpochMilli(lastUpdated/1000000L).toString
       ))
   }
 }
