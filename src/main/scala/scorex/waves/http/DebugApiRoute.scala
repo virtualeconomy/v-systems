@@ -31,7 +31,7 @@ import DebugApiRoute._
 
 
 @Path("/debug")
-@Api(value = "/debug")
+@Api(value = "/_debug")
 case class DebugApiRoute(settings: RestAPISettings,
                          wallet: Wallet,
                          stateReader: StateReader,
