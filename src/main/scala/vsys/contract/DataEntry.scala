@@ -1,8 +1,8 @@
 package vsys.contract
 
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
-import play.api.libs.json.{JsObject, Json}
-import scorex.account.Address
+import play.api.libs.json.{JsObject, JsValue, Json}
+import scorex.account.{Address, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser.{AmountLength, KeyLength}
 import scorex.transaction.ValidationError
@@ -15,12 +15,26 @@ import scala.util.Success
 case class DataEntry(data: Array[Byte],
                      dataType: DataType.Value) {
 
-  lazy val bytes: Array[Byte] = Array(dataType.id.asInstanceOf[Byte]) ++ data
+  lazy val bytes: Array[Byte] = dataType match {
+    case DataType.ShortText => Array(dataType.id.asInstanceOf[Byte]) ++ Shorts.toByteArray(data.length.toShort) ++ data
+    case _ => Array(dataType.id.asInstanceOf[Byte]) ++ data
+  }
 
   lazy val json: JsObject = Json.obj(
-    "data" -> data,
+    "data" -> toJson(data, dataType),
     "type" -> dataType
   )
+
+  private def toJson(d: Array[Byte], t: DataType.Value): JsValue = {
+    t match {
+      case DataType.PublicKey => Json.toJson(PublicKeyAccount(d).address)
+      case DataType.Address => Json.toJson(Address.fromBytes(d).right.get.address)
+      case DataType.Amount => Json.toJson(Longs.fromByteArray(d))
+      case DataType.Int32 => Json.toJson(Ints.fromByteArray(d))
+      case DataType.ShortText => Json.toJson(Base58.encode(d))
+      case DataType.ContractAccount => Json.toJson(ContractAccount.fromBytes(d).right.get.address)
+    }
+  }
 }
 
 object DataEntry {
