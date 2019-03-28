@@ -4,7 +4,7 @@ import sbt._
 object Dependencies {
 
   def akkaModule(module: String) = "com.typesafe.akka" %% s"akka-$module" % "2.4.19"
-  def swaggerModule(module: String) = "io.swagger" % s"swagger-$module" % "1.5.22"
+  def swaggerModule(module: String) = ("io.swagger" % s"swagger-$module" % "1.5.22").exclude("com.google.guava", "guava")
   def akkaHttpModule(module: String) = "com.typesafe.akka" %% module % "10.0.9"
   def nettyModule(module: String) = "io.netty" % s"netty-$module" % "4.1.24.Final"
   def kamonModule(module: String) = "io.kamon" %% s"kamon-$module" % "0.6.7"
@@ -54,7 +54,7 @@ object Dependencies {
 
   lazy val http = Seq("core", "annotations", "models", "jaxrs").map(swaggerModule) ++ Seq(
     "io.swagger" %% "swagger-scala-module" % "1.0.4",
-    "com.github.swagger-akka-http" %% "swagger-akka-http" % "0.9.2",
+    "com.github.swagger-akka-http" %% "swagger-akka-http" % "1.0.0",
     akkaHttpModule("akka-http")
   )
 

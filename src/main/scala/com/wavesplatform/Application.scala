@@ -111,29 +111,29 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       DbApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader)
     )
 
-    val apiTypes = Seq(
-      typeOf[BlocksApiRoute],
-      typeOf[TransactionsApiRoute],
-      typeOf[SposConsensusApiRoute],
-      typeOf[WalletApiRoute],
-      typeOf[PaymentApiRoute],
-      typeOf[UtilsApiRoute],
-      typeOf[PeersApiRoute],
-      typeOf[AddressApiRoute],
-      typeOf[DebugApiRoute],
-      //typeOf[WavesApiRoute],
-      //typeOf[AssetsApiRoute],
-      typeOf[NodeApiRoute],
-      //typeOf[AssetsBroadcastApiRoute],
-      typeOf[LeaseApiRoute],
-      typeOf[LeaseBroadcastApiRoute],
-      //typeOf[AliasApiRoute],
-      //typeOf[AliasBroadcastApiRoute],
-      typeOf[SPOSApiRoute],
-      typeOf[SPOSBroadcastApiRoute],
-      //typeOf[ContractApiRoute],
-      //typeOf[ContractBroadcastApiRoute],
-      typeOf[DbApiRoute]
+    val apiTypes: Set[Class[_]] = Set(
+      classOf[BlocksApiRoute],
+      classOf[TransactionsApiRoute],
+      classOf[SposConsensusApiRoute],
+      classOf[WalletApiRoute],
+      classOf[PaymentApiRoute],
+      classOf[UtilsApiRoute],
+      classOf[PeersApiRoute],
+      classOf[AddressApiRoute],
+      classOf[DebugApiRoute],
+      //classOf[WavesApiRoute],
+      //classOf[AssetsApiRoute],
+      classOf[NodeApiRoute],
+      //classOf[AssetsBroadcastApiRoute],
+      classOf[LeaseApiRoute],
+      classOf[LeaseBroadcastApiRoute],
+      //classOf[AliasApiRoute],
+      //classOf[AliasBroadcastApiRoute],
+      classOf[SPOSApiRoute],
+      classOf[SPOSBroadcastApiRoute],
+      //classOf[ContractApiRoute],
+      //classOf[ContractBroadcastApiRoute],
+      classOf[DbApiRoute]
     )
 
     for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {
