@@ -69,9 +69,9 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
 
-  override def contractContent(id: ByteStr): Option[(Int, Contract)] =
+  override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] =
     txDiff.contracts.get(id)
-      .map(t => (t._1, t._3))
+      .map(t => (t._1, t._2, t._3))
       .orElse(inner.contractContent(id))
 
   override def contractInfo(id: ByteStr): Option[DataEntry] =
@@ -79,7 +79,7 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       .map(t => DataEntry.fromBytes(t).right.get)
       .orElse(inner.contractInfo(id))
 
-  override def contractTokens(id: ByteStr): Int = inner.contractTokens(id) + txDiff.contractTokens(id)
+  override def contractTokens(id: ByteStr): Int = inner.contractTokens(id) + txDiff.contractTokens.getOrElse(id, 0)
 
   override def tokenInfo(id: ByteStr): Option[DataEntry] = {
     txDiff.tokenDB.get(id)
@@ -88,7 +88,7 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   }
 
   override def tokenAccountBalance(id: ByteStr): Long =
-    safeSum(txDiff.tokenAccountBalance(id), inner.tokenAccountBalance(id))
+    safeSum(txDiff.tokenAccountBalance.getOrElse(id, 0L), inner.tokenAccountBalance(id))
 
   override def dbGet(key: ByteStr): Option[ByteStr] =
     txDiff.dbEntries.get(key).map(v=>v.bytes)
@@ -140,7 +140,7 @@ object CompositeStateReader {
     override def resolveAlias(a: Alias): Option[Address] =
       new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
 
-    override def contractContent(id: ByteStr): Option[(Int, Contract)] =
+    override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] =
       new CompositeStateReader(inner, blockDiff()).contractContent(id)
 
     override def contractInfo(id: ByteStr): Option[DataEntry] =

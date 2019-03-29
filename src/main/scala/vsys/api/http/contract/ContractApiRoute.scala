@@ -55,7 +55,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   def content: Route = (get & path("content" / Segment)) { encoded =>
     ByteStr.decodeBase58(encoded) match {
       case Success(id) => state.contractContent(id) match {
-        case Some((h, ct)) => complete(ct.json + ("height" -> JsNumber(h)))
+        case Some((h, _, ct)) => complete(ct.json + ("height" -> JsNumber(h)))
         case None => complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Contract is not in blockchain"))
       }
       case _ => complete(InvalidAddress)
@@ -74,7 +74,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   private def infoJson(contractIdStr: String): Either[ApiError, JsObject] = {
     ByteStr.decodeBase58(contractIdStr) match {
       case Success(id) => state.contractContent(id) match {
-        case Some((_, ct)) => Right(Json.obj(
+        case Some((_, _, ct)) => Right(Json.obj(
           "contractId" -> contractIdStr,
           "info" -> JsArray(ct.stateVar.map { a => state.contractInfo(ByteStr(id.arr ++ Array(a(0)))) }.filter(_.isDefined).map { a => a.get.json }))
         )
@@ -97,7 +97,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     ByteStr.decodeBase58(tokenIdStr) match {
       case Success(id) => Try(id.arr.slice(0, id.arr.length-4)) match {
         case Success(contractId) => state.contractContent(ByteStr(contractId)) match {
-          case Some((_, ct)) => Right(Json.obj(
+          case Some((_, _, ct)) => Right(Json.obj(
             "tokenId" -> tokenIdStr,
             "info" -> JsArray(ct.stateVar.map { a => state.tokenInfo(ByteStr(id.arr ++ Array(a(0)))) }.filter(_.isDefined).map { a => a.get.json }))
           )

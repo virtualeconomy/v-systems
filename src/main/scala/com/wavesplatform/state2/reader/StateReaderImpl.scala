@@ -58,9 +58,9 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .map(b => Address.fromBytes(b.arr).explicitGet())
   }
 
-  override def contractContent(id: ByteStr): Option[(Int, Contract)] = read { implicit l =>
+  override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] = read { implicit l =>
     Option(sp().contracts.get(id)).map {
-      case (h, _, bytes) => (h, Contract.fromBytes(bytes).explicitGet())
+      case (h, txId, bytes) => (h, txId, Contract.fromBytes(bytes).explicitGet())
     }
   }
 
