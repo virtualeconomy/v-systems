@@ -69,8 +69,8 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
   @Path("/get/{nameSpace}/{dbKey}")
   @ApiOperation(value = "get", notes = "Get db entry", httpMethod = "GET")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "nameSpace", value = "Address", required = true, dataType = "String", paramType = "path"),
-    new ApiImplicitParam(name = "dbKey", value = "dbKey", required = true, dataType = "String", paramType = "path")
+    new ApiImplicitParam(name = "nameSpace", value = "Address", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "dbKey", value = "dbKey", required = true, dataType = "string", paramType = "path")
   ))
   def getKV: Route = {
     (path("get" / Segment / Segment) & get) { case (addr, dbKey) => {

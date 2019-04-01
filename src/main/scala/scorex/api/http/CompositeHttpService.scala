@@ -10,9 +10,7 @@ import akka.stream.ActorMaterializer
 import com.wavesplatform.settings.RestAPISettings
 import scorex.api.http.swagger.SwaggerDocService
 
-import scala.reflect.runtime.universe.Type
-
-case class CompositeHttpService(system: ActorSystem, apiTypes: Seq[Type], routes: Seq[ApiRoute], settings: RestAPISettings) {
+case class CompositeHttpService(system: ActorSystem, apiTypes: Set[Class[_]], routes: Seq[ApiRoute], settings: RestAPISettings) {
 
   val swaggerService = new SwaggerDocService(system, ActorMaterializer()(system), apiTypes, settings)
 
