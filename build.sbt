@@ -51,6 +51,10 @@ libraryDependencies ++=
     "io.monix" %% "monix" % "2.3.0"
   )
 
+dependencyOverrides ++= Seq(
+  "com.google.guava" % "guava" % "21.0"
+)
+
 sourceGenerators in Compile += Def.task {
   val versionFile = (sourceManaged in Compile).value / "com" / "wavesplatform" / "Version.scala"
   val versionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
