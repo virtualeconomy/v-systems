@@ -15,10 +15,7 @@ import scala.util.Success
 case class DataEntry(data: Array[Byte],
                      dataType: DataType.Value) {
 
-  lazy val bytes: Array[Byte] = dataType match {
-    case DataType.ShortText => Array(dataType.id.asInstanceOf[Byte]) ++ Shorts.toByteArray(data.length.toShort) ++ data
-    case _ => Array(dataType.id.asInstanceOf[Byte]) ++ data
-  }
+  lazy val bytes: Array[Byte] = Array(dataType.id.asInstanceOf[Byte]) ++ data
 
   lazy val json: JsObject = Json.obj(
     "data" -> toJson(data, dataType),
@@ -41,7 +38,10 @@ object DataEntry {
 
   def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
     if (checkDataType(data, dataType))
-      Right(buildDataEntry(data, dataType))
+      dataType match {
+        case DataType.ShortText => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
+        case _ => Right(DataEntry(data, dataType))
+      }
     else
       Left(InvalidDataEntry)
   }
@@ -50,9 +50,11 @@ object DataEntry {
     if (bytes.length == 0 || DataType.fromByte(bytes(0)).isEmpty)
       Left(InvalidDataEntry)
     else
-      create(bytes.tail, DataType(bytes(0)))
+      DataType.fromByte(bytes(0)) match {
+        case Some(DataType.ShortText) => create(bytes.slice(3, bytes.length), DataType(bytes(0)))
+        case _ => create(bytes.tail, DataType(bytes(0)))
+      }
   }
-
 
   def fromBase58String(base58String: String): Either[ValidationError, Seq[DataEntry]] = {
     Base58.decode(base58String) match {
@@ -64,17 +66,17 @@ object DataEntry {
   def parseArraySize(bytes: Array[Byte], position: Int): Either[ValidationError, (DataEntry, Int)] = {
     DataType.fromByte(bytes(position)) match {
       case Some(DataType.PublicKey) if checkDataType(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKey) =>
-        Right((buildDataEntry(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKey), position + 1 + KeyLength))
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKey), position + 1 + KeyLength))
       case Some(DataType.Address) if checkDataType(bytes.slice(position + 1, position + 1 + Address.AddressLength), DataType.Address) =>
-        Right((buildDataEntry(bytes.slice(position + 1, position + 1 + Address.AddressLength), DataType.Address), position + 1 + Address.AddressLength))
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + Address.AddressLength), DataType.Address), position + 1 + Address.AddressLength))
       case Some(DataType.Amount) if checkDataType(bytes.slice(position + 1, position + 1 + AmountLength), DataType.Amount) =>
-        Right((buildDataEntry(bytes.slice(position + 1, position + 1 + AmountLength), DataType.Amount), position + 1 + AmountLength))
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + AmountLength), DataType.Amount), position + 1 + AmountLength))
       case Some(DataType.Int32) if checkDataType(bytes.slice(position + 1, position + 1 + 4), DataType.Int32) =>
-        Right((buildDataEntry(bytes.slice(position + 1, position + 1 + 4), DataType.Int32), position + 1 + 4))
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + 4), DataType.Int32), position + 1 + 4))
       case Some(DataType.ShortText) if checkDataType(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText) =>
-        Right((buildDataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
+        Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
       case Some(DataType.ContractAccount) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount) =>
-        Right((buildDataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
       case _ => Left(InvalidDataEntry)
     }
   }
@@ -96,13 +98,6 @@ object DataEntry {
     } match {
       case Right((acc, _)) => Right(acc)
       case Left(l) => Left(l)
-    }
-  }
-
-  private def buildDataEntry(data: Array[Byte], dataType: DataType.Value): DataEntry = {
-    dataType match {
-      case DataType.ShortText => DataEntry(data.slice(2, data.length), dataType)
-      case _ => DataEntry(data, dataType)
     }
   }
 

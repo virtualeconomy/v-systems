@@ -76,14 +76,14 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def contractInfo(id: ByteStr): Option[DataEntry] =
     txDiff.contractDB.get(id)
-      .map(t => DataEntry.fromBytes(t).right.get)
+      .map(t => DataEntry.fromBytes(t).explicitGet())
       .orElse(inner.contractInfo(id))
 
   override def contractTokens(id: ByteStr): Int = inner.contractTokens(id) + txDiff.contractTokens.getOrElse(id, 0)
 
   override def tokenInfo(id: ByteStr): Option[DataEntry] = {
     txDiff.tokenDB.get(id)
-      .map(t => DataEntry.fromBytes(t).right.get)
+      .map(t => DataEntry.fromBytes(t).explicitGet())
       .orElse(inner.tokenInfo(id))
   }
 
