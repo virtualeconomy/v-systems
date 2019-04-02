@@ -5,22 +5,14 @@ import cats.implicits._
 import com.wavesplatform.state2.{BlockDiff, ByteStr, Diff}
 import scorex.transaction.Transaction
 
-case class OpcDiff(contractDB: Map[ByteStr, Array[Byte]],
-                   contractTokens: Map[ByteStr, Int],
-                   tokenDB: Map[ByteStr, Array[Byte]],
-                   tokenAccountBalance: Map[ByteStr, Long]) {
+case class OpcDiff(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
+                   contractTokens: Map[ByteStr, Int] = Map.empty,
+                   tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
+                   tokenAccountBalance: Map[ByteStr, Long] = Map.empty) {
 
 }
 
 object OpcDiff {
-  def apply(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
-            contractTokens: Map[ByteStr, Int] = Map.empty,
-            tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
-            tokenAccountBalance: Map[ByteStr, Long] = Map.empty): OpcDiff = OpcDiff(
-    contractDB = contractDB,
-    contractTokens = contractTokens,
-    tokenDB = tokenDB,
-    tokenAccountBalance = tokenAccountBalance)
 
   val empty = new OpcDiff(Map.empty, Map.empty, Map.empty, Map.empty)
 
