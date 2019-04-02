@@ -37,13 +37,11 @@ case class DataEntry(data: Array[Byte],
 object DataEntry {
 
   def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
-    if (checkDataType(data, dataType))
-      dataType match {
-        case DataType.ShortText => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
-        case _ => Right(DataEntry(data, dataType))
-      }
-    else
-      Left(InvalidDataEntry)
+    dataType match {
+      case DataType.ShortText if checkDataType(Shorts.toByteArray(data.length.toShort) ++ data, dataType) => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
+      case _ if checkDataType(data, dataType) => Right(DataEntry(data, dataType))
+      case _ => Left(InvalidDataEntry)
+    }
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, DataEntry] = {
