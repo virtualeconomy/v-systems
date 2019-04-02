@@ -41,7 +41,7 @@ trait StateReader extends Synchronized {
 
   def resolveAlias(a: Alias): Option[Address]
 
-  def contractContent(id: ByteStr): Option[(Int, Contract)]
+  def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)]
 
   def contractInfo(id: ByteStr): Option[DataEntry]
 

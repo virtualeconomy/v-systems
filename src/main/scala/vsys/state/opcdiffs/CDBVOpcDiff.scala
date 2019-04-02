@@ -21,13 +21,13 @@ object CDBVOpcDiff {
     }
   }
 
-  object CDBType extends Enumeration {
+  object CDBVType extends Enumeration {
     val SetCDBV = Value(1)
   }
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == CDBType.SetCDBV.id && bytes.length == 3 && bytes(1) < context.stateVar.length
+    case opcType: Byte if opcType == CDBVType.SetCDBV.id && bytes.length == 3 && bytes(1) < context.stateVar.length
       && bytes.last < data.length && bytes.tail.min >= 0 => set(context)(context.stateVar(bytes(1)), data(bytes(2)))
     case _ => Left(GenericError("Wrong CDBV opcode"))
   }

@@ -120,25 +120,21 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("contractTokens")(blockDiff.txsDiff.contractTokens) {
       _.foreach { case (id, tokenNum) =>
-        Option(sp().contractTokens.get(id)) match {
-          case Some(num) => sp().contractTokens.put(id, num + tokenNum)
-          case None => sp().contractTokens.put(id, tokenNum)
-        }
+        val updatedNum = contractTokens(id) + tokenNum
+        sp().contractTokens.put(id, updatedNum)
       }
     }
 
     measureSizeLog("tokenDB")(blockDiff.txsDiff.tokenDB) {
       _.foreach { case (id, tokeninfo) =>
-        Option(sp().tokenDB.put(id, tokeninfo))
+        sp().tokenDB.put(id, tokeninfo)
       }
     }
 
     measureSizeLog("tokenAccountBalance")(blockDiff.txsDiff.tokenAccountBalance) {
       _.foreach { case (id, balance) =>
-        Option(sp().tokenAccountBalance.get(id)) match {
-          case Some(bl) => sp().tokenAccountBalance.put(id, safeSum(bl, balance))
-          case None => sp().tokenAccountBalance.put(id, balance)
-        }
+        val updatedBalance = safeSum(tokenAccountBalance(id), balance)
+        sp().tokenAccountBalance.put(id, updatedBalance)
       }
     }
 

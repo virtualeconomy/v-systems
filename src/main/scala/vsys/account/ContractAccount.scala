@@ -75,7 +75,7 @@ object ContractAccount extends ScorexLogging {
     val version = addressBytes.head
     val network = addressBytes.tail.head
     if (version != AddressVersion) {
-      log.warn(s"Unknown address version: $version")
+      log.warn(s"Unknown contract address version: $version")
       false
     } else if (network != scheme.chainId) {
       log.warn(s"~ Expected network: ${scheme.chainId}(${scheme.chainId.toChar}")

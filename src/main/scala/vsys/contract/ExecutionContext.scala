@@ -40,7 +40,7 @@ object ExecutionContext {
     val contractId = tx.contractId
     val description = tx.description
     s.contractContent(tx.contractId.bytes) match {
-      case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._2.descriptor(tx.funcIdx), c._2.stateVar, description))
+      case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description))
       case _ => Left(GenericError(s"Invalid contract id"))
     }
   }
