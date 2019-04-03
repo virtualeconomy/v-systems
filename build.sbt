@@ -48,7 +48,7 @@ libraryDependencies ++=
       .exclude("org.slf4j", "slf4j-api"),
     "commons-net" % "commons-net" % "3.+",
     "org.typelevel" %% "cats-core" % "0.9.0",
-    "io.monix" %% "monix" % "2.3.0"
+    "io.monix" %% "monix" % "3.0.0-M2"
   )
 
 dependencyOverrides ++= Seq(
