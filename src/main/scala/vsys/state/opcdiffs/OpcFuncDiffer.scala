@@ -25,9 +25,9 @@ object OpcFuncDiffer extends ScorexLogging {
     val s = executionContext.state
     fromBytes(opcFunc) match {
       case Success((_, _, listParaTypes, listOpcLines)) =>
-        if (checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
+        if (!checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
           Left(ValidationError.InvalidDataEntry)
-        } else if (listOpcLines.forall(_.length >= 2)) {
+        } else if (listOpcLines.forall(_.length < 2)) {
           Left(ValidationError.InvalidContract)
         } else {
           listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>

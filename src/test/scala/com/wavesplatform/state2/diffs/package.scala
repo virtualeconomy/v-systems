@@ -7,7 +7,10 @@ import com.wavesplatform.settings.FunctionalitySettings
 import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
 import scorex.block.Block
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.{History, ValidationError}
+import scorex.transaction.{History, Transaction, ValidationError}
+import vsys.contract.ExecutionContext
+import vsys.state.opcdiffs.{OpcDiff, OpcFuncDiffer}
+import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
 package object diffs {
 
@@ -56,4 +59,14 @@ package object diffs {
   }
 
   def produce(errorMessage: String): ProduceError = new ProduceError(errorMessage)
+  def assertOpcFuncDifferEi(height: Int, tx: Transaction)(assertion: Either[ValidationError, OpcDiff] => Unit): Unit = {
+    val state = newState()
+
+    tx match {
+      case tx: RegisterContractTransaction
+      => assertion(OpcFuncDiffer(ExecutionContext.fromRegConTx(state, height, tx).right.get)(tx.data))
+      case tx: ExecuteContractFunctionTransaction
+      => assertion(OpcFuncDiffer(ExecutionContext.fromExeConTx(state, height, tx).right.get)(tx.data))
+    }
+  }
 }
