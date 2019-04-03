@@ -67,7 +67,7 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
     newOffsetTask.flatMap {
       case None if !scheduler.isShutdown => updateTask.delayExecution(RetryDelay)
       case Some((server, newOffset)) if !scheduler.isShutdown =>
-        log.trace(s"Adjusting time with $newOffset milliseconds, source: ${server.getHostAddress}.")
+        log.trace(s"Adjusting time with $newOffset nanoseconds, source: ${server.getHostAddress}.")
         offset = newOffset
         updateTask.delayExecution(ExpirationTimeout)
       case _ => Task.unit
