@@ -6,7 +6,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.{GenesisTransaction, TransactionParser, ValidationError}
-import vsys.transaction.contract.RegisterContractTransaction
+import vsys.transaction.contract._
 import com.wavesplatform.state2.diffs._
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.GenericError
@@ -106,7 +106,7 @@ class RegContractTransactionTest extends PropSpec
     first.description shouldEqual second.description
   }
 
-  val regWrongParaContract: Gen[Contract] = contractNewGen(language, initFunWrongParaGen(), descriptorFullGen(), stateVarRandomGen(), textualRandomGen())
+  val regWrongParaContract: Gen[Contract] = contractNewGen(language, initFunWrongParaGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
   val preconditionsAndRegContractWrongPara: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -127,7 +127,7 @@ class RegContractTransactionTest extends PropSpec
     }
   }
 
-  val regContract: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarInitRegisterContract, textualRandomGen())
+  val regContract: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
   val preconditionsAndRegContract: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -151,7 +151,7 @@ class RegContractTransactionTest extends PropSpec
     }
   }
 
-  val regWrongOpcFunContract: Gen[Contract] = contractNewGen(language, initWrongTDBFunGen(), descriptorFullGen(), stateVarInitRegisterContract, textualRandomGen())
+  val regWrongOpcFunContract: Gen[Contract] = contractNewGen(language, initWrongTDBFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
   val preconditionsAndRegContractWrongFun: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen

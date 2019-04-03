@@ -3,6 +3,7 @@ package vsys.contract
 import org.scalacheck.{Arbitrary, Gen}
 
 trait StateVar {
+  import StateVar._
   private val fixedSize: Short = 2
 
   def stateVarRandomGen(): Gen[Seq[Array[Byte]]] = for {
@@ -13,12 +14,17 @@ trait StateVar {
     stateVar <- Gen.const(stateVars)
   } yield stateVar
 
-  def stateVarInitGen(state: Seq[Array[Byte]]): Gen[Seq[Array[Byte]]] = for {
-    stateVar <- stateVarGen(state)
-  } yield stateVar
+  val stateVarRightGen: Gen[Seq[Array[Byte]]] = stateVarGen(Seq(Array(issuer, DataType.Address.id.toByte),
+    Array(maker, DataType.Address.id.toByte), Array(max, DataType.Amount.id.toByte),
+    Array(total, DataType.Amount.id.toByte), Array(unity, DataType.Amount.id.toByte),
+    Array(shortText, DataType.ShortText.id.toByte)))
+}
 
-  val stateVarInitRegisterContract: Gen[Seq[Array[Byte]]] = stateVarInitGen(Seq(Array(0.toByte, DataType.Address.id.toByte),
-    Array(1.toByte, DataType.Address.id.toByte), Array(2.toByte, DataType.Amount.id.toByte),
-    Array(3.toByte, DataType.Amount.id.toByte), Array(4.toByte, DataType.Amount.id.toByte),
-    Array(5.toByte, DataType.ShortText.id.toByte)))
+object StateVar {
+  val issuer: Byte = 0
+  val maker: Byte = 1
+  val max: Byte = 2
+  val total: Byte = 3
+  val unity: Byte = 4
+  val shortText: Byte = 5
 }

@@ -59,6 +59,7 @@ package object diffs {
   }
 
   def produce(errorMessage: String): ProduceError = new ProduceError(errorMessage)
+
   def assertOpcFuncDifferEi(height: Int, tx: Transaction)(assertion: Either[ValidationError, OpcDiff] => Unit): Unit = {
     val state = newState()
 
