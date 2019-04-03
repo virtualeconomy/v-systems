@@ -1,7 +1,7 @@
 package vsys.contract
 
 import org.scalacheck.Gen
-import scorex.transaction.ValidationError
+
 
 trait ContractGen extends OpcFunction with StateVar with Textual {
   val lowerBoundOfNumber = 1

@@ -8,6 +8,7 @@ import scorex.transaction.ValidationError.UnsupportedTransactionType
 import scorex.transaction._
 //import scorex.transaction.assets._
 //import scorex.transaction.assets.exchange.ExchangeTransaction
+import vsys.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.transaction.contract.RegisterContractTransaction
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
@@ -41,7 +42,7 @@ object TransactionDiffer {
         case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings,currentBlockHeight)(cstx)
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
         case rctx: RegisterContractTransaction => RegisterContractTransactionDiff.apply(s, currentBlockHeight)(rctx)
-        //case ccstx: ChangeContractStatusTransaction => ContractTransactionDiff.changeStatus(s, currentBlockHeight)(ccstx)
+        case ectx: ExecuteContractFunctionTransaction => ExecuteContractFunctionTransactionDiff(s, currentBlockHeight)(ectx)
         case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }

@@ -20,7 +20,8 @@ object OpcDiff {
     def asTransactionDiff(height: Int, tx: Transaction): Diff = Diff(height = height, tx = tx,
                                                                      contractDB = d.contractDB,
                                                                      contractTokens = d.contractTokens,
-                                                                     tokenAccountBalance = d.tokenAccountBalance
+                                                                     tokenDB = d.tokenDB,
+                                                                     tokenAccountBalance = d.tokenAccountBalance,
     )
     def asBlockDiff(height: Int, tx: Transaction): BlockDiff = BlockDiff(d.asTransactionDiff(height, tx), 0, Map.empty)
 
@@ -32,7 +33,7 @@ object OpcDiff {
     override def combine(older: OpcDiff, newer: OpcDiff): OpcDiff = OpcDiff(
       contractDB = older.contractDB ++ newer.contractDB,
       contractTokens = Monoid.combine(older.contractTokens, newer.contractTokens),
-      tokenDB = newer.contractDB,
+      tokenDB = older.tokenDB ++ newer.tokenDB,
       tokenAccountBalance = Monoid.combine(older.tokenAccountBalance, newer.tokenAccountBalance)
     )
   }

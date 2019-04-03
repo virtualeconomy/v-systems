@@ -1,6 +1,6 @@
 package com.wavesplatform.state2.diffs
 
-//import cats.implicits._
+import cats.implicits._
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import com.wavesplatform.state2.reader.StateReader
 import scorex.transaction.ValidationError
@@ -21,10 +21,10 @@ object ExecuteContractFunctionTransactionDiff {
         exContext <- ExecutionContext.fromExeConTx(s, height, tx)
         opcDiff <- OpcFuncDiffer(exContext)(tx.data)
         diff = opcDiff.asTransactionDiff(height, tx)
-      } yield Diff(height = height, tx = tx,
+      } yield diff.combine(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        chargedFee = tx.fee
-      )
+        chargedFee = tx.fee,
+      ))
     }
   }
 

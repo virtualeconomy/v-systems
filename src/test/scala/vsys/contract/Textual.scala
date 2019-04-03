@@ -1,6 +1,5 @@
 package vsys.contract
 
-import com.google.common.primitives.Shorts
 import org.scalacheck.{Arbitrary, Gen}
 
 trait Textual {

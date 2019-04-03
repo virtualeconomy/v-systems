@@ -151,7 +151,7 @@ trait ProtoType {
   val protoTypeInitWrongGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaTypeWrong)
   val protoTypeInitGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
   val protoTypeSupersedeGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
-  val protoTypeIssueGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
+  val protoTypeIssueGen: Gen[Array[Byte]] = protoTypeGen(returnType, issueParaType)
   val protoTypeDestroyGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
   val protoTypeSplitGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
   val protoTypeSendGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
@@ -177,7 +177,7 @@ object ProtoType {
   val initParaTypeWrong: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val initParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
   val supersedeParaType: List[Byte] = List(DataType.Account.id.toByte)
-  val issueParaType: List[Byte] = List(DataType.Amount.id.toByte)
+  val issueParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
   val destroyParaType: List[Byte] = List(DataType.Amount.id.toByte)
   val splitParaType: List[Byte] = List(DataType.Amount.id.toByte)
   val sendParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.Amount.id.toByte)
@@ -238,10 +238,10 @@ object ListOpc {
   val supersedeOpcIndex: List[Array[Byte]] = List(Array())
 
 
-  val opcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, DataStack.issueInput.issuerGetIndex)
+  val opcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer)
   val opcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.issueInput.issuerGetIndex)
   val opcTDBADepositIndex: Array[Byte] = Array(StateVar.max, StateVar.total,
-    DataStack.issueInput.issuerGetIndex, DataStack.issueInput.amountIndex, DataStack.issueInput.totalIndex)
+    DataStack.issueInput.issuerGetIndex, DataStack.issueInput.amountIndex, DataStack.issueInput.tokenIndex)
   val issueOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBADeposit)
   val issueOpcIndex: List[Array[Byte]] = List(opcCDBVRGetIndex,opcAssertIsCallerOriginIndex, opcTDBADepositIndex)
 
