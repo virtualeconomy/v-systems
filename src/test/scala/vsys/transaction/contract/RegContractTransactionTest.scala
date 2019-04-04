@@ -1,4 +1,4 @@
-package vsys.transaction
+package vsys.transaction.contract
 
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
@@ -27,27 +27,6 @@ class RegContractTransactionTest extends PropSpec
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
-
-//  val regContractRandom: Gen[Contract] = contractRandomGen()
-//  val preconditionsAndRegContractRandom: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
-//    master <- accountGen
-//    ts <- positiveIntGen
-//    contract1 <- regContractRandom
-//    data: Seq[DataEntry] <- dataEntryGen
-//    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
-//    fee <- smallFeeGen
-//    feeScale <- feeScaleGen
-//    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-//    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).right.get
-//  } yield (genesis, create1, create1.fee)
-//
-//  property("random register contract transaction doesn't break invariant"){
-//    forAll(preconditionsAndRegContractRandom) { case (genesis, create, feeCreate) =>
-//      assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(create))) { (blockDiff, newState) =>
-//        newState.accountTransactionIds(EllipticCurve25519Proof.fromBytes(create.proofs.proofs.head.bytes.arr).toOption.get.publicKey, 2).size shouldBe 2 // genesis and create
-//      }
-//    }
-//  }
 
   val preconditionAndBuildRegContract: Gen[(Array[Byte], Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
     langCode <- languageCodeFromLengthGen(4)
