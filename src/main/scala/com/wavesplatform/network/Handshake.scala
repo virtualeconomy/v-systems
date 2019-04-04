@@ -51,10 +51,10 @@ object Handshake {
     val appVersion = (in.readInt(), in.readInt(), in.readInt())
     val nodeNameSize = in.readByte()
 
-    val nodeName = in.readSlice(nodeNameSize).toString(Charsets.UTF_8)
     if(nodeNameSize < 0 || nodeNameSize > Byte.MaxValue) {
       throw new InvalidHandshakeException(s"An invalid node name's size: $nodeNameSize")
     }
+    val nodeName = in.readSlice(nodeNameSize).toString(Charsets.UTF_8)
 
     val nonce = in.readLong()
     val declaredAddressLength = in.readInt()
