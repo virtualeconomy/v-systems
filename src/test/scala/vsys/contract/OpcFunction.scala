@@ -194,7 +194,7 @@ trait ListOpc extends ByteArrayGen {
   import ListOpc._
 
   def listOpcGen(ids: List[Array[Byte]], indexInput: List[Array[Byte]]): Gen[Array[Byte]] = for {
-    length <- Gen.const(Shorts.toByteArray(ids.zip(indexInput).map(x => ((x._1 ++ x._2).length + 4).toShort).sum))
+    length <- Gen.const(Shorts.toByteArray((ids.zip(indexInput).map(x => ((x._1 ++ x._2).length + 2).toShort).sum + 2).toShort))
     numOpc <- Gen.const(Shorts.toByteArray(ids.length.toShort))
     listOpc <- Gen.const(ids.zip(indexInput).map(x => Shorts.toByteArray((x._1 ++ x._2).length.toShort) ++ x._1 ++ x._2).toArray.flatten) //(x._1 ++ x._2).length.toShort ++
     lenListOpc <- Gen.const(length.array ++ numOpc ++ listOpc.array)
