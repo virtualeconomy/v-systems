@@ -8,6 +8,7 @@ import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.InvalidContract
+import scorex.utils.ScorexLogging
 
 import scala.util.Success
 
@@ -35,7 +36,7 @@ sealed trait Contract {
   )
 }
 
-object Contract {
+object Contract extends ScorexLogging {
 
   val Prefix: String = "contract:"
 
@@ -43,6 +44,8 @@ object Contract {
   val MinContractStringSize: Int = base58Length(MinContractByteSize)
   val LanguageCodeByteLength = 4
   val LanguageVersionByteLength = 4
+  val LanguageCodeByte: Array[Byte] = Ints.toByteArray(0)
+  val LanguageVersionByte: Array[Byte] = Ints.toByteArray(0)
 
   def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte],
                     initializer: Array[Byte], descriptor: Seq[Array[Byte]],
@@ -73,7 +76,7 @@ object Contract {
     if (base58String.length < MinContractStringSize) Left(InvalidContract)
     else {
       Base58.decode(base58String) match {
-        case Success(byteArray) if isByteArrayValid(byteArray) => Right(fromBytes(byteArray).right.get)
+        case Success(byteArray) if isByteArrayValid(byteArray) => fromBytes(byteArray)
         case _ => Left(InvalidContract)
       }
     }
@@ -82,7 +85,87 @@ object Contract {
   def checkStateVar(stateVar: Array[Byte], dataType: DataType.Value): Boolean =
     stateVar.length == 2 && dataType == DataType(stateVar(1))
 
-  private def isByteArrayValid(bytes: Array[Byte]): Boolean = {
-    bytes.length >= MinContractByteSize
+  private def isByteArrayValid(bytes: Array[Byte]): Boolean = { //val texture = Try {
+//    val languageCode = bytes.slice(0, LanguageCodeByteLength)
+//    val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
+//    val (initializer, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
+//    val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
+//    val descriptor = Deser.parseArrays(descriptorBytes)
+//    val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
+//    val stateVar = Deser.parseArrays(stateVarBytes)
+//    val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
+//    buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, texture)
+//  }.isSuccess
+//    if (texture) {
+//      val (_, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
+//      val (_, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
+//      val (_, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
+//      val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
+//      val textureStr = textureFromBytes(texture)
+//      if (!(bytes sameElements ContractSample.contract.bytes.arr)) {
+//        log.warn(s"Illegal contract ${bytes.mkString(" ")}, ${ContractSample.contract.bytes.arr.mkString(" ")}")
+//        false
+//      } else if (textureStr.isFailure ||
+//        !checkTexture(textureStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
+//        log.warn(s"Illegal texture ${texture.mkString(" ")}")
+//        false
+//      } else {
+//        true
+//      }
+//    } else {
+//      true
+//    }
+    true
   }
+
+//  private def textureFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])] = Try {
+//    val initializerFuncBytes = Deser.parseArrays(bs.head)
+//    val initializerFunc = funcFromBytes(initializerFuncBytes)
+//    val descriptorFuncBytes = Deser.parseArrays(bs(1))
+//    val descriptorFunc = funcFromBytes(descriptorFuncBytes)
+//    val stateVar = paraFromBytes(bs.last)
+//    (initializerFunc, descriptorFunc, stateVar)
+//  }
+//
+//  private def funcFromBytes(bs: Seq[Array[Byte]]): Seq[Seq[String]] = {
+//    bs.foldLeft(Seq.empty[Seq[String]]) { case (e, b) => {
+//      val (funcNameBytes, funcNameEnd) = Deser.parseArraySize(b, 0)
+//      val funcName = Deser.deserilizeString(funcNameBytes)
+//      val (returnNameBytes, returnNameEnd) = Deser.parseArraySize(b, funcNameEnd)
+//      val returnName = Deser.deserilizeString(returnNameBytes)
+//      val listParaNameBytes = b.slice(returnNameEnd, b.length)
+//      val listParaNames = paraFromBytes(listParaNameBytes)
+//      e :+ (funcName +: returnName +: listParaNames)
+//    }
+//    }
+//  }
+//
+//  private def paraFromBytes(bytes: Array[Byte]): Seq[String] = {
+//    val listParaNameBytes = Deser.parseArrays(bytes)
+//    listParaNameBytes.foldLeft(Seq.empty[String]) { case (e, b) => {
+//      val paraName = Deser.deserilizeString(b)
+//      e :+ paraName
+//    }
+//    }
+//  }
+//
+//  private def checkTexture(texture: (Seq[Seq[String]], Seq[Seq[String]], Seq[String])): Boolean = {
+//    texture._1.flatten.forall(x => identifierCheck(x)) && texture._2.flatten.forall(x => identifierCheck(x)) &&
+//      texture._3.forall(x => identifierCheck(x))
+//  }
+//
+//  private def identifierCheck(str: String): Boolean = {
+//    def checkChar(c: Char): Boolean = {
+//      (c == '_') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+//    }
+//
+//    val illegalIdf: List[String] = List("register", "unit", "while", "if", "for", "return", "match", "context",
+//      "contract", "int", "long", "short", "boolean", "trait", "lazy", "class", "else", "true", "false", "private",
+//      "val", "var")
+//    if ((str.head == '_') || (str.head >= 'a' && str.head <= 'z') || (str.head >= 'A' && str.head <= 'Z')) {
+//      str.tail.forall(x => checkChar(x)) && !illegalIdf.contains(str.toLowerCase)
+//    } else {
+//      false
+//    }
+//  }
 }
