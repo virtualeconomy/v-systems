@@ -1,14 +1,15 @@
 package vsys.transaction.contract
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2.diffs._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import scorex.account.PublicKeyAccount
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.{GenesisTransaction, TransactionParser}
+import vsys.transaction.contract._
+import com.wavesplatform.state2.diffs._
+import scorex.account.PublicKeyAccount
+import scorex.transaction.TransactionParser.TransactionType
 import vsys.contract._
 
 class ExecuteContractTransactionTest extends PropSpec
@@ -172,7 +173,7 @@ class ExecuteContractTransactionTest extends PropSpec
     executeContractTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
   } yield (genesis, regContract, executeContractIssue, executeContractTransfer, executeContractTransfer.fee)
 
-  property("execute contract transaction transfer successfully"){
+  property("execute contract transaction transfer successfully") {
     forAll(preconditionsAndExecuteContractTransfer) { case (genesis, regContract, executeContractIssue, executeContractTransfer, feeCreate) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractTransfer))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -180,11 +181,12 @@ class ExecuteContractTransactionTest extends PropSpec
     }
   }
 
-  val newContractTotalSupply: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
-  val preconditionsAndExecuteContractTotalSupply: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
+  val newContractSupersede: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
+  val preconditionsAndExecuteContractSupersede: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
+    newIssuer <- accountGen
     ts <- positiveIntGen
-    contract1 <- newContractTotalSupply
+    contract1 <- newContractSupersede
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
     description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     fee <- smallFeeGen
@@ -199,26 +201,27 @@ class ExecuteContractTransactionTest extends PropSpec
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
-    funcIdx2: Short <- Gen.const(FunId.totalSupplyIndex)
-    data2: Seq[DataEntry] <- totalSupplyDataStackGen(0)
+    funcIdx2: Short <- Gen.const(FunId.supersedeIndex)
+    data2: Seq[DataEntry] <- supersedeDataStackGen(PublicKeyAccount(newIssuer.publicKey).toAddress)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractTotalSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractTotalSupply, executeContractTotalSupply.fee)
+    genesis1: GenesisTransaction = GenesisTransaction.create(newIssuer, ENOUGH_AMT, -2, ts).right.get
+    executeContractSupersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
+  } yield(genesis, genesis1, regContract, executeContractSupersede, executeContractIssue, executeContractSupersede.fee)
 
-  property("execute contract transaction totalSupply successfully"){
-    forAll(preconditionsAndExecuteContractTotalSupply) { case (genesis, regContract, executeContractIssue, executeContractTotalSupply, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractTotalSupply))) { blockDiffEi =>
-        blockDiffEi should produce("Invalid Opc type")
+  property("execute contract transaction supersede successfully") {
+    forAll(preconditionsAndExecuteContractSupersede) { case (genesis, genesis1, regContract, executeContractSupersede, executeContractIssue, feeCreate) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract, executeContractSupersede))), TestBlock.create(Seq(executeContractIssue))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
       }
     }
   }
 
-  val newContractMaxSupply: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
-  val preconditionsAndExecuteContractMaxSupply: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
+  val newContractSplit: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
+  val preconditionsAndExecuteContractSplit: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
-    contract1 <- newContractMaxSupply
+    contract1 <- newContractSplit
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
     description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     fee <- smallFeeGen
@@ -233,26 +236,26 @@ class ExecuteContractTransactionTest extends PropSpec
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
-    funcIdx2: Short <- Gen.const(FunId.maxSupplyIndex)
-    data2: Seq[DataEntry] <- maxSupplyDataStackGen(0)
+    funcIdx2: Short <- Gen.const(FunId.splitIndex)
+    data2: Seq[DataEntry] <- splitDataStackGen(10000L, 0)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractMaxSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractMaxSupply, executeContractMaxSupply.fee)
+    executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
+  } yield(genesis, regContract, executeContractIssue, executeContractSplit, executeContractSplit.fee)
 
-  property("execute contract transaction maxSupply successfully"){
-    forAll(preconditionsAndExecuteContractMaxSupply) { case (genesis, regContract, executeContractIssue, executeContractMaxSupply, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractMaxSupply))) { blockDiffEi =>
-        blockDiffEi should produce("Invalid Opc type")
+  property("execute contract transaction split successfully") {
+    forAll(preconditionsAndExecuteContractSplit) { case (genesis, regContract, executeContractIssue, executeContractSplit, feeCreate) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractSplit))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
       }
     }
   }
 
-  val newContractBalanceOf: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
-  val preconditionsAndExecuteContractBalanceOf: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
+  val newContractDestroy: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
+  val preconditionsAndExecuteContractDestroy: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
-    contract1 <- newContractBalanceOf
+    contract1 <- newContractDestroy
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
     description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     fee <- smallFeeGen
@@ -267,52 +270,22 @@ class ExecuteContractTransactionTest extends PropSpec
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
-    funcIdx2: Short <- Gen.const(FunId.balanceOfIndex)
-    data2: Seq[DataEntry] <- balanceOfDataStackGen(PublicKeyAccount(master.publicKey).toAddress, 0)
+    funcIdx2: Short <- Gen.const(FunId.destroyIndex)
+    data2: Seq[DataEntry] <- splitDataStackGen(10000L, 0)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractBalanceOf: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractBalanceOf, executeContractBalanceOf.fee)
+    executeContractDestroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
+  } yield(genesis, regContract, executeContractIssue, executeContractDestroy, executeContractDestroy.fee)
 
-  property("execute contract transaction balanceOf successfully"){
-    forAll(preconditionsAndExecuteContractBalanceOf) { case (genesis, regContract, executeContractIssue, executeContractBalanceOf, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractBalanceOf))) { blockDiffEi =>
-        blockDiffEi should produce("Invalid Opc type")
+  property("execute contract transaction destroy successfully") {
+    forAll(preconditionsAndExecuteContractSplit) { case (genesis, regContract, executeContractIssue, executeContractDestroy, feeCreate) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractDestroy))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
       }
     }
   }
 
-  val newContractGetIssuer: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
-  val preconditionsAndExecuteContractGetIssuer: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
-    master <- accountGen
-    ts <- positiveIntGen
-    contract1 <- newContractGetIssuer
-    dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
-    fee <- smallFeeGen
-    feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
-    fee1: Long <- smallFeeGen
-    feeScale1: Short <- feeScaleGen
-    ts1: Long <- positiveLongGen
-    funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
-    recipient <- mintingAddressGen
-    fee2: Long <- smallFeeGen
-    feeScale2: Short <- feeScaleGen
-    ts2: Long <- positiveLongGen
-    funcIdx2: Short <- Gen.const(FunId.getIssuerIndex)
-    //data2: Seq[DataEntry] <- ()
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractGetIssuer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, Nil, description, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractGetIssuer, executeContractGetIssuer.fee)
 
-  property("execute contract transaction getIssuer successfully"){
-    forAll(preconditionsAndExecuteContractGetIssuer) { case (genesis, regContract, executeContractIssue, executeContractGetIssuer, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractGetIssuer))) { blockDiffEi =>
-        blockDiffEi should produce("Invalid Opc type")
-      }
-    }
-  }
+
+
 }

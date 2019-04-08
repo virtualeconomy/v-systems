@@ -65,5 +65,5 @@ object OpcId {
 
   val opcTDBARBalance: Array[Byte] = Array(OpcDiffer.OpcType.TDBAROpc.id.toByte, TDBAROpcDiff.TDBARType.BalanceTBDAR.id.toByte)
 
-  val opcReturnValue: Array[Byte] = Array(OpcDiffer.OpcType.ReturnOpc.id.toByte, 0x00.toByte)
+  val opcReturnValue: Array[Byte] = Array(OpcDiffer.OpcType.ReturnOpc.id.toByte, 0x00)
 }

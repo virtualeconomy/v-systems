@@ -31,19 +31,19 @@ trait DataStack {
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(se, reci, am, index)
 
-  def totalSupplyDataStackGen(tokenIndex: Int): Gen[Seq[DataEntry]] = for {
-    index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
-  } yield Seq(index)
+  def supersedeDataStackGen(newIssuer: Address): Gen[Seq[DataEntry]] = for {
+    iss <- Gen.const(DataEntry(newIssuer.bytes.arr, DataType.Address))
+  } yield Seq(iss)
 
-  def maxSupplyDataStackGen(tokenIndex: Int): Gen[Seq[DataEntry]] = for {
+  def splitDataStackGen(newUnity: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
+    unit <- Gen.const(DataEntry(Longs.toByteArray(newUnity), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
-  } yield Seq(index)
+  } yield Seq(unit, index)
 
-  def balanceOfDataStackGen(account: Address, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
-    acc <- Gen.const(DataEntry(account.bytes.arr, DataType.Address))
+  def destroyDataStackGen(amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
-  } yield Seq(acc, index)
-
+  } yield Seq(am, index)
 }
 
 object DataStack {
@@ -74,17 +74,20 @@ object DataStack {
     val tokenIndex: Byte = 3
   }
 
-  object totalSupplyInput {
-    val tokenIndex: Byte = 0
+  object supersedeInput {
+    val newIssuerIndex: Byte = 0
   }
 
-  object maxSupplyInput {
-    val tokenIndex: Byte = 0
-  }
-
-  object balanceOfInput {
-    val accountIndex: Byte = 0
+  object splitInput {
+    val newUnityIndex: Byte = 0
     val tokenIndex: Byte = 1
+    val issuerGetIndex: Byte = 2
+  }
+
+  object destroyInput {
+    val destroyAmountIndex: Byte = 0
+    val tokenIndex: Byte = 1
+    val issuerGetIndex: Byte = 2
   }
 
 }
