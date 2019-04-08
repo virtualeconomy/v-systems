@@ -3,8 +3,6 @@ package vsys.contract
 import org.scalacheck.Gen
 import com.google.common.primitives.Ints
 
-
-
 trait ContractGen extends OpcFunction with StateVar with Texture {
 
   def languageCodeFromLengthGen(code: Int): Gen[Array[Byte]] = for {

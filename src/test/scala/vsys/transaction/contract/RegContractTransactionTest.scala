@@ -6,7 +6,6 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.{GenesisTransaction, TransactionParser, ValidationError}
-import vsys.transaction.contract._
 import com.wavesplatform.state2.diffs._
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.GenericError
