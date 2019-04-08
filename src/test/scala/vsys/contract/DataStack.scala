@@ -30,6 +30,20 @@ trait DataStack {
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(se, reci, am, index)
+
+  def totalSupplyDataStackGen(tokenIndex: Int): Gen[Seq[DataEntry]] = for {
+    index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
+  } yield Seq(index)
+
+  def maxSupplyDataStackGen(tokenIndex: Int): Gen[Seq[DataEntry]] = for {
+    index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
+  } yield Seq(index)
+
+  def balanceOfDataStackGen(account: Address, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
+    acc <- Gen.const(DataEntry(account.bytes.arr, DataType.Address))
+    index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
+  } yield Seq(acc, index)
+
 }
 
 object DataStack {
@@ -58,6 +72,19 @@ object DataStack {
     val recipientIndex: Byte = 1
     val amountIndex: Byte = 2
     val tokenIndex: Byte = 3
+  }
+
+  object totalSupplyInput {
+    val tokenIndex: Byte = 0
+  }
+
+  object maxSupplyInput {
+    val tokenIndex: Byte = 0
+  }
+
+  object balanceOfInput {
+    val accountIndex: Byte = 0
+    val tokenIndex: Byte = 1
   }
 
 }

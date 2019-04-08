@@ -170,10 +170,10 @@ trait ProtoType {
   val protoTypeTransferGen: Gen[Array[Byte]] = protoTypeGen(returnType, transferParaType)
   val protoTypeDepositGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
   val protoTypeWithdrawGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
-  val protoTypeTotalSupplyGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
-  val protoTypeMaxSupplyGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
-  val protoTypeBalanceOfGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
-  val protoTypeGetIssuerGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
+  val protoTypeTotalSupplyGen: Gen[Array[Byte]] = protoTypeGen(returnType, totalSupplyParaType)
+  val protoTypeMaxSupplyGen: Gen[Array[Byte]] = protoTypeGen(returnType, maxSupplyParaType)
+  val protoTypeBalanceOfGen: Gen[Array[Byte]] = protoTypeGen(returnType, balanceOfParaType)
+  val protoTypeGetIssuerGen: Gen[Array[Byte]] = protoTypeGen(returnType, getIssuerParaType)
 
   private val minParaTypeSize: Short = 2
   private val maxParaTypeSize: Short = 128
@@ -196,10 +196,10 @@ object ProtoType {
   val transferParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
   val depositParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte)
   val withdrawParaType: List[Byte] = List(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
-  val totalSupplyParaType: List[Byte] = List()
-  val maxSupplyParaType: List[Byte] = List()
-  val balanceOfParaType: List[Byte] = List(DataType.Account.id.toByte)
-  val getIssuerParaType: List[Byte] = List()
+  val totalSupplyParaType: List[Byte] = List(DataType.Int32.id.toByte)
+  val maxSupplyParaType: List[Byte] = List(DataType.Int32.id.toByte)
+  val balanceOfParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.Int32.id.toByte)
+  val getIssuerParaType: List[Byte] = List.empty
 }
 
 trait ListOpc extends ByteArrayGen {
@@ -285,20 +285,24 @@ object ListOpc {
   val withdrawOpcIndex: List[Array[Byte]] = List(Array())
 
   // totalSupply
+  val totalSupplyOpcTDBRTotalIndex: Array[Byte] = Array(StateVar.total, DataStack.totalSupplyInput.tokenIndex)
   val totalSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcTotal, OpcId.opcReturnValue)
-  val totalSupplyOpcIndex: List[Array[Byte]] = List(Array())
+  val totalSupplyOpcIndex: List[Array[Byte]] = List(totalSupplyOpcTDBRTotalIndex, Array())
 
   // maxSupplyOpc
+  val maxSupplyOpcTDBRMaxIndex: Array[Byte] = Array(StateVar.max, DataStack.maxSupplyInput.tokenIndex)
   val maxSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcGet, OpcId.opcReturnValue)
-  val maxSupplyOpcIndex: List[Array[Byte]] = List(Array())
+  val maxSupplyOpcIndex: List[Array[Byte]] = List(maxSupplyOpcTDBRMaxIndex, Array())
 
   // balanceOfOpc
+  val balanceOfOpcTDBARBalanceIndex: Array[Byte] = Array(DataStack.balanceOfInput.accountIndex, DataStack.balanceOfInput.tokenIndex)
   val balanceOfOpc: List[Array[Byte]] = List(OpcId.opcTDBARBalance, OpcId.opcReturnValue)
-  val balanceOfOpcIndex: List[Array[Byte]] = List(Array())
+  val balanceOfOpcIndex: List[Array[Byte]] = List(balanceOfOpcTDBARBalanceIndex, Array())
 
   //getIssuerOpc
+  val getIssuerOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer)
   val getIssuerOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcReturnValue)
-  val getIssuerOpcIndex: List[Array[Byte]] = List(Array())
+  val getIssuerOpcIndex: List[Array[Byte]] = List(getIssuerOpcCDBVRGetIndex, Array())
 }
 
 

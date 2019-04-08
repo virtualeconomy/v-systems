@@ -66,7 +66,7 @@ object TDBROpcDiff {
     case opcType: Byte if opcType == TDBRType.GetTDBR.id && checkInput(bytes, 3, context.stateVar.length, data.length, 2) =>
       get(context)(context.stateVar(bytes(1)), data(bytes(2)), data)
     case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes, 3, context.stateVar.length, data.length, 2) =>
-      get(context)(context.stateVar(bytes(1)), data(bytes(2)), data)
+      total(context)(context.stateVar(bytes(1)), data(bytes(2)), data)
     case _ => Left(GenericError("Wrong TDBR opcode"))
   }
 
