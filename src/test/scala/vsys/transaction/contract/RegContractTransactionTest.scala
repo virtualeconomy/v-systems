@@ -1,4 +1,4 @@
-package vsys.transaction
+package vsys.transaction.contract
 
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
@@ -6,7 +6,6 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.{GenesisTransaction, TransactionParser, ValidationError}
-import vsys.transaction.contract._
 import com.wavesplatform.state2.diffs._
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.GenericError
@@ -21,33 +20,12 @@ class RegContractTransactionTest extends PropSpec
   with TransactionGen
   with ContractGen
   with StateVar
-  with Textual
+  with Texture
   with DataStack {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
-
-//  val regContractRandom: Gen[Contract] = contractRandomGen()
-//  val preconditionsAndRegContractRandom: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
-//    master <- accountGen
-//    ts <- positiveIntGen
-//    contract1 <- regContractRandom
-//    data: Seq[DataEntry] <- dataEntryGen
-//    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
-//    fee <- smallFeeGen
-//    feeScale <- feeScaleGen
-//    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-//    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).right.get
-//  } yield (genesis, create1, create1.fee)
-//
-//  property("random register contract transaction doesn't break invariant"){
-//    forAll(preconditionsAndRegContractRandom) { case (genesis, create, feeCreate) =>
-//      assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(create))) { (blockDiff, newState) =>
-//        newState.accountTransactionIds(EllipticCurve25519Proof.fromBytes(create.proofs.proofs.head.bytes.arr).toOption.get.publicKey, 2).size shouldBe 2 // genesis and create
-//      }
-//    }
-//  }
 
   val preconditionAndBuildRegContract: Gen[(Array[Byte], Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
     langCode <- languageCodeFromLengthGen(4)
@@ -55,7 +33,7 @@ class RegContractTransactionTest extends PropSpec
     init <- initFunGen()
     descriptor <- descriptorFullGen()
     stateVar <- stateVarRandomGen()
-    textual <- textualRandomGen()
+    textual <- textureRightGen
   } yield (langCode, langVer, init, descriptor, stateVar, textual)
 
   property("register contract build doesn't break invariant"){
@@ -64,8 +42,9 @@ class RegContractTransactionTest extends PropSpec
     }
   }
 
-  val language: Seq[Int] = Seq(4, 4)
-  val regContractParse: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRandomGen(), textualRandomGen())
+  val languageCode: Int = 0
+  val languageVersion: Int = 0
+  val regContractParse: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRandomGen(), textureRightGen)
   val preconditionsAndParseRegContract: Gen[RegisterContractTransaction] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -106,7 +85,7 @@ class RegContractTransactionTest extends PropSpec
     first.description shouldEqual second.description
   }
 
-  val regWrongParaContract: Gen[Contract] = contractNewGen(language, initFunWrongParaGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
+  val regWrongParaContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunWrongParaGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndRegContractWrongPara: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -127,7 +106,7 @@ class RegContractTransactionTest extends PropSpec
     }
   }
 
-  val regContract: Gen[Contract] = contractNewGen(language, initFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
+  val regContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndRegContract: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -151,7 +130,7 @@ class RegContractTransactionTest extends PropSpec
     }
   }
 
-  val regWrongOpcFunContract: Gen[Contract] = contractNewGen(language, initWrongTDBFunGen(), descriptorFullGen(), stateVarRightGen, textualRandomGen())
+  val regWrongOpcFunContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initWrongTDBFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndRegContractWrongFun: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
