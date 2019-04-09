@@ -36,12 +36,14 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
 
-  override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = {
-    val fromDiff = txDiff.accountTransactionIds.get(a).orEmpty
+  override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] = {
+    val fromDiffOrg = txDiff.accountTransactionIds.get(a).orEmpty
+    val offsetNew = scala.math.max(0, offset - fromDiffOrg.length)
+    val fromDiff = fromDiffOrg.drop(offset)
     if (fromDiff.length >= limit) {
       fromDiff.take(limit)
     } else {
-      fromDiff ++ inner.accountTransactionIds(a, limit - fromDiff.size) // fresh head ++ stale tail
+      fromDiff ++ inner.accountTransactionIds(a, limit - fromDiff.size, offsetNew) // fresh head ++ stale tail
     }
   }
 
@@ -96,8 +98,8 @@ object CompositeStateReader {
     override def accountPortfolio(a: Address): Portfolio =
       new CompositeStateReader(inner, blockDiff()).accountPortfolio(a)
 
-    override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] =
-      new CompositeStateReader(inner, blockDiff()).accountTransactionIds(a, limit)
+    override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] =
+      new CompositeStateReader(inner, blockDiff()).accountTransactionIds(a, limit, offset)
 
     override def accountPortfolios: Map[Address, Portfolio] =
       new CompositeStateReader(inner, blockDiff()).accountPortfolios

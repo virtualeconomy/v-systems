@@ -30,7 +30,7 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
         val sender = EllipticCurve25519Proof.fromBytes(payment.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         totalPortfolioDiff.balance shouldBe -feePayment
         totalPortfolioDiff.effectiveBalance shouldBe -feePayment
-        newState.accountTransactionIds(sender.toAddress, 2).size shouldBe 2 // genesis and payment
+        newState.accountTransactionIds(sender.toAddress, 2, 0).size shouldBe 2 // genesis and payment
       }
     }
   }

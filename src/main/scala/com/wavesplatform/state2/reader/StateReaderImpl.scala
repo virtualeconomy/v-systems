@@ -36,9 +36,9 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def addressSlot(add: String): Option[Int] = read {implicit l=> sp().getAddressSlot(add)}
 
-  override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = read { implicit l =>
+  override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
     val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
-    Range(Math.max(0, totalRecords - limit), totalRecords)
+    Range(Math.max(0, totalRecords - limit - offset), Math.max(0, totalRecords - offset))
       .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)).get)
       .reverse
   }

@@ -34,7 +34,7 @@ trait StateReader extends Synchronized {
 
   def effectiveSlotAddressSize: Int
 
-  def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr]
+  def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr]
 
   def aliasesOfAddress(a: Address): Seq[Alias]
 
@@ -85,8 +85,8 @@ object StateReader {
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 
-    def accountTransactions(account: Address, limit: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
-      s.accountTransactionIds(account, limit)
+    def accountTransactions(account: Address, limit: Int, offset: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
+      s.accountTransactionIds(account, limit, offset)
         .flatMap(s.transactionInfo)
     }
 

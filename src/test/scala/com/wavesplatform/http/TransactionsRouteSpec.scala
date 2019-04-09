@@ -55,7 +55,7 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
         accountGen,
         choose(1, MaxTransactionsPerRequest),
         randomTransactionsGen(transactionsCount)) { case (account, limit, txs) =>
-        (state.accountTransactionIds _).expects(account: Address, limit).returning(txs.map(_.id)).once()
+        (state.accountTransactionIds _).expects(account: Address, limit, 0).returning(txs.map(_.id)).once()
         txs.foreach { tx =>
           (state.transactionInfo _).expects(tx.id).returning(Some((1, ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)))).once()
         }

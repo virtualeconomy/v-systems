@@ -28,14 +28,16 @@ case class TransactionsApiRoute(
     history: History,
     utxPool: UtxPool) extends ApiRoute with CommonApiFunctions {
 
-  import TransactionsApiRoute.MaxTransactionsPerRequest
+  import TransactionsApiRoute.{MaxTransactionsPerRequest, MaxTransactionOffset}
 
   override lazy val route =
     pathPrefix("transactions") {
-      unconfirmed ~ addressLimit ~ info ~ activeLeaseList
+      unconfirmed ~ addressLimit ~ addressLimitOffset ~ info ~ activeLeaseList
     }
 
   private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
+
+  private val invalidOffset = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.offset")
 
   //TODO implement general pagination
   @Path("/address/{address}/limit/{limit}")
@@ -56,10 +58,54 @@ case class TransactionsApiRoute(
               path(Segment) { limitStr =>
                 Exception.allCatch.opt(limitStr.toInt) match {
                   case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
-                    complete(Json.arr(JsArray(state.accountTransactions(a, limit).map{ case (h, tx) =>
+                    complete(Json.arr(JsArray(state.accountTransactions(a, limit, 0).map{ case (h, tx) =>
                       processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+                    })))
+                  case Some(limit) if limit > MaxTransactionsPerRequest =>
+                    complete(TooBigArrayAllocation)
+                  case _ =>
+                    complete(invalidLimit)
+                }
+              }
+          } ~ complete(StatusCodes.NotFound)
+      }
+    }
+  }
+
+  @Path("/address/{address}/limit/{limit}/offset/{offset}")
+  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path"),
+    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
+  ))
+  def addressLimitOffset: Route = (pathPrefix("address") & get) {
+    pathPrefix(Segment) { address =>
+      Address.fromString(address) match {
+        case Left(e) => complete(ApiError.fromValidationError(e))
+        case Right(a) =>
+          pathPrefix("limit") {
+            pathEndOrSingleSlash {
+              complete(invalidLimit)
+            } ~
+              path(Segment) { limitStr =>
+                Exception.allCatch.opt(limitStr.toInt) match {
+                  case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
+                    pathPrefix("offset") {
+                      pathEndOrSingleSlash {
+                        complete(invalidOffset)
+                      } ~
+                        path(Segment) { offsetStr =>
+                          Exception.allCatch.opt(limitStr.toInt) match {
+                            case Some(offset) if offset > 0 && offset <= MaxTransactionOffset =>
+                              complete(Json.arr(JsArray(state.accountTransactions(a, limit, offset).map{ case (h, tx) =>
+                                processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+                              })))
+                            case  _ =>
+                              complete(invalidOffset)
+                          }
+                        }
                     }
-                    )))
                   case Some(limit) if limit > MaxTransactionsPerRequest =>
                     complete(TooBigArrayAllocation)
                   case _ =>
@@ -173,4 +219,5 @@ case class TransactionsApiRoute(
 
 object TransactionsApiRoute {
   val MaxTransactionsPerRequest = 10000
+  val MaxTransactionOffset = 10000000
 }
