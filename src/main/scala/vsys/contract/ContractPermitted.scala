@@ -4,7 +4,7 @@ import com.google.common.primitives.{Bytes, Ints, Shorts}
 import scorex.serialization.Deser
 import vsys.state.opcdiffs.{AssertOpcDiff, CDBVOpcDiff, CDBVROpcDiff, LoadOpcDiff, OpcDiffer, TDBAOpcDiff, TDBAROpcDiff, TDBOpcDiff, TDBROpcDiff}
 
-object ContractSample {
+object ContractPermitted {
   lazy val contract: Contract = Contract.buildContract(Ints.toByteArray(0), Ints.toByteArray(0), initFunc,
     Seq(supersedeFunc, issueFunc, destroyFunc, splitFunc, sendFunc, transferFunc, depositFunc, withdrawFunc,
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),

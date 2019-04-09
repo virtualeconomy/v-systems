@@ -17,7 +17,7 @@ import scorex.settings.TestFunctionalitySettings
 import vsys.account.ContractAccount
 import vsys.database.{DataType, Entry}
 import vsys.transaction.database.DbPutTransaction
-import vsys.contract.{Contract, ContractSample, DataEntry, DataType => ContractDataType}
+import vsys.contract.{Contract, ContractPermitted, DataEntry, DataType => ContractDataType}
 import vsys.transaction.contract._
 import vsys.spos.SPoSCalc._
 
@@ -110,7 +110,7 @@ trait TransactionGen {
     length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
     contentStr <- Gen.listOfN(length, aliasAlphabetGen)
   } yield contentStr.mkString
-  val contractGen: Gen[Contract] = ContractSample.contract
+  val contractGen: Gen[Contract] = ContractPermitted.contract
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
