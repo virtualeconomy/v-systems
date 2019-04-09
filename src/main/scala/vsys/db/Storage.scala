@@ -2,7 +2,7 @@ package vsys.db
 
 import java.nio.charset.{Charset, StandardCharsets}
 
-import com.google.common.primitives.{Bytes, Ints}
+import com.google.common.primitives.{Bytes, Ints, UnsignedBytes}
 import com.wavesplatform.utils.forceStopApplication
 import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
 import scorex.utils.ScorexLogging
@@ -87,6 +87,42 @@ abstract class Storage(private val db: DB) extends ScorexLogging {
     def nextKey(): Array[Byte] = it.next().getKey
 
     def close(): Unit = it.close()
+  }
+
+  class DBRangeIterator(val it: DBIterator,
+                        val low: Option[Array[Byte]],
+                        val high: Option[Array[Byte]],
+                        val includeLow: Boolean = true,
+                        val includeHigh: Boolean = true) extends AbstractIterator[(Array[Byte], Array[Byte])] {
+
+    private def byteCmp(a: Array[Byte], b: Array[Byte]): Int = UnsignedBytes.lexicographicalComparator().compare(a, b)
+
+    private def rangeContainsNextKey: Boolean = {
+      val nextKey = it.peekNext().getKey()
+      val cmpLow = () => byteCmp(low.get, nextKey)
+      val cmpHigh = () => byteCmp(nextKey, high.get)
+      (low.isEmpty || cmpLow() < 0 || (includeLow && cmpLow() == 0)) && (high.isEmpty || cmpHigh() < 0 || (includeHigh && cmpHigh() == 0))
+    }
+
+    if (low.isEmpty) {
+      it.seekToFirst()
+    } else {
+      it.seek(low.get)
+      // skip the next if the includeLow is false and the db contains low
+      if (it.hasNext && !rangeContainsNextKey) it.next()
+    }
+
+    override def hasNext: Boolean = it.hasNext && rangeContainsNextKey
+
+    override def next(): (Array[Byte], Array[Byte]) = {
+      val entry = it.next()
+      (entry.getKey, entry.getValue)
+    }
+
+    def nextKey(): Array[Byte] = it.next().getKey
+
+    def close(): Unit = it.close()
+
   }
 
   protected def allKeys: DBPrefixIterator = {
