@@ -73,18 +73,25 @@ abstract class Storage(private val db: DB) extends ScorexLogging {
     }
   }
 
-  class KeysIterator(val it: DBIterator) extends AbstractIterator[Array[Byte]] {
+  class DBPrefixIterator(val it: DBIterator, val prefix: Option[Array[Byte]]) extends AbstractIterator[(Array[Byte], Array[Byte])] {
+
+    if (prefix.isEmpty) it.seekToFirst() else it.seek(prefix.get)
+
     override def hasNext: Boolean = it.hasNext
 
-    override def next(): Array[Byte] = it.next().getKey
+    override def next(): (Array[Byte], Array[Byte]) = {
+      val entry = it.next()
+      (entry.getKey, entry.getValue)
+    }
+
+    def nextKey(): Array[Byte] = it.next().getKey
 
     def close(): Unit = it.close()
   }
 
-  protected def allKeys: KeysIterator = {
+  protected def allKeys: DBPrefixIterator = {
     val it: DBIterator = db.iterator()
-    it.seekToFirst()
-    new KeysIterator(it)
+    new DBPrefixIterator(it, None)
   }
 
   def removeEverything(b: Option[WriteBatch]): Unit

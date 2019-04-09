@@ -18,7 +18,7 @@ class SubStorage(db: DB, name: String) extends Storage(db) {
   override def removeEverything(b: Option[WriteBatch]): Unit = {
     val it = allKeys
     while (it.hasNext) {
-      val key = it.next()
+      val (key, value) = it.next()
       if (key.startsWith(subPrefix)) delete(key, b)
     }
     it.close()

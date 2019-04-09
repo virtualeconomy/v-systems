@@ -44,7 +44,7 @@ class StateMap[K, V](
 
     val valueBytesOption: Option[Array[Byte]] = get(makeKey(StateNameBytes, getItemBytes(key, keyType)))
     if (valueBytesOption.isEmpty) None
-    else Option(valueType.read(ByteBuffer.wrap(valueBytesOption.get)).asInstanceOf[V])
+    else Option(deserializeValue(valueBytesOption.get))
 
   }
 
@@ -92,6 +92,14 @@ class StateMap[K, V](
       
   }
 
+  private def deserializeKey(keyBytes: Array[Byte]): K = {
+    keyType.read(ByteBuffer.wrap(keyBytes.slice(Prefix.length, keyBytes.length))).asInstanceOf[K]
+  }
+
+  private def deserializeValue(valBytes: Array[Byte]): V = {
+    valueType.read(ByteBuffer.wrap(valBytes)).asInstanceOf[V]
+  }
+
   def isEmpty(): Boolean = size() == 0
 
   def clear(batchOpt: Option[WriteBatch] = None): Unit = {
@@ -99,7 +107,7 @@ class StateMap[K, V](
     if (batchOpt.isEmpty) batch = createBatch()
     val it = allKeys
     while(it.hasNext) {
-      val key = it.next()
+      val key = it.nextKey()
       if (key.startsWith(Prefix)) delete(key, batch)
     }
     it.close()
@@ -113,10 +121,9 @@ class StateMap[K, V](
     val it = allKeys
     var rtn = Array[(K, V)]()
     while (it.hasNext) {
-      val key = it.next()
+      val (key, value) = it.next()
       if (key.startsWith(Prefix) && !key.startsWith(SizeKey)) {
-        val kk: K = keyType.read(ByteBuffer.wrap(key.slice(Prefix.length, key.length))).asInstanceOf[K]
-        rtn :+= ((kk, get(kk).get): (K, V))
+        rtn :+= ((deserializeKey(key), deserializeValue(value)): (K, V))
       }
     }
     it.close()
