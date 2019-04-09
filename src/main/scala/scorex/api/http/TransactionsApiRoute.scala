@@ -67,7 +67,7 @@ case class TransactionsApiRoute(
                     complete(invalidLimit)
                 }
               }
-          } ~ complete(StatusCodes.NotFound)
+          }
       }
     }
   }
@@ -88,7 +88,7 @@ case class TransactionsApiRoute(
             pathEndOrSingleSlash {
               complete(invalidLimit)
             } ~
-              path(Segment) { limitStr =>
+              pathPrefix(Segment) { limitStr =>
                 Exception.allCatch.opt(limitStr.toInt) match {
                   case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
                     pathPrefix("offset") {
@@ -96,7 +96,7 @@ case class TransactionsApiRoute(
                         complete(invalidOffset)
                       } ~
                         path(Segment) { offsetStr =>
-                          Exception.allCatch.opt(limitStr.toInt) match {
+                          Exception.allCatch.opt(offsetStr.toInt) match {
                             case Some(offset) if offset > 0 && offset <= MaxTransactionOffset =>
                               complete(Json.arr(JsArray(state.accountTransactions(a, limit, offset).map{ case (h, tx) =>
                                 processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
@@ -112,7 +112,7 @@ case class TransactionsApiRoute(
                     complete(invalidLimit)
                 }
               }
-          } ~ complete(StatusCodes.NotFound)
+          }
       }
     }
   }
