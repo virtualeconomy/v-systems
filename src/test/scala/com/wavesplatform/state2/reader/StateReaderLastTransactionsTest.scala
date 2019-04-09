@@ -34,12 +34,12 @@ class StateReaderLastTransactionsTest extends PropSpec with PropertyChecks with 
       assertDiffAndState(Seq(TestBlock.create(pre)), TestBlock.create(Seq(payment))) { (blockDiff, newState) =>
 
         val sender = EllipticCurve25519Proof.fromBytes(payment.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactions(sender, 1).map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment))
+        newState.accountTransactions(sender, 1, 0).map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment))
         val g = pre.head
         val tx1 = pre(1)
         val tx2 = pre(2)
-        newState.accountTransactions(sender, 3).map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment), txToProcessedTx(tx2), txToProcessedTx(tx1))
-        newState.accountTransactions(sender, 10).map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment), txToProcessedTx(tx2), txToProcessedTx(tx1), txToProcessedTx(g))
+        newState.accountTransactions(sender, 3, 0).map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment), txToProcessedTx(tx2), txToProcessedTx(tx1))
+        newState.accountTransactions(sender, 10, 0).map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment), txToProcessedTx(tx2), txToProcessedTx(tx1), txToProcessedTx(g))
       }
     }
   }
