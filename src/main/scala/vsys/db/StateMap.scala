@@ -1,11 +1,12 @@
 package vsys.db
 
 import java.nio.ByteBuffer
+import scala.collection.immutable.Stream
 
 import org.h2.mvstore.`type`.DataType
 import org.h2.mvstore.`type`.ObjectDataType
 import org.h2.mvstore.WriteBuffer
-import org.iq80.leveldb.{DB, WriteBatch}
+import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
 
 
 class StateMap[K, V](
@@ -116,19 +117,24 @@ class StateMap[K, V](
 
   }
 
-  def asScala(): Array[(K, V)] = {
+  def asScala(): Stream[(K, V)] = {
 
     val it = allKeys
-    var rtn = Array[(K, V)]()
+    val rtn = new Stream.StreamBuilder[(K, V)]()
     while (it.hasNext) {
       val (key, value) = it.next()
       if (key.startsWith(Prefix) && !key.startsWith(SizeKey)) {
-        rtn :+= ((deserializeKey(key), deserializeValue(value)): (K, V))
+        rtn += ((deserializeKey(key), deserializeValue(value)): (K, V))
       }
     }
     it.close()
-    rtn
+    rtn.result()
 
+  }
+
+  override def allKeys: DBPrefixIterator = {
+    val it: DBIterator = db.iterator()
+    new DBPrefixIterator(it, Some(Prefix))
   }
 
 }
