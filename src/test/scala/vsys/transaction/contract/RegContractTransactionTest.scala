@@ -44,7 +44,7 @@ class RegContractTransactionTest extends PropSpec
 
   val languageCode: Int = 0
   val languageVersion: Int = 0
-  val regContractParse: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRandomGen(), textureRightGen)
+  val regContractParse: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndParseRegContract: Gen[RegisterContractTransaction] = for {
     master <- accountGen
     ts <- positiveIntGen

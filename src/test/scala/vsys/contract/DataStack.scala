@@ -82,6 +82,7 @@ object DataStack {
 
   object supersedeInput {
     val newIssuerIndex: Byte = 0
+    val maker: Byte = 1
   }
 
   object splitInput {

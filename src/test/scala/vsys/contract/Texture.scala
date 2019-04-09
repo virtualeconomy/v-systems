@@ -24,7 +24,7 @@ trait Texture {
     TextureFun.withdrawFuncBytes.sample.get, TextureFun.totalSupplyFuncBytes.sample.get, TextureFun.maxSupplyFuncBytes.sample.get,
     TextureFun.balanceOfFuncBytes.sample.get, TextureFun.getIssuerFuncBytes.sample.get)))
 
-  val textureRightGen: Gen[Seq[Array[Byte]]] = textureGen(initializerTexture, descriptorTexture, descriptorTexture)
+  val textureRightGen: Gen[Seq[Array[Byte]]] = textureGen(initializerTexture, descriptorTexture, stateVarTexture)
 
 }
 
@@ -48,7 +48,7 @@ object TextureFun {
   val totalSupplyPara: Seq[String] = Seq("tokenIndex")
   val maxSupplyPara: Seq[String] = Seq("tokenIndex")
   val balanceOfPara: Seq[String] = Seq("address", "tokenIndex")
-  val getIssuerPara: Seq[String] = Seq("")
+  val getIssuerPara: Seq[String] = Seq()
 
   val initFuncBytes: Gen[Array[Byte]] = textureFunGen("init", "void", initPara)
   val supersedeFuncBytes: Gen[Array[Byte]] = textureFunGen("supersede", "void", supersedePara)

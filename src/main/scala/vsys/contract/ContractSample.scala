@@ -103,7 +103,7 @@ object ContractSample {
 
     object supersedeIndex {
       val newIssuerIndex: Byte = 0
-      val makerGetIndex: Byte = 1
+      val maker: Byte = 1
     }
 
     object issueInput {
@@ -154,18 +154,15 @@ object ContractSample {
 
     object totalSupplyInput {
       val tokenIndex: Byte = 0
-      val amountIndex: Byte = 1
     }
 
     object maxSupplyInput {
       val tokenIndex: Byte = 0
-      val amountIndex: Byte = 1
     }
 
     object balanceOfInput {
       val addressIndex: Byte = 0
       val tokenIndex: Byte = 1
-      val amountIndex: Byte = 2
     }
 
   }
@@ -187,14 +184,14 @@ object ContractSample {
     val opcAssertIsCallerOriginTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex)
     val opcAssertIsCallerOriginDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex)
     val opcAssertIsCallerOriginWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.receiptIndex)
-    val opcAssertIsMakerOriginSupersedeIndex: Array[Byte] = Array(DataStack.supersedeIndex.newIssuerIndex)
+    val opcAssertIsMakerOriginSupersedeIndex: Array[Byte] = Array(DataStack.supersedeIndex.maker)
 
     val opcTDBNewTokenIndex: Array[Byte] = Array(StateVar.max, StateVar.total, StateVar.unity, StateVar.shortText,
       DataStack.initInput.maxIndex, DataStack.initInput.unityIndex)
-    val opcTDBSplitIndex: Array[Byte] = Array(DataStack.splitInput.amountIndex, DataStack.splitInput.tokenIndex)
+    val opcTDBSplitIndex: Array[Byte] = Array(StateVar.unity, DataStack.splitInput.amountIndex, DataStack.splitInput.tokenIndex)
 
-    val opcTDBRTotalIndex: Array[Byte] = Array(DataStack.totalSupplyInput.tokenIndex)
-    val opcTDBRMaxIndex: Array[Byte] = Array(DataStack.maxSupplyInput.tokenIndex)
+    val opcTDBRTotalIndex: Array[Byte] = Array(StateVar.total, DataStack.totalSupplyInput.tokenIndex)
+    val opcTDBRMaxIndex: Array[Byte] = Array(StateVar.max, DataStack.maxSupplyInput.tokenIndex)
 
     val opcTDBADepositIssueIndex: Array[Byte] = Array(StateVar.max, StateVar.total, DataStack.issueInput.issuerGetIndex,
       DataStack.issueInput.amountIndex, DataStack.issueInput.tokenIndex)
@@ -232,23 +229,23 @@ object ContractSample {
     val transferOpc: List[Array[Byte]] = List(OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBATransfer)
     val transferOpcIndex: List[Array[Byte]] = List(opcAssertIsCallerOriginTransferIndex, opcTDBATransferTransferIndex)
     // deposit
-    val depositOpc: List[Array[Byte]] = List(OpcId.opcAssertIsSignerOrigin, OpcId.opcTDBATransfer)
+    val depositOpc: List[Array[Byte]] = List(OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBATransfer)
     val depositOpcIndex: List[Array[Byte]] = List(opcAssertIsCallerOriginDepositIndex, opcTDBATransferDepositIndex)
     // withdraw
     val withdrawOpc: List[Array[Byte]] = List(OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBATransfer)
     val withdrawOpcIndex: List[Array[Byte]] = List(opcAssertIsCallerOriginWithdrawIndex, opcTDBATransferWithdrawIndex)
     // totalSupply
     val totalSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcTotal, OpcId.opcReturnValue)
-    val totalSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRTotalIndex)
+    val totalSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRTotalIndex, Array())
     // maxSupplyOpc
     val maxSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcGet, OpcId.opcReturnValue)
-    val maxSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRMaxIndex)
+    val maxSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRMaxIndex, Array())
     // balanceOfOpc
     val balanceOfOpc: List[Array[Byte]] = List(OpcId.opcTDBARBalance, OpcId.opcReturnValue)
-    val balanceOfOpcIndex: List[Array[Byte]] = List(opcTDBARBalanceOfIndex)
+    val balanceOfOpcIndex: List[Array[Byte]] = List(opcTDBARBalanceOfIndex, Array())
     // getIssuerOpc
     val getIssuerOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcReturnValue)
-    val getIssuerOpcIndex: List[Array[Byte]] = List(opcCDBVRGetIssuerIndex)
+    val getIssuerOpcIndex: List[Array[Byte]] = List(opcCDBVRGetIssuerIndex, Array())
   }
 
   object OpcLine {
@@ -315,15 +312,15 @@ object ContractSample {
   val stateVarName = List("issuer", "maker", "max", "total", "unity", "description")
   lazy val stateVarTexture: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
-  val initFuncBytes: Array[Byte] = textureFunc("init", "unit", ParaName.initPara)
-  val supersedeFuncBytes: Array[Byte] = textureFunc("supersede", "unit", ParaName.supersedePara)
-  val issueFuncBytes: Array[Byte] = textureFunc("issue", "unit", ParaName.issuePara)
-  val destroyFuncBytes: Array[Byte] = textureFunc("destroy", "unit", ParaName.destroyPara)
-  val splitFuncBytes: Array[Byte] = textureFunc("split", "unit", ParaName.splitPara)
-  val sendFuncBytes: Array[Byte] = textureFunc("send", "unit", ParaName.sendPara)
-  val transferFuncBytes: Array[Byte] = textureFunc("transfer", "unit", ParaName.transferPara)
-  val depositFuncBytes: Array[Byte] = textureFunc("deposit", "unit", ParaName.depositPara)
-  val withdrawFuncBytes: Array[Byte] = textureFunc("withdraw", "unit", ParaName.withdrawPara)
+  val initFuncBytes: Array[Byte] = textureFunc("init", "void", ParaName.initPara)
+  val supersedeFuncBytes: Array[Byte] = textureFunc("supersede", "void", ParaName.supersedePara)
+  val issueFuncBytes: Array[Byte] = textureFunc("issue", "void", ParaName.issuePara)
+  val destroyFuncBytes: Array[Byte] = textureFunc("destroy", "void", ParaName.destroyPara)
+  val splitFuncBytes: Array[Byte] = textureFunc("split", "void", ParaName.splitPara)
+  val sendFuncBytes: Array[Byte] = textureFunc("send", "void", ParaName.sendPara)
+  val transferFuncBytes: Array[Byte] = textureFunc("transfer", "void", ParaName.transferPara)
+  val depositFuncBytes: Array[Byte] = textureFunc("deposit", "void", ParaName.depositPara)
+  val withdrawFuncBytes: Array[Byte] = textureFunc("withdraw", "void", ParaName.withdrawPara)
   val totalSupplyFuncBytes: Array[Byte] = textureFunc("totalSupply", "amount", ParaName.totalSupplyPara)
   val maxSupplyFuncBytes: Array[Byte] = textureFunc("maxSupply", "amount", ParaName.maxSupplyPara)
   val balanceOfFuncBytes: Array[Byte] = textureFunc("balanceOf", "amount", ParaName.balanceOfPara)
