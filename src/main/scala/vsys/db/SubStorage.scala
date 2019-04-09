@@ -1,7 +1,7 @@
 package vsys.db
 
 import com.google.common.primitives.{Bytes, Ints}
-import org.iq80.leveldb.{DB, WriteBatch}
+import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
 
 class SubStorage(db: DB, name: String) extends Storage(db) {
 
@@ -18,10 +18,15 @@ class SubStorage(db: DB, name: String) extends Storage(db) {
   override def removeEverything(b: Option[WriteBatch]): Unit = {
     val it = allKeys
     while (it.hasNext) {
-      val (key, value) = it.next()
+      val key = it.nextKey()
       if (key.startsWith(subPrefix)) delete(key, b)
     }
     it.close()
+  }
+
+  override protected def allKeys: DBPrefixIterator = {
+    val it: DBIterator = db.iterator()
+    new DBPrefixIterator(it, Some(subPrefix))
   }
 
 }

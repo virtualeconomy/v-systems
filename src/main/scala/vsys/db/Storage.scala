@@ -77,7 +77,7 @@ abstract class Storage(private val db: DB) extends ScorexLogging {
 
     if (prefix.isEmpty) it.seekToFirst() else it.seek(prefix.get)
 
-    override def hasNext: Boolean = it.hasNext
+    override def hasNext: Boolean = it.hasNext && (prefix.isEmpty || it.peekNext().getKey().startsWith(prefix.get))
 
     override def next(): (Array[Byte], Array[Byte]) = {
       val entry = it.next()
