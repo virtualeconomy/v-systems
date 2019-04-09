@@ -2,6 +2,7 @@ package vsys.state.opcdiffs
 
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
+import scorex.account.Address
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.contract.{DataEntry, DataType}
@@ -27,6 +28,7 @@ object TDBAOpcDiff {
       val depositAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
       val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
+      val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val currentTotal = context.state.tokenAccountBalance(tokenTotalKey)
       val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0))))
       val tokenMax = Longs.fromByteArray(context.state.tokenInfo(tokenMaxKey).getOrElse(
@@ -40,9 +42,9 @@ object TDBAOpcDiff {
       } else if (depositAmount + currentTotal > tokenMax) {
         Left(GenericError(s"New total ${depositAmount + currentTotal} is larger than the max $tokenMax"))
       } else {
-        Right(OpcDiff(tokenAccountBalance = Map(tokenTotalKey -> depositAmount,
-          ByteStr(Bytes.concat(tokenID.arr, issuer.data)) -> depositAmount)
-        ))
+        val a = Address.fromBytes(issuer.data).toOption.get
+        Right(OpcDiff(relatedAddress = Map(a -> true),
+          tokenAccountBalance = Map(tokenTotalKey -> depositAmount, issuerBalanceKey -> depositAmount)))
       }
     }
   }
@@ -61,6 +63,7 @@ object TDBAOpcDiff {
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val withdrawAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
       val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val issuerCurrentBalance = context.state.tokenAccountBalance(issuerBalanceKey)
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
@@ -71,8 +74,9 @@ object TDBAOpcDiff {
         Left(GenericError(s"Invalid withdraw amount $withdrawAmount"))
       }
       else {
-        Right(OpcDiff(tokenAccountBalance = Map(issuerBalanceKey -> -withdrawAmount,
-          ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0)))) -> -withdrawAmount)
+        val a = Address.fromBytes(issuer.data).toOption.get
+        Right(OpcDiff(relatedAddress = Map(a -> true),
+          tokenAccountBalance = Map(tokenTotalKey -> -withdrawAmount, issuerBalanceKey -> -withdrawAmount)
         ))
       }
     }
@@ -103,7 +107,10 @@ object TDBAOpcDiff {
       } else if (transferAmount < 0) {
         Left(GenericError(s"Invalid transfer amount $transferAmount"))
       } else {
-        Right(OpcDiff(tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
+        val s = Address.fromBytes(sender.data).toOption.get
+        val r = Address.fromBytes(recipient.data).toOption.get
+        Right(OpcDiff(relatedAddress = Map(s -> true, r -> true),
+          tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
           recipientBalanceKey -> transferAmount)
         ))
       }
