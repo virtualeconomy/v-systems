@@ -14,6 +14,7 @@ import scorex.transaction.assets.exchange._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
+import vsys.account.ContractAccount
 import vsys.database.{DataType, Entry}
 import vsys.transaction.database.DbPutTransaction
 import vsys.contract.{Contract, ContractSample, DataEntry, DataType => ContractDataType}
@@ -44,6 +45,8 @@ trait TransactionGen {
   val ntpTimestampGen: Gen[Long] = Gen.choose(1, 1000).map(NTP.correctedTime() - _)
 
   val accountGen: Gen[PrivateKeyAccount] = bytes32gen.map(seed => PrivateKeyAccount(seed))
+
+  val contractAccountGen: Gen[ContractAccount] = Gen.const(ContractAccount.fromId(ByteStr(bytes32gen.sample.get)))
 
   val aliasSymbolChar: Gen[Char] = Gen.oneOf('.','@', '_', '-')
 
