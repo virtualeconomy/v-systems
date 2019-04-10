@@ -57,7 +57,7 @@ object Contract extends ScorexLogging {
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Contract] = {
-    if (isByteArrayValid(bytes)) {
+    val contract = Try {
       val languageCode = bytes.slice(0, LanguageCodeByteLength)
       val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
       val (initializer, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
@@ -66,17 +66,20 @@ object Contract extends ScorexLogging {
       val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
       val stateVar = Deser.parseArrays(stateVarBytes)
       val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
-      buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, texture)
-    } else {
-      Left(InvalidContract)
+      if (isByteArrayValid(bytes, texture)){
+        buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, texture)
+      } else {
+        Left(InvalidContract)
+      }
     }
+    contract.getOrElse(Left(InvalidContract))
   }
 
   def fromBase58String(base58String: String): Either[ValidationError, Contract] = {
     if (base58String.length < MinContractStringSize) Left(InvalidContract)
     else {
       Base58.decode(base58String) match {
-        case Success(byteArray) if isByteArrayValid(byteArray) => fromBytes(byteArray)
+        case Success(byteArray) => fromBytes(byteArray)
         case _ => Left(InvalidContract)
       }
     }
@@ -85,36 +88,16 @@ object Contract extends ScorexLogging {
   def checkStateVar(stateVar: Array[Byte], dataType: DataType.Value): Boolean =
     stateVar.length == 2 && dataType == DataType(stateVar(1))
 
-  private def isByteArrayValid(bytes: Array[Byte]): Boolean = { val texture = Try {
-    val languageCode = bytes.slice(0, LanguageCodeByteLength)
-    val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
-    val (initializer, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
-    val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
-    val descriptor = Deser.parseArrays(descriptorBytes)
-    val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
-    val stateVar = Deser.parseArrays(stateVarBytes)
-    val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
-    buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, texture)
-  }.isSuccess
-    if (texture) {
-      val (_, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
-      val (_, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
-      val (_, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
-      val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
-      val textureStr = textureFromBytes(texture)
-      if (!(bytes sameElements ContractPermitted.contract.bytes.arr)) {
-        log.warn(s"Illegal contract ${bytes.mkString(" ")}")
-        false
-      } else if (textureStr.isFailure ||
-        !checkTexture(textureStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
-        log.warn(s"Illegal texture ${texture.mkString(" ")}")
-        false
-      } else {
-        true
-      }
-    } else {
+  private def isByteArrayValid(bytes: Array[Byte], texture: Seq[Array[Byte]]): Boolean = {
+    val textureStr = textureFromBytes(texture)
+    if (!(bytes sameElements ContractPermitted.contract.bytes.arr)) {
+      log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
-    }
+    } else if (textureStr.isFailure ||
+      !checkTexture(textureStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
+      log.warn(s"Illegal texture ${texture.mkString(" ")}")
+      false
+    } else true
   }
 
   private def textureFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])] = Try {
