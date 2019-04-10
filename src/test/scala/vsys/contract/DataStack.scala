@@ -9,9 +9,8 @@ trait DataStack {
   def initDataStackGen(amount: Long, unity: Long, desc: String): Gen[Seq[DataEntry]] = for {
     max <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     unit <- Gen.const(DataEntry(Longs.toByteArray(unity), DataType.Amount))
-    description <- Gen.const(DataEntry.create(desc.getBytes(), DataType.ShortText).right.get)
     shortText <- Gen.const(DataEntry.create(desc.getBytes(), DataType.ShortText).right.get)
-  } yield Seq(max, unit, description, shortText)
+  } yield Seq(max, unit, shortText)
 
   def supersedeDataStackGen(newIssuer: Address): Gen[Seq[DataEntry]] = for {
     iss <- Gen.const(DataEntry(newIssuer.bytes.arr, DataType.Address))
@@ -77,9 +76,8 @@ object DataStack {
   object initInput {
     val maxIndex: Byte = 0
     val unityIndex: Byte = 1
-    val descIndex: Byte = 2
-    val shortTextIndex: Byte = 3
-    val issuerLoadIndex: Byte = 4
+    val shortTextIndex: Byte = 2
+    val issuerLoadIndex: Byte = 3
   }
 
   object supersedeInput {

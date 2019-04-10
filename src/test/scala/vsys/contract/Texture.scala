@@ -36,7 +36,7 @@ object TextureFun {
     texture <- Gen.const(funcByte.array ++ retByte.array ++ paraByte.array)
   } yield texture
 
-  val initPara: Seq[String] = Seq("max", "unity", "contractDescription", "tokenDescription")
+  val initPara: Seq[String] = Seq("max", "unity", "tokenDescription")
   val supersedePara: Seq[String] = Seq("newIssuer")
   val issuePara: Seq[String] = Seq("amount", "tokenIndex")
   val destroyPara: Seq[String] = Seq("amount", "tokenIndex")

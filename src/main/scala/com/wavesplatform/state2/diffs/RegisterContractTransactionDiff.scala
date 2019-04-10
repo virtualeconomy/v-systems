@@ -8,6 +8,7 @@ import scorex.transaction.ValidationError.GenericError
 import vsys.contract.ExecutionContext
 import vsys.state.opcdiffs.OpcFuncDiffer
 import vsys.transaction.contract.RegisterContractTransaction
+import vsys.transaction.TransactionStatus
 import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.Left
@@ -22,15 +23,19 @@ object RegisterContractTransactionDiff {
     else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
-      for {
+      (for {
         exContext <- ExecutionContext.fromRegConTx(s, height, tx)
         opcDiff <- OpcFuncDiffer(exContext)(tx.data)
         diff = opcDiff.asTransactionDiff(height, tx)
-      } yield diff.combine(Diff(height = height, tx = tx,
-        portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        contracts = Map(tx.contractId.bytes -> contractInfo),
-        chargedFee = tx.fee
-      ))
+      } yield diff) match {
+        case Left(_) => Right(Diff(height = height, tx = tx,
+          portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+          chargedFee = tx.fee, txStatus = TransactionStatus.RegisterContractFailed))
+        case Right(df) => Right(df.combine(Diff(height = height, tx = tx,
+          portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+          contracts = Map(tx.contractId.bytes -> contractInfo),
+          chargedFee = tx.fee)))
+      }
     }
   }
 

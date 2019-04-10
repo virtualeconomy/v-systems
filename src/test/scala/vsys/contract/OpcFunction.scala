@@ -187,7 +187,7 @@ trait ProtoType {
 
 object ProtoType {
   val initParaTypeWrong: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte)
-  val initParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte, DataType.ShortText.id.toByte)
+  val initParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
   val supersedeParaType: List[Byte] = List(DataType.Account.id.toByte)
   val issueParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
   val destroyParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
@@ -242,10 +242,9 @@ object ListOpc {
   val initOpcCDBVSetMakerIndex: Array[Byte] = Array(StateVar.maker, DataStack.initInput.issuerLoadIndex)
   val initOpcTDBNewTokenIndex: Array[Byte] = Array(StateVar.max, StateVar.total, StateVar.unity, StateVar.shortText,
     DataStack.initInput.maxIndex, DataStack.initInput.unityIndex, DataStack.initInput.shortTextIndex)
-  val initopcCDBVSetDescIndex: Array[Byte] = Array(StateVar.shortText, DataStack.initInput.descIndex)
   val initWrongTDBOpc: List[Array[Byte]] = List(OpcId.opcLoadSigner, OpcId.opcCDBVSet, OpcId.opcCDBVSet, Array(5.toByte, 3.toByte))
-  val initOpc: List[Array[Byte]] = List(OpcId.opcLoadSigner, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcTDBNewToken)
-  val initOpcIndex: List[Array[Byte]] = List(opcLoadSignerIndex, initOpcCDBVSetSignerIndex, initOpcCDBVSetMakerIndex, initopcCDBVSetDescIndex, initOpcTDBNewTokenIndex)
+  val initOpc: List[Array[Byte]] = List(OpcId.opcLoadSigner, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcTDBNewToken)
+  val initOpcIndex: List[Array[Byte]] = List(opcLoadSignerIndex, initOpcCDBVSetSignerIndex, initOpcCDBVSetMakerIndex, initOpcTDBNewTokenIndex)
 
   val supersedeOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.maker)
   val superAssertIsSignerOriginIndex: Array[Byte] = Array(DataStack.supersedeInput.maker)

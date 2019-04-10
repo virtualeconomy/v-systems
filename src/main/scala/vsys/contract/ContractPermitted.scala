@@ -31,7 +31,7 @@ object ContractPermitted {
   }
 
   object ProtoType {
-    val initParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte, DataType.ShortText.id.toByte)
+    val initParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
     val supersedeParaType: Array[Byte] = Array(DataType.Account.id.toByte)
     val issueParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
     val destroyParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
@@ -97,9 +97,8 @@ object ContractPermitted {
     object initInput {
       val maxIndex: Byte = 0
       val unityIndex: Byte = 1
-      val descIndex: Byte = 2
-      val shortTextIndex: Byte = 3
-      val issuerLoadIndex: Byte = 4
+      val shortTextIndex: Byte = 2
+      val issuerLoadIndex: Byte = 3
     }
 
     object supersedeIndex {
@@ -175,7 +174,6 @@ object ContractPermitted {
     val opcCDBVSetIssuerInitIndex: Array[Byte] = Array(StateVar.issuer, DataStack.initInput.issuerLoadIndex)
     val opcCDBVSetIssuerSupersedeIndex: Array[Byte] = Array(StateVar.issuer, DataStack.supersedeIndex.newIssuerIndex)
     val opcCDBVSetMakerIndex: Array[Byte] = Array(StateVar.maker, DataStack.initInput.issuerLoadIndex)
-    val opcCDBVSetDescIndex: Array[Byte] = Array(StateVar.shortText, DataStack.initInput.descIndex)
 
     val opcCDBVRGetIssuerIndex: Array[Byte] = Array(StateVar.issuer)
     val opcCDBVRGetMakerIndex: Array[Byte] = Array(StateVar.maker)
@@ -207,8 +205,8 @@ object ContractPermitted {
     val opcTDBARBalanceOfIndex: Array[Byte] = Array(DataStack.balanceOfInput.addressIndex, DataStack.balanceOfInput.tokenIndex)
 
     // init
-    val initOpc: List[Array[Byte]] = List(OpcId.opcLoadSigner, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcTDBNewToken)
-    val initOpcIndex: List[Array[Byte]] = List(opcLoadSignerIndex, opcCDBVSetIssuerInitIndex, opcCDBVSetMakerIndex, opcCDBVSetDescIndex, opcTDBNewTokenIndex)
+    val initOpc: List[Array[Byte]] = List(OpcId.opcLoadSigner, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcTDBNewToken)
+    val initOpcIndex: List[Array[Byte]] = List(opcLoadSignerIndex, opcCDBVSetIssuerInitIndex, opcCDBVSetMakerIndex, opcTDBNewTokenIndex)
     // supersede index and opc
     val supersedeOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcAssertIsSignerOrigin, OpcId.opcCDBVSet)
     val supersedeOpcIndex: List[Array[Byte]] = List(opcCDBVRGetMakerIndex, opcAssertIsMakerOriginSupersedeIndex, opcCDBVSetIssuerSupersedeIndex)
@@ -296,7 +294,7 @@ object ContractPermitted {
   }
 
   object ParaName {
-    val initPara: Seq[String] = Seq("max", "unity", "contractDescription", "tokenDescription")
+    val initPara: Seq[String] = Seq("max", "unity", "tokenDescription")
     val supersedePara: Seq[String] = Seq("newIssuer")
     val issuePara: Seq[String] = Seq("amount", "tokenIndex")
     val destroyPara: Seq[String] = Seq("amount", "tokenIndex")
