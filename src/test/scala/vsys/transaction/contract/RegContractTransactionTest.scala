@@ -50,7 +50,7 @@ class RegContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- regContractParse
     data: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts).right.get
@@ -91,7 +91,7 @@ class RegContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- regWrongParaContract
     data <- initDataStackGen(100000000L, 100L, "initializer")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
@@ -112,7 +112,7 @@ class RegContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- regContract
     data <- initDataStackGen(100000000L, 100L, "initializer")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
@@ -136,7 +136,7 @@ class RegContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- regWrongOpcFunContract
     data <- initDataStackGen(100000000L, 100L, "initializer")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get

@@ -11,6 +11,7 @@ import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
 import vsys.contract.{Contract, DataEntry}
 import scorex.crypto.encode.Base58
+import scorex.serialization.Deser
 import scorex.transaction.assets._
 import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
@@ -97,7 +98,7 @@ object TransactionFactory {
       .create(senderPrivateKey,
         contract,
         dataStack,
-        request.description.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray),
+        request.description.filter(_.nonEmpty).getOrElse(Deser.deserilizeString(Array.emptyByteArray)),
         request.fee,
         request.feeScale,
         time.getTimestamp())

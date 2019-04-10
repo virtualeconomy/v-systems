@@ -46,10 +46,10 @@ class ExecuteContractTransactionTest extends PropSpec
   val contractParse: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndParseExecuteContract: Gen[ExecuteContractFunctionTransaction] = for {
     master <- accountGen
-    ts <- positiveIntGen
+    ts <- positiveLongGen
     contract1 <- contractParse
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
@@ -58,7 +58,8 @@ class ExecuteContractTransactionTest extends PropSpec
     timestamp2: Long <- positiveLongGen
     funcIdx: Short <- Gen.const(FunId.issueIndex)
     data: Seq[DataEntry] <- dataEntryGen
-  } yield ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, data, description, fee2, feeScale2, timestamp2).right.get
+    description2 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+  } yield ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, data, description2, fee2, feeScale2, timestamp2).right.get
 
   property("RegisterContractTransaction serialization roundtrip") {
     forAll(preconditionsAndParseExecuteContract) { tx: ExecuteContractFunctionTransaction =>
@@ -92,7 +93,7 @@ class ExecuteContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- newContract
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
@@ -101,8 +102,9 @@ class ExecuteContractTransactionTest extends PropSpec
     ts2: Long <- positiveLongGen
     funcIdx: Short <- Gen.const(FunId.issueIndex)
     data: Seq[DataEntry] <- issueDataStackGen(10000L,0)
+    description2 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContract: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, data, description, fee2, feeScale2, ts2).right.get
+    executeContract: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, data, description2, fee2, feeScale2, ts2).right.get
   } yield (genesis, regContract, executeContract, executeContract.fee)
 
   property("execute contract transaction issue successfully"){
@@ -119,7 +121,7 @@ class ExecuteContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- newContractSend
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
@@ -128,15 +130,17 @@ class ExecuteContractTransactionTest extends PropSpec
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
     data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    description1 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.sendIndex)
     data2: Seq[DataEntry] <- sendDataStackGen(recipient, 100000L,0)
+    description2 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
+    executeContractSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale2, ts2).right.get
   } yield (genesis, regContract, executeContractIssue, executeContractSend, executeContractSend.fee)
 
   property("execute contract transaction send successfully"){
@@ -154,7 +158,7 @@ class ExecuteContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- newContractSupersede
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
@@ -163,16 +167,18 @@ class ExecuteContractTransactionTest extends PropSpec
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
     data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    description1 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.supersedeIndex)
     data2: Seq[DataEntry] <- supersedeDataStackGen(PublicKeyAccount(newIssuer.publicKey).toAddress)
+    description2 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     genesis1: GenesisTransaction = GenesisTransaction.create(newIssuer, ENOUGH_AMT, -1, ts).right.get
-    executeContractSupersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
+    executeContractSupersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx1, data1, description2, fee1, feeScale1, ts1).right.get
   } yield(genesis, genesis1, regContract, executeContractIssue, executeContractSupersede, executeContractSupersede.fee)
 
   property("execute contract transaction supersede successfully") {
@@ -189,7 +195,7 @@ class ExecuteContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- newContractSplit
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
@@ -198,15 +204,17 @@ class ExecuteContractTransactionTest extends PropSpec
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
     data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    description1 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.splitIndex)
     data2: Seq[DataEntry] <- splitDataStackGen(10000L, 0)
+    description2 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
+    executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale2, ts2).right.get
   } yield(genesis, regContract, executeContractIssue, executeContractSplit, executeContractSplit.fee)
 
   property("execute contract transaction split successfully") {
@@ -223,7 +231,7 @@ class ExecuteContractTransactionTest extends PropSpec
     ts <- positiveIntGen
     contract1 <- newContractDestroy
     dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
-    description <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
@@ -232,15 +240,17 @@ class ExecuteContractTransactionTest extends PropSpec
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
     data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    description1 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.destroyIndex)
     data2: Seq[DataEntry] <- splitDataStackGen(10000L, 0)
+    description2 <- genBoundedString(2, RegisterContractTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description, fee1, feeScale1, ts1).right.get
-    executeContractDestroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description, fee2, feeScale2, ts2).right.get
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
+    executeContractDestroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale2, ts2).right.get
   } yield(genesis, regContract, executeContractIssue, executeContractDestroy, executeContractDestroy.fee)
 
   property("execute contract transaction destroy successfully") {

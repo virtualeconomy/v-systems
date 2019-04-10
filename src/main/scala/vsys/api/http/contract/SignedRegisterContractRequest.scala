@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
 import scorex.account.PublicKeyAccount
 import scorex.api.http.BroadcastRequest
-import scorex.crypto.encode.Base58
+import scorex.serialization.Deser
 import vsys.contract.{Contract, DataEntry}
 import scorex.transaction.TransactionParser.SignatureStringLength
 import scorex.transaction.ValidationError
@@ -32,7 +32,7 @@ case class SignedRegisterContractRequest(@ApiModelProperty(value = "Base58 encod
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
     _contract <- Contract.fromBase58String(contract)
     _dataStack <- DataEntry.fromBase58String(data)
-    _description = description.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray)
+    _description = description.filter(_.nonEmpty).getOrElse(Deser.deserilizeString(Array.emptyByteArray))
     _t <- RegisterContractTransaction.create(_sender, _contract, _dataStack, _description, fee, feeScale, timestamp, _signature)
   } yield _t
 }

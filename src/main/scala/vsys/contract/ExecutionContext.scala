@@ -2,6 +2,7 @@ package vsys.contract
 
 import com.wavesplatform.state2.reader.StateReader
 import scorex.account.PublicKeyAccount
+import scorex.serialization.Deser
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.account.ContractAccount
@@ -29,7 +30,7 @@ object ExecutionContext {
     val contractId = tx.contractId
     val opcFunc = tx.contract.initializer
     val stateVar = tx.contract.stateVar
-    val description = tx.description
+    val description = Deser.serilizeString(tx.description)
     Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, stateVar, description))
   }
 

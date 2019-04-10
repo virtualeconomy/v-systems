@@ -71,6 +71,11 @@ trait TransactionGen {
     dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
   } yield dbKeyChars.mkString
 
+  val validDescStringGen: Gen[String] = for {
+    length <- Gen.chooseNum(RegisterContractTransaction.MinDescriptionSize, RegisterContractTransaction.MaxDescriptionSize)
+    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield dbKeyChars.mkString
+
   val invalidLengthDbKeyStringGen: Gen[String] = for {
     length <- Gen.chooseNum(DbPutTransaction.MaxDbKeyLength + 1, DbPutTransaction.MaxDbKeyLength * 2)
     dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
@@ -268,7 +273,7 @@ trait TransactionGen {
     timestamp: Long <- positiveLongGen
     feeScale: Short <- feeScaleGen
     dataStack: Seq[DataEntry] <- dataEntryGen
-    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
   } yield RegisterContractTransaction.create(sender, contract, dataStack, description, fee, feeScale, timestamp).right.get
 
   val executeContractGen: Gen[ExecuteContractFunctionTransaction] = for {
@@ -278,7 +283,7 @@ trait TransactionGen {
     timestamp: Long <- positiveLongGen
     feeScale: Short <- feeScaleGen
     dataStack: Seq[DataEntry] <- dataEntryGen
-    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     contractTx = RegisterContractTransaction.create(sender, contract, dataStack, description, fee, feeScale, timestamp).right.get
     otherSender: PrivateKeyAccount <- accountGen
     fee2: Long <- smallFeeGen

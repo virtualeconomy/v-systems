@@ -25,7 +25,7 @@ class ContractTransactionDiffTest extends PropSpec with PropertyChecks with Gene
     contract1 <- contractGen
     contract2 <- contractGen
     data: Seq[DataEntry] <- dataEntryGen
-    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
+    description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get

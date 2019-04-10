@@ -2,7 +2,6 @@ package vsys.transaction.contract
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.utils.base58Length
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
 import scorex.crypto.encode.Base58
@@ -18,7 +17,7 @@ import scala.util.{Failure, Success, Try}
 
 case class RegisterContractTransaction private(contract: Contract,
                                                data: Seq[DataEntry],
-                                               description: Array[Byte],
+                                               description: String,
                                                fee: Long,
                                                feeScale: Short,
                                                timestamp: Long,
@@ -33,7 +32,7 @@ case class RegisterContractTransaction private(contract: Contract,
     Array(transactionType.id.toByte),
     BytesSerializable.arrayWithSize(contract.bytes.arr),
     Deser.serializeArray(DataEntry.serializeArrays(data)),
-    BytesSerializable.arrayWithSize(description),
+    Deser.serializeArray(Deser.serilizeString(description)),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
@@ -41,10 +40,13 @@ case class RegisterContractTransaction private(contract: Contract,
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contractId" ->  contractId.address,
     "contract" -> Json.obj("languageCode" -> Base58.encode(contract.languageCode),
-                                    "languageVersion" -> Base58.encode(contract.languageVersion),
-                                    "descriptor" -> contract.descriptor.map(p => Base58.encode(p))),
+      "languageVersion" -> Base58.encode(contract.languageVersion),
+      "initializer" -> Base58.encode(contract.initializer),
+      "descriptor" -> contract.descriptor.map(p => Base58.encode(p)),
+      "stateVariable" -> contract.stateVar.map(p => Base58.encode(p)),
+      "texture" -> contract.texture.map(p => Base58.encode(p))),
     "data" -> Base58.encode(data.flatMap(_.bytes).toArray),
-    "description" -> Base58.encode(description),
+    "description" -> description,
     "fee" -> fee,
     "feeScale" -> feeScale,
     "timestamp" -> timestamp
@@ -60,7 +62,7 @@ case class RegisterContractTransaction private(contract: Contract,
 object RegisterContractTransaction {
 
   val MaxDescriptionSize = 140
-  val maxDescriptionStringSize: Int = base58Length(MaxDescriptionSize)
+  val MinDescriptionSize = 0
 
   def parseTail(bytes: Array[Byte]): Try[RegisterContractTransaction] = Try {
     val (contractBytes, contractEnd) = Deser.parseArraySize(bytes, 0)
@@ -68,7 +70,8 @@ object RegisterContractTransaction {
       contract <- Contract.fromBytes(contractBytes)
       (dataBytes, dataEnd) = Deser.parseArraySize(bytes, contractEnd)
       data <- DataEntry.parseArrays(dataBytes)
-      (description, descriptionEnd) = Deser.parseArraySize(bytes, dataEnd)
+      (descriptionBytes, descriptionEnd) = Deser.parseArraySize(bytes, dataEnd)
+      description = Deser.deserilizeString(descriptionBytes)
       fee = Longs.fromByteArray(bytes.slice(descriptionEnd, descriptionEnd + 8))
       feeScale = Shorts.fromByteArray(bytes.slice(descriptionEnd + 8, descriptionEnd + 10))
       timestamp = Longs.fromByteArray(bytes.slice(descriptionEnd + 10, descriptionEnd + 18))
@@ -79,13 +82,13 @@ object RegisterContractTransaction {
 
   def createWithProof(contract: Contract,
                       data: Seq[DataEntry],
-                      description: Array[Byte],
+                      description: String,
                       fee: Long,
                       feeScale: Short,
                       timestamp: Long,
                       proofs: Proofs): Either[ValidationError, RegisterContractTransaction] =
-    if (description.length > MaxDescriptionSize) {
-      Left(ValidationError.TooBigArray)
+    if ((Deser.serilizeString(description).length > MaxDescriptionSize) || !Deser.validUTF8(description)) {
+      Left(ValidationError.InvalidUTF8String("contractDescription"))
     } else if(fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {
@@ -97,7 +100,7 @@ object RegisterContractTransaction {
   def create(sender: PrivateKeyAccount,
              contract: Contract,
              data: Seq[DataEntry],
-             description: Array[Byte],
+             description: String,
              fee: Long,
              feeScale: Short,
              timestamp: Long): Either[ValidationError, RegisterContractTransaction] = for {
@@ -110,7 +113,7 @@ object RegisterContractTransaction {
   def create(sender: PublicKeyAccount,
              contract: Contract,
              data: Seq[DataEntry],
-             description: Array[Byte],
+             description: String,
              fee: Long,
              feeScale: Short,
              timestamp: Long,
