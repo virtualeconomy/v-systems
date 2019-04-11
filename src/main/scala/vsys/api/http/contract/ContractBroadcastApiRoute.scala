@@ -30,7 +30,7 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.contract.SignedCreateContractRequest",
+      dataType = "vsys.api.http.contract.SignedRegisterContractRequest",
       defaultValue = "{\n\t\"contract\": \"contract\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
@@ -52,7 +52,7 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.contract.SignedCreateContractRequest",
+      dataType = "vsys.api.http.contract.SignedExecuteContractFunctionRequest",
       defaultValue = "{\n\t\"contractId\": \"contractId\",\n\t\"funcIdx\": \"0\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
