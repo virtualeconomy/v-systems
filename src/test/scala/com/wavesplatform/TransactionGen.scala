@@ -16,6 +16,7 @@ import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
 import vsys.database.{Entry, DataType}
 import vsys.transaction.database.DbPutTransaction
+import vsys.transaction.ProvenTransaction
 import vsys.contract.Contract
 import vsys.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
 import vsys.spos.SPoSCalc._
@@ -156,14 +157,14 @@ trait TransactionGen {
     lease = LeaseTransaction.create(sender, amount, fee, feeScale, timestamp, recipient).right.get
     cancelFee <- smallFeeGen
     feeScale2: Short <- feeScaleGen
-  } yield (lease, LeaseCancelTransaction.create(sender, lease.id, cancelFee, feeScale2, timestamp + 1).right.get)
+  } yield (lease, LeaseCancelTransaction.create(recipient, lease.id, cancelFee, feeScale2, timestamp + 1000000).right.get)
 
   def leaseAndCancelGeneratorP(leaseSender: PrivateKeyAccount, recipient: AddressOrAlias, unleaseSender: PrivateKeyAccount): Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
     (_, amount, fee, feeScale, timestamp, _) <- leaseParamGen
     lease = LeaseTransaction.create(leaseSender, amount, fee, feeScale, timestamp, recipient).right.get
     fee2 <- smallFeeGen
     feeScale2: Short <- feeScaleGen
-    unlease = LeaseCancelTransaction.create(unleaseSender, lease.id, fee2, feeScale2, timestamp + 1).right.get
+    unlease = LeaseCancelTransaction.create(unleaseSender, lease.id, fee2, feeScale2, timestamp + 1000000).right.get
   } yield (lease, unlease)
 
   val twoLeasesGen: Gen[(LeaseTransaction, LeaseTransaction)] = for {
@@ -172,7 +173,7 @@ trait TransactionGen {
     recipient2: PrivateKeyAccount <- accountGen
     fee2 <- smallFeeGen
   } yield (LeaseTransaction.create(sender, amount, fee, feeScale, timestamp, recipient).right.get,
-    LeaseTransaction.create(sender, amount2, fee2, feeScale, timestamp + 1, recipient2).right.get)
+    LeaseTransaction.create(sender, amount2, fee2, feeScale, timestamp + 1000000, recipient2).right.get)
 
   val leaseAndCancelWithOtherSenderGen: Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
     (sender, amount, fee, feeScale, timestamp, recipient) <- leaseParamGen
@@ -228,7 +229,7 @@ trait TransactionGen {
     alias: Alias <- aliasGen
   } yield CreateAliasTransaction.create(sender, alias, MinIssueFee, timestamp).right.get
 
-  val MintingGen: Gen[MintingTransaction] = for {
+  val mintingGen: Gen[MintingTransaction] = for {
     recipient: Address <- mintingAddressGen
     timestamp: Long <- positiveLongGen
     amount: Long <- mintingAmountGen
@@ -423,8 +424,22 @@ trait TransactionGen {
     tx <- Gen.oneOf(tr, is, ri, ca, bu, xt)
   } yield tx).label("random transaction")
 
+  val randomProvenTransactionGen: Gen[ProvenTransaction] = (for {
+    pm <- paymentGen
+    ls <- leaseGen
+    ct <- contendSlotsGen
+    rl <- releaseSlotsGen
+    lc <- leaseCancelGen
+    mt <- mintingGen
+    tx <- Gen.oneOf(pm, ls, ct, rl, lc)
+  } yield tx).label("random proven transaction")
+
   def randomTransactionsGen(count: Int): Gen[Seq[SignedTransaction]] = for {
     transactions <- Gen.listOfN(count, randomTransactionGen)
+  } yield transactions
+
+  def randomProvenTransactionsGen(count: Int): Gen[Seq[ProvenTransaction]] = for {
+    transactions <- Gen.listOfN(count, randomProvenTransactionGen)
   } yield transactions
 
   val genesisGen: Gen[GenesisTransaction] = accountGen.flatMap(genesisGeneratorP)
