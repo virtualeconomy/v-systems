@@ -28,8 +28,8 @@ class RegContractTransactionTest extends PropSpec
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
   val preconditionAndBuildRegContract: Gen[(Array[Byte], Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
-    langCode <- languageCodeFromLengthGen(4)
-    langVer <- languageVersionFromLengthGen(4)
+    langCode <- languageCodeFromLengthGen("vdds")
+    langVer <- languageVersionFromLengthGen(1)
     init <- initFunGen()
     descriptor <- descriptorFullGen()
     stateVar <- stateVarRandomGen()
@@ -42,8 +42,8 @@ class RegContractTransactionTest extends PropSpec
     }
   }
 
-  val languageCode: Int = 0
-  val languageVersion: Int = 0
+  val languageCode: String = "vdds"
+  val languageVersion: Int = 1
   val regContractParse: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndParseRegContract: Gen[RegisterContractTransaction] = for {
     master <- accountGen

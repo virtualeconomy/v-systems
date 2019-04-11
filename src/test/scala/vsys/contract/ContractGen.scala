@@ -2,18 +2,19 @@ package vsys.contract
 
 import org.scalacheck.Gen
 import com.google.common.primitives.Ints
+import scorex.serialization.Deser
 
 trait ContractGen extends OpcFunction with StateVar with Texture {
 
-  def languageCodeFromLengthGen(code: Int): Gen[Array[Byte]] = for {
-    languageCode <- Gen.const(Ints.toByteArray(code))
+  def languageCodeFromLengthGen(code: String): Gen[Array[Byte]] = for {
+    languageCode <- Gen.const(Deser.serilizeString(code))
   } yield languageCode
 
   def languageVersionFromLengthGen(version: Int): Gen[Array[Byte]] = for {
     languageVersion <- Gen.const(Ints.toByteArray(version))
   } yield languageVersion
 
-  def contractNewGen(languageCode: Int, languageVersion: Int, init: Gen[Array[Byte]], desc: Gen[Seq[Array[Byte]]], state: Gen[Seq[Array[Byte]]], text: Gen[Seq[Array[Byte]]]): Gen[Contract] = for {
+  def contractNewGen(languageCode: String, languageVersion: Int, init: Gen[Array[Byte]], desc: Gen[Seq[Array[Byte]]], state: Gen[Seq[Array[Byte]]], text: Gen[Seq[Array[Byte]]]): Gen[Contract] = for {
     langCode <- languageCodeFromLengthGen(languageCode)
     langVer <- languageVersionFromLengthGen(languageVersion)
     initializer <- init
@@ -23,6 +24,6 @@ trait ContractGen extends OpcFunction with StateVar with Texture {
   } yield Contract.buildContract(langCode, langVer, initializer, descriptor, stateVar, textual).right.get
 
   def contractRandomGen(): Gen[Contract] = for {
-    contract <- contractNewGen(4, 4, aFunctionRandomGen(), descriptorRandomGen(), stateVarRandomGen(), textureRandomGen())
+    contract <- contractNewGen("vdds", 1, aFunctionRandomGen(), descriptorRandomGen(), stateVarRandomGen(), textureRandomGen())
   } yield contract
 }
