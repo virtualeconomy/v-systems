@@ -69,10 +69,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     measureSizeLog("accountTransactionIds")(blockDiff.txsDiff.accountTransactionIds) {
       _.foreach { case (acc, txIds) =>
         val startIdxShift = sp().accountTransactionsLengths.get(acc.bytes).getOrElse(0)
+        val batch = sp().accountTransactionIds.createBatch()
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-          sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId)
+          sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId, batch)
           shift + 1
         }
+        sp().accountTransactionIds.commit(batch)
         sp().accountTransactionsLengths.put(acc.bytes, startIdxShift + txIds.length)
       }
     }
@@ -80,10 +82,12 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     measureSizeLog("txTypeAccountTxIds")(blockDiff.txsDiff.txTypeAccountTxIds) {
       _.foreach { case ((txType, acc), txIds) =>
         val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
+        val batch = sp().txTypeAccountTxIds.createBatch()
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-          sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
+          sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId, batch)
           shift + 1
         }
+        sp().txTypeAccountTxIds.commit(batch)
         sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
       }
     }
@@ -158,7 +162,7 @@ object StateWriterImpl extends ScorexLogging {
 
   def measureSizeLog[F[_] <: TraversableOnce[_], A, R](s: String)(fa: => F[A])(f: F[A] => R): R = {
     val (r, time) = withTime(f(fa))
-    log.trace(s"processing of ${fa.size} $s took ${time}ms")
+    log.info(s"processing of ${fa.size} $s took ${time}ms")
     r
   }
 

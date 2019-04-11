@@ -52,9 +52,9 @@ class StateStorage private(db: DB) extends Storage(db){
 
   val accountTransactionsLengths: StateMap[ByteStr, Int] = new StateMap(db, "accountTransactionsLengths", keyType=DataTypes.byteStr)
 
-  val txTypeAccountTxIds: StateMap[txTypeAccIdxKey, ByteStr] = new StateMap(db, "accountTransactionIds", valueType=DataTypes.byteStr)
+  val txTypeAccountTxIds: StateMap[txTypeAccIdxKey, ByteStr] = new StateMap(db, "txTypeAccountTxIds", valueType=DataTypes.byteStr)
 
-  val txTypeAccTxLengths: StateMap[txTypeAccKey, Int] = new StateMap(db, "accountTransactionsLengths")
+  val txTypeAccTxLengths: StateMap[txTypeAccKey, Int] = new StateMap(db, "txTypeAccTxLengths")
 
   val balanceSnapshots: StateMap[AccountIdxKey, (Int, Long, Long, Long)] = new StateMap(db, "balanceSnapshots", valueType=DataTypes.balanceSnapshots)
 
