@@ -69,12 +69,10 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     measureSizeLog("accountTransactionIds")(blockDiff.txsDiff.accountTransactionIds) {
       _.foreach { case (acc, txIds) =>
         val startIdxShift = sp().accountTransactionsLengths.get(acc.bytes).getOrElse(0)
-        val batch = sp().accountTransactionIds.createBatch()
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-          sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId, batch)
+          sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId)
           shift + 1
         }
-        sp().accountTransactionIds.commit(batch)
         sp().accountTransactionsLengths.put(acc.bytes, startIdxShift + txIds.length)
       }
     }
@@ -82,23 +80,19 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     measureSizeLog("txTypeAccountTxIds")(blockDiff.txsDiff.txTypeAccountTxIds) {
       _.foreach { case ((txType, acc), txIds) =>
         val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
-        val batch = sp().txTypeAccountTxIds.createBatch()
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-          sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId, batch)
+          sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
           shift + 1
         }
-        sp().txTypeAccountTxIds.commit(batch)
         sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
       }
     }
 
     measureSizeLog("effectiveBalanceSnapshots")(blockDiff.snapshots)(
       _.foreach { case (acc, snapshotsByHeight) =>
-        val batch = sp().balanceSnapshots.createBatch()
         snapshotsByHeight.foreach { case (h, snapshot) =>
-          sp().balanceSnapshots.put(accountIndexKey(acc, h), (snapshot.prevHeight, snapshot.balance, snapshot.effectiveBalance, snapshot.weightedBalance), batch)
+          sp().balanceSnapshots.put(accountIndexKey(acc, h), (snapshot.prevHeight, snapshot.balance, snapshot.effectiveBalance, snapshot.weightedBalance))
         }
-        sp().balanceSnapshots.commit(batch)
         sp().lastBalanceSnapshotHeight.put(acc.bytes, snapshotsByHeight.keys.max)
         sp().lastBalanceSnapshotWeightedBalance.put(acc.bytes, snapshotsByHeight(snapshotsByHeight.keys.max).weightedBalance)
       })

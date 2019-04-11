@@ -39,16 +39,18 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
     val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
-    Range(Math.max(0, totalRecords - limit - offset), Math.max(0, totalRecords - offset))
-      .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)).get)
-      .reverse
+    sp().accountTransactionIds.rangeQuery(
+      StateStorage.accountIndexKey(a, Math.max(0, totalRecords - limit - offset)),
+      StateStorage.accountIndexKey(a, Math.max(0, totalRecords - offset)))
+      .map(_._2).reverse
   }
 
   override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
     val totalRecords = sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
-    Range(Math.max(0, totalRecords - limit - offset), Math.max(0, totalRecords - offset))
-      .map(n => sp().txTypeAccountTxIds.get(StateStorage.txTypeAccIndexKey(txType, a, n)).get)
-      .reverse
+    sp().txTypeAccountTxIds.rangeQuery(
+      StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - limit - offset)),
+      StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - offset)))
+      .map(_._2).reverse
   }
 
   override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>

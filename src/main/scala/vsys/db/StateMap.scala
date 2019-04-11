@@ -21,6 +21,10 @@ class StateMap[K, V](
   private val Prefix: Array[Byte] = makePrefix(StateNameBytes)
   private val SizeKey: Array[Byte] = makeKey(StateNameBytes, SizeBytes)
 
+  private def bytesOfKey(key: K): Array[Byte] = makeKey(StateNameBytes, getItemBytes(key, keyType))
+
+  private def bytesOfValue(value: V): Array[Byte] = getItemBytes(value, valueType)
+
   private def getItemBytes(i: scala.Any, iType: DataType): Array[Byte] = {
 
     val iByteBuffer: WriteBuffer = new WriteBuffer(iType.getMemory(i))
@@ -32,10 +36,8 @@ class StateMap[K, V](
   def put(key: K, value: V, batchOpt: Option[WriteBatch] = None): V = {
     var batch: Option[WriteBatch] = batchOpt
     if (batchOpt.isEmpty) batch = createBatch()
-    val Array(keyBytes, valBytes) = 
-      Array((key, keyType), (value, valueType)).map {case(i, iType) => getItemBytes(i, iType)}
     if (!containsKey(key)) setSize(sizeAsLong() + 1, batch)
-    put(makeKey(StateNameBytes, keyBytes), valBytes, batch)
+    put(bytesOfKey(key), bytesOfValue(value), batch)
     if (batchOpt.isEmpty) commit(batch)
     value
 
@@ -43,7 +45,7 @@ class StateMap[K, V](
 
   def get(key: K): Option[V] = {
 
-    val valueBytesOption: Option[Array[Byte]] = get(makeKey(StateNameBytes, getItemBytes(key, keyType)))
+    val valueBytesOption: Option[Array[Byte]] = get(bytesOfKey(key))
     if (valueBytesOption.isEmpty) None
     else Option(deserializeValue(valueBytesOption.get))
 
@@ -58,7 +60,7 @@ class StateMap[K, V](
     if (rtn.isDefined) {
       var batch: Option[WriteBatch] = batchOpt
       if (batchOpt.isEmpty) batch = createBatch()
-      delete(makeKey(StateNameBytes, getItemBytes(key, keyType)), batch)
+      delete(bytesOfKey(key), batch)
       setSize(sizeAsLong() - 1, batch)
       if (batchOpt.isEmpty) commit(batch)
     }
@@ -130,6 +132,19 @@ class StateMap[K, V](
     it.close()
     rtn.result()
 
+  }
+
+  def rangeQuery(start: K, end: K): Stream[(K, V)]= {
+    val it: DBRangeIterator = new DBRangeIterator(db.iterator(), Some(bytesOfKey(start)), Some(bytesOfKey(end)), true, false)
+    val rtn = new Stream.StreamBuilder[(K, V)]()
+    while (it.hasNext) {
+      val (key, value) = it.next()
+      if (!key.startsWith(SizeKey)) {
+        rtn += ((deserializeKey(key), deserializeValue(value)): (K, V))
+      }
+    }
+    it.close()
+    rtn.result()
   }
 
   override def allKeys: DBPrefixIterator = {
