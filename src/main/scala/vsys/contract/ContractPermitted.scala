@@ -5,13 +5,22 @@ import scorex.serialization.Deser
 import vsys.state.opcdiffs.{AssertOpcDiff, CDBVOpcDiff, CDBVROpcDiff, LoadOpcDiff, OpcDiffer, TDBAOpcDiff, TDBAROpcDiff, TDBOpcDiff, TDBROpcDiff}
 
 object ContractPermitted {
-  lazy val contract: Contract = Contract.buildContract(Ints.toByteArray(0), Ints.toByteArray(0), initFunc,
+  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1), initFunc,
     Seq(supersedeFunc, issueFunc, destroyFunc, splitFunc, sendFunc, transferFunc, depositFunc, withdrawFunc,
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte),
       Array(StateVar.max, DataType.Amount.id.toByte), Array(StateVar.total, DataType.Amount.id.toByte),
       Array(StateVar.unity, DataType.Amount.id.toByte), Array(StateVar.shortText, DataType.ShortText.id.toByte)),
     Seq(initializerTexture, descriptorTexture, stateVarTexture)
+  ).right.get
+
+  lazy val contractWithoutSplit: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1), initFunc,
+    Seq(supersedeFunc, issueFunc, destroyFunc, sendFunc, transferFunc, depositFunc, withdrawFunc, totalSupplyFunc,
+      maxSupplyFunc, balanceOfFunc, getIssuerFunc),
+    Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte),
+      Array(StateVar.max, DataType.Amount.id.toByte), Array(StateVar.total, DataType.Amount.id.toByte),
+      Array(StateVar.unity, DataType.Amount.id.toByte), Array(StateVar.shortText, DataType.ShortText.id.toByte)),
+    Seq(initializerTexture, descriptorTextureWithoutSplit, stateVarTexture)
   ).right.get
 
   object FunId {
@@ -329,6 +338,9 @@ object ContractPermitted {
   lazy val initializerTexture: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
   lazy val descriptorTexture: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
     destroyFuncBytes, splitFuncBytes, sendFuncBytes, transferFuncBytes, depositFuncBytes, withdrawFuncBytes,
+    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
+  lazy val descriptorTextureWithoutSplit: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+    destroyFuncBytes, sendFuncBytes, transferFuncBytes, depositFuncBytes, withdrawFuncBytes,
     totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
 
 }

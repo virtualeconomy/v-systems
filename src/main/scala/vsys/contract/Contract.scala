@@ -90,7 +90,8 @@ object Contract extends ScorexLogging {
 
   private def isByteArrayValid(bytes: Array[Byte], texture: Seq[Array[Byte]]): Boolean = {
     val textureStr = textureFromBytes(texture)
-    if (!(bytes sameElements ContractPermitted.contract.bytes.arr)) {
+    if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
+      !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textureStr.isFailure ||
@@ -143,7 +144,7 @@ object Contract extends ScorexLogging {
 
     val illegalIdf: List[String] = List("register", "unit", "while", "if", "for", "return", "match", "context",
       "contract", "int", "long", "short", "boolean", "trait", "lazy", "class", "else", "true", "false", "private",
-      "val", "var")
+      "val", "var", "try", "catch", "throw", "define", "transaction", "else", "public", "jump", "trigger", "then")
     if ((str.head == '_') || (str.head >= 'a' && str.head <= 'z') || (str.head >= 'A' && str.head <= 'Z')) {
       str.tail.forall(x => checkChar(x)) && !illegalIdf.contains(str.toLowerCase)
     } else {
