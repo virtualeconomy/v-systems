@@ -15,8 +15,9 @@ object ContractPermitted {
   ).right.get
 
   lazy val contractWithoutSplit: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1), initFunc,
-    Seq(supersedeFunc, issueFunc, destroyFunc, sendFunc, transferFunc, depositFunc, withdrawFunc, totalSupplyFunc,
-      maxSupplyFunc, balanceOfFunc, getIssuerFunc),
+    Seq(supersedeFuncWithoutSplit, issueFuncWithoutSplit, destroyFuncWithoutSplit, sendFuncWithoutSplit,
+      transferFuncWithoutSplit, depositFuncWithoutSplit, withdrawFuncWithoutSplit, totalSupplyFuncWithoutSplit,
+      maxSupplyFuncWithoutSplit, balanceOfFuncWithoutSplit, getIssuerFuncWithoutSplit),
     Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte),
       Array(StateVar.max, DataType.Amount.id.toByte), Array(StateVar.total, DataType.Amount.id.toByte),
       Array(StateVar.unity, DataType.Amount.id.toByte), Array(StateVar.shortText, DataType.ShortText.id.toByte)),
@@ -37,6 +38,21 @@ object ContractPermitted {
     val maxSupply: Short = 10
     val balanceOf: Short = 11
     val getIssuer: Short = 12
+  }
+
+  object FunIdWithoutSplit {
+    val init: Short = 0
+    val supersede: Short = 1
+    val issue: Short = 2
+    val destroy: Short = 3
+    val send: Short = 4
+    val transfer: Short = 5
+    val deposit: Short = 6
+    val withdraw: Short = 7
+    val totalSupply: Short = 8
+    val maxSupply: Short = 9
+    val balanceOf: Short = 10
+    val getIssuer: Short = 11
   }
 
   object ProtoType {
@@ -294,6 +310,19 @@ object ContractPermitted {
   lazy val maxSupplyFunc: Array[Byte] = Shorts.toByteArray(FunId.maxSupply) ++ protoType(returnType, ProtoType.maxSupplyParaType) ++ OpcLine.maxSupplyOpcLine
   lazy val balanceOfFunc: Array[Byte] = Shorts.toByteArray(FunId.balanceOf) ++ protoType(returnType, ProtoType.balanceOfParaType) ++ OpcLine.balanceOfOpcLine
   lazy val getIssuerFunc: Array[Byte] = Shorts.toByteArray(FunId.getIssuer) ++ protoType(returnType, ProtoType.getIssuerParaType) ++ OpcLine.getIssuerOpcLine
+
+  lazy val initFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.init) ++ protoType(returnType, ProtoType.initParaType) ++ OpcLine.initOpcLine
+  lazy val supersedeFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.supersede) ++ protoType(returnType, ProtoType.supersedeParaType) ++ OpcLine.supersedeOpcLine
+  lazy val issueFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.issue) ++ protoType(returnType, ProtoType.issueParaType) ++ OpcLine.issueOpcLine
+  lazy val destroyFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.destroy) ++ protoType(returnType, ProtoType.destroyParaType) ++ OpcLine.destroyOpcLine
+  lazy val sendFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.send) ++ protoType(returnType, ProtoType.sendParaType) ++ OpcLine.sendOpcLine
+  lazy val transferFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.transfer) ++ protoType(returnType, ProtoType.transferParaType) ++ OpcLine.transferOpcLine
+  lazy val depositFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.deposit) ++ protoType(returnType, ProtoType.depositParaType) ++ OpcLine.depositOpcLine
+  lazy val withdrawFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.withdraw) ++ protoType(returnType, ProtoType.withdrawParaType) ++ OpcLine.withdrawOpcLine
+  lazy val totalSupplyFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.totalSupply) ++ protoType(returnType, ProtoType.totalSupplyParaType) ++ OpcLine.totalSupplyOpcLine
+  lazy val maxSupplyFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.maxSupply) ++ protoType(returnType, ProtoType.maxSupplyParaType) ++ OpcLine.maxSupplyOpcLine
+  lazy val balanceOfFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.balanceOf) ++ protoType(returnType, ProtoType.balanceOfParaType) ++ OpcLine.balanceOfOpcLine
+  lazy val getIssuerFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.getIssuer) ++ protoType(returnType, ProtoType.getIssuerParaType) ++ OpcLine.getIssuerOpcLine
 
   def textureFunc(name: String, ret: String, para: Seq[String]): Array[Byte] = {
     val funcByte = Deser.serializeArray(Deser.serilizeString(name))

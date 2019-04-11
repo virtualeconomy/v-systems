@@ -27,12 +27,12 @@ sealed trait Contract {
   val languageVersion: Array[Byte]
 
   lazy val json: JsObject = Json.obj(
-    "languageCode" -> Ints.fromByteArray(languageCode),
+    "languageCode" -> Deser.deserilizeString(languageCode),
     "languageVersion" -> Ints.fromByteArray(languageVersion),
     "initializer" -> Base58.encode(initializer),
-    "descriptor" -> Base58.encode(Deser.serializeArrays(descriptor)),
-    "stateVar" -> Base58.encode(Deser.serializeArrays(stateVar)),
-    "texture" -> Base58.encode(Deser.serializeArrays(texture))
+    "descriptor" -> descriptor.map(p => Base58.encode(p)),
+    "stateVar" -> stateVar.map(p => Base58.encode(p)),
+    "texture" -> texture.map(p => Base58.encode(p))
   )
 }
 
@@ -44,8 +44,8 @@ object Contract extends ScorexLogging {
   val MinContractStringSize: Int = base58Length(MinContractByteSize)
   val LanguageCodeByteLength = 4
   val LanguageVersionByteLength = 4
-  val LanguageCodeByte: Array[Byte] = Ints.toByteArray(0)
-  val LanguageVersionByte: Array[Byte] = Ints.toByteArray(0)
+  val LanguageCodeByte: Array[Byte] = Deser.serilizeString("vdds")
+  val LanguageVersionByte: Array[Byte] = Ints.toByteArray(1)
 
   def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte],
                     initializer: Array[Byte], descriptor: Seq[Array[Byte]],

@@ -1,6 +1,6 @@
 package vsys.transaction.contract
 
-import com.google.common.primitives.{Bytes, Longs, Shorts}
+import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 import com.wavesplatform.state2.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import scorex.account._
@@ -39,8 +39,8 @@ case class RegisterContractTransaction private(contract: Contract,
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contractId" ->  contractId.address,
-    "contract" -> Json.obj("languageCode" -> Base58.encode(contract.languageCode),
-      "languageVersion" -> Base58.encode(contract.languageVersion),
+    "contract" -> Json.obj("languageCode" ->Deser.deserilizeString(contract.languageCode),
+      "languageVersion" -> Ints.fromByteArray(contract.languageVersion),
       "initializer" -> Base58.encode(contract.initializer),
       "descriptor" -> contract.descriptor.map(p => Base58.encode(p)),
       "stateVariable" -> contract.stateVar.map(p => Base58.encode(p)),
