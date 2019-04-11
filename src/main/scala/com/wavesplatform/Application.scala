@@ -26,6 +26,7 @@ import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
 import vsys.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
+import vsys.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import vsys.api.http.vsys._
 import vsys.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
@@ -103,8 +104,8 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       //AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
       SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
-      //ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      //ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       DbApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader)
     )
 
@@ -128,8 +129,8 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       //typeOf[AliasBroadcastApiRoute],
       typeOf[SPOSApiRoute],
       typeOf[SPOSBroadcastApiRoute],
-      //typeOf[ContractApiRoute],
-      //typeOf[ContractBroadcastApiRoute],
+      typeOf[ContractApiRoute],
+      typeOf[ContractBroadcastApiRoute],
       typeOf[DbApiRoute]
     )
 
