@@ -31,11 +31,11 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def height: Int = read { implicit l => sp().getHeight }
 
-  override def slotAddress(id: Int): Option[String] = read {implicit l => sp().getSlotAddress(id)}
+  override def slotAddress(id: Int): Option[String] = read { implicit l => sp().getSlotAddress(id) }
 
-  override def effectiveSlotAddressSize: Int = read {implicit l=> sp().getEffectiveSlotAddressSize}
+  override def effectiveSlotAddressSize: Int = read { implicit l => sp().getEffectiveSlotAddressSize }
 
-  override def addressSlot(add: String): Option[Int] = read {implicit l=> sp().getAddressSlot(add)}
+  override def addressSlot(add: String): Option[Int] = read { implicit l => sp().getAddressSlot(add) }
 
   override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
     val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)

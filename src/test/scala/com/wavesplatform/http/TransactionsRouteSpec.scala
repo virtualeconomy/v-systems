@@ -56,14 +56,16 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
         count <- choose(1, transactionsCount)
         txs <- randomProvenTransactionsGen(count)
       } yield txs
-
       forAll(
         accountGen,
         choose(1, MaxTransactionsPerRequest),
         txs) { case (account, limit, txs) =>
+
         (state.accountTransactionIds _).expects(account: Address, limit, 0).returning(txs.map(_.id)).once()
         txs.foreach { tx =>
           (state.transactionInfo _).expects(tx.id).returning(Some((1, ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)))).once()
+          if (tx.isInstanceOf[LeaseCancelTransaction])
+            (state.transactionInfo _).expects(tx.asInstanceOf[LeaseCancelTransaction].leaseId).returns(None).once()
         }
         Get(routePath(s"/address/${account.address}/limit/$limit")) ~> route ~> check {
           responseAs[Seq[Seq[JsValue]]].head.size shouldEqual txs.length.min(limit)
