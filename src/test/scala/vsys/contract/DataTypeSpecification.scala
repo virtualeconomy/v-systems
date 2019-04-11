@@ -11,6 +11,8 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.fromByte(3) should be (Some(DataType.Amount))
     DataType.fromByte(4) should be (Some(DataType.Int32))
     DataType.fromByte(5) should be (Some(DataType.ShortText))
+    DataType.fromByte(6) should be (Some(DataType.ContractAccount))
+    DataType.fromByte(7) should be (Some(DataType.Account))
     DataType.fromByte(0) should be (None)
     DataType.fromByte(8) should be (None)
   }
@@ -21,5 +23,7 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.Amount.id should be (3)
     DataType.Int32.id should be (4)
     DataType.ShortText.id should be (5)
+    DataType.ContractAccount.id should be (6)
+    DataType.Account.id should be (7)
   }
 }

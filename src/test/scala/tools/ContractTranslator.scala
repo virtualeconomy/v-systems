@@ -4,6 +4,7 @@ import com.google.common.primitives.Shorts
 import vsys.contract.ContractPermitted
 import scorex.serialization.Deser
 import vsys.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
+import scorex.crypto.encode.Base58
 
 import vsys.state.opcdiffs.AssertOpcDiff.AssertType
 import vsys.state.opcdiffs.CDBVOpcDiff.CDBVType
@@ -18,7 +19,10 @@ import vsys.state.opcdiffs.TDBROpcDiff.TDBRType
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractPermitted.contract.bytes.arr
+  val bytes = ContractPermitted.contractWithoutSplit.bytes.arr
+
+  println(Base58.encode(bytes))
+
   val languageCode = bytes.slice(0, LanguageCodeByteLength)
   val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
 
