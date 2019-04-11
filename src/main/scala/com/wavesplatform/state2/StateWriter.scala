@@ -94,9 +94,11 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("effectiveBalanceSnapshots")(blockDiff.snapshots)(
       _.foreach { case (acc, snapshotsByHeight) =>
+        val batch = sp().balanceSnapshots.createBatch()
         snapshotsByHeight.foreach { case (h, snapshot) =>
-          sp().balanceSnapshots.put(accountIndexKey(acc, h), (snapshot.prevHeight, snapshot.balance, snapshot.effectiveBalance, snapshot.weightedBalance))
+          sp().balanceSnapshots.put(accountIndexKey(acc, h), (snapshot.prevHeight, snapshot.balance, snapshot.effectiveBalance, snapshot.weightedBalance), batch)
         }
+        sp().balanceSnapshots.commit(batch)
         sp().lastBalanceSnapshotHeight.put(acc.bytes, snapshotsByHeight.keys.max)
         sp().lastBalanceSnapshotWeightedBalance.put(acc.bytes, snapshotsByHeight(snapshotsByHeight.keys.max).weightedBalance)
       })
@@ -162,7 +164,7 @@ object StateWriterImpl extends ScorexLogging {
 
   def measureSizeLog[F[_] <: TraversableOnce[_], A, R](s: String)(fa: => F[A])(f: F[A] => R): R = {
     val (r, time) = withTime(f(fa))
-    log.info(s"processing of ${fa.size} $s took ${time}ms")
+    log.debug(s"processing of ${fa.size} $s took ${time}ms")
     r
   }
 
