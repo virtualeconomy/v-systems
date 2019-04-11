@@ -51,11 +51,6 @@ object ContractTranslator extends App {
   printSeqFun(Seq(initializer), 0)
   printSeqFun(descriptor, 1)
 
-  /*
-  def getOpcName(): String = {
-
-  }*/
-
   def printFunction(bytes: Array[Byte], tp: Int): Unit = {
     opcFromBytes(bytes) match {
       case Success((funIdx, retType, listParaTypes, listOpcLines)) =>
@@ -66,7 +61,6 @@ object ContractTranslator extends App {
           val idx = if (tp == 0) funIdx.toInt else funIdx.toInt - 1
           print(funString(idx)(1) + " function " + funString(idx)(0) + "(")
           var tmp = funString(idx).tail.tail
-          //println(tmp.mkString(", "))
           List.range(0, listParaTypes.size).foreach { i =>
             print(dataTypeList(listParaTypes(i) - 1) + " " + tmp(i))
             if (i < listParaTypes.size - 1) print(", ")
@@ -80,17 +74,6 @@ object ContractTranslator extends App {
             println("    " + convertBytesToHex(l))
           }
           println()
-          /*
-          listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>
-            OpcDiffer(executionContext.copy(state = new CompositeStateReader(s,
-              st._1.asBlockDiff(height, tx))))(opc, st._2) match {
-              case Right((opcDiff, d)) => Right((st._1.combine(opcDiff), d))
-              case Left(l) => Left(l)
-            }
-          )} match {
-            case Right((opcDiff, _)) => Right(opcDiff)
-            case Left(l) => Left(l)
-          }*/
         }
       case Failure(_) => println("Function print fail. Invalid function.")
     }
@@ -98,7 +81,6 @@ object ContractTranslator extends App {
 
   def printSeqFun(data: Seq[Array[Byte]], tp: Int): Unit = {
     List.range(0, data.size).foreach { i =>
-      //println(convertBytesToHex(data(i)))
       printFunction(data(i), tp)
     }
   }
