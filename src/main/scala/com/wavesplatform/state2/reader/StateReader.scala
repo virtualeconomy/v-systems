@@ -6,6 +6,8 @@ import scorex.account.{AddressOrAlias, Address, Alias}
 import scorex.transaction.ValidationError.AliasNotExists
 import scorex.transaction._
 import vsys.transaction._
+
+import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.lease.LeaseTransaction
 import scorex.utils.{ScorexLogging, Synchronized}
@@ -35,6 +37,8 @@ trait StateReader extends Synchronized {
   def effectiveSlotAddressSize: Int
 
   def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr]
+
+  def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr]
 
   def aliasesOfAddress(a: Address): Seq[Alias]
 
@@ -87,6 +91,15 @@ object StateReader {
 
     def accountTransactions(account: Address, limit: Int, offset: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
       s.accountTransactionIds(account, limit, offset)
+        .flatMap(s.transactionInfo)
+    }
+
+    def txTypeAccountTransactions(
+      txType: TransactionType.Value,
+      account: Address,
+      limit: Int,
+      offset: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
+      s.txTypeAccountTxIds(txType, account, limit, offset)
         .flatMap(s.transactionInfo)
     }
 

@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import cats.implicits._
 import cats.kernel.Monoid
 import com.wavesplatform.state2._
+import scorex.transaction.TransactionParser.TransactionType
 import scorex.account.{Address, Alias}
 import vsys.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
@@ -44,6 +45,17 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       fromDiff.take(limit)
     } else {
       fromDiff ++ inner.accountTransactionIds(a, limit - fromDiff.size, offsetNew) // fresh head ++ stale tail
+    }
+  }
+
+  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr] = {
+    val fromDiffOrg = txDiff.txTypeAccountTxIds.get((txType, a)).orEmpty
+    val offsetNew = scala.math.max(0, offset - fromDiffOrg.length)
+    val fromDiff = fromDiffOrg.drop(offset)
+    if (fromDiff.length >= limit) {
+      fromDiff.take(limit)
+    } else {
+      fromDiff ++ inner.txTypeAccountTxIds(txType, a, limit - fromDiff.size, offsetNew) // fresh head ++ stale tail
     }
   }
 
@@ -100,6 +112,9 @@ object CompositeStateReader {
 
     override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] =
       new CompositeStateReader(inner, blockDiff()).accountTransactionIds(a, limit, offset)
+
+    override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr] =
+      new CompositeStateReader(inner, blockDiff()).txTypeAccountTxIds(txType, a, limit, offset)
 
     override def accountPortfolios: Map[Address, Portfolio] =
       new CompositeStateReader(inner, blockDiff()).accountPortfolios

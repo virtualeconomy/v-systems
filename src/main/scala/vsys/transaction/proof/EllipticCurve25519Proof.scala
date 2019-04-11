@@ -8,7 +8,7 @@ import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser.KeyLength
 
-sealed trait EllipticCurve25519Proof extends Proof{
+sealed trait EllipticCurve25519Proof extends Proof {
 
   lazy val bytes: ByteStr = ByteStr(Array(proofType.id.asInstanceOf[Byte]) ++
     publicKey.publicKey ++

@@ -6,6 +6,7 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
+import scorex.transaction.TransactionParser.TransactionType
 import vsys.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
 class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWriteLock) extends StateReader {
@@ -40,6 +41,13 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
     Range(Math.max(0, totalRecords - limit - offset), Math.max(0, totalRecords - offset))
       .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)).get)
+      .reverse
+  }
+
+  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
+    val totalRecords = sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
+    Range(Math.max(0, totalRecords - limit - offset), Math.max(0, totalRecords - offset))
+      .map(n => sp().txTypeAccountTxIds.get(StateStorage.txTypeAccIndexKey(txType, a, n)).get)
       .reverse
   }
 
