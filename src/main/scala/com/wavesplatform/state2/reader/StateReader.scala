@@ -36,9 +36,13 @@ trait StateReader extends Synchronized {
 
   def effectiveSlotAddressSize: Int
 
-  def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr]
+  def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr])
 
-  def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr]
+  def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr])
+
+  def accountTransactionsLengths(a: Address): Int
+
+  def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int
 
   def aliasesOfAddress(a: Address): Seq[Alias]
 
@@ -89,18 +93,18 @@ object StateReader {
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 
-    def accountTransactions(account: Address, limit: Int, offset: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
-      s.accountTransactionIds(account, limit, offset)
-        .flatMap(s.transactionInfo)
+    def accountTransactions(account: Address, limit: Int, offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
+      val res = s.accountTransactionIds(account, limit, offset)
+      (res._1, res._2.flatMap(s.transactionInfo))
     }
 
     def txTypeAccountTransactions(
       txType: TransactionType.Value,
       account: Address,
       limit: Int,
-      offset: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
-      s.txTypeAccountTxIds(txType, account, limit, offset)
-        .flatMap(s.transactionInfo)
+      offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
+      val res = s.txTypeAccountTxIds(txType, account, limit, offset)
+      (res._1, res._2.flatMap(s.transactionInfo))
     }
 
     def balance(account: Address): Long = s.accountPortfolio(account).balance

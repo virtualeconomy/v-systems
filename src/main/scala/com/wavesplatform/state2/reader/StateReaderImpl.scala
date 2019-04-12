@@ -37,20 +37,28 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def addressSlot(add: String): Option[Int] = read { implicit l => sp().getAddressSlot(add) }
 
-  override def accountTransactionIds(a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
-    val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
-    sp().accountTransactionIds.rangeQuery(
+  override def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
+    val totalRecords = accountTransactionsLengths(a)
+    (totalRecords, sp().accountTransactionIds.rangeQuery(
       StateStorage.accountIndexKey(a, Math.max(0, totalRecords - limit - offset)),
       StateStorage.accountIndexKey(a, Math.max(0, totalRecords - offset)))
-      .map(_._2).reverse
+      .map(_._2).reverse)
   }
 
-  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): Seq[ByteStr] = read { implicit l =>
-    val totalRecords = sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
-    sp().txTypeAccountTxIds.rangeQuery(
+  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
+    val totalRecords = txTypeAccTxLengths(txType, a)
+    (totalRecords, sp().txTypeAccountTxIds.rangeQuery(
       StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - limit - offset)),
       StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - offset)))
-      .map(_._2).reverse
+      .map(_._2).reverse)
+  }
+
+  override def accountTransactionsLengths(a: Address): Int = read { implicit l =>
+    sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
+  }
+
+  override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int = read { implicit l =>
+    sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
   }
 
   override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>

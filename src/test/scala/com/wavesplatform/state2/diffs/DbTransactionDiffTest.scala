@@ -40,7 +40,7 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
         totalPortfolioDiff.effectiveBalance shouldBe -dbPutTx.fee
         totalPortfolioDiff.spendableBalance shouldBe -dbPutTx.fee
         val sender = EllipticCurve25519Proof.fromBytes(dbPutTx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 2, 0).size shouldBe 2 // genesis and dbPut transaction
+        newState.accountTransactionIds(sender, 2, 0)._2.size shouldBe 2 // genesis and dbPut transaction
       }
     }
   }
