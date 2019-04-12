@@ -1,46 +1,36 @@
 package scorex.utils
 
-import java.net.InetAddress
+import java.net.{InetAddress, SocketTimeoutException}
 
 import org.apache.commons.net.ntp.NTPUDPClient
+import monix.eval.Task
+import monix.execution.Scheduler
+import monix.execution.schedulers.SchedulerService
 
-import scala.util.Try
+import scala.concurrent.duration.DurationInt
 
 trait Time {
   def correctedTime(): Long
   def getTimestamp() : Long
 }
 
-class TimeImpl extends Time with ScorexLogging {
-  //TimeTillUpdate: 10min
-  private val TimeTillUpdate = 1000000000L * 60 * 10L
+class TimeImpl extends Time with ScorexLogging with AutoCloseable {
+  private val offsetPanicThreshold = 1000000L
+  private val ExpirationTimeout = 100.seconds
+  private val RetryDelay = 10.seconds
+  private val ResponseTimeout = 10.seconds
   private val NtpServer = "pool.ntp.org"
 
-  private var lastUpdate = 0L
-  private var offset = 0L
+  private implicit val scheduler: SchedulerService = Scheduler.singleThread(name = "time-impl")
+
   private var cntTime = 0L
 
   def correctedTime(): Long = {
-    //CHECK IF OFFSET NEEDS TO BE UPDATED
-    if (System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L > lastUpdate + TimeTillUpdate) {
-      Try {
-        //update the offset in nanoseconds
-        updateOffSet()
-        lastUpdate = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L
-
-        log.info("Adjusting time with " + offset + " nanoseconds.")
-      } recover {
-        case e: Throwable =>
-          log.warn("Unable to get corrected time", e)
-      }
-    }
-
     //CALCULATE CORRECTED TIME
-    val cnt = System.currentTimeMillis()*1000000L+System.nanoTime()%1000000L + offset
-    cntTime = if (cnt<=cntTime && cntTime-cnt<=1000000L) cnt+1000000L else cnt
+    val cnt = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L + offset
+    cntTime = if (cnt <= cntTime && cntTime - cnt <= 1000000L) cnt + 1000000L else cnt
     cntTime
   }
-
 
   private var txTime: Long = 0
 
@@ -50,27 +40,46 @@ class TimeImpl extends Time with ScorexLogging {
     txTime
   }
 
-  private def updateOffSet() {
-    val client = new NTPUDPClient()
-    //setDefaultTimeout(int), Set the default timeout in milliseconds
-    // to use when opening a socket. After a call to open, 
-    //the timeout for the socket is set using this value. 
-    //so will not change here
-    client.setDefaultTimeout(10000)
+  private val client = new NTPUDPClient()
+  client.setDefaultTimeout(ResponseTimeout.toMillis.toInt)
 
-    try {
-      client.open()
-      //Retrieves the time information from the specified server on the default NTP 
-      //port and returns it. The time is the number of miliiseconds since 00:00 (midnight) 1 January 1900 UTC,
-      val info = client.getTime(InetAddress.getByName(NtpServer))
-      info.computeDetails()
-      //return in milliseconds, change to nanoseconds
-      if (Option(info.getOffset).isDefined) offset = info.getOffset*1000000L
-    } catch {
-      case t: Throwable => log.warn("Problems with NTP: ", t)
-    } finally {
-      client.close()
+  @volatile private var offset = 0L
+  private val updateTask: Task[Unit] = {
+    def newOffsetTask: Task[Option[(InetAddress, java.lang.Long)]] = Task {
+      try {
+        client.open()
+        val info = client.getTime(InetAddress.getByName(NtpServer))
+        info.computeDetails()
+        Option(info.getOffset).map { offset =>
+          if (Math.abs(offset) > offsetPanicThreshold) throw new Exception("Offset is suspiciously large") else (info.getAddress, offset * 1000000L)
+        }
+      } catch {
+        case _: SocketTimeoutException =>
+          None
+        case t: Throwable =>
+          log.warn("Problems with NTP: ", t)
+          None
+      } finally {
+        client.close()
+      }
     }
+
+    newOffsetTask.flatMap {
+      case None if !scheduler.isShutdown => updateTask.delayExecution(RetryDelay)
+      case Some((server, newOffset)) if !scheduler.isShutdown =>
+        log.trace(s"Adjusting time with $newOffset nanoseconds, source: ${server.getHostAddress}.")
+        offset = newOffset
+        updateTask.delayExecution(ExpirationTimeout)
+      case _ => Task.unit
+    }
+  }
+
+  private val taskHandle = updateTask.runAsyncLogErr
+
+  override def close(): Unit = {
+    log.info("Shutting down Time")
+    taskHandle.cancel()
+    scheduler.shutdown()
   }
 }
 
