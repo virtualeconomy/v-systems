@@ -4,20 +4,18 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.primitives.{Ints, Longs}
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.network.client.NopPeerDatabase
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
 import org.scalacheck.{Arbitrary, Gen, Shrink}
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
+import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
 
 class HandshakeDecoderSpec extends FreeSpec
   with Matchers
   with MockFactory
   with PropertyChecks
-  with GeneratorDrivenPropertyChecks
   with TransactionGen {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
@@ -26,7 +24,7 @@ class HandshakeDecoderSpec extends FreeSpec
     var mayBeDecodedHandshake: Option[Handshake] = None
 
     val channel = new EmbeddedChannel(
-      new HandshakeDecoder(NopPeerDatabase),
+      new HandshakeDecoder(PeerDatabase.NoOp),
       new ChannelInboundHandlerAdapter {
         override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = msg match {
           case x: Handshake => mayBeDecodedHandshake = Some(x)

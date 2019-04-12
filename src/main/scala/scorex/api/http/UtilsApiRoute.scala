@@ -10,10 +10,11 @@ import play.api.libs.json.Json
 import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.{FastCryptographicHash, SecureCryptographicHash}
+import scorex.utils.Time
 
 @Path("/utils")
 @Api(value = "/utils", description = "Useful functions", position = 3, produces = "application/json")
-case class UtilsApiRoute(settings: RestAPISettings) extends ApiRoute {
+case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends ApiRoute {
   import UtilsApiRoute._
 
   private def seed(length: Int) = {
@@ -23,7 +24,18 @@ case class UtilsApiRoute(settings: RestAPISettings) extends ApiRoute {
   }
 
   override val route = pathPrefix("utils") {
-    seedRoute ~ length ~ hashFast ~ hashSecure ~ sign
+    seedRoute ~ length ~ hashFast ~ hashSecure ~ sign ~ time
+  }
+
+  @Path("/time")
+  @ApiOperation(value = "Time", notes = "Current Node time (UTC)", httpMethod = "GET")
+  @ApiResponses(
+    Array(
+      new ApiResponse(code = 200, message = "Json with time or error")
+    ))
+  def time: Route = (path("time") & get) {
+    val t = System.currentTimeMillis()*1000000L + System.nanoTime()%1000000L
+    complete(Json.obj("system" -> t, "NTP" -> timeService.correctedTime()))
   }
 
   @Path("/seed")
