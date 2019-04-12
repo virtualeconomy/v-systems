@@ -40,7 +40,7 @@ case class TransactionsApiRoute(
   @ApiOperation(value = "Count", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
-    new ApiImplicitParam(name = "transactionType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
+    new ApiImplicitParam(name = "txType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
   ))
   def transactionCount: Route = (path("count") & get) {
     parameters('address, 'txType.?) { (addressStr, txTypeStrOpt) =>
@@ -73,9 +73,9 @@ case class TransactionsApiRoute(
   @ApiOperation(value = "List", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
-    new ApiImplicitParam(name = "transactionType", value = "transaction type ", required = false, dataType = "integer", paramType = "query"),
+    new ApiImplicitParam(name = "txType", value = "transaction type ", required = false, dataType = "integer", paramType = "query"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "query"),
-    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
+    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = false, dataType = "integer", paramType = "query")
   ))
   def transactionList: Route = (path("list") & get) {
     parameters('address, 'txType.?, 'limit, 'offset ? "0") { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
@@ -85,7 +85,7 @@ case class TransactionsApiRoute(
           Exception.allCatch.opt(limitStr.toInt) match {
             case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
               Exception.allCatch.opt(offsetStr.toInt) match {
-                case Some(offset) if offset > 0 && offset <= MaxTransactionOffset =>
+                case Some(offset) if offset >= 0 && offset <= MaxTransactionOffset =>
                   txTypeStrOpt match {
                     case None =>
                       complete(txListWrapper(state.accountTransactions(a, limit, offset)))
