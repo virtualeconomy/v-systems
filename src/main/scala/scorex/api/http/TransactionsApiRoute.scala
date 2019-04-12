@@ -114,6 +114,7 @@ case class TransactionsApiRoute(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path")
   ))
+  //remove after all related productions being updated
   def addressLimit: Route = (pathPrefix("address") & get) {
     pathPrefix(Segment) { address =>
       Address.fromString(address) match {
