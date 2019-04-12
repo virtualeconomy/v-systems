@@ -57,7 +57,7 @@ object TDBOpcDiff {
       } else if (newUnityValue <= 0) {
         Left(GenericError(s"Invalid unity value $newUnityValue"))
       } else {
-        Right(OpcDiff(tokenDB = Map(tokenUnityKey -> newUnity.data)))
+        Right(OpcDiff(tokenDB = Map(tokenUnityKey -> newUnity.bytes)))
       }
     }
   }

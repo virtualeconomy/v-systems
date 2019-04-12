@@ -13,6 +13,7 @@ import play.api.libs.json.{JsArray, JsNumber, JsObject, Json}
 import scorex.BroadcastRoute
 import scorex.account.Address
 import scorex.api.http._
+import scorex.serialization.Deser
 import scorex.transaction._
 import scorex.utils.Time
 import vsys.wallet.Wallet
@@ -76,7 +77,8 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       case Success(id) => state.contractContent(id) match {
         case Some((_, _, ct)) => Right(Json.obj(
           "contractId" -> contractIdStr,
-          "info" -> JsArray(ct.stateVar.map { a => state.contractInfo(ByteStr(id.arr ++ Array(a(0)))) }.filter(_.isDefined).map { a => a.get.json }))
+          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.texture.last)).zipped.map { (a, b) =>
+            (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }))
         )
         case None => Left(InvalidAddress)
       }
@@ -99,13 +101,24 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         case Success(contractId) => state.contractContent(ByteStr(contractId)) match {
           case Some((_, _, ct)) => Right(Json.obj(
             "tokenId" -> tokenIdStr,
-            "info" -> JsArray(ct.stateVar.map { a => state.tokenInfo(ByteStr(id.arr ++ Array(a(0)))) }.filter(_.isDefined).map { a => a.get.json }))
-          )
+            "info" -> JsArray((ct.stateVar, paraFromBytes(ct.texture.last)).zipped.map { (a, b) =>
+              (state.tokenInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) } ++
+              (ct.stateVar, paraFromBytes(ct.texture.last)).zipped.map { (a, b) =>
+                (state.tokenAccountBalance(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1 > 0).map { a => Json.obj("data" -> a._1, "type" -> "Amount", "name" -> a._2) })))
           case None => Left(InvalidAddress)
         }
         case _ => Left(InvalidAddress)
       }
       case _ => Left(InvalidAddress)
+    }
+  }
+
+  private def paraFromBytes(bytes: Array[Byte]): Seq[String] = {
+    val listParaNameBytes = Deser.parseArrays(bytes)
+    listParaNameBytes.foldLeft(Seq.empty[String]) { case (e, b) => {
+      val paraName = Deser.deserilizeString(b)
+      e :+ paraName
+    }
     }
   }
 

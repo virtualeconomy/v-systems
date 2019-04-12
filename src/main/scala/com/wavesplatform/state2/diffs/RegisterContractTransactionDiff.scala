@@ -1,6 +1,5 @@
 package com.wavesplatform.state2.diffs
 
-import cats.implicits._
 import com.wavesplatform.state2.reader.StateReader
 import com.wavesplatform.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.transaction.ValidationError
@@ -25,16 +24,17 @@ object RegisterContractTransactionDiff {
       val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
       (for {
         exContext <- ExecutionContext.fromRegConTx(s, height, tx)
-        opcDiff <- OpcFuncDiffer(exContext)(tx.data)
-        diff = opcDiff.asTransactionDiff(height, tx)
+        diff <- OpcFuncDiffer(exContext)(tx.data)
       } yield diff) match {
         case Left(_) => Right(Diff(height = height, tx = tx,
           portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
           chargedFee = tx.fee, txStatus = TransactionStatus.RegisterContractFailed))
-        case Right(df) => Right(df.combine(Diff(height = height, tx = tx,
+        case Right(df) => Right(Diff(height = height, tx = tx,
           portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
           contracts = Map(tx.contractId.bytes -> contractInfo),
-          chargedFee = tx.fee)))
+          contractDB = df.contractDB, contractTokens = df.contractTokens,
+          tokenDB = df.tokenDB, tokenAccountBalance = df.tokenAccountBalance, relatedAddress = df.relatedAddress,
+          chargedFee = tx.fee))
       }
     }
   }
