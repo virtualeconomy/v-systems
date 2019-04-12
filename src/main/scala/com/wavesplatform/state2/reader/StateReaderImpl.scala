@@ -67,7 +67,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def contractTokens(id: ByteStr): Int = read { implicit l =>
-    sp().contractTokens.getOrDefault(id, 0)
+    sp().contractTokens.get(id).getOrElse(0)
   }
 
   override def tokenInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
@@ -75,7 +75,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def tokenAccountBalance(id: ByteStr): Long = read { implicit l =>
-    sp().tokenAccountBalance.getOrDefault(id, 0L)
+    sp().tokenAccountBalance.get(id).getOrElse(0L)
   }
 
   override def dbGet(key: ByteStr): Option[ByteStr] = read { implicit l =>

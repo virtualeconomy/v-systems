@@ -101,7 +101,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("accountContractIds")(blockDiff.txsDiff.accountContractIds) {
       _.foreach { case (acc, ctIds) =>
-        val startIdxShift = sp().accountContractsLengths.getOrDefault(acc.bytes, 0)
+        val startIdxShift = sp().accountContractsLengths.get(acc.bytes).getOrElse(0)
         ctIds.reverse.foldLeft(startIdxShift) { case (shift, ctId) =>
           sp().accountContractIds.put(accountIndexKey(acc, shift), ctId)
           shift + 1
