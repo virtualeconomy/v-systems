@@ -43,7 +43,7 @@ case class TransactionsApiRoute(
     new ApiImplicitParam(name = "transactionType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
   ))
   def addressTxCount: Route = (path("count") & get) {
-    parameters('address, 'txType.?)) { (addressStr, txTypeStrOpt) =>
+    parameters('address, 'txType.?) { (addressStr, txTypeStrOpt) =>
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
@@ -70,7 +70,7 @@ case class TransactionsApiRoute(
     new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
   ))
   def addressTxList: Route = (path("list") & get) {
-    parameters('address, 'txType.?, 'limit, 'offset ? "0")) { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
+    parameters('address, 'txType.?, 'limit, 'offset ? "0") { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
