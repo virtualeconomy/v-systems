@@ -119,7 +119,7 @@ case class TransactionsApiRoute(
                             case Some(offset) if offset >= 0 && offset <= MaxTransactionOffset =>
                               val res = state.accountTransactions(a, limit, offset)
                               complete(Json.obj(
-                                "totalSize" -> res._1,
+                                "totalCount" -> res._1,
                                 "size" -> res._2.size,
                                 "transactions" -> res._2.map { case (h, tx) =>
                                   processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
@@ -202,7 +202,7 @@ case class TransactionsApiRoute(
                                   case Some(offset) if offset >= 0 && offset <= MaxTransactionOffset =>
                                     val res = state.txTypeAccountTransactions(txType, a, limit, offset)
                                     complete(Json.obj(
-                                      "totalSize" -> res._1,
+                                      "totalCount" -> res._1,
                                       "size" -> res._2.size,
                                       "transactions" -> res._2.map { case (h, tx) =>
                                         processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
