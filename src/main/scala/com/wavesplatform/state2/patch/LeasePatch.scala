@@ -19,6 +19,7 @@ object LeasePatch {
       issuedAssets = Map.empty,
       aliases = Map.empty,
       slotids = Map.empty,
+      addToSlot = Map.empty,
       slotNum = 0,
       txStatus = TransactionStatus.Unprocessed,
       chargedFee = 0L,

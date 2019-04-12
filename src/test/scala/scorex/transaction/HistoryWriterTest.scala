@@ -9,11 +9,13 @@ import scorex.lagonaki.mocks.TestBlock
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import vsys.db.openDB
 
 class HistoryWriterTest extends FunSuite with Matchers with HistoryTest {
 
   test("concurrent access to lastBlock doesn't throw any exception") {
-    val history = HistoryWriterImpl(None, new ReentrantReadWriteLock()).get
+    val db = openDB("./test/historywriter/data", true)
+    val history = new HistoryWriterImpl(db, new ReentrantReadWriteLock(), true)
     appendGenesisBlock(history)
 
     (1 to 1000).foreach { _ =>

@@ -7,7 +7,7 @@ enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, Sys
 
 name := "vsys"
 organization := "systems.v"
-version := "0.1.0"
+version := "0.1.1"
 scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
 publishArtifact in (Compile, packageDoc) := false
@@ -19,6 +19,9 @@ scalacOptions ++= Seq(
   "-Ywarn-unused:-implicits",
   "-Xlint")
 logBuffered := false
+
+fork in run := true
+Test / fork := true
 
 //assembly settings
 assemblyJarName in assembly := s"vsys-all-${version.value}.jar"
@@ -45,8 +48,12 @@ libraryDependencies ++=
       .exclude("org.slf4j", "slf4j-api"),
     "commons-net" % "commons-net" % "3.+",
     "org.typelevel" %% "cats-core" % "0.9.0",
-    "io.monix" %% "monix" % "2.3.0"
+    "io.monix" %% "monix" % "3.0.0-M2"
   )
+
+dependencyOverrides ++= Seq(
+  "com.google.guava" % "guava" % "21.0"
+)
 
 sourceGenerators in Compile += Def.task {
   val versionFile = (sourceManaged in Compile).value / "com" / "wavesplatform" / "Version.scala"

@@ -11,14 +11,15 @@ import scorex.transaction.{History, Transaction, ValidationError}
 import vsys.contract.ExecutionContext
 import vsys.state.opcdiffs.{OpcDiff, OpcFuncDiffer}
 import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
+import com.wavesplatform.history.db
 
 package object diffs {
 
   private val lock = new ReentrantReadWriteLock()
 
-  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(None, dropExisting = false).get, lock)
+  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(db, dropExisting = true), lock)
 
-  def newHistory(): History = HistoryWriterImpl(None, lock).get
+  def newHistory(): History = new HistoryWriterImpl(db, lock, true)
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 

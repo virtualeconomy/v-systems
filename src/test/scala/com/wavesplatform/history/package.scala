@@ -8,6 +8,7 @@ import vsys.consensus.spos.SposConsensusBlockData
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.{Transaction, TransactionParser}
+import vsys.db.openDB
 import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
 package object history {
@@ -21,8 +22,9 @@ package object history {
     functionalitySettings = TestFunctionalitySettings.Enabled,
     genesisSettings = null)
 
+  val db = openDB("./test/data", true)
   def domain(): Domain = {
-    val (history, _, stateReader, blockchainUpdater) = StorageFactory(DefaultBlockchainSettings).get
+    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, true)
     Domain(history, stateReader, blockchainUpdater)
   }
 
