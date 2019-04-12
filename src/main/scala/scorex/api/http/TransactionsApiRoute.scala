@@ -33,18 +33,18 @@ case class TransactionsApiRoute(
 
   override lazy val route =
     pathPrefix("transactions") {
-      unconfirmed ~ addressTxCount ~ addressLimit ~ addressLimitOffset ~ info ~ activeLeaseList ~ txTypeAddressTxCount ~ txTypeAddressLimitOffset
+      unconfirmed ~ transactionCount ~ transactionList ~ addressLimit ~ info ~ activeLeaseList
     }
 
   @Path("/count")
-  @ApiOperation(value = "Address", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiOperation(value = "Count", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
     new ApiImplicitParam(name = "transactionType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
   ))
-  def addressTxCount: Route = (path("count") & get) {
+  def transactionCount: Route = (path("count") & get) {
     parameters('address, 'txType.?) { (addressStr, txTypeStrOpt) =>
-      Address.fromString(address) match {
+      Address.fromString(addressStr) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
           txTypeStrOpt match {
@@ -61,17 +61,25 @@ case class TransactionsApiRoute(
     }
   }
 
+
+  private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
+
+  private val invalidOffset = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.offset")
+
+  private val invalidTxType = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.txType")
+
+
   @Path("/list")
-  @ApiOperation(value = "Address", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiOperation(value = "List", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
     new ApiImplicitParam(name = "transactionType", value = "transaction type ", required = false, dataType = "integer", paramType = "query"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "query"),
     new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
   ))
-  def addressTxList: Route = (path("list") & get) {
+  def transactionList: Route = (path("list") & get) {
     parameters('address, 'txType.?, 'limit, 'offset ? "0") { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
-      Address.fromString(address) match {
+      Address.fromString(addressStr) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
           Exception.allCatch.opt(limitStr.toInt) match {
@@ -80,9 +88,9 @@ case class TransactionsApiRoute(
                 case Some(offset) if offset > 0 && offset <= MaxTransactionOffset =>
                   txTypeStrOpt match {
                     case None =>
-                      complete(txListWrapper(state.accountTransactions(a, limit, offset))
+                      complete(txListWrapper(state.accountTransactions(a, limit, offset)))
                     case Some(txTypeStr) =>
-                      Exception.allCatch.opt(TransactionType(txTypeInt)) match {
+                      Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
                         case Some(txType: TransactionType.Value) =>
                           complete(txListWrapper(state.txTypeAccountTransactions(txType, a, limit, offset)))
                         case _ => complete(invalidTxType)
@@ -99,8 +107,6 @@ case class TransactionsApiRoute(
       }
     }
   }
-
-  private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
 
   @Path("/address/{address}/limit/{limit}")
   @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
