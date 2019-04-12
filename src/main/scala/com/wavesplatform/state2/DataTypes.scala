@@ -142,4 +142,34 @@ object DataTypes {
       buff.put(v)
     }
   }
+
+  // (Int, ByteStr, Array[Byte])
+  val contracts: DataType = new DTTemplate {
+    override def compare(a: scala.Any, b: scala.Any) = throw new UnsupportedOperationException
+
+    override def read(buff: ByteBuffer) = {
+      val i = readVarInt(buff)
+      val len = readVarInt(buff)
+      val dst = Array.fill(len)(0: Byte)
+      buff.get(dst, 0, len)
+      ByteStr(dst)
+      val b = new Array[Byte](readVarInt(buff))
+      buff.get(b)
+      (i, dst, b)
+    }
+
+    override def getMemory(obj: scala.Any) = {
+      val (_, bstr, ba) = obj.asInstanceOf[(Int, ByteStr, Array[Byte])]
+      10 + bstr.arr.length + 5 + ba.length
+    }
+
+    override def write(buff: WriteBuffer, obj: scala.Any) = {
+      val (i, bstr, ba) = obj.asInstanceOf[(Int, ByteStr, Array[Byte])]
+      buff.putVarInt(i)
+        .putVarInt(bstr.arr.length)
+        .put(bstr.arr)
+        .putVarInt(ba.length)
+        .put(ba)
+    }
+  }
 }
