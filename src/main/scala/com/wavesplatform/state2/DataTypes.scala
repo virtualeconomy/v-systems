@@ -147,15 +147,13 @@ object DataTypes {
   val contracts: DataType = new DTTemplate {
     override def compare(a: scala.Any, b: scala.Any) = throw new UnsupportedOperationException
 
-    override def read(buff: ByteBuffer) = {
+    override def read(buff: ByteBuffer): AnyRef = {
       val i = readVarInt(buff)
-      val len = readVarInt(buff)
-      val dst = Array.fill(len)(0: Byte)
-      buff.get(dst, 0, len)
-      ByteStr(dst)
+      val dst = new Array[Byte](readVarInt(buff))
+      buff.get(dst)
       val b = new Array[Byte](readVarInt(buff))
       buff.get(b)
-      (i, dst, b)
+      (i, ByteStr(dst), b)
     }
 
     override def getMemory(obj: scala.Any) = {
