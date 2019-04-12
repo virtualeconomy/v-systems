@@ -39,8 +39,8 @@ case class TransactionsApiRoute(
   @Path("/count")
   @ApiOperation(value = "Address", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query")
-    new ApiImplicitParam(name = "transactionType", value = "transaction type ", required = false, dataType = "integer", paramType = "query")
+    new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
+    new ApiImplicitParam(name = "transactionType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
   ))
   def addressTxCount: Route = (path("count") & get) {
     parameters('address, 'txType.?)) { (addressStr, txTypeStrOpt) =>
