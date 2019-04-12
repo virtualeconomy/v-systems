@@ -36,20 +36,65 @@ case class TransactionsApiRoute(
       unconfirmed ~ addressTxCount ~ addressLimit ~ addressLimitOffset ~ info ~ activeLeaseList ~ txTypeAddressTxCount ~ txTypeAddressLimitOffset
     }
 
-  @Path("/address/{address}/count")
+  @Path("/count")
   @ApiOperation(value = "Address", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path")
+    new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query")
+    new ApiImplicitParam(name = "transactionType", value = "transaction type ", required = false, dataType = "integer", paramType = "query")
   ))
-  def addressTxCount: Route = (pathPrefix("address") & get) {
-    pathPrefix(Segment) { address =>
+  def addressTxCount: Route = (path("count") & get) {
+    parameters('address, 'txType.?)) { (addressStr, txTypeStrOpt) =>
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
-          pathPrefix("count") {
-            pathEndOrSingleSlash {
+          txTypeStrOpt match {
+            case None =>
               complete(Json.obj("count" -> state.accountTransactionsLengths(a)))
-            }
+            case Some(txTypeStr) =>
+              Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
+                case Some(txType: TransactionType.Value) =>
+                  complete(Json.obj("count" -> state.txTypeAccTxLengths(txType, a)))
+                case _ => complete(invalidTxType)
+              }
+          }
+      }
+    }
+  }
+
+  @Path("/list")
+  @ApiOperation(value = "Address", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
+    new ApiImplicitParam(name = "transactionType", value = "transaction type ", required = false, dataType = "integer", paramType = "query"),
+    new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "query"),
+    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
+  ))
+  def addressTxList: Route = (path("list") & get) {
+    parameters('address, 'txType.?, 'limit, 'offset ? "0")) { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
+      Address.fromString(address) match {
+        case Left(e) => complete(ApiError.fromValidationError(e))
+        case Right(a) =>
+          Exception.allCatch.opt(limitStr.toInt) match {
+            case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
+              Exception.allCatch.opt(offsetStr.toInt) match {
+                case Some(offset) if offset > 0 && offset <= MaxTransactionOffset =>
+                  txTypeStrOpt match {
+                    case None =>
+                      complete(txListWrapper(state.accountTransactions(a, limit, offset))
+                    case Some(txTypeStr) =>
+                      Exception.allCatch.opt(TransactionType(txTypeInt)) match {
+                        case Some(txType: TransactionType.Value) =>
+                          complete(txListWrapper(state.txTypeAccountTransactions(txType, a, limit, offset)))
+                        case _ => complete(invalidTxType)
+                      }
+                  }
+                case _ =>
+                  complete(invalidOffset)
+              }
+            case Some(limit) if limit > MaxTransactionsPerRequest =>
+              complete(TooBigArrayAllocation)
+            case _ =>
+              complete(invalidLimit)
           }
       }
     }
@@ -86,144 +131,6 @@ case class TransactionsApiRoute(
               }
           }
       }
-    }
-  }
-
-  private val invalidOffset = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.offset")
-
-  @Path("/address/{address}/limit/{limit}/offset/{offset}")
-  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
-    new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path"),
-    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
-  ))
-  def addressLimitOffset: Route = (pathPrefix("address") & get) {
-    pathPrefix(Segment) { address =>
-      Address.fromString(address) match {
-        case Left(e) => complete(ApiError.fromValidationError(e))
-        case Right(a) =>
-          pathPrefix("limit") {
-            pathEndOrSingleSlash {
-              complete(invalidLimit)
-            } ~
-              pathPrefix(Segment) { limitStr =>
-                Exception.allCatch.opt(limitStr.toInt) match {
-                  case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
-                    pathPrefix("offset") {
-                      pathEndOrSingleSlash {
-                        complete(invalidOffset)
-                      } ~
-                        path(Segment) { offsetStr =>
-                          Exception.allCatch.opt(offsetStr.toInt) match {
-                            case Some(offset) if offset >= 0 && offset <= MaxTransactionOffset =>
-                              val res = state.accountTransactions(a, limit, offset)
-                              complete(Json.obj(
-                                "totalCount" -> res._1,
-                                "size" -> res._2.size,
-                                "transactions" -> res._2.map { case (h, tx) =>
-                                  processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
-                                }
-                              ))
-                            case  _ =>
-                              complete(invalidOffset)
-                          }
-                        }
-                    }
-                  case Some(limit) if limit > MaxTransactionsPerRequest =>
-                    complete(TooBigArrayAllocation)
-                  case _ =>
-                    complete(invalidLimit)
-                }
-              }
-          }
-      }
-    }
-  }
-
-
-  @Path("/{transactionType}/address/{address}/count")
-  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address and type has been involved", httpMethod = "GET")
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "transactionType", value = "type of transaction", required = true, dataType = "integer", paramType = "path"),
-    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path")
-  ))
-  def txTypeAddressTxCount: Route = (pathPrefix(Segment) & get) { txTypeStr =>
-    Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
-      case Some(txType: TransactionType.Value) =>
-        pathPrefix("address") {
-          pathPrefix(Segment) { address =>
-            Address.fromString(address) match {
-              case Left(e) => complete(ApiError.fromValidationError(e))
-              case Right(a) =>
-                pathPrefix("count") {
-                  pathEndOrSingleSlash {
-                    complete(Json.obj("count" -> state.txTypeAccTxLengths(txType, a)))
-                  }
-                }
-            }
-          }
-        }
-      case _ => complete(invalidTxType)
-    }
-  }
-
-  private val invalidTxType = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.transactionType")
-
-  @Path("/{transactionType}/address/{address}/limit/{limit}/offset/{offset}")
-  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address and type has been involved", httpMethod = "GET")
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "transactionType", value = "type of transaction", required = true, dataType = "integer", paramType = "path"),
-    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
-    new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path"),
-    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = true, dataType = "integer", paramType = "path")
-  ))
-  def txTypeAddressLimitOffset: Route = (pathPrefix(Segment) & get) { txTypeStr =>
-    Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
-      case Some(txType: TransactionType.Value) =>
-        pathPrefix("address") {
-          pathPrefix(Segment) { address =>
-            Address.fromString(address) match {
-              case Left(e) => complete(ApiError.fromValidationError(e))
-              case Right(a) =>
-                pathPrefix("limit") {
-                  pathEndOrSingleSlash {
-                    complete(invalidLimit)
-                  } ~
-                    pathPrefix(Segment) { limitStr =>
-                      Exception.allCatch.opt(limitStr.toInt) match {
-                        case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
-                          pathPrefix("offset") {
-                            pathEndOrSingleSlash {
-                              complete(invalidOffset)
-                            } ~
-                              path(Segment) { offsetStr =>
-                                Exception.allCatch.opt(offsetStr.toInt) match {
-                                  case Some(offset) if offset >= 0 && offset <= MaxTransactionOffset =>
-                                    val res = state.txTypeAccountTransactions(txType, a, limit, offset)
-                                    complete(Json.obj(
-                                      "totalCount" -> res._1,
-                                      "size" -> res._2.size,
-                                      "transactions" -> res._2.map { case (h, tx) =>
-                                        processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
-                                      }
-                                    ))
-                                  case  _ =>
-                                    complete(invalidOffset)
-                                }
-                              }
-                          }
-                        case Some(limit) if limit > MaxTransactionsPerRequest =>
-                          complete(TooBigArrayAllocation)
-                        case _ =>
-                          complete(invalidLimit)
-                      }
-                    }
-                }
-            }
-          }
-        }
-      case _ => complete(invalidTxType)
     }
   }
 
@@ -324,6 +231,16 @@ case class TransactionsApiRoute(
         tx.json ++ Json.obj("lease" -> state.findTransaction[LeaseTransaction](leaseCancel.leaseId).map(_.json).getOrElse[JsValue](JsNull))
       case _ => tx.json
     }
+  }
+
+  private def txListWrapper(resFromReader: (Int, Seq[(Int, _ <: ProcessedTransaction)])): JsObject = {
+    Json.obj(
+      "totalCount" -> resFromReader._1,
+      "size" -> resFromReader._2.size,
+      "transactions" -> resFromReader._2.map { case (h, tx) =>
+        processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+      }
+    )
   }
 }
 
