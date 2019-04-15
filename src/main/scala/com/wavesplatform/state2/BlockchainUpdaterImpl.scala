@@ -98,6 +98,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
           }
         }
         logHeights(s"Rollback to h=$height completed:")
+        log.info(s"persisted.height=${persisted.height} history.height=${historyWriter.height}")
         Right(discardedTransactions.result())
       case None =>
         log.warn(s"removeAfter nonexistent block $blockId")

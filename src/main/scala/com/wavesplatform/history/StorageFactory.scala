@@ -1,35 +1,28 @@
 package com.wavesplatform.history
 
-import java.io.File
 import java.util.concurrent.locks.{ReentrantReadWriteLock => RWL}
 
 import com.wavesplatform.settings.BlockchainSettings
 import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{BlockchainUpdaterImpl, StateStorage, StateWriterImpl}
+import com.wavesplatform.state2.{BlockchainUpdaterImpl, StateStorage, StateWriterImpl, StateWriter}
 import scorex.transaction.{BlockchainUpdater, History}
 
-import scala.util.{Success, Try}
+import org.iq80.leveldb.DB
 
 object StorageFactory {
 
-  private def createStateStorage(history: History, stateFile: Option[File]): Try[StateStorage] =
-    StateStorage(stateFile, dropExisting = false).flatMap { ss =>
-      if (ss.getHeight <= history.height()) Success(ss) else {
-        ss.close()
-        StateStorage(stateFile, dropExisting = true)
-      }
-    }
+  private def createStateStorage(history: History, db: DB): StateStorage = {
+    val ss = StateStorage(db, dropExisting = false)
+    if (ss.getHeight <= history.height()) ss
+    else StateStorage(db, dropExisting = true)
+  }
 
-  def apply(settings: BlockchainSettings): Try[(History with AutoCloseable, AutoCloseable, StateReader, BlockchainUpdater)] = {
+  def apply(db: DB, settings: BlockchainSettings, renew: Boolean = false): (History, StateWriter, StateReader, BlockchainUpdater) = {
     val lock = new RWL(true)
-
-    for {
-      historyWriter <- HistoryWriterImpl(settings.blockchainFile, lock)
-      ss <- createStateStorage(historyWriter, settings.stateFile)
-      stateWriter = new StateWriterImpl(ss, lock)
-    } yield {
-      val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, lock)
-      (historyWriter, stateWriter, bcu.currentPersistedBlocksState, bcu)
-    }
+    val historyWriter = new HistoryWriterImpl(db, lock, renew)
+    val ss = createStateStorage(historyWriter, db)
+    val stateWriter = new StateWriterImpl(ss, lock)
+    val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, lock)
+    (historyWriter, stateWriter, bcu.currentPersistedBlocksState, bcu)
   }
 }

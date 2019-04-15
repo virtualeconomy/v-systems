@@ -31,7 +31,7 @@ trait StateReader extends Synchronized {
 
   def slotAddress(id: Int): Option[String]
 
-  def addressToSlotID(add: String): Option[Int]
+  def addressSlot(add: String): Option[Int]
 
   def effectiveSlotAddressSize: Int
 

@@ -6,10 +6,17 @@ import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.{JsObject, JsValue}
 import scorex.api.http.{TooBigArrayAllocation, UtilsApiRoute}
 import scorex.crypto.encode.Base58
+import scorex.utils.Time
 import scorex.crypto.hash.{FastCryptographicHash, SecureCryptographicHash}
 
 class UtilsRouteSpec extends RouteSpec("/utils") with RestAPISettingsHelper with PropertyChecks {
-  private val route = UtilsApiRoute(restAPISettings).route
+  private val route = UtilsApiRoute(
+    new Time {
+      def correctedTime(): Long = System.currentTimeMillis() * 1000000L
+      def getTimestamp(): Long  = System.currentTimeMillis() * 1000000L
+    },
+    restAPISettings
+  ).route
 
   routePath("/seed") in {
     Get(routePath("/seed")) ~> route ~> check {

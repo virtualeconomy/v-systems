@@ -18,12 +18,10 @@ trait StateWriter {
 }
 
 class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteLock)
-  extends StateReaderImpl(p, synchronizationToken) with StateWriter with AutoCloseable with ScorexLogging {
+  extends StateReaderImpl(p, synchronizationToken) with StateWriter with ScorexLogging {
 
   import StateStorage._
   import StateWriterImpl._
-
-  override def close(): Unit = p.close()
 
   override def applyBlockDiff(blockDiff: BlockDiff): Unit = write { implicit l =>
     val txsDiff = blockDiff.txsDiff
@@ -38,7 +36,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("orderFills")(blockDiff.txsDiff.orderFills) {
       _.par.foreach { case (oid, orderFillInfo) =>
-        Option(sp().orderFills.get(oid)) match {
+        sp().orderFills.get(oid) match {
           case Some(ll) =>
             sp().orderFills.put(oid, (ll._1 + orderFillInfo.volume, ll._2 + orderFillInfo.fee))
           case None =>
@@ -60,7 +58,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("assets")(txsDiff.issuedAssets) {
       _.foreach { case (id, assetInfo) =>
-        val updated = (Option(sp().assets.get(id)) match {
+        val updated = (sp().assets.get(id) match {
           case None => Monoid[AssetInfo].empty
           case Some(existing) => AssetInfo(existing._1, existing._2)
         }).combine(assetInfo)
@@ -71,7 +69,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("accountTransactionIds")(blockDiff.txsDiff.accountTransactionIds) {
       _.foreach { case (acc, txIds) =>
-        val startIdxShift = sp().accountTransactionsLengths.getOrDefault(acc.bytes, 0)
+        val startIdxShift = sp().accountTransactionsLengths.get(acc.bytes).getOrElse(0)
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
           sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId)
           shift + 1
@@ -103,7 +101,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("accountContractIds")(blockDiff.txsDiff.accountContractIds) {
       _.foreach { case (acc, ctIds) =>
-        val startIdxShift = sp().accountContractsLengths.getOrDefault(acc.bytes, 0)
+        val startIdxShift = sp().accountContractsLengths.get(acc.bytes).getOrElse(0)
         ctIds.reverse.foldLeft(startIdxShift) { case (shift, ctId) =>
           sp().accountContractIds.put(accountIndexKey(acc, shift), ctId)
           shift + 1
@@ -151,42 +149,27 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     // if the blockDiff has contend/release transaction issued, change the slot address
     measureSizeLog("slotids_info")(blockDiff.txsDiff.slotids)(
       _.foreach {
-        case (id, acc) => acc.length match {
-          case 0 => sp().releaseSlotAddress(id)
-          case _ => sp().setSlotAddress(id, acc)
+        case (id, acc) => acc match {
+          case None => sp().releaseSlotAddress(id)
+          case _ => sp().setSlotAddress(id, acc.get)
+        }
+      })
+
+    measureSizeLog("address to slot_info")(blockDiff.txsDiff.addToSlot)(
+      _.foreach {
+        case (acc, id) => id match {
+          case None => sp().releaseAddressSlot(acc)
+          case _ => sp().setAddressSlot(acc, id.get)
         }
       })
 
     sp().setHeight(sp().getHeight + blockDiff.heightDiff)
-    sp().commit()
 
     log.debug("BlockDiff commit complete")
   }
 
   override def clear(): Unit = write { implicit l =>
-    sp().transactions.clear()
-    sp().portfolios.clear()
-    sp().assets.clear()
-    sp().accountTransactionIds.clear()
-    sp().accountTransactionsLengths.clear()
-    sp().balanceSnapshots.clear()
-    sp().orderFills.clear()
-    sp().aliasToAddress.clear()
-    sp().leaseState.clear()
-    sp().lastBalanceSnapshotHeight.clear()
-    sp().lastBalanceSnapshotWeightedBalance.clear()
-    sp().addressList.clear()
-    sp().addressToID.clear()
-    sp().dbEntries.clear()
-    sp().contracts.clear()
-    sp().accountContractIds.clear()
-    sp().accountContractsLengths.clear()
-    sp().contractDB.clear()
-    sp().contractTokens.clear()
-    sp().tokenDB.clear()
-    sp().tokenAccountBalance.clear()
-    sp().setHeight(0)
-    sp().commit()
+    sp().removeEverything()
   }
 
 }

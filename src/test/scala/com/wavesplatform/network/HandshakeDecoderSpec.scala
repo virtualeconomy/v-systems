@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.primitives.{Ints, Longs}
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.network.client.NopPeerDatabase
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
@@ -25,7 +24,7 @@ class HandshakeDecoderSpec extends FreeSpec
     var mayBeDecodedHandshake: Option[Handshake] = None
 
     val channel = new EmbeddedChannel(
-      new HandshakeDecoder(NopPeerDatabase),
+      new HandshakeDecoder(PeerDatabase.NoOp),
       new ChannelInboundHandlerAdapter {
         override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = msg match {
           case x: Handshake => mayBeDecodedHandshake = Some(x)
