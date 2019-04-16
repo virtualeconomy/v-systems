@@ -16,7 +16,7 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
                                      utx: UtxPool,
                                      allChannels: ChannelGroup) extends ApiRoute with BroadcastRoute {
   override val route = pathPrefix("contract" / "broadcast") {
-    signedRegister
+    signedRegister ~ signedExecute
   }
 
   @Path("/register")
