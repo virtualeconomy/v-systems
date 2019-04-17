@@ -89,6 +89,8 @@ object RegisterContractTransaction {
                       proofs: Proofs): Either[ValidationError, RegisterContractTransaction] =
     if ((Deser.serilizeString(description).length > MaxDescriptionSize) || !Deser.validUTF8(description)) {
       Left(ValidationError.InvalidUTF8String("contractDescription"))
+    } else if (data.length > 4) {
+      Left(ValidationError.InvalidDataLength)
     } else if(fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {

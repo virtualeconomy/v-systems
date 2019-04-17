@@ -41,7 +41,9 @@ object ExecutionContext {
     val contractId = tx.contractId
     val description = tx.description
     s.contractContent(tx.contractId.bytes) match {
-      case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description))
+      case Some(c) => if ((c._3.descriptor.length == 12) && (tx.funcIdx > 4)) Left(GenericError(s"Invalid function index"))
+      else if ((c._3.descriptor.length == 11) && (tx.funcIdx > 3)) Left(GenericError(s"Invalid function index"))
+      else Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description))
       case _ => Left(GenericError(s"Invalid contract id"))
     }
   }

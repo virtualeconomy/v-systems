@@ -159,7 +159,7 @@ trait ProtoType {
     protoType <- Gen.const(len.array ++ retType.array ++ listPT.array)
   } yield protoType
 
-  val returnType: Byte = 1
+  val returnType: Byte = 0
   val protoTypeInitWrongGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaTypeWrong)
   val protoTypeInitGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
   val protoTypeSupersedeGen: Gen[Array[Byte]] = protoTypeGen(returnType, supersedeParaType)
@@ -170,10 +170,10 @@ trait ProtoType {
   val protoTypeTransferGen: Gen[Array[Byte]] = protoTypeGen(returnType, transferParaType)
   val protoTypeDepositGen: Gen[Array[Byte]] = protoTypeGen(returnType, depositParaType)
   val protoTypeWithdrawGen: Gen[Array[Byte]] = protoTypeGen(returnType, withdrawParaType)
-  val protoTypeTotalSupplyGen: Gen[Array[Byte]] = protoTypeGen(returnType, totalSupplyParaType)
-  val protoTypeMaxSupplyGen: Gen[Array[Byte]] = protoTypeGen(returnType, maxSupplyParaType)
-  val protoTypeBalanceOfGen: Gen[Array[Byte]] = protoTypeGen(returnType, balanceOfParaType)
-  val protoTypeGetIssuerGen: Gen[Array[Byte]] = protoTypeGen(returnType, getIssuerParaType)
+  val protoTypeTotalSupplyGen: Gen[Array[Byte]] = protoTypeGen(DataType.Amount.id.toByte, totalSupplyParaType)
+  val protoTypeMaxSupplyGen: Gen[Array[Byte]] = protoTypeGen(DataType.Amount.id.toByte, maxSupplyParaType)
+  val protoTypeBalanceOfGen: Gen[Array[Byte]] = protoTypeGen(DataType.Amount.id.toByte, balanceOfParaType)
+  val protoTypeGetIssuerGen: Gen[Array[Byte]] = protoTypeGen(DataType.Account.id.toByte, getIssuerParaType)
 
   private val minParaTypeSize: Short = 2
   private val maxParaTypeSize: Short = 128
