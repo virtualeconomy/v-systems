@@ -1,15 +1,20 @@
 package vsys.transaction.contract
 
+import cats.Monoid
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.TransactionGen
+import com.wavesplatform.state2.{ByteStr, Portfolio}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.GenesisTransaction
+import scorex.serialization.Deser
 import com.wavesplatform.state2.diffs._
 import scorex.account.PublicKeyAccount
 import vsys.transaction.TransactionStatus
 import vsys.contract._
+import vsys.transaction.proof.EllipticCurve25519Proof
 
 class ExecuteContractTransactionTest extends PropSpec
   with PropertyChecks
@@ -43,6 +48,121 @@ class ExecuteContractTransactionTest extends PropSpec
 
   val languageCode: String = "vdds"
   val languageVersion: Int = 1
+
+  val newValidContractTest: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val preconditionsAndExecuteContractTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
+    master <- accountGen
+    user <- accountGen
+    ts <- positiveLongGen
+    contract <- newValidContractTest
+    dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
+    description <- validDescStringGen
+    fee <- smallFeeGen
+    feeScale <- feeScaleGen
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis2: GenesisTransaction = GenesisTransaction.create(user, ENOUGH_AMT, -1, ts).right.get
+    feeEx: Long <- smallFeeGen
+    descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    splitData <- splitDataStackGen(1000, 0)
+    supersedeData <- supersedeDataStackGen(user.toAddress)
+    issueData <- issueDataStackGen(10000L, 0)
+    destoryData <- destroyDataStackGen(100L, 0)
+    sendData <- sendDataStackGen(master.toAddress, 500L, 0)
+    split: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, splitData, descEx, feeEx, feeScale, ts + 1).right.get
+    supersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, supersedeData, descEx, feeEx, feeScale, ts + 2).right.get
+    issue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.issueIndex, issueData, descEx, feeEx, feeScale, ts + 3).right.get
+    destroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.destroyIndex, destoryData, descEx, feeEx, feeScale, ts + 4).right.get
+    send: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData, descEx, feeEx, feeScale, ts + 5).right.get
+  } yield (genesis, genesis2, regContract, split, supersede, issue, destroy, send, send.fee)
+
+  property("execute contract function transaction doesn't break invariant") {
+    forAll(preconditionsAndExecuteContractTest) { case (genesis, genesis2, reg, split, supersede, issue, destroy, send, feeContend) =>
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis, genesis2)), TestBlock.create(Seq(reg, split, supersede, issue, destroy))), TestBlock.create(Seq(send))) { (blockDiff, newState) =>
+        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
+        totalPortfolioDiff.balance shouldBe -feeContend
+        totalPortfolioDiff.effectiveBalance shouldBe -feeContend
+        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val user = EllipticCurve25519Proof.fromBytes(send.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val contractId = reg.contractId.bytes
+        val tokenId = ByteStr(Bytes.concat(contractId.arr, Ints.toByteArray(0)))
+        val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
+        val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
+        val maxKey = ByteStr(Bytes.concat(tokenId.arr, Array(2.toByte)))
+        val totalKey = ByteStr(Bytes.concat(tokenId.arr, Array(3.toByte)))
+        val unityKey = ByteStr(Bytes.concat(tokenId.arr, Array(4.toByte)))
+        val descKey = ByteStr(Bytes.concat(tokenId.arr, Array(5.toByte)))
+        val descDE = Deser.serilizeString("init")
+        val masterBalanceKey = ByteStr(Bytes.concat(tokenId.arr, master.toAddress.bytes.arr))
+        val userBalanceKey = ByteStr(Bytes.concat(tokenId.arr, user.toAddress.bytes.arr))
+
+        newState.accountTransactionIds(master, 5).size shouldBe 5 // genesis, reg, split, supersede, send
+        newState.accountTransactionIds(user, 5).size shouldBe 5 // genesis2, supersede, issue, destory, send
+        newState.contractTokens(contractId) shouldBe 1
+        newState.contractInfo(issuerKey).get.bytes shouldEqual DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes
+        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
+        newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
+        newState.tokenAccountBalance(totalKey) shouldBe 9900L
+        newState.tokenInfo(unityKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(1000L), DataType.Amount).bytes
+        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).right.get.bytes
+        newState.tokenAccountBalance(masterBalanceKey) shouldBe 500L
+        newState.tokenAccountBalance(userBalanceKey) shouldBe 9400L
+      }
+    }
+  }
+
+  val newValidContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val preconditionsAndExecuteContractWithInvalidData: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+    master <- accountGen
+    ts <- positiveLongGen
+    contract <- newValidContract
+    dataStack: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
+    description <- validDescStringGen
+    fee <- smallFeeGen
+    feeScale <- feeScaleGen
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    feeEx: Long <- smallFeeGen
+    rep <- mintingAddressGen
+    descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    dataForIssueDestorySplit: Seq[DataEntry] <- issueDataStackGen(10000L, 0)
+    dataForSend: Seq[DataEntry] <- sendDataStackGen(rep, 100L, 0)
+    dataForSupersede: Seq[DataEntry] <- supersedeDataStackGen(rep)
+    invalidData = dataForIssueDestorySplit ++ dataForSend
+    invalidIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.issueIndex, dataForSend, descEx, feeEx, feeScale, ts + 1000).right.get
+    invalidSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, dataForSupersede, descEx, feeEx, feeScale, ts + 1000).right.get
+    invalidSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.sendIndex, dataForSupersede, descEx, feeEx, feeScale, ts + 2000).right.get
+    invalidSuperSede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, dataForIssueDestorySplit, descEx, feeEx, feeScale, ts + 3000).right.get
+  } yield (genesis, regContract, invalidIssue, invalidSplit, invalidSend, invalidSuperSede)
+
+  property("execute contract transaction fail with invalid data"){
+    forAll(preconditionsAndExecuteContractWithInvalidData) { case (genesis, reg, invalid1, invalid2, invalid3, invalid4) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+      }
+
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+      }
+
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid3), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+      }
+
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid4), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+      }
+
+    }
+  }
 
   val newContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractIssue: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
