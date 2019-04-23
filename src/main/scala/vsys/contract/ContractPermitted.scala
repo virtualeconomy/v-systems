@@ -193,15 +193,15 @@ object ContractPermitted {
   }
 
   object ListOpc {
-    val opcLoadSignerIndex: Array[Byte] = Array()
-    val opcLoadCallerIndex: Array[Byte] = Array()
+    val opcLoadSignerIndex: Array[Byte] = Array(3.toByte)
+    val opcLoadCallerIndex: Array[Byte] = Array(3.toByte)
 
     val opcCDBVSetIssuerInitIndex: Array[Byte] = Array(StateVar.issuer, DataStack.initInput.issuerLoadIndex)
     val opcCDBVSetIssuerSupersedeIndex: Array[Byte] = Array(StateVar.issuer, DataStack.supersedeIndex.newIssuerIndex)
     val opcCDBVSetMakerIndex: Array[Byte] = Array(StateVar.maker, DataStack.initInput.issuerLoadIndex)
 
-    val opcCDBVRGetIssuerIndex: Array[Byte] = Array(StateVar.issuer)
-    val opcCDBVRGetMakerIndex: Array[Byte] = Array(StateVar.maker)
+    val opcCDBVRGetIssuerIndex: Array[Byte] = Array(StateVar.issuer, 2.toByte)
+    val opcCDBVRGetMakerIndex: Array[Byte] = Array(StateVar.maker, 1.toByte)
 
     val opcAssertIsCallerOriginIssueIndex: Array[Byte] = Array(DataStack.issueInput.issuerGetIndex)
     val opcAssertIsCallerOriginDestroyIndex: Array[Byte] = Array(DataStack.destroyInput.issuerGetIndex)
@@ -215,8 +215,8 @@ object ContractPermitted {
       DataStack.initInput.maxIndex, DataStack.initInput.unityIndex, DataStack.initInput.shortTextIndex)
     val opcTDBSplitIndex: Array[Byte] = Array(StateVar.unity, DataStack.splitInput.amountIndex, DataStack.splitInput.tokenIndex)
 
-    val opcTDBRTotalIndex: Array[Byte] = Array(StateVar.total, DataStack.totalSupplyInput.tokenIndex)
-    val opcTDBRMaxIndex: Array[Byte] = Array(StateVar.max, DataStack.maxSupplyInput.tokenIndex)
+    val opcTDBRTotalIndex: Array[Byte] = Array(StateVar.total, DataStack.totalSupplyInput.tokenIndex, 1.toByte)
+    val opcTDBRMaxIndex: Array[Byte] = Array(StateVar.max, DataStack.maxSupplyInput.tokenIndex, 1.toByte)
 
     val opcTDBADepositIssueIndex: Array[Byte] = Array(StateVar.max, StateVar.total, DataStack.issueInput.issuerGetIndex,
       DataStack.issueInput.amountIndex, DataStack.issueInput.tokenIndex)
@@ -227,7 +227,7 @@ object ContractPermitted {
     val opcTDBATransferDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex, DataStack.depositInput.smartIndex, DataStack.depositInput.amountIndex, DataStack.depositInput.tokenIndex)
     val opcTDBATransferWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.smartIndex, DataStack.withdrawInput.receiptIndex, DataStack.withdrawInput.amountIndex, DataStack.withdrawInput.tokenIndex)
 
-    val opcTDBARBalanceOfIndex: Array[Byte] = Array(DataStack.balanceOfInput.addressIndex, DataStack.balanceOfInput.tokenIndex)
+    val opcTDBARBalanceOfIndex: Array[Byte] = Array(DataStack.balanceOfInput.addressIndex, DataStack.balanceOfInput.tokenIndex, 2.toByte)
 
     // init
     val initOpc: List[Array[Byte]] = List(OpcId.opcLoadSigner, OpcId.opcCDBVSet, OpcId.opcCDBVSet, OpcId.opcTDBNewToken)
@@ -261,16 +261,16 @@ object ContractPermitted {
     val withdrawOpcIndex: List[Array[Byte]] = List(opcAssertIsCallerOriginWithdrawIndex, opcTDBATransferWithdrawIndex)
     // totalSupply
     val totalSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcTotal, OpcId.opcReturnValue)
-    val totalSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRTotalIndex, Array())
+    val totalSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRTotalIndex, Array(1.toByte))
     // maxSupplyOpc
     val maxSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcGet, OpcId.opcReturnValue)
-    val maxSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRMaxIndex, Array())
+    val maxSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRMaxIndex, Array(1.toByte))
     // balanceOfOpc
     val balanceOfOpc: List[Array[Byte]] = List(OpcId.opcTDBARBalance, OpcId.opcReturnValue)
-    val balanceOfOpcIndex: List[Array[Byte]] = List(opcTDBARBalanceOfIndex, Array())
+    val balanceOfOpcIndex: List[Array[Byte]] = List(opcTDBARBalanceOfIndex, Array(2.toByte))
     // getIssuerOpc
     val getIssuerOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcReturnValue)
-    val getIssuerOpcIndex: List[Array[Byte]] = List(opcCDBVRGetIssuerIndex, Array())
+    val getIssuerOpcIndex: List[Array[Byte]] = List(Array(StateVar.issuer, 0.toByte), Array(0.toByte))
   }
 
   object OpcLine {
@@ -326,25 +326,25 @@ object ContractPermitted {
 
   def textureFunc(name: String, ret: String, para: Seq[String]): Array[Byte] = {
     val funcByte = Deser.serializeArray(Deser.serilizeString(name))
-    val retByte = Deser.serializeArray(Deser.serilizeString(ret))
+    val _ = Deser.serializeArray(Deser.serilizeString(ret))
     val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
-    Bytes.concat(funcByte, retByte, paraByte)
+    Bytes.concat(funcByte, paraByte)
   }
 
   object ParaName {
-    val initPara: Seq[String] = Seq("max", "unity", "tokenDescription")
-    val supersedePara: Seq[String] = Seq("newIssuer")
-    val issuePara: Seq[String] = Seq("amount", "tokenIndex")
-    val destroyPara: Seq[String] = Seq("amount", "tokenIndex")
-    val splitPara: Seq[String] = Seq("newUnity", "tokenIndex")
-    val sendPara: Seq[String] = Seq("receipt", "amount", "tokenIndex")
+    val initPara: Seq[String] = Seq("max", "unity", "tokenDescription", "signer")
+    val supersedePara: Seq[String] = Seq("newIssuer", "maker")
+    val issuePara: Seq[String] = Seq("amount", "tokenIndex", "issuer")
+    val destroyPara: Seq[String] = Seq("amount", "tokenIndex", "issuer")
+    val splitPara: Seq[String] = Seq("newUnity", "tokenIndex", "issuer")
+    val sendPara: Seq[String] = Seq("receipt", "amount", "tokenIndex", "caller")
     val transferPara: Seq[String]= Seq("sender", "receipt", "amount", "tokenIndex")
     val depositPara: Seq[String] = Seq("sender", "smart", "amount", "tokenIndex")
     val withdrawPara: Seq[String]= Seq("smart", "receipt", "amount", "tokenIndex")
-    val totalSupplyPara: Seq[String] = Seq("tokenIndex")
-    val maxSupplyPara: Seq[String] = Seq("tokenIndex")
-    val balanceOfPara: Seq[String] = Seq("address", "tokenIndex")
-    val getIssuerPara: Seq[String] = Seq()
+    val totalSupplyPara: Seq[String] = Seq("tokenIndex", "total")
+    val maxSupplyPara: Seq[String] = Seq("tokenIndex", "max")
+    val balanceOfPara: Seq[String] = Seq("address", "tokenIndex", "balance")
+    val getIssuerPara: Seq[String] = Seq("issuer")
   }
 
   val stateVarName = List("issuer", "maker", "max", "total", "unity", "description")

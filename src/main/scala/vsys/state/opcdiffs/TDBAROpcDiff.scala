@@ -13,9 +13,11 @@ object TDBAROpcDiff {
 
   // for tokenAccountBalance DB
   def balance(context: ExecutionContext)(address: DataEntry, tokenIndex: DataEntry,
-                                         dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+                                         dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (tokenIndex.dataType != DataType.Int32 || address.dataType != DataType.Address) {
       Left(GenericError("Input contains invalid dataType"))
+    } else if (pointer > dataStack.length || pointer < 0) {
+      Left(GenericError("Out of data range"))
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -25,7 +27,7 @@ object TDBAROpcDiff {
         Left(GenericError(s"Token $tokenNumber not exist"))
       } else {
         val b = context.state.tokenAccountBalance(tokenBalanceKey)
-        Right(dataStack :+ DataEntry(Longs.toByteArray(b), DataType.Amount))
+        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(b), DataType.Amount)), 1))
       }
     }
   }
@@ -37,8 +39,8 @@ object TDBAROpcDiff {
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes, 3, context.stateVar.length, data.length, 1) =>
-      balance(context)(data(bytes(1)), data(bytes(2)), data)
+    case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 1) =>
+      balance(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
     case _ => Left(GenericError("Wrong TDBAR opcode"))
   }
 

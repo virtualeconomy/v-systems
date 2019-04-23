@@ -8,12 +8,20 @@ import scala.util.{Left, Right}
 
 object LoadOpcDiff {
 
-  def signer(context: ExecutionContext)(dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    Right(dataStack :+ DataEntry(context.signers.head.bytes.arr, DataType.Address))
+  def signer(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(GenericError("Out of data range"))
+    } else {
+      Right(dataStack.patch(pointer, Seq(DataEntry(context.signers.head.bytes.arr, DataType.Address)), 1))
+    }
   }
 
-  def caller(context: ExecutionContext)(dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    Right(dataStack :+ DataEntry(context.signers.head.bytes.arr, DataType.Address))
+  def caller(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(GenericError("Out of data range"))
+    } else {
+      Right(dataStack.patch(pointer, Seq(DataEntry(context.signers.head.bytes.arr, DataType.Address)), 1))
+    }
   }
 
   object LoadType extends Enumeration {
@@ -23,8 +31,8 @@ object LoadOpcDiff {
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == LoadType.SignerLoad.id && bytes.length == 1 => signer(context)(data)
-    case opcType: Byte if opcType == LoadType.CallerLoad.id && bytes.length == 1 => caller(context)(data)
+    case opcType: Byte if opcType == LoadType.SignerLoad.id && bytes.length == 2 => signer(context)(data, bytes.last)
+    case opcType: Byte if opcType == LoadType.CallerLoad.id && bytes.length == 2 => caller(context)(data, bytes.last)
     case _ => Left(GenericError("Wrong Load opcode"))
   }
 
