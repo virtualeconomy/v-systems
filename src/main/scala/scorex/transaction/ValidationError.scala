@@ -29,6 +29,19 @@ object ValidationError {
   case object MissingSenderPrivateKey extends ValidationError
   case object UnsupportedTransactionType extends ValidationError
   case object InvalidRequestSignature extends ValidationError
+  case object ContractWrongOPCode extends ValidationError
+  case object ContractInvalidStateVariable extends ValidationError
+  case object ContractVariableNotDefined extends ValidationError
+  case object ContractInvalidOPCType extends ValidationError
+  case object ContractUnsupportedOPCType extends ValidationError
+  case object ContractInvalidFunction extends ValidationError
+  case object ContractInvalidInputDataType extends ValidationError
+  case object ContractInvalidTokenIndex extends ValidationError
+  case object ContractInvalidAmount extends ValidationError
+  case object ContractInvalidTotal extends ValidationError
+  case object ContractTokenBalanceInsufficient extends ValidationError
+  case object ContractAmountOverflowError extends ValidationError
+  case object ContractInvalidTokenInfo extends ValidationError
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError
   case class AliasNotExists(a: Alias) extends ValidationError
   case class OrderValidationError(order: Order, err: String) extends ValidationError
