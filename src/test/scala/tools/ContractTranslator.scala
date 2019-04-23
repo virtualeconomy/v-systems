@@ -19,7 +19,7 @@ import vsys.state.opcdiffs.TDBROpcDiff.TDBRType
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractPermitted.contractWithoutSplit.bytes.arr
+  val bytes = ContractPermitted.contract.bytes.arr
 
   println(Base58.encode(bytes))
 
@@ -63,19 +63,28 @@ object ContractTranslator extends App {
         } else {
           val funString = if (tp == 0) textureStr.get._1 else textureStr.get._2
           val idx = if (tp == 0) funIdx.toInt else funIdx.toInt - 1
-          print(funString(idx)(1) + " function " + funString(idx)(0) + "(")
-          var tmp = funString(idx).tail.tail
+          val retTypeName = if (retType == 0) "void" else dataTypeList(retType - 1)
+          print(retTypeName + " function " + funString(idx)(0) + "(")
+          val nameList = funString(idx).tail
           List.range(0, listParaTypes.size).foreach { i =>
-            print(dataTypeList(listParaTypes(i) - 1) + " " + tmp(i))
+            print(dataTypeList(listParaTypes(i) - 1) + " " + nameList(i))
             if (i < listParaTypes.size - 1) print(", ")
           }
           println(")")
+          print("| ")
+          print(convertBytesToHex(Shorts.toByteArray(funIdx)))
+          print("| ")
+          print(convertBytesToHex(Array(retType)))
+          print("| ")
+          print(convertBytesToHex(listParaTypes))
+          println("|")
           listOpcLines.foreach { case l =>
             print("    ")
-            val x = opcToName(l, tmp)
-            tmp = x._2
-            println(x._1)
-            println("    " + convertBytesToHex(l))
+            val x = opcToName(l, nameList)
+            println(x)
+            print("    " + convertBytesToHex(l.slice(0, 2)))
+            print("| ")
+            println(convertBytesToHex(l.slice(2, l.length)))
           }
           println()
         }
@@ -137,11 +146,9 @@ object ContractTranslator extends App {
     bs.foldLeft(Seq.empty[Seq[String]]) { case (e, b) => {
       val (funcNameBytes, funcNameEnd) = Deser.parseArraySize(b, 0)
       val funcName = Deser.deserilizeString(funcNameBytes)
-      val (returnNameBytes, returnNameEnd) = Deser.parseArraySize(b, funcNameEnd)
-      val returnName = Deser.deserilizeString(returnNameBytes)
-      val listParaNameBytes = b.slice(returnNameEnd, b.length)
+      val listParaNameBytes = b.slice(funcNameEnd, b.length)
       val listParaNames = paraFromBytes(listParaNameBytes)
-      e :+ (funcName +: returnName +: listParaNames)
+      e :+ (funcName  +: listParaNames)
     }
     }
   }
@@ -165,7 +172,7 @@ object ContractTranslator extends App {
     (funcIdx, returnType, listParaTypes, listOpcLines)
   }
 
-  def opcToName(data: Array[Byte], nameList: Seq[String]): (String, Seq[String]) = {
+  def opcToName(data: Array[Byte], nameList: Seq[String]): String = {
     val x = data(0)
     val y = data(1)
     val stateNameList = textureStr.get._3
@@ -173,66 +180,66 @@ object ContractTranslator extends App {
 
       case opcType: Byte if opcType == OpcType.AssertOpc.id =>
         y match {
-          case opcType: Byte if opcType == AssertType.GteqZeroAssert.id => ("opc_assert_gteq0", nameList)
-          case opcType: Byte if opcType == AssertType.LteqAssert.id => ("opc_assert_lteq", nameList)
-          case opcType: Byte if opcType == AssertType.LtInt64Assert.id => ("opc_assert_ltInt64", nameList)
-          case opcType: Byte if opcType == AssertType.GtZeroAssert.id => ("opc_assert_gt0", nameList)
-          case opcType: Byte if opcType == AssertType.EqAssert.id => ("opc_assert_eq", nameList)
-          case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id => ("opc_assert_caller " + nameList(data(2)), nameList)
-          case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id => ("opc_assert_singer " + nameList(data(2)), nameList)
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == AssertType.GteqZeroAssert.id => "opc_assert_gteq0"
+          case opcType: Byte if opcType == AssertType.LteqAssert.id => "opc_assert_lteq"
+          case opcType: Byte if opcType == AssertType.LtInt64Assert.id => "opc_assert_ltInt64"
+          case opcType: Byte if opcType == AssertType.GtZeroAssert.id => "opc_assert_gt0"
+          case opcType: Byte if opcType == AssertType.EqAssert.id => "opc_assert_eq"
+          case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id => "opc_assert_caller " + nameList(data(2))
+          case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id => "opc_assert_singer " + nameList(data(2))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.LoadOpc.id =>
         y match {
-          case opcType: Byte if opcType == LoadType.SignerLoad.id => ("opc_load_env_signer singer", nameList :+ "singer")
-          case opcType: Byte if opcType == LoadType.CallerLoad.id => ("opc_load_env_caller caller", nameList :+ "caller")
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == LoadType.SignerLoad.id => "opc_load_env_signer " + nameList(data(2))
+          case opcType: Byte if opcType == LoadType.CallerLoad.id => "opc_load_env_caller " + nameList(data(2))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.CDBVOpc.id =>
         y match {
-          case opcType: Byte if opcType == CDBVType.SetCDBV.id => ("opc_cdbv_set db." + stateNameList(data(2)) + " " + nameList(data(3)), nameList)
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == CDBVType.SetCDBV.id => "opc_cdbv_set db." + stateNameList(data(2)) + " " + nameList(data(3))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.CDBVROpc.id =>
         y match {
-          case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => ("opc_cdbvr_get db." + stateNameList(data(2)) + " " + stateNameList(data(2)), nameList :+ stateNameList(data(2)))
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => "opc_cdbvr_get db." + stateNameList(data(2)) + " " + nameList(data(3))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBOpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBType.NewTokenTDB.id => ("opc_tdb_new " + nameList(data(6)) + " " + nameList(data(7)) + " " + nameList(data(8)), nameList)
-          case opcType: Byte if opcType == TDBType.SplitTDB.id => ("opc_tdb_split " + nameList(data(3)) + " " + nameList(data(4)), nameList)
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == TDBType.NewTokenTDB.id => "opc_tdb_new " + nameList(data(6)) + " " + nameList(data(7)) + " " + nameList(data(8))
+          case opcType: Byte if opcType == TDBType.SplitTDB.id => "opc_tdb_split " + nameList(data(3)) + " " + nameList(data(4))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBROpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBRType.GetTDBR.id => ("opc_tdbr_get tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + stateNameList(data(2)), nameList :+ stateNameList(data(2)))
-          case opcType: Byte if opcType == TDBRType.TotalTDBR.id => ("opc_tdbr_total tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + stateNameList(data(2)), nameList :+ stateNameList(data(2)))
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == TDBRType.GetTDBR.id => "opc_tdbr_get tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + nameList(data(4))
+          case opcType: Byte if opcType == TDBRType.TotalTDBR.id => "opc_tdbr_total tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + nameList(data(4))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBAOpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => ("opc_tdba_deposit " + nameList(data(4)) + " " + nameList(data(5)) + " " + nameList(data(6)), nameList)
-          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => ("opc_tdba_withdraw " + nameList(data(3)) + " " + nameList(data(4)) + " " + nameList(data(5)), nameList)
-          case opcType: Byte if opcType == TDBAType.TransferTDBA.id => ("opc_tdba_transfer " + nameList(data(2)) + " " + nameList(data(3)) + " " + nameList(data(4)) + " " + nameList(data(5)), nameList)
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "opc_tdba_deposit " + nameList(data(4)) + " " + nameList(data(5)) + " " + nameList(data(6))
+          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "opc_tdba_withdraw " + nameList(data(3)) + " " + nameList(data(4)) + " " + nameList(data(5))
+          case opcType: Byte if opcType == TDBAType.TransferTDBA.id => "opc_tdba_transfer " + nameList(data(2)) + " " + nameList(data(3)) + " " + nameList(data(4)) + " " + nameList(data(5))
+          case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBAROpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id => ("opc_tdbar_balance " + nameList(data(2)) + " " + nameList(data(3)) + " balance", nameList :+ "balance")
-          case _ => ("--- invalid opc code ---", nameList)
+          case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id => "opc_tdbar_balance " + nameList(data(2)) + " " + nameList(data(3)) + " " + nameList(data(4))
+          case _ => "--- invalid opc code ---"
         }
 
-      case opcType: Byte if opcType == OpcType.ReturnOpc.id => ("opc_return_last " + nameList.last, nameList)
+      case opcType: Byte if opcType == OpcType.ReturnOpc.id => "opc_return_value " + nameList(data(2))
 
-      case _ => ("--- invalid opc code ---", nameList)
+      case _ => "--- invalid opc code ---"
 
     }
   }
