@@ -1,4 +1,4 @@
-package vsys.transaction.contract
+package vsys.state.diffs
 
 import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
@@ -15,8 +15,9 @@ import scorex.account.PublicKeyAccount
 import vsys.transaction.TransactionStatus
 import vsys.contract._
 import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.contract._
 
-class ExecuteContractTransactionTest extends PropSpec
+class ExecuteContractFunctionTransactionDiffTest extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers
@@ -76,12 +77,12 @@ class ExecuteContractTransactionTest extends PropSpec
     send: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData, descEx, feeEx, feeScale, ts + 5).right.get
   } yield (genesis, genesis2, regContract, split, supersede, issue, destroy, send, send.fee)
 
-  property("execute contract function transaction doesn't break invariant") {
-    forAll(preconditionsAndExecuteContractTest) { case (genesis, genesis2, reg, split, supersede, issue, destroy, send, feeContend) =>
+  property("execute contract function transactions doesn't break invariant") {
+    forAll(preconditionsAndExecuteContractTest) { case (genesis, genesis2, reg, split, supersede, issue, destroy, send, feeEx) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis, genesis2)), TestBlock.create(Seq(reg, split, supersede, issue, destroy))), TestBlock.create(Seq(send))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe -feeContend
-        totalPortfolioDiff.effectiveBalance shouldBe -feeContend
+        totalPortfolioDiff.balance shouldBe -feeEx
+        totalPortfolioDiff.effectiveBalance shouldBe -feeEx
         val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         val user = EllipticCurve25519Proof.fromBytes(send.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         val contractId = reg.contractId.bytes
@@ -99,6 +100,9 @@ class ExecuteContractTransactionTest extends PropSpec
         newState.accountTransactionIds(master, 5).size shouldBe 5 // genesis, reg, split, supersede, send
         newState.accountTransactionIds(user, 5).size shouldBe 5 // genesis2, supersede, issue, destory, send
         newState.contractTokens(contractId) shouldBe 1
+        newState.contractContent(contractId).get._1 shouldBe 2
+        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
+        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractPermitted.contract.bytes.arr
         newState.contractInfo(issuerKey).get.bytes shouldEqual DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes
         newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
         newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
