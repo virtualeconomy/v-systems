@@ -114,11 +114,11 @@ object Contract extends ScorexLogging {
     bs.foldLeft(Seq.empty[Seq[String]]) { case (e, b) => {
       val (funcNameBytes, funcNameEnd) = Deser.parseArraySize(b, 0)
       val funcName = Deser.deserilizeString(funcNameBytes)
-      val (returnNameBytes, returnNameEnd) = Deser.parseArraySize(b, funcNameEnd)
-      val returnName = Deser.deserilizeString(returnNameBytes)
-      val listParaNameBytes = b.slice(returnNameEnd, b.length)
+//      val (returnNameBytes, returnNameEnd) = Deser.parseArraySize(b, funcNameEnd)
+//      val returnName = Deser.deserilizeString(returnNameBytes)
+      val listParaNameBytes = b.slice(funcNameEnd, b.length)
       val listParaNames = paraFromBytes(listParaNameBytes)
-      e :+ (funcName +: returnName +: listParaNames)
+      e :+ (funcName +: listParaNames)
     }
     }
   }

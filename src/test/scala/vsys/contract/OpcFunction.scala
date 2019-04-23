@@ -312,5 +312,3 @@ object ListOpc {
   val getIssuerOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcReturnValue)
   val getIssuerOpcIndex: List[Array[Byte]] = List(getIssuerOpcCDBVRGetIndex, Array(0.toByte))
 }
-
-

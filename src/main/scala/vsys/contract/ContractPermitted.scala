@@ -326,25 +326,25 @@ object ContractPermitted {
 
   def textureFunc(name: String, ret: String, para: Seq[String]): Array[Byte] = {
     val funcByte = Deser.serializeArray(Deser.serilizeString(name))
-    val retByte = Deser.serializeArray(Deser.serilizeString(ret))
+    val _ = Deser.serializeArray(Deser.serilizeString(ret))
     val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
-    Bytes.concat(funcByte, retByte, paraByte)
+    Bytes.concat(funcByte, paraByte)
   }
 
   object ParaName {
-    val initPara: Seq[String] = Seq("max", "unity", "tokenDescription")
-    val supersedePara: Seq[String] = Seq("newIssuer")
-    val issuePara: Seq[String] = Seq("amount", "tokenIndex")
-    val destroyPara: Seq[String] = Seq("amount", "tokenIndex")
-    val splitPara: Seq[String] = Seq("newUnity", "tokenIndex")
-    val sendPara: Seq[String] = Seq("receipt", "amount", "tokenIndex")
+    val initPara: Seq[String] = Seq("max", "unity", "tokenDescription", "signer")
+    val supersedePara: Seq[String] = Seq("newIssuer", "maker")
+    val issuePara: Seq[String] = Seq("amount", "tokenIndex", "issuer")
+    val destroyPara: Seq[String] = Seq("amount", "tokenIndex", "issuer")
+    val splitPara: Seq[String] = Seq("newUnity", "tokenIndex", "issuer")
+    val sendPara: Seq[String] = Seq("receipt", "amount", "tokenIndex", "caller")
     val transferPara: Seq[String]= Seq("sender", "receipt", "amount", "tokenIndex")
     val depositPara: Seq[String] = Seq("sender", "smart", "amount", "tokenIndex")
     val withdrawPara: Seq[String]= Seq("smart", "receipt", "amount", "tokenIndex")
-    val totalSupplyPara: Seq[String] = Seq("tokenIndex")
-    val maxSupplyPara: Seq[String] = Seq("tokenIndex")
-    val balanceOfPara: Seq[String] = Seq("address", "tokenIndex")
-    val getIssuerPara: Seq[String] = Seq()
+    val totalSupplyPara: Seq[String] = Seq("tokenIndex", "total")
+    val maxSupplyPara: Seq[String] = Seq("tokenIndex", "max")
+    val balanceOfPara: Seq[String] = Seq("address", "tokenIndex", "balance")
+    val getIssuerPara: Seq[String] = Seq("issuer")
   }
 
   val stateVarName = List("issuer", "maker", "max", "total", "unity", "description")
