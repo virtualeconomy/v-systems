@@ -14,11 +14,13 @@ object TDBROpcDiff {
 
   // for tokenInfo DB
   def get(context: ExecutionContext)(stateVar: Array[Byte], tokenIndex: DataEntry,
-                                     dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+                                     dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateVar(stateVar, DataType(stateVar(1)))) {
       Left(GenericError(s"Wrong stateVariable"))
     } else if (tokenIndex.dataType != DataType.Int32) {
       Left(GenericError("Input contains invalid dataType"))
+    } else if (pointer > dataStack.length || pointer < 0) {
+      Left(GenericError("Out of data range"))
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -28,7 +30,7 @@ object TDBROpcDiff {
         Left(GenericError(s"Token $tokenNumber not exist"))
       } else {
         context.state.tokenInfo(tokenVarKey) match {
-          case Some(v) => Right(dataStack :+ v)
+          case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
           case _ => Left(GenericError(s"Required variable not defined"))
         }
       }
@@ -37,11 +39,13 @@ object TDBROpcDiff {
 
   // in current version only total store in tokenAccountBalance DB
   def total(context: ExecutionContext)(stateVarTotal: Array[Byte], tokenIndex: DataEntry,
-                                       dataStack: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+                                       dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateVar(stateVarTotal, DataType.Amount)) {
       Left(GenericError(s"Wrong stateVariable"))
     } else if (tokenIndex.dataType != DataType.Int32) {
       Left(GenericError("Input contains invalid dataType"))
+    } else if (pointer > dataStack.length || pointer < 0) {
+      Left(GenericError("Out of data range"))
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -51,7 +55,7 @@ object TDBROpcDiff {
         Left(GenericError(s"Token $tokenNumber not exist"))
       } else {
         val t = context.state.tokenAccountBalance(tokenTotalKey)
-        Right(dataStack :+ DataEntry(Longs.toByteArray(t), DataType.Amount))
+        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(t), DataType.Amount)), 1))
       }
     }
   }
@@ -63,10 +67,10 @@ object TDBROpcDiff {
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == TDBRType.GetTDBR.id && checkInput(bytes, 3, context.stateVar.length, data.length, 2) =>
-      get(context)(context.stateVar(bytes(1)), data(bytes(2)), data)
-    case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes, 3, context.stateVar.length, data.length, 2) =>
-      total(context)(context.stateVar(bytes(1)), data(bytes(2)), data)
+    case opcType: Byte if opcType == TDBRType.GetTDBR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 2) =>
+      get(context)(context.stateVar(bytes(1)), data(bytes(2)), data, bytes(3))
+    case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 2) =>
+      total(context)(context.stateVar(bytes(1)), data(bytes(2)), data, bytes(3))
     case _ => Left(GenericError("Wrong TDBR opcode"))
   }
 
