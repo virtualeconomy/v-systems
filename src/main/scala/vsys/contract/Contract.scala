@@ -19,12 +19,12 @@ sealed trait Contract {
     ++ Deser.serializeArray(Deser.serializeArrays(trigger))
     ++ Deser.serializeArray(Deser.serializeArrays(descriptor))
     ++ Deser.serializeArray(Deser.serializeArrays(stateVar))
-    ++ Deser.serializeArrays(textualForm))
+    ++ Deser.serializeArrays(textual))
 
   val trigger: Seq[Array[Byte]]
   val descriptor: Seq[Array[Byte]]
   val stateVar: Seq[Array[Byte]]
-  val textualForm: Seq[Array[Byte]]
+  val textual: Seq[Array[Byte]]
   val languageCode: Array[Byte]
   val languageVersion: Array[Byte]
 
@@ -34,7 +34,7 @@ sealed trait Contract {
     "trigger" -> trigger.map(p => Base58.encode(p)),
     "descriptor" -> descriptor.map(p => Base58.encode(p)),
     "stateVar" -> stateVar.map(p => Base58.encode(p)),
-    "textualForm" -> textualForm.map(p => Base58.encode(p))
+    "textual" -> textual.map(p => Base58.encode(p))
   )
 }
 
@@ -51,11 +51,11 @@ object Contract extends ScorexLogging {
 
   def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte],
                     trigger: Seq[Array[Byte]], descriptor: Seq[Array[Byte]],
-                    stateVar: Seq[Array[Byte]], textualForm: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
+                    stateVar: Seq[Array[Byte]], textual: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
     case class ContractImpl(languageCode: Array[Byte], languageVersion: Array[Byte],
                             trigger: Seq[Array[Byte]], descriptor: Seq[Array[Byte]],
-                            stateVar: Seq[Array[Byte]], textualForm: Seq[Array[Byte]]) extends Contract
-    Right(ContractImpl(languageCode, languageVersion, trigger, descriptor, stateVar, textualForm))
+                            stateVar: Seq[Array[Byte]], textual: Seq[Array[Byte]]) extends Contract
+    Right(ContractImpl(languageCode, languageVersion, trigger, descriptor, stateVar, textual))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Contract] = {
@@ -68,9 +68,9 @@ object Contract extends ScorexLogging {
       val descriptor = Deser.parseArrays(descriptorBytes)
       val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
       val stateVar = Deser.parseArrays(stateVarBytes)
-      val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
-      if (isByteArrayValid(bytes, texture)){
-        buildContract(languageCode, languageVersion, trigger, descriptor, stateVar, texture)
+      val textual = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
+      if (isByteArrayValid(bytes, textual)){
+        buildContract(languageCode, languageVersion, trigger, descriptor, stateVar, textual)
       } else {
         Left(InvalidContract)
       }
@@ -91,20 +91,20 @@ object Contract extends ScorexLogging {
   def checkStateVar(stateVar: Array[Byte], dataType: DataType.Value): Boolean =
     stateVar.length == 2 && dataType == DataType(stateVar(1))
 
-  private def isByteArrayValid(bytes: Array[Byte], texture: Seq[Array[Byte]]): Boolean = {
-    val textureStr = textureFromBytes(texture)
+  private def isByteArrayValid(bytes: Array[Byte], textual: Seq[Array[Byte]]): Boolean = {
+    val textualStr = textualFromBytes(textual)
     if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
       !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
-    } else if (textureStr.isFailure ||
-      !checkTexture(textureStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
-      log.warn(s"Illegal texture ${texture.mkString(" ")}")
+    } else if (textualStr.isFailure ||
+      !checkTexture(textualStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
+      log.warn(s"Illegal textual ${textual.mkString(" ")}")
       false
     } else true
   }
 
-  private def textureFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])] = Try {
+  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])] = Try {
     val initializerFuncBytes = Deser.parseArrays(bs.head)
     val initializerFunc = funcFromBytes(initializerFuncBytes)
     val descriptorFuncBytes = Deser.parseArrays(bs(1))
@@ -117,11 +117,11 @@ object Contract extends ScorexLogging {
     bs.foldLeft(Seq.empty[Seq[String]]) { case (e, b) => {
       val (funcNameBytes, funcNameEnd) = Deser.parseArraySize(b, 0)
       val funcName = Deser.deserilizeString(funcNameBytes)
-//      val (returnNameBytes, returnNameEnd) = Deser.parseArraySize(b, funcNameEnd)
-//      val returnName = Deser.deserilizeString(returnNameBytes)
-      val listParaNameBytes = b.slice(funcNameEnd, b.length)
+      val (listReturnNameBytes, listReturnNameEnd) = Deser.parseArraySize(b, funcNameEnd)
+      val listReturnNames = paraFromBytes(listReturnNameBytes)
+      val listParaNameBytes = b.slice(listReturnNameEnd, b.length)
       val listParaNames = paraFromBytes(listParaNameBytes)
-      e :+ (funcName +: listParaNames)
+      e :+ (listReturnNames ++ Seq(funcName) ++ listParaNames)
     }
     }
   }
@@ -135,9 +135,9 @@ object Contract extends ScorexLogging {
     }
   }
 
-  private def checkTexture(texture: (Seq[Seq[String]], Seq[Seq[String]], Seq[String])): Boolean = {
-    texture._1.flatten.forall(x => identifierCheck(x)) && texture._2.flatten.forall(x => identifierCheck(x)) &&
-      texture._3.forall(x => identifierCheck(x))
+  private def checkTexture(textual: (Seq[Seq[String]], Seq[Seq[String]], Seq[String])): Boolean = {
+    textual._1.flatten.forall(x => identifierCheck(x)) && textual._2.flatten.forall(x => identifierCheck(x)) &&
+      textual._3.forall(x => identifierCheck(x))
   }
 
   private def identifierCheck(str: String): Boolean = {

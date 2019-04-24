@@ -4,7 +4,7 @@ import org.scalacheck.Gen
 import com.google.common.primitives.Ints
 import scorex.serialization.Deser
 
-trait ContractGen extends OpcFunction with StateVar with Texture {
+trait ContractGen extends OpcFunction with StateVar with TextualForm {
 
   def languageCodeFromLengthGen(code: String): Gen[Array[Byte]] = for {
     languageCode <- Gen.const(Deser.serilizeString(code))

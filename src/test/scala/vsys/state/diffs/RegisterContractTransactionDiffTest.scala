@@ -24,7 +24,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
   with TransactionGen
   with ContractGen
   with StateVar
-  with Texture
+  with TextualForm
   with DataStack {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)

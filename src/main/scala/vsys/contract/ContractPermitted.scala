@@ -314,11 +314,11 @@ object ContractPermitted {
   lazy val balanceOfFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.balanceOf) ++ Array(publicFuncType) ++ protoType(Array(DataType.Amount.id.toByte), ProtoType.balanceOfParaType) ++ OpcLine.balanceOfOpcLine
   lazy val getIssuerFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.getIssuer) ++ Array(publicFuncType) ++ protoType(Array(DataType.Account.id.toByte), ProtoType.getIssuerParaType) ++ OpcLine.getIssuerOpcLine
 
-  def textureFunc(name: String, ret: String, para: Seq[String]): Array[Byte] = {
+  def textureFunc(name: String, ret: Seq[String], para: Seq[String]): Array[Byte] = {
     val funcByte = Deser.serializeArray(Deser.serilizeString(name))
-    val _ = Deser.serializeArray(Deser.serilizeString(ret))
+    val retByte = Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x))))
     val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
-    Bytes.concat(funcByte, paraByte)
+    Bytes.concat(funcByte, retByte, paraByte)
   }
 
   object ParaName {
@@ -337,22 +337,22 @@ object ContractPermitted {
     val getIssuerPara: Seq[String] = Seq("issuer")
   }
 
-  val stateVarName = List("issuer", "maker", "max", "total", "unity", "description")
+  val stateVarName = List("issuer", "maker")
   lazy val stateVarTexture: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
-  val initFuncBytes: Array[Byte] = textureFunc("init", "void", ParaName.initPara)
-  val supersedeFuncBytes: Array[Byte] = textureFunc("supersede", "void", ParaName.supersedePara)
-  val issueFuncBytes: Array[Byte] = textureFunc("issue", "void", ParaName.issuePara)
-  val destroyFuncBytes: Array[Byte] = textureFunc("destroy", "void", ParaName.destroyPara)
-  val splitFuncBytes: Array[Byte] = textureFunc("split", "void", ParaName.splitPara)
-  val sendFuncBytes: Array[Byte] = textureFunc("send", "void", ParaName.sendPara)
-  val transferFuncBytes: Array[Byte] = textureFunc("transfer", "void", ParaName.transferPara)
-  val depositFuncBytes: Array[Byte] = textureFunc("deposit", "void", ParaName.depositPara)
-  val withdrawFuncBytes: Array[Byte] = textureFunc("withdraw", "void", ParaName.withdrawPara)
-  val totalSupplyFuncBytes: Array[Byte] = textureFunc("totalSupply", "amount", ParaName.totalSupplyPara)
-  val maxSupplyFuncBytes: Array[Byte] = textureFunc("maxSupply", "amount", ParaName.maxSupplyPara)
-  val balanceOfFuncBytes: Array[Byte] = textureFunc("balanceOf", "amount", ParaName.balanceOfPara)
-  val getIssuerFuncBytes: Array[Byte] = textureFunc("getIssuer", "issuer", ParaName.getIssuerPara)
+  val initFuncBytes: Array[Byte] = textureFunc("init", Seq(), ParaName.initPara)
+  val supersedeFuncBytes: Array[Byte] = textureFunc("supersede", Seq(), ParaName.supersedePara)
+  val issueFuncBytes: Array[Byte] = textureFunc("issue", Seq(), ParaName.issuePara)
+  val destroyFuncBytes: Array[Byte] = textureFunc("destroy", Seq(), ParaName.destroyPara)
+  val splitFuncBytes: Array[Byte] = textureFunc("split", Seq(), ParaName.splitPara)
+  val sendFuncBytes: Array[Byte] = textureFunc("send", Seq(), ParaName.sendPara)
+  val transferFuncBytes: Array[Byte] = textureFunc("transfer", Seq(), ParaName.transferPara)
+  val depositFuncBytes: Array[Byte] = textureFunc("deposit", Seq(), ParaName.depositPara)
+  val withdrawFuncBytes: Array[Byte] = textureFunc("withdraw", Seq(), ParaName.withdrawPara)
+  val totalSupplyFuncBytes: Array[Byte] = textureFunc("totalSupply", Seq("total"), ParaName.totalSupplyPara)
+  val maxSupplyFuncBytes: Array[Byte] = textureFunc("maxSupply", Seq("max"), ParaName.maxSupplyPara)
+  val balanceOfFuncBytes: Array[Byte] = textureFunc("balanceOf", Seq("balance"), ParaName.balanceOfPara)
+  val getIssuerFuncBytes: Array[Byte] = textureFunc("getIssuer", Seq("issuer"), ParaName.getIssuerPara)
 
   lazy val initializerTexture: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
   lazy val descriptorTexture: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,

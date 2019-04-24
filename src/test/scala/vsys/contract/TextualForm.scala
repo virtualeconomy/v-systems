@@ -3,7 +3,7 @@ package vsys.contract
 import org.scalacheck.{Arbitrary, Gen}
 import scorex.serialization.Deser
 
-trait Texture {
+trait TextualForm {
   private val fixedSize: Short = 4
 
   def textureRandomGen(): Gen[Seq[Array[Byte]]] = for {
@@ -29,11 +29,11 @@ trait Texture {
 }
 
 object TextureFun {
-  def textureFunGen(name: String, ret: String, para: Seq[String]): Gen[Array[Byte]] =  for {
+  def textureFunGen(name: String, ret: Seq[String], para: Seq[String]): Gen[Array[Byte]] =  for {
     funcByte <- Gen.const(Deser.serializeArray(Deser.serilizeString(name)))
-    _ <- Gen.const(Deser.serializeArray(Deser.serilizeString(ret)))
+    returnByte <- Gen.const(Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x)))))
     paraByte <- Gen.const(Deser.serializeArrays(para.map(x => Deser.serilizeString(x))))
-    texture <- Gen.const(funcByte.array ++ paraByte.array)
+    texture <- Gen.const(funcByte.array ++ returnByte.array ++ paraByte.array)
   } yield texture
 
   val initPara: Seq[String] = Seq("max", "unity", "tokenDescription", "signer")
@@ -50,21 +50,21 @@ object TextureFun {
   val balanceOfPara: Seq[String] = Seq("address", "tokenIndex", "balance")
   val getIssuerPara: Seq[String] = Seq("issuer")
 
-  val initFuncBytes: Gen[Array[Byte]] = textureFunGen("init", "void", initPara)
-  val supersedeFuncBytes: Gen[Array[Byte]] = textureFunGen("supersede", "void", supersedePara)
-  val issueFuncBytes: Gen[Array[Byte]] = textureFunGen("issue", "void", issuePara)
-  val destroyFuncBytes: Gen[Array[Byte]] = textureFunGen("destroy", "void", destroyPara)
-  val splitFuncBytes: Gen[Array[Byte]] = textureFunGen("split", "void", splitPara)
-  val sendFuncBytes: Gen[Array[Byte]] = textureFunGen("send", "void", sendPara)
-  val transferFuncBytes: Gen[Array[Byte]] = textureFunGen("transfer", "void", transferPara)
-  val depositFuncBytes: Gen[Array[Byte]] = textureFunGen("deposit", "void", depositPara)
-  val withdrawFuncBytes: Gen[Array[Byte]] = textureFunGen("withdraw", "void", withdrawPara)
-  val totalSupplyFuncBytes: Gen[Array[Byte]] = textureFunGen("totalSupply", "amount", totalSupplyPara)
-  val maxSupplyFuncBytes: Gen[Array[Byte]] = textureFunGen("maxSupply", "amount", maxSupplyPara)
-  val balanceOfFuncBytes: Gen[Array[Byte]] = textureFunGen("balanceOf", "amount", balanceOfPara)
-  val getIssuerFuncBytes: Gen[Array[Byte]] = textureFunGen("getIssuer", "issuer", getIssuerPara)
+  val initFuncBytes: Gen[Array[Byte]] = textureFunGen("init", Seq(), initPara)
+  val supersedeFuncBytes: Gen[Array[Byte]] = textureFunGen("supersede", Seq(), supersedePara)
+  val issueFuncBytes: Gen[Array[Byte]] = textureFunGen("issue", Seq(), issuePara)
+  val destroyFuncBytes: Gen[Array[Byte]] = textureFunGen("destroy", Seq(), destroyPara)
+  val splitFuncBytes: Gen[Array[Byte]] = textureFunGen("split", Seq(), splitPara)
+  val sendFuncBytes: Gen[Array[Byte]] = textureFunGen("send", Seq(), sendPara)
+  val transferFuncBytes: Gen[Array[Byte]] = textureFunGen("transfer", Seq(), transferPara)
+  val depositFuncBytes: Gen[Array[Byte]] = textureFunGen("deposit", Seq(), depositPara)
+  val withdrawFuncBytes: Gen[Array[Byte]] = textureFunGen("withdraw", Seq(), withdrawPara)
+  val totalSupplyFuncBytes: Gen[Array[Byte]] = textureFunGen("totalSupply", Seq("total"), totalSupplyPara)
+  val maxSupplyFuncBytes: Gen[Array[Byte]] = textureFunGen("maxSupply", Seq("max"), maxSupplyPara)
+  val balanceOfFuncBytes: Gen[Array[Byte]] = textureFunGen("balanceOf", Seq("balance"), balanceOfPara)
+  val getIssuerFuncBytes: Gen[Array[Byte]] = textureFunGen("getIssuer", Seq("issuer"), getIssuerPara)
 }
 
 object TextualStateVar {
-  val stateVarName = List("issuer", "maker", "max", "total", "unity", "description")
+  val stateVarName = List("issuer", "maker")
 }
