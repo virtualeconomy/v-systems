@@ -31,10 +31,10 @@ class RegisterContractTransactionDiffTest extends PropSpec
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
-  val preconditionAndBuildRegContract: Gen[(Array[Byte], Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
+  val preconditionAndBuildRegContract: Gen[(Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
     langCode <- languageCodeFromLengthGen("vdds")
     langVer <- languageVersionFromLengthGen(1)
-    init <- initFunGen()
+    init <- triggerGen()
     descriptor <- descriptorFullGen()
     stateVar <- stateVarRandomGen()
     textual <- textureRightGen
@@ -48,7 +48,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
 
   val languageCode: String = "vdds"
   val languageVersion: Int = 1
-  val validContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val validContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndRegContractTest: Gen[(GenesisTransaction, RegisterContractTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen

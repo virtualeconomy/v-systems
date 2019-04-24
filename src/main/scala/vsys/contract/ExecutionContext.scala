@@ -28,7 +28,7 @@ object ExecutionContext {
                    tx: RegisterContractTransaction): Either[ValidationError, ExecutionContext] = {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
-    val opcFunc = tx.contract.initializer
+    val opcFunc = tx.contract.trigger.find(a => (a.length > 2) && (a(2) == 0.toByte)).getOrElse(Array[Byte]())
     val stateVar = tx.contract.stateVar
     val description = Deser.serilizeString(tx.description)
     Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, stateVar, description))

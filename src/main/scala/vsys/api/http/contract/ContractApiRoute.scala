@@ -77,7 +77,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       case Success(id) => state.contractContent(id) match {
         case Some((_, _, ct)) => Right(Json.obj(
           "contractId" -> contractIdStr,
-          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.texture.last)).zipped.map { (a, b) =>
+          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textualForm.last)).zipped.map { (a, b) =>
             (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }))
         )
         case None => Left(InvalidAddress)

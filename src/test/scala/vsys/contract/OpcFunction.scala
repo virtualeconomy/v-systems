@@ -1,7 +1,8 @@
 package vsys.contract
 
-import com.google.common.primitives.{Chars, Shorts}
+import com.google.common.primitives.Shorts
 import org.scalacheck.{Arbitrary, Gen}
+import scorex.serialization.Deser
 
 import scala.util.Random
 
@@ -11,12 +12,24 @@ trait OpcFunction extends FunId with ProtoType with ListOpc {
     funId <- funIdx
     protoType <- protoTypeGen
     listOpc <- listOpcGen
-    fun <- Gen.const(funId.array ++ protoType.array ++ listOpc.array)
+    fun <- Gen.const(funId.array ++ Array(0.toByte) ++ protoType.array ++ listOpc.array)
   } yield fun
 
   def aFunctionRandomGen(): Gen[Array[Byte]] = for {
     fun <- aFunctionGen(randomFunIdGen, protoTypeRandomGen, listOpcLinesRandom)
   } yield fun
+
+  def triggerGen(): Gen[Seq[Array[Byte]]] = for {
+    init <- initFunGen()
+  } yield Seq(init)
+
+  def triggerWrongParaGen(): Gen[Seq[Array[Byte]]] = for {
+    init <- initFunWrongParaGen()
+  } yield Seq(init)
+
+  def triggerWrongTDBGen(): Gen[Seq[Array[Byte]]] = for {
+    init <- initWrongTDBFunGen()
+  } yield Seq(init)
 
   def descriptorFullGen(): Gen[Seq[Array[Byte]]] = for {
     supersede <- supersedeFunGen()
@@ -152,56 +165,56 @@ object FunId {
 
 trait ProtoType {
   import ProtoType._
-  def protoTypeGen(returnType: Byte, listParaTypes: List[Byte]): Gen[Array[Byte]] = for {
-    len <- Gen.const(Shorts.toByteArray((listParaTypes.length + 1).toShort))
-    retType <- Gen.const(Array(returnType))
-    listPT <- Gen.const(listParaTypes.toArray)
-    protoType <- Gen.const(len.array ++ retType.array ++ listPT.array)
+  def protoTypeGen(listReturnType: Array[Byte], listParaTypes: Array[Byte]): Gen[Array[Byte]] = for {
+    retType <- Gen.const(Deser.serializeArray(listReturnType))
+    paraType <- Gen.const(Deser.serializeArray(listParaTypes))
+    protoType <- Gen.const(retType.array ++ paraType.array)
   } yield protoType
 
-  val returnType: Byte = 0
-  val protoTypeInitWrongGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaTypeWrong)
-  val protoTypeInitGen: Gen[Array[Byte]] = protoTypeGen(returnType, initParaType)
-  val protoTypeSupersedeGen: Gen[Array[Byte]] = protoTypeGen(returnType, supersedeParaType)
-  val protoTypeIssueGen: Gen[Array[Byte]] = protoTypeGen(returnType, issueParaType)
-  val protoTypeDestroyGen: Gen[Array[Byte]] = protoTypeGen(returnType, destroyParaType)
-  val protoTypeSplitGen: Gen[Array[Byte]] = protoTypeGen(returnType, splitParaType)
-  val protoTypeSendGen: Gen[Array[Byte]] = protoTypeGen(returnType, sendParaType)
-  val protoTypeTransferGen: Gen[Array[Byte]] = protoTypeGen(returnType, transferParaType)
-  val protoTypeDepositGen: Gen[Array[Byte]] = protoTypeGen(returnType, depositParaType)
-  val protoTypeWithdrawGen: Gen[Array[Byte]] = protoTypeGen(returnType, withdrawParaType)
-  val protoTypeTotalSupplyGen: Gen[Array[Byte]] = protoTypeGen(DataType.Amount.id.toByte, totalSupplyParaType)
-  val protoTypeMaxSupplyGen: Gen[Array[Byte]] = protoTypeGen(DataType.Amount.id.toByte, maxSupplyParaType)
-  val protoTypeBalanceOfGen: Gen[Array[Byte]] = protoTypeGen(DataType.Amount.id.toByte, balanceOfParaType)
-  val protoTypeGetIssuerGen: Gen[Array[Byte]] = protoTypeGen(DataType.Account.id.toByte, getIssuerParaType)
+  val nonReturnType: Array[Byte] = Array()
+  val protoTypeInitWrongGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, initParaTypeWrong)
+  val protoTypeInitGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, initParaType)
+  val protoTypeSupersedeGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, supersedeParaType)
+  val protoTypeIssueGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, issueParaType)
+  val protoTypeDestroyGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, destroyParaType)
+  val protoTypeSplitGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, splitParaType)
+  val protoTypeSendGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, sendParaType)
+  val protoTypeTransferGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, transferParaType)
+  val protoTypeDepositGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, depositParaType)
+  val protoTypeWithdrawGen: Gen[Array[Byte]] = protoTypeGen(nonReturnType, withdrawParaType)
+  val protoTypeTotalSupplyGen: Gen[Array[Byte]] = protoTypeGen(Array(DataType.Amount.id.toByte), totalSupplyParaType)
+  val protoTypeMaxSupplyGen: Gen[Array[Byte]] = protoTypeGen(Array(DataType.Amount.id.toByte), maxSupplyParaType)
+  val protoTypeBalanceOfGen: Gen[Array[Byte]] = protoTypeGen(Array(DataType.Amount.id.toByte), balanceOfParaType)
+  val protoTypeGetIssuerGen: Gen[Array[Byte]] = protoTypeGen(Array(DataType.Account.id.toByte), getIssuerParaType)
 
   private val minParaTypeSize: Short = 2
   private val maxParaTypeSize: Short = 128
 
   val protoTypeRandomGen: Gen[Array[Byte]] = for {
-    length <- Gen.chooseNum(minParaTypeSize, maxParaTypeSize)
-    returnType <- Gen.numChar
-    listParaTypes <- Gen.listOfN(length - 1, Arbitrary.arbitrary[Byte]).map(_.toArray)
-  } yield Shorts.toByteArray(length) ++ Chars.toByteArray(returnType) ++ listParaTypes
+    l1 <- Gen.chooseNum(0, maxParaTypeSize)
+    l2 <- Gen.chooseNum(minParaTypeSize, maxParaTypeSize)
+    nonReturnType <- Gen.listOfN(l1, Arbitrary.arbitrary[Byte]).map(_.toArray)
+    listParaTypes <- Gen.listOfN(l2, Arbitrary.arbitrary[Byte]).map(_.toArray)
+  } yield Deser.serializeArray(nonReturnType) ++ Deser.serializeArray(listParaTypes)
 }
 
 object ProtoType {
-  val initParaTypeWrong: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte)
-  val initParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
-  val supersedeParaType: List[Byte] = List(DataType.Account.id.toByte)
-  val issueParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val destroyParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val splitParaType: List[Byte] = List(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val sendParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val transferParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val depositParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val initParaTypeWrong: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte)
+  val initParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
+  val supersedeParaType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val issueParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val destroyParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val splitParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val sendParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val transferParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val depositParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
   // val depositParaType: List[Byte] = List(DataType.Address.id.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val withdrawParaType: List[Byte] = List(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
+  val withdrawParaType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
   //val withdrawParaType: List[Byte] = List(DataType.Address.id.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val totalSupplyParaType: List[Byte] = List(DataType.Int32.id.toByte)
-  val maxSupplyParaType: List[Byte] = List(DataType.Int32.id.toByte)
-  val balanceOfParaType: List[Byte] = List(DataType.Account.id.toByte, DataType.Int32.id.toByte)
-  val getIssuerParaType: List[Byte] = List.empty
+  val totalSupplyParaType: Array[Byte] = Array(DataType.Int32.id.toByte)
+  val maxSupplyParaType: Array[Byte] = Array(DataType.Int32.id.toByte)
+  val balanceOfParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Int32.id.toByte)
+  val getIssuerParaType: Array[Byte] = Array.empty
 }
 
 trait ListOpc extends ByteArrayGen {

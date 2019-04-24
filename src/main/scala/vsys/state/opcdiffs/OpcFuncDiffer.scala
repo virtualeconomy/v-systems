@@ -24,7 +24,7 @@ object OpcFuncDiffer extends ScorexLogging {
     val tx = executionContext.transaction
     val s = executionContext.state
     fromBytes(opcFunc) match {
-      case Success((_, _, listParaTypes, listOpcLines)) =>
+      case Success((_, _, _, listParaTypes, listOpcLines)) =>
         if (!checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
           Left(ValidationError.InvalidDataEntry)
         } else if (listOpcLines.forall(_.length < 2)) {
@@ -45,14 +45,14 @@ object OpcFuncDiffer extends ScorexLogging {
     }
   }
 
-  private def fromBytes(bytes: Array[Byte]): Try[(Short, Byte, Array[Byte], Seq[Array[Byte]])] = Try {
+  private def fromBytes(bytes: Array[Byte]): Try[(Short, Byte, Array[Byte], Array[Byte], Seq[Array[Byte]])] = Try {
     val funcIdx = Shorts.fromByteArray(bytes.slice(0, 2))
-    val (protoTypeBytes, protoTypeEnd) = Deser.parseArraySize(bytes, 2)
-    val returnType = protoTypeBytes.head
-    val listParaTypes = protoTypeBytes.tail
-    val (listOpcLinesBytes, _) = Deser.parseArraySize(bytes, protoTypeEnd)
+    val funcType = bytes(2)
+    val (listReturnTypes, listReturnTypeEnd) = Deser.parseArraySize(bytes, 3)
+    val (listParaTypes, listParaTypeEnd) = Deser.parseArraySize(bytes, listReturnTypeEnd)
+    val (listOpcLinesBytes, _) = Deser.parseArraySize(bytes, listParaTypeEnd)
     val listOpcLines = Deser.parseArrays(listOpcLinesBytes)
-    (funcIdx, returnType, listParaTypes, listOpcLines)
+    (funcIdx, funcType,listReturnTypes, listParaTypes, listOpcLines)
   }
 
 }

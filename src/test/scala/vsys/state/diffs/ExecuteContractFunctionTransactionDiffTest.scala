@@ -32,10 +32,10 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
-  val preconditionAndBuildExecuteContract: Gen[(Array[Byte], Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
+  val preconditionAndBuildExecuteContract: Gen[(Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
     langCode <- languageCodeFromLengthGen("vdds")
     langVer <- languageVersionFromLengthGen(1)
-    init <- initFunGen()
+    init <- triggerGen()
     descriptor <- descriptorFullGen()
     stateVar <- stateVarRandomGen()
     textual <- textureRightGen
@@ -50,7 +50,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
   val languageCode: String = "vdds"
   val languageVersion: Int = 1
 
-  val newValidContractTest: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newValidContractTest: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     user <- accountGen
@@ -115,7 +115,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newValidContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newValidContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractWithInvalidData: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen
@@ -168,7 +168,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractIssue: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     invalidUser <- accountGen
@@ -232,7 +232,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractSend: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractSend: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractSend: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -280,7 +280,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractSupersede: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractSupersede: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractSupersede: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     newIssuer <- accountGen
@@ -324,7 +324,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractSplit: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractSplit: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractSplit: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -353,7 +353,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractDestroy: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractDestroy: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractDestroy: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -398,7 +398,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractTransfer: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractTransfer: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractTransfer: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -434,7 +434,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractDeposit: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractDeposit: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractDeposit: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -470,7 +470,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractWithdraw: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractWithdraw: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractWithdraw: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -512,7 +512,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractTotalSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractTotalSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractTotalSupply: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -548,7 +548,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractMaxSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractMaxSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractMaxSupply: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -584,7 +584,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractBalanceOf: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractBalanceOf: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractBalanceOf: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -620,7 +620,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractGetIssuer: Gen[Contract] = contractNewGen(languageCode, languageVersion, initFunGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractGetIssuer: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
   val preconditionsAndExecuteContractGetIssuer: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen

@@ -15,24 +15,26 @@ import scala.util.{Success, Try}
 sealed trait Contract {
 
   lazy val stringRepr: String = Contract.Prefix + Base58.encode(languageCode) + ":" + Base58.encode(languageVersion)
-  lazy val bytes: ByteStr = ByteStr(languageCode ++ languageVersion ++ Deser.serializeArray(initializer)
+  lazy val bytes: ByteStr = ByteStr(languageCode ++ languageVersion
+    ++ Deser.serializeArray(Deser.serializeArrays(trigger))
     ++ Deser.serializeArray(Deser.serializeArrays(descriptor))
-    ++ Deser.serializeArray(Deser.serializeArrays(stateVar)) ++ Deser.serializeArrays(texture))
+    ++ Deser.serializeArray(Deser.serializeArrays(stateVar))
+    ++ Deser.serializeArrays(textualForm))
 
-  val initializer: Array[Byte]
+  val trigger: Seq[Array[Byte]]
   val descriptor: Seq[Array[Byte]]
   val stateVar: Seq[Array[Byte]]
-  val texture: Seq[Array[Byte]]
+  val textualForm: Seq[Array[Byte]]
   val languageCode: Array[Byte]
   val languageVersion: Array[Byte]
 
   lazy val json: JsObject = Json.obj(
     "languageCode" -> Deser.deserilizeString(languageCode),
     "languageVersion" -> Ints.fromByteArray(languageVersion),
-    "initializer" -> Base58.encode(initializer),
+    "trigger" -> trigger.map(p => Base58.encode(p)),
     "descriptor" -> descriptor.map(p => Base58.encode(p)),
     "stateVar" -> stateVar.map(p => Base58.encode(p)),
-    "texture" -> texture.map(p => Base58.encode(p))
+    "textualForm" -> textualForm.map(p => Base58.encode(p))
   )
 }
 
@@ -48,26 +50,27 @@ object Contract extends ScorexLogging {
   val LanguageVersionByte: Array[Byte] = Ints.toByteArray(1)
 
   def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte],
-                    initializer: Array[Byte], descriptor: Seq[Array[Byte]],
-                    stateVar: Seq[Array[Byte]], texture: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
+                    trigger: Seq[Array[Byte]], descriptor: Seq[Array[Byte]],
+                    stateVar: Seq[Array[Byte]], textualForm: Seq[Array[Byte]]): Either[ValidationError, Contract] = {
     case class ContractImpl(languageCode: Array[Byte], languageVersion: Array[Byte],
-                            initializer: Array[Byte], descriptor: Seq[Array[Byte]],
-                            stateVar: Seq[Array[Byte]], texture: Seq[Array[Byte]]) extends Contract
-    Right(ContractImpl(languageCode, languageVersion, initializer, descriptor, stateVar, texture))
+                            trigger: Seq[Array[Byte]], descriptor: Seq[Array[Byte]],
+                            stateVar: Seq[Array[Byte]], textualForm: Seq[Array[Byte]]) extends Contract
+    Right(ContractImpl(languageCode, languageVersion, trigger, descriptor, stateVar, textualForm))
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, Contract] = {
     val contract = Try {
       val languageCode = bytes.slice(0, LanguageCodeByteLength)
       val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
-      val (initializer, initializerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
-      val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, initializerEnd)
+      val (triggerBytes, triggerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
+      val trigger = Deser.parseArrays(triggerBytes)
+      val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, triggerEnd)
       val descriptor = Deser.parseArrays(descriptorBytes)
       val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
       val stateVar = Deser.parseArrays(stateVarBytes)
       val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
       if (isByteArrayValid(bytes, texture)){
-        buildContract(languageCode, languageVersion, initializer, descriptor, stateVar, texture)
+        buildContract(languageCode, languageVersion, trigger, descriptor, stateVar, texture)
       } else {
         Left(InvalidContract)
       }

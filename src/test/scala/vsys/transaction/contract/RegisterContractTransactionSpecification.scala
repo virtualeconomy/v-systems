@@ -30,7 +30,7 @@ class RegisterContractTransactionSpecification extends PropSpec with PropertyChe
     first.feeScale shouldEqual second.feeScale
     first.contractId.bytes.arr shouldEqual second.contractId.bytes.arr
     first.contract.descriptor.toArray shouldEqual second.contract.descriptor.toArray
-    first.contract.initializer shouldEqual second.contract.initializer
+    first.contract.trigger.toArray shouldEqual second.contract.trigger.toArray
     first.contract.languageCode shouldEqual second.contract.languageCode
     first.contract.languageVersion shouldEqual second.contract.languageVersion
     first.data.flatMap(_.bytes).toArray shouldEqual second.data.flatMap(_.bytes).toArray
