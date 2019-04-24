@@ -218,7 +218,7 @@ object ContractTranslator extends App {
 
       case opcType: Byte if opcType == OpcType.TDBROpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBRType.GetTDBR.id => "opc_tdbr_get tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + nameList(data(4))
+          case opcType: Byte if opcType == TDBRType.MaxTDBR.id => "opc_tdbr_get tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + nameList(data(4))
           case opcType: Byte if opcType == TDBRType.TotalTDBR.id => "opc_tdbr_total tdb." + stateNameList(data(2)) + " " + nameList(data(3)) + " "  + nameList(data(4))
           case _ => "--- invalid opc code ---"
         }

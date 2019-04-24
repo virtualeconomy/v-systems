@@ -8,9 +8,7 @@ object ContractPermitted {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1), initFunc,
     Seq(supersedeFunc, issueFunc, destroyFunc, splitFunc, sendFunc, transferFunc, depositFunc, withdrawFunc,
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
-    Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte),
-      Array(StateVar.max, DataType.Amount.id.toByte), Array(StateVar.total, DataType.Amount.id.toByte),
-      Array(StateVar.unity, DataType.Amount.id.toByte), Array(StateVar.shortText, DataType.ShortText.id.toByte)),
+    Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte)),
     Seq(initializerTexture, descriptorTexture, stateVarTexture)
   ).right.get
 
@@ -18,33 +16,16 @@ object ContractPermitted {
     Seq(supersedeFuncWithoutSplit, issueFuncWithoutSplit, destroyFuncWithoutSplit, sendFuncWithoutSplit,
       transferFuncWithoutSplit, depositFuncWithoutSplit, withdrawFuncWithoutSplit, totalSupplyFuncWithoutSplit,
       maxSupplyFuncWithoutSplit, balanceOfFuncWithoutSplit, getIssuerFuncWithoutSplit),
-    Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte),
-      Array(StateVar.max, DataType.Amount.id.toByte), Array(StateVar.total, DataType.Amount.id.toByte),
-      Array(StateVar.unity, DataType.Amount.id.toByte), Array(StateVar.shortText, DataType.ShortText.id.toByte)),
+    Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte)),
     Seq(initializerTexture, descriptorTextureWithoutSplit, stateVarTexture)
   ).right.get
 
   object FunId {
     val init: Short = 0
-    val supersede: Short = 1
-    val issue: Short = 2
-    val destroy: Short = 3
-    val split: Short = 4
-    val send: Short = 5
-    val transfer: Short = 6
-    val deposit: Short = 7
-    val withdraw: Short = 8
-    val totalSupply: Short = 9
-    val maxSupply: Short = 10
-    val balanceOf: Short = 11
-    val getIssuer: Short = 12
-  }
-
-  object FunIdWithoutSplit {
-    val init: Short = 0
-    val supersede: Short = 1
-    val issue: Short = 2
-    val destroy: Short = 3
+    val supersede: Short = 0
+    val issue: Short = 1
+    val destroy: Short = 2
+    val split: Short = 3
     val send: Short = 4
     val transfer: Short = 5
     val deposit: Short = 6
@@ -53,6 +34,21 @@ object ContractPermitted {
     val maxSupply: Short = 9
     val balanceOf: Short = 10
     val getIssuer: Short = 11
+  }
+
+  object FunIdWithoutSplit {
+    val init: Short = 0
+    val supersede: Short = 0
+    val issue: Short = 1
+    val destroy: Short = 2
+    val send: Short = 3
+    val transfer: Short = 4
+    val deposit: Short = 5
+    val withdraw: Short = 6
+    val totalSupply: Short = 7
+    val maxSupply: Short = 8
+    val balanceOf: Short = 9
+    val getIssuer: Short = 10
   }
 
   object ProtoType {
@@ -97,7 +93,7 @@ object ContractPermitted {
     val opcTDBNewToken: Array[Byte] = Array(OpcDiffer.OpcType.TDBOpc.id.toByte, TDBOpcDiff.TDBType.NewTokenTDB.id.toByte)
     val opcTDBSplit: Array[Byte] = Array(OpcDiffer.OpcType.TDBOpc.id.toByte, TDBOpcDiff.TDBType.SplitTDB.id.toByte)
 
-    val opcTDBROpcGet: Array[Byte] = Array(OpcDiffer.OpcType.TDBROpc.id.toByte, TDBROpcDiff.TDBRType.GetTDBR.id.toByte)
+    val opcTDBROpcMax: Array[Byte] = Array(OpcDiffer.OpcType.TDBROpc.id.toByte, TDBROpcDiff.TDBRType.MaxTDBR.id.toByte)
     val opcTDBROpcTotal: Array[Byte] = Array(OpcDiffer.OpcType.TDBROpc.id.toByte, TDBROpcDiff.TDBRType.TotalTDBR.id.toByte)
 
     val opcTDBADeposit: Array[Byte] = Array(OpcDiffer.OpcType.TDBAOpc.id.toByte, TDBAOpcDiff.TDBAType.DepositTDBA.id.toByte)
@@ -112,10 +108,6 @@ object ContractPermitted {
   object StateVar {
     val issuer: Byte = 0
     val maker: Byte = 1
-    val max: Byte = 2
-    val total: Byte = 3
-    val unity: Byte = 4
-    val shortText: Byte = 5
   }
 
   object DataStack {
@@ -211,17 +203,14 @@ object ContractPermitted {
     val opcAssertIsCallerOriginWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.receiptIndex)
     val opcAssertIsMakerOriginSupersedeIndex: Array[Byte] = Array(DataStack.supersedeIndex.maker)
 
-    val opcTDBNewTokenIndex: Array[Byte] = Array(StateVar.max, StateVar.total, StateVar.unity, StateVar.shortText,
-      DataStack.initInput.maxIndex, DataStack.initInput.unityIndex, DataStack.initInput.shortTextIndex)
-    val opcTDBSplitIndex: Array[Byte] = Array(StateVar.unity, DataStack.splitInput.amountIndex, DataStack.splitInput.tokenIndex)
+    val opcTDBNewTokenIndex: Array[Byte] = Array(DataStack.initInput.maxIndex, DataStack.initInput.unityIndex, DataStack.initInput.shortTextIndex)
+    val opcTDBSplitIndex: Array[Byte] = Array(DataStack.splitInput.amountIndex, DataStack.splitInput.tokenIndex)
 
-    val opcTDBRTotalIndex: Array[Byte] = Array(StateVar.total, DataStack.totalSupplyInput.tokenIndex, 1.toByte)
-    val opcTDBRMaxIndex: Array[Byte] = Array(StateVar.max, DataStack.maxSupplyInput.tokenIndex, 1.toByte)
+    val opcTDBRTotalIndex: Array[Byte] = Array(DataStack.totalSupplyInput.tokenIndex, 1.toByte)
+    val opcTDBRMaxIndex: Array[Byte] = Array(DataStack.maxSupplyInput.tokenIndex, 1.toByte)
 
-    val opcTDBADepositIssueIndex: Array[Byte] = Array(StateVar.max, StateVar.total, DataStack.issueInput.issuerGetIndex,
-      DataStack.issueInput.amountIndex, DataStack.issueInput.tokenIndex)
-    val opcTDBAWithdrawDestroyIndex: Array[Byte] = Array(StateVar.total, DataStack.destroyInput.issuerGetIndex,
-      DataStack.destroyInput.amountIndex, DataStack.destroyInput.tokenIndex)
+    val opcTDBADepositIssueIndex: Array[Byte] = Array(DataStack.issueInput.issuerGetIndex, DataStack.issueInput.amountIndex, DataStack.issueInput.tokenIndex)
+    val opcTDBAWithdrawDestroyIndex: Array[Byte] = Array(DataStack.destroyInput.issuerGetIndex, DataStack.destroyInput.amountIndex, DataStack.destroyInput.tokenIndex)
     val opcTDBATransferSendIndex: Array[Byte] = Array(DataStack.sendInput.callerLoadIndex, DataStack.sendInput.receiptIndex, DataStack.sendInput.amountIndex, DataStack.sendInput.tokenIndex)
     val opcTDBATransferTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex, DataStack.transferInput.receiptIndex, DataStack.transferInput.amountIndex, DataStack.transferInput.tokenIndex)
     val opcTDBATransferDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex, DataStack.depositInput.smartIndex, DataStack.depositInput.amountIndex, DataStack.depositInput.tokenIndex)
@@ -263,7 +252,7 @@ object ContractPermitted {
     val totalSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcTotal, OpcId.opcReturnValue)
     val totalSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRTotalIndex, Array(1.toByte))
     // maxSupplyOpc
-    val maxSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcGet, OpcId.opcReturnValue)
+    val maxSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcMax, OpcId.opcReturnValue)
     val maxSupplyOpcIndex: List[Array[Byte]] = List(opcTDBRMaxIndex, Array(1.toByte))
     // balanceOfOpc
     val balanceOfOpc: List[Array[Byte]] = List(OpcId.opcTDBARBalance, OpcId.opcReturnValue)

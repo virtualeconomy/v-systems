@@ -18,7 +18,7 @@ import scorex.transaction._
 import scorex.utils.Time
 import vsys.wallet.Wallet
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
 @Path("/contract")
 @Api(value = "/contract")
@@ -97,18 +97,15 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
 
   private def tokenInfoJson(tokenIdStr: String): Either[ApiError, JsObject] = {
     ByteStr.decodeBase58(tokenIdStr) match {
-      case Success(id) => Try(id.arr.slice(0, id.arr.length-4)) match {
-        case Success(contractId) => state.contractContent(ByteStr(contractId)) match {
-          case Some((_, _, ct)) => Right(Json.obj(
-            "tokenId" -> tokenIdStr,
-            "info" -> JsArray((ct.stateVar, paraFromBytes(ct.texture.last)).zipped.map { (a, b) =>
-              (state.tokenInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) } ++
-              (ct.stateVar, paraFromBytes(ct.texture.last)).zipped.map { (a, b) =>
-                (state.tokenAccountBalance(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1 > 0).map { a => Json.obj("data" -> a._1, "type" -> "Amount", "name" -> a._2) })))
-          case None => Left(InvalidAddress)
-        }
-        case _ => Left(InvalidAddress)
-      }
+      case Success(id) => Right(Json.obj(
+        "tokenId" -> tokenIdStr,
+        "info" -> JsArray((Array(0), Array("max")).zipped.map {
+              (a, b) => (state.tokenInfo(ByteStr(id.arr ++ Array(a.toByte))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2)} ++
+              (Array(1), Array("total")).zipped.map {
+                (a, b) => (state.tokenAccountBalance(ByteStr(id.arr ++ Array(a.toByte))), b) }.filter(_._1 > 0).map { a => Json.obj("data" -> a._1, "type" -> "Amount", "name" -> a._2) } ++
+              (Array(2, 3), Array("unity", "description")).zipped.map {
+                (a, b) => (state.tokenInfo(ByteStr(id.arr ++ Array(a.toByte))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2)})
+      ))
       case _ => Left(InvalidAddress)
     }
   }

@@ -27,7 +27,7 @@ trait OpcId {
   val TDBNewTokenGen: Gen[Array[Byte]] = opcGen(opcTDBNewToken)
   val TDBSplitGen: Gen[Array[Byte]] = opcGen(opcTDBSplit)
 
-  val TDBROpcGet: Gen[Array[Byte]] = opcGen(opcTDBROpcGet)
+  val TDBROpcMaxGet: Gen[Array[Byte]] = opcGen(opcTDBROpcMax)
   val TDBROpcTotalGen: Gen[Array[Byte]] = opcGen(opcTDBROpcTotal)
 
   val TDBADepositGen: Gen[Array[Byte]] = opcGen(opcTDBADeposit)
@@ -56,7 +56,7 @@ object OpcId {
   val opcTDBNewToken: Array[Byte] = Array(OpcDiffer.OpcType.TDBOpc.id.toByte, TDBOpcDiff.TDBType.NewTokenTDB.id.toByte)
   val opcTDBSplit: Array[Byte] = Array(OpcDiffer.OpcType.TDBOpc.id.toByte, TDBOpcDiff.TDBType.SplitTDB.id.toByte)
 
-  val opcTDBROpcGet: Array[Byte] = Array(OpcDiffer.OpcType.TDBROpc.id.toByte, TDBROpcDiff.TDBRType.GetTDBR.id.toByte)
+  val opcTDBROpcMax: Array[Byte] = Array(OpcDiffer.OpcType.TDBROpc.id.toByte, TDBROpcDiff.TDBRType.MaxTDBR.id.toByte)
   val opcTDBROpcTotal: Array[Byte] = Array(OpcDiffer.OpcType.TDBROpc.id.toByte, TDBROpcDiff.TDBRType.TotalTDBR.id.toByte)
 
   val opcTDBADeposit: Array[Byte] = Array(OpcDiffer.OpcType.TDBAOpc.id.toByte, TDBAOpcDiff.TDBAType.DepositTDBA.id.toByte)

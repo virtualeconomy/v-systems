@@ -14,6 +14,7 @@ object TDBAROpcDiff {
   // for tokenAccountBalance DB
   def balance(context: ExecutionContext)(address: DataEntry, tokenIndex: DataEntry,
                                          dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+
     if (tokenIndex.dataType != DataType.Int32 || address.dataType != DataType.Address) {
       Left(GenericError("Input contains invalid dataType"))
     } else if (pointer > dataStack.length || pointer < 0) {
@@ -31,7 +32,6 @@ object TDBAROpcDiff {
       }
     }
   }
-
 
   object TDBARType extends Enumeration {
     val BalanceTBDAR= Value(1)

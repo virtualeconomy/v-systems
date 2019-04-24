@@ -15,16 +15,10 @@ trait StateVar {
   } yield stateVar
 
   val stateVarRightGen: Gen[Seq[Array[Byte]]] = stateVarGen(Seq(Array(issuer, DataType.Address.id.toByte),
-    Array(maker, DataType.Address.id.toByte), Array(max, DataType.Amount.id.toByte),
-    Array(total, DataType.Amount.id.toByte), Array(unity, DataType.Amount.id.toByte),
-    Array(shortText, DataType.ShortText.id.toByte)))
+    Array(maker, DataType.Address.id.toByte)))
 }
 
 object StateVar {
   val issuer: Byte = 0
   val maker: Byte = 1
-  val max: Byte = 2
-  val total: Byte = 3
-  val unity: Byte = 4
-  val shortText: Byte = 5
 }

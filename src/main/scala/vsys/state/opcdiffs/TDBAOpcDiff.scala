@@ -7,19 +7,15 @@ import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.GenericError
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
-import vsys.contract.Contract.checkStateVar
 
 import scala.util.{Left, Right, Try}
 
 object TDBAOpcDiff {
 
   def deposit(context: ExecutionContext)
-             (stateVarMax: Array[Byte], stateVarTotal: Array[Byte], issuer: DataEntry,
-              amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+             (issuer: DataEntry, amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
-    if (!checkStateVar(stateVarTotal, DataType.Amount) || !checkStateVar(stateVarMax, DataType.Amount)) {
-      Left(GenericError(s"Wrong stateVariable"))
-    } else if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
+    if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
@@ -27,10 +23,10 @@ object TDBAOpcDiff {
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val depositAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
-      val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
+      val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(1.toByte)))
       val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val currentTotal = context.state.tokenAccountBalance(tokenTotalKey)
-      val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarMax(0))))
+      val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(0.toByte)))
       val tokenMax = Longs.fromByteArray(context.state.tokenInfo(tokenMaxKey).getOrElse(
         DataEntry(Longs.toByteArray(0), DataType.Amount)).data)
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
@@ -50,12 +46,9 @@ object TDBAOpcDiff {
   }
 
   def withdraw(context: ExecutionContext)
-              (stateVarTotal: Array[Byte], issuer: DataEntry, amount: DataEntry,
-               tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+              (issuer: DataEntry, amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
-    if (!checkStateVar(stateVarTotal, DataType.Amount)) {
-      Left(GenericError(s"Wrong stateVariable"))
-    } else if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
+    if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
@@ -63,7 +56,7 @@ object TDBAOpcDiff {
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val withdrawAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
-      val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(stateVarTotal(0))))
+      val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(1.toByte)))
       val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val issuerCurrentBalance = context.state.tokenAccountBalance(issuerBalanceKey)
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
@@ -83,11 +76,15 @@ object TDBAOpcDiff {
   }
 
   def transfer(context: ExecutionContext)
-              (sender: DataEntry, recipient: DataEntry,
-               amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+              (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+               tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
-    if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address)
-      || (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
+    if (sender.dataType == DataType.ContractAccount) {
+      Left(GenericError("Contract does not support withdraw"))
+    } else if (recipient.dataType == DataType.ContractAccount) {
+      Left(GenericError("Contract does not support deposit"))
+    } else if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address) ||
+      (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
       Left(GenericError("Input contains invalid dataType"))
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
@@ -125,17 +122,17 @@ object TDBAOpcDiff {
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes, 6, context.stateVar.length, data.length, 3) =>
-      deposit(context)(context.stateVar(bytes(1)), context.stateVar(bytes(2)), data(bytes(3)), data(bytes(4)), data(bytes(5)))
-    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes, 5, context.stateVar.length, data.length, 2) =>
-      withdraw(context)(context.stateVar(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
-    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes, 5, context.stateVar.length, data.length, 1) =>
+    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,4, data.length) =>
+      deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,4, data.length) =>
+      withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,5, data.length) =>
       transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
     case _ => Left(GenericError("Wrong TDBA opcode"))
   }
 
-  private def checkInput(bytes: Array[Byte], bLength: Int, stateVarLength: Int, dataLength: Int, sep: Int): Boolean = {
-    bytes.length == bLength && bytes.slice(1, sep).forall(_ < stateVarLength) && bytes.slice(sep, bLength).forall(_ < dataLength) && bytes.tail.min >= 0
+  private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
+    bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
   }
 
 }
