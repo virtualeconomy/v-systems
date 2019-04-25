@@ -72,7 +72,11 @@ object OpcDiffer {
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
-    case opcType: Byte if opcType == OpcType.ReturnOpc.id => Left(GenericError("Invalid Opc type"))
+    case opcType: Byte if opcType == OpcType.ReturnOpc.id =>
+      ReturnOpcDiff.parseBytes(context)(opc.tail, data) match {
+        case Right(d: Seq[DataEntry]) => Right((OpcDiff.empty, d))
+        case Left(validationError: ValidationError) => Left(validationError)
+      }
 
     case _ => Left(GenericError("Invalid Opc type"))
 

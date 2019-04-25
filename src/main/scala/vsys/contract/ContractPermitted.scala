@@ -2,7 +2,7 @@ package vsys.contract
 
 import com.google.common.primitives.{Bytes, Ints, Shorts}
 import scorex.serialization.Deser
-import vsys.state.opcdiffs.{AssertOpcDiff, CDBVOpcDiff, CDBVROpcDiff, LoadOpcDiff, OpcDiffer, TDBAOpcDiff, TDBAROpcDiff, TDBOpcDiff, TDBROpcDiff}
+import vsys.state.opcdiffs.{AssertOpcDiff, CDBVOpcDiff, CDBVROpcDiff, LoadOpcDiff, OpcDiffer, ReturnOpcDiff, TDBAOpcDiff, TDBAROpcDiff, TDBOpcDiff, TDBROpcDiff}
 
 object ContractPermitted {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1), Seq(initFunc),
@@ -102,7 +102,7 @@ object ContractPermitted {
 
     val opcTDBARBalance: Array[Byte] = Array(OpcDiffer.OpcType.TDBAROpc.id.toByte, TDBAROpcDiff.TDBARType.BalanceTBDAR.id.toByte)
 
-    val opcReturnValue: Array[Byte] = Array(OpcDiffer.OpcType.ReturnOpc.id.toByte, 0x00)
+    val opcReturnValue: Array[Byte] = Array(OpcDiffer.OpcType.ReturnOpc.id.toByte, ReturnOpcDiff.ReturnType.ValueReturn.id.toByte)
   }
 
   object StateVar {
