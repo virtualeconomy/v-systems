@@ -92,21 +92,23 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     new ApiImplicitParam(name = "tokenId", value = "Token ID", required = true, dataType = "string", paramType = "path")
   ))
   def tokenInfo: Route = (get & path("tokenInfo" / Segment)) { tokenId =>
-    complete(tokenInfoJson(tokenId))
-  }
-
-  private def tokenInfoJson(tokenIdStr: String): Either[ApiError, JsObject] = {
-    ByteStr.decodeBase58(tokenIdStr) match {
-      case Success(id) => Right(Json.obj(
-        "tokenId" -> tokenIdStr,
-        "info" -> JsArray((Array(0), Array("max")).zipped.map {
-              (a, b) => (state.tokenInfo(ByteStr(id.arr ++ Array(a.toByte))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2)} ++
-              (Array(1), Array("total")).zipped.map {
-                (a, b) => (state.tokenAccountBalance(ByteStr(id.arr ++ Array(a.toByte))), b) }.filter(_._1 > 0).map { a => Json.obj("data" -> a._1, "type" -> "Amount", "name" -> a._2) } ++
-              (Array(2, 3), Array("unity", "description")).zipped.map {
-                (a, b) => (state.tokenInfo(ByteStr(id.arr ++ Array(a.toByte))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2)})
-      ))
-      case _ => Left(InvalidAddress)
+    ByteStr.decodeBase58(tokenId) match {
+      case Success(id) => {
+        val maxKey = ByteStr(id.arr ++ Array(0.toByte))
+        val totalKey = ByteStr(id.arr ++ Array(1.toByte))
+        val unityKey = ByteStr(id.arr ++ Array(2.toByte))
+        val descKey = ByteStr(id.arr ++ Array(3.toByte))
+        state.tokenInfo(maxKey) match {
+          case Some(x) => complete(Json.obj("tokenId" -> tokenId,
+            "max" -> x.json.value("data"),
+            "total" -> state.tokenAccountBalance(totalKey),
+            "unity" -> state.tokenInfo(unityKey).get.json.value("data"),
+            "description" -> state.tokenInfo(descKey).get.json.value("data")
+          ))
+          case _ => complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Token ID is not in DB"))
+        }
+      }
+      case _ => complete(InvalidAddress)
     }
   }
 
