@@ -427,9 +427,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction transfer successfully"){
     forAll(preconditionsAndExecuteContractTransfer) { case (genesis, regContract, executeContractIssue, executeContractTransfer, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractTransfer), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractTransfer))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
