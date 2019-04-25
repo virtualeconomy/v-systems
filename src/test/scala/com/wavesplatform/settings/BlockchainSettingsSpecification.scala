@@ -36,6 +36,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        allow-multiple-lease-cancel-transaction-until-timestamp = 14
         |        reset-effective-balances-at-height = 15
         |        allow-leased-balance-transfer-until = 17
+        |        allow-contract-transaction-after-height = 0
         |        num-of-slots = 5
         |        minting-speed = 5
         |      }
@@ -64,6 +65,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('C')
     settings.functionalitySettings.numOfSlots should be (5)
     settings.functionalitySettings.mintingSpeed should be (5)
+    settings.functionalitySettings.allowContractTransactionAfterHeight should be (0)
     settings.genesisSettings.blockTimestamp should be(1460678400000L)
     settings.genesisSettings.timestamp should be(1460678400000L)
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("BASE58BLKSGNATURE").toOption)
@@ -93,6 +95,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('T')
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
+    settings.functionalitySettings.allowContractTransactionAfterHeight should be (1) // same as the setting
     settings.genesisSettings.blockTimestamp should be(1535356447650226656L)
     settings.genesisSettings.timestamp should be(1535356447650226656L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
@@ -131,6 +134,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
+    settings.functionalitySettings.allowContractTransactionAfterHeight should be (1) // same as the setting
     settings.genesisSettings.blockTimestamp should be(1543286357457333127L)
     settings.genesisSettings.timestamp should be(1543286357457333127L)
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("3yYNd7quEWaWytrAug4yGwQvpL3PVJegf9d9NTv9PVE3ouBYJs5PTQqxCjd294uK1zPLj6G5Tk447LqFMWdSFvaQ").toOption)
