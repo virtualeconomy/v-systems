@@ -30,7 +30,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
   val languageCode: String = "vdds"
   val languageVersion: Int = 1
 
-  val regWrongParaContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerWrongParaGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val regWrongParaContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerWrongParaGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndRegContractWrongPara: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveLongGen
@@ -51,7 +51,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     }
   }
 
-  val regContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val regContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndRegContract: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveLongGen
@@ -75,7 +75,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     }
   }
 
-  val regWrongOpcFunContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerWrongTDBGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val regWrongOpcFunContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerWrongTDBGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndRegContractWrongFun: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveLongGen

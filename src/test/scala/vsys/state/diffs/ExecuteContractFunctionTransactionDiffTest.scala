@@ -38,7 +38,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     init <- triggerGen()
     descriptor <- descriptorFullGen()
     stateVar <- stateVarRandomGen()
-    textual <- textureRightGen
+    textual <- textualRightGen
   } yield (langCode, langVer, init, descriptor, stateVar, textual)
 
   property("execute contract build doesn't break invariant"){
@@ -50,7 +50,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
   val languageCode: String = "vdds"
   val languageVersion: Int = 1
 
-  val newValidContractTest: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newValidContractTest: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     user <- accountGen
@@ -65,11 +65,11 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     genesis2: GenesisTransaction = GenesisTransaction.create(user, ENOUGH_AMT, -1, ts).right.get
     feeEx: Long <- smallFeeGen
     descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    splitData <- splitDataStackGen(1000, 0)
+    splitData <- splitDataStackGen(1000L)
     supersedeData <- supersedeDataStackGen(user.toAddress)
-    issueData <- issueDataStackGen(10000L, 0)
-    destoryData <- destroyDataStackGen(100L, 0)
-    sendData <- sendDataStackGen(master.toAddress, 500L, 0)
+    issueData <- issueDataStackGen(10000L)
+    destoryData <- destroyDataStackGen(100L)
+    sendData <- sendDataStackGen(master.toAddress, 500L)
     split: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, splitData, descEx, feeEx, feeScale, ts + 1).right.get
     supersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, supersedeData, descEx, feeEx, feeScale, ts + 2).right.get
     issue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.issueIndex, issueData, descEx, feeEx, feeScale, ts + 3).right.get
@@ -115,7 +115,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newValidContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newValidContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractWithInvalidData: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen
@@ -129,8 +129,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeEx: Long <- smallFeeGen
     rep <- mintingAddressGen
     descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    dataForIssueDestorySplit: Seq[DataEntry] <- issueDataStackGen(10000L, 0)
-    dataForSend: Seq[DataEntry] <- sendDataStackGen(rep, 100L, 0)
+    dataForIssueDestorySplit: Seq[DataEntry] <- issueDataStackGen(10000L)
+    dataForSend: Seq[DataEntry] <- sendDataStackGen(rep, 100L)
     dataForSupersede: Seq[DataEntry] <- supersedeDataStackGen(rep)
     invalidData = dataForIssueDestorySplit ++ dataForSend
     invalidIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.issueIndex, dataForSend, descEx, feeEx, feeScale, ts + 1000).right.get
@@ -168,7 +168,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractIssue: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     invalidUser <- accountGen
@@ -182,9 +182,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     fee2: Long <- smallFeeGen
     funcIdx: Short <- Gen.const(FunId.issueIndex)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    dataValid1: Seq[DataEntry] <- issueDataStackGen(10000L,0)
-    dataValid2: Seq[DataEntry] <- issueDataStackGen(99999999L,0)
-    dataFailed: Seq[DataEntry] <- issueDataStackGen(100000001L,0)
+    dataValid1: Seq[DataEntry] <- issueDataStackGen(10000L)
+    dataValid2: Seq[DataEntry] <- issueDataStackGen(99999999L)
+    dataFailed: Seq[DataEntry] <- issueDataStackGen(100000001L)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     genesis2: GenesisTransaction = GenesisTransaction.create(invalidUser, ENOUGH_AMT, -1, ts).right.get
     issueValid1: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataValid1, description2, fee2, feeScale, ts + 1).right.get
@@ -232,7 +232,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractSend: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractSend: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractSend: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -245,14 +245,14 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     fee1: Long <- smallFeeGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.sendIndex)
-    data2: Seq[DataEntry] <- sendDataStackGen(recipient, 100000L,0)
-    invalidData: Seq[DataEntry] <- sendDataStackGen(recipient, 1000000L,0)
+    data2: Seq[DataEntry] <- sendDataStackGen(recipient, 100000L)
+    invalidData: Seq[DataEntry] <- sendDataStackGen(recipient, 1000000L)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale, ts1).right.get
@@ -280,7 +280,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractSupersede: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractSupersede: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractSupersede: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     newIssuer <- accountGen
@@ -294,7 +294,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     fee1: Long <- smallFeeGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
@@ -324,7 +324,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractSplit: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractSplit: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractSplit: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -337,7 +337,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     fee2: Long <- smallFeeGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.splitIndex)
-    data2: Seq[DataEntry] <- splitDataStackGen(10000L, 0)
+    data2: Seq[DataEntry] <- splitDataStackGen(10000L)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts2).right.get
@@ -353,7 +353,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractDestroy: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractDestroy: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractDestroy: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -365,12 +365,12 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee, feeScale, ts).right.get
     fee1: Long <- smallFeeGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     fee2: Long <- smallFeeGen
     funcIdx2: Short <- Gen.const(FunId.destroyIndex)
-    data2: Seq[DataEntry] <- destroyDataStackGen(10000L, 0)
-    invalidData: Seq[DataEntry] <- destroyDataStackGen(100001L, 0)
+    data2: Seq[DataEntry] <- destroyDataStackGen(10000L)
+    invalidData: Seq[DataEntry] <- destroyDataStackGen(100001L)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale, ts + 1000000L).right.get
@@ -398,7 +398,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractTransfer: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractTransfer: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractTransfer: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -412,13 +412,13 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.transferIndex)
-    data2: Seq[DataEntry] <- transferDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 1000L,0)
+    data2: Seq[DataEntry] <- transferDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 1000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
@@ -434,7 +434,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractDeposit: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractDeposit: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractDeposit: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -448,13 +448,13 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.depositIndex)
-    data2: Seq[DataEntry] <- depositDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 1000L,0)
+    data2: Seq[DataEntry] <- depositDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 1000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
@@ -470,7 +470,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractWithdraw: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractWithdraw: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractWithdraw: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -484,18 +484,18 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
-    data2: Seq[DataEntry] <- transferDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 10000L,0)
+    data2: Seq[DataEntry] <- transferDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 10000L)
     funcIdx2: Short <- Gen.const(FunId.transferIndex)
     fee3: Long <- smallFeeGen
     feeScale3: Short <- feeScaleGen
     ts3: Long <- positiveLongGen
     funcIdx3: Short <- Gen.const(FunId.withdrawIndex)
-    data3: Seq[DataEntry] <- withdrawDataStackGen(recipient, PublicKeyAccount(master.publicKey).toAddress, 1000L,0)
+    data3: Seq[DataEntry] <- withdrawDataStackGen(recipient, PublicKeyAccount(master.publicKey).toAddress, 1000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
@@ -512,7 +512,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractTotalSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractTotalSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractTotalSupply: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -526,13 +526,13 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.totalSupplyIndex)
-    data2: Seq[DataEntry] <- totalSupplyDataStackGen(0)
+    data2: Seq[DataEntry] <- emptyDataStackGen()
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
@@ -548,7 +548,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractMaxSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractMaxSupply: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractMaxSupply: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -562,13 +562,13 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.maxSupplyIndex)
-    data2: Seq[DataEntry] <- maxSupplyDataStackGen(0)
+    data2: Seq[DataEntry] <- emptyDataStackGen()
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
@@ -584,7 +584,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractBalanceOf: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractBalanceOf: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractBalanceOf: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -598,13 +598,13 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.balanceOfIndex)
-    data2: Seq[DataEntry] <- balanceOfDataStackGen(PublicKeyAccount(master.publicKey).toAddress, 0)
+    data2: Seq[DataEntry] <- balanceOfDataStackGen(PublicKeyAccount(master.publicKey).toAddress)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
@@ -620,7 +620,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     }
   }
 
-  val newContractGetIssuer: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val newContractGetIssuer: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndExecuteContractGetIssuer: Gen[(GenesisTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -634,7 +634,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
-    data1: Seq[DataEntry] <- issueDataStackGen(100000L,0)
+    data1: Seq[DataEntry] <- issueDataStackGen(100000L)
     recipient <- mintingAddressGen
     fee2: Long <- smallFeeGen
     feeScale2: Short <- feeScaleGen

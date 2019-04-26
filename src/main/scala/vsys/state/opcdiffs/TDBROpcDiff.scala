@@ -155,7 +155,7 @@ object TDBROpcDiff {
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
-    bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
+    bytes.length == bLength && (bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0))
   }
 
 }
