@@ -45,7 +45,7 @@ class OrderHistoryActorSpecification extends TestKit(ActorSystem("MatcherTest"))
     "not process expirable messages" in {
       val r = GetOrderHistory(pair, "address", NTP.correctedTime() - OrderHistoryActor.RequestTTL - 1)
       actor ! r
-      expectNoMsg()
+      expectNoMessage()
     }
   }
 }
