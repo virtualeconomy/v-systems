@@ -72,7 +72,7 @@ object ContractTranslator extends App {
           // TODO
           // need a more complex ftTypes check
           // print function or trigger type
-          val ftType = if (tp == 0) "OnInit Trigger" else "Public Function"
+          val ftType = if (tp == 0) "onInit trigger" else "public function"
           print(ftType + " ")
 
           // print function or trigger name
@@ -222,59 +222,59 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == AssertType.LtInt64Assert.id => "opc_assert_ltInt64"
           case opcType: Byte if opcType == AssertType.GtZeroAssert.id => "opc_assert_gt0"
           case opcType: Byte if opcType == AssertType.EqAssert.id => "opc_assert_eq"
-          case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id => "opc_assert_caller(" + nameList(data(2)) + ")"
-          case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id => "opc_assert_singer(" + nameList(data(2)) + ")"
+          case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id => "operation.check.assertCaller(" + nameList(data(2)) + ")"
+          case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id => "operation.check.assertSigner(" + nameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.LoadOpc.id =>
         y match {
-          case opcType: Byte if opcType == LoadType.SignerLoad.id => nameList(data(2)) + " = opc_load_env_signer()"
-          case opcType: Byte if opcType == LoadType.CallerLoad.id => nameList(data(2)) + " = opc_load_env_caller()"
+          case opcType: Byte if opcType == LoadType.SignerLoad.id => nameList(data(2)) + " = operation.env.getSigner()"
+          case opcType: Byte if opcType == LoadType.CallerLoad.id => nameList(data(2)) + " = operation.env.getCaller()"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.CDBVOpc.id =>
         y match {
-          case opcType: Byte if opcType == CDBVType.SetCDBV.id => "cdb." + stateNameList(data(2)) + " = opc_cdbv_set(" + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CDBVType.SetCDBV.id => "operation.db.setVariable(" + "db." + stateNameList(data(2)) + ", " + nameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.CDBVROpc.id =>
         y match {
-          case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => nameList(data(3)) + " = opc_cdbvr_get(cdb." + stateNameList(data(2)) + ")"
+          case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => nameList(data(3)) + " = operation.db.getVariable(db." + stateNameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBOpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBType.NewTokenTDB.id => "opc_tdb_new(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
-          case opcType: Byte if opcType == TDBType.SplitTDB.id => "opc_tdb_split(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBType.NewTokenTDB.id => "operation.token.new(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == TDBType.SplitTDB.id => "operation.token.split(" + nameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBROpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBRType.MaxTDBR.id => nameList(data(3)) + " = opc_tdbr_max(" + nameList(data(2)) + ")"
-          case opcType: Byte if opcType == TDBRType.TotalTDBR.id => nameList(data(3)) + " = opc_tdbr_total(" + nameList(data(2)) + ")"
+          case opcType: Byte if opcType == TDBRType.MaxTDBR.id => nameList(data(2)) + " = operation.token.getMaxSupply(" + ")"
+          case opcType: Byte if opcType == TDBRType.TotalTDBR.id => nameList(data(2)) + " = operation.token.getTotalSupply(" + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBAOpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "opc_tdba_deposit(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
-          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "opc_tdba_withdraw(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
-          case opcType: Byte if opcType == TDBAType.TransferTDBA.id => "opc_tdba_transfer(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ", " + nameList(data(5)) + ")"
+          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "operation.token.deposit(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "operation.token.withdraw(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBAType.TransferTDBA.id => "operation.token.transfer(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.TDBAROpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id => nameList(data(4)) + " = opc_tdbar_balance(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id => nameList(data(3)) + " = operation.token.getBalance(" + nameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
-      case opcType: Byte if opcType == OpcType.ReturnOpc.id => "opc_value_return " + nameList(data(2))
+      case opcType: Byte if opcType == OpcType.ReturnOpc.id => "operation.control.return(" + nameList(data(2)) + ")"
 
       case _ => "--- invalid opc code ---"
 
