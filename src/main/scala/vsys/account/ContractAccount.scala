@@ -11,7 +11,7 @@ import scorex.utils.ScorexLogging
 
 import scala.util.Success
 
-sealed trait ContractAccount {
+sealed trait ContractAccount extends Serializable {
 
   val bytes: ByteStr
   lazy val address: String = bytes.base58
