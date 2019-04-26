@@ -59,6 +59,13 @@ object TDBOpcDiff {
     }
   }
 
+  def splitWithoutTokenIndex(context: ExecutionContext)
+           (newUnity: DataEntry): Either[ValidationError, OpcDiff] = {
+
+    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
+    split(context)(newUnity, tokenIndex)
+  }
+
   object TDBType extends Enumeration {
     val NewTokenTDB = Value(1)
     val SplitTDB = Value(2)
@@ -68,6 +75,8 @@ object TDBOpcDiff {
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
     case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes,4, data.length) =>
       newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,2, data.length) =>
+      splitWithoutTokenIndex(context)(data(bytes(1)))
     case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
       split(context)(data(bytes(1)), data(bytes(2)))
     case _ => Left(GenericError("Wrong TDB opcode"))

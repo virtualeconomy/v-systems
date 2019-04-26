@@ -45,6 +45,13 @@ object TDBAOpcDiff {
     }
   }
 
+  def depositWithoutTokenIndex(context: ExecutionContext)
+             (issuer: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
+
+    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
+    deposit(context)(issuer, amount, tokenIndex)
+  }
+
   def withdraw(context: ExecutionContext)
               (issuer: DataEntry, amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
@@ -73,6 +80,13 @@ object TDBAOpcDiff {
         ))
       }
     }
+  }
+
+  def withdrawWithoutTokenIndex(context: ExecutionContext)
+                              (issuer: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
+
+    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
+    withdraw(context)(issuer, amount, tokenIndex)
   }
 
   def transfer(context: ExecutionContext)
@@ -114,6 +128,13 @@ object TDBAOpcDiff {
     }
   }
 
+  def transferWithoutTokenIndex(context: ExecutionContext)
+                              (sender: DataEntry, recipient: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
+
+    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
+    transfer(context)(sender, recipient, amount, tokenIndex)
+  }
+
   object TDBAType extends Enumeration {
     val DepositTDBA = Value(1)
     val WithdrawTDBA = Value(2)
@@ -122,10 +143,16 @@ object TDBAOpcDiff {
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
+    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,3, data.length) =>
+      depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
     case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,4, data.length) =>
       deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,3, data.length) =>
+      withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
     case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,4, data.length) =>
       withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,4, data.length) =>
+      transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
     case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,5, data.length) =>
       transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
     case _ => Left(GenericError("Wrong TDBA opcode"))

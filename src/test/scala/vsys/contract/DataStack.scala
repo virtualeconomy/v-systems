@@ -21,21 +21,38 @@ trait DataStack {
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(unit, index)
 
+  def splitDataStackGen(newUnity: Long): Gen[Seq[DataEntry]] = for {
+    unit <- Gen.const(DataEntry(Longs.toByteArray(newUnity), DataType.Amount))
+  } yield Seq(unit)
+
   def destroyDataStackGen(amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(am, index)
+
+  def destroyDataStackGen(amount: Long): Gen[Seq[DataEntry]] = for {
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(am)
 
   def issueDataStackGen(amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     max <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(max, index)
 
+  def issueDataStackGen(amount: Long): Gen[Seq[DataEntry]] = for {
+    max <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(max)
+
   def sendDataStackGen(recipient: Address, amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(reci, am, index)
+
+  def sendDataStackGen(recipient: Address, amount: Long): Gen[Seq[DataEntry]] = for {
+    reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(reci, am)
 
   def transferDataStackGen(sender: Address, recipient: Address, amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     se <- Gen.const(DataEntry(sender.bytes.arr, DataType.Address))
@@ -44,6 +61,12 @@ trait DataStack {
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(se, reci, am, index)
 
+  def transferDataStackGen(sender: Address, recipient: Address, amount: Long): Gen[Seq[DataEntry]] = for {
+    se <- Gen.const(DataEntry(sender.bytes.arr, DataType.Address))
+    reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(se, reci, am)
+
   def depositDataStackGen(sender: Address, smartContract: Address, amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     se <- Gen.const(DataEntry(sender.bytes.arr, DataType.Address))
     sc <- Gen.const(DataEntry(smartContract.bytes.arr, DataType.Address))
@@ -51,12 +74,24 @@ trait DataStack {
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(se, sc, am, index)
 
+  def depositDataStackGen(sender: Address, smartContract: Address, amount: Long): Gen[Seq[DataEntry]] = for {
+    se <- Gen.const(DataEntry(sender.bytes.arr, DataType.Address))
+    sc <- Gen.const(DataEntry(smartContract.bytes.arr, DataType.Address))
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(se, sc, am)
+
   def withdrawDataStackGen(smartContract: Address, recipient: Address, amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     sc <- Gen.const(DataEntry(smartContract.bytes.arr, DataType.Address))
     reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(sc, reci, am, index)
+
+  def withdrawDataStackGen(smartContract: Address, recipient: Address, amount: Long): Gen[Seq[DataEntry]] = for {
+    sc <- Gen.const(DataEntry(smartContract.bytes.arr, DataType.Address))
+    reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(sc, reci, am)
 
   def totalSupplyDataStackGen(tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
@@ -70,9 +105,17 @@ trait DataStack {
     acc <- Gen.const(DataEntry(account.bytes.arr, DataType.Address))
     index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
   } yield Seq(acc, index)
+
+  def balanceOfDataStackGen(account: Address): Gen[Seq[DataEntry]] = for {
+    acc <- Gen.const(DataEntry(account.bytes.arr, DataType.Address))
+  } yield Seq(acc)
+
+  def emptyDataStackGen(): Gen[Seq[DataEntry]] = Seq()
 }
 
 object DataStack {
+
+  // case for non tokenIndex case
   object initInput {
     val maxIndex: Byte = 0
     val unityIndex: Byte = 1
@@ -87,60 +130,47 @@ object DataStack {
 
   object splitInput {
     val newUnityIndex: Byte = 0
-    val tokenIndex: Byte = 1
-    val issuerGetIndex: Byte = 2
+    val issuerGetIndex: Byte = 1
   }
 
   object destroyInput {
     val destroyAmountIndex: Byte = 0
-    val tokenIndex: Byte = 1
-    val issuerGetIndex: Byte = 2
+    val issuerGetIndex: Byte = 1
   }
 
   object issueInput {
     val amountIndex: Byte = 0
-    val tokenIndex: Byte = 1
-    val issuerGetIndex: Byte = 2
+    val issuerGetIndex: Byte = 1
   }
 
   object sendInput {
     val recipientIndex: Byte = 0
     val amountIndex: Byte = 1
-    val tokenIndex: Byte = 2
-    val senderIndex: Byte = 3
+    val senderIndex: Byte = 2
   }
 
   object transferInput {
     val senderIndex: Byte = 0
     val recipientIndex: Byte = 1
     val amountIndex: Byte = 2
-    val tokenIndex: Byte = 3
   }
 
   object depositInput {
     val senderIndex: Byte = 0
     val smartContractIndex: Byte = 1
     val amountIndex: Byte = 2
-    val tokenIndex: Byte = 3
   }
 
   object withdrawInput {
     val smartContractIndex: Byte = 0
     val recipientIndex: Byte = 1
     val amountIndex: Byte = 2
-    val tokenIndex: Byte = 3
-  }
-
-  object totalSupplyInput {
-    val tokenIndex: Byte = 0
-  }
-
-  object maxSupplyInput {
-    val tokenIndex: Byte = 0
   }
 
   object balanceOfInput {
     val accountIndex: Byte = 0
-    val tokenIndex: Byte = 1
   }
+
+  // TODO
+  // with tokenIndex cases
 }

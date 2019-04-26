@@ -37,7 +37,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
     init <- triggerGen()
     descriptor <- descriptorFullGen()
     stateVar <- stateVarRandomGen()
-    textual <- textureRightGen
+    textual <- textualRightGen
   } yield (langCode, langVer, init, descriptor, stateVar, textual)
 
   property("register contract build doesn't break invariant"){
@@ -48,7 +48,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
 
   val languageCode: String = "vdds"
   val languageVersion: Int = 1
-  val validContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textureRightGen)
+  val validContract: Gen[Contract] = contractNewGen(languageCode, languageVersion, triggerGen(), descriptorFullGen(), stateVarRightGen, textualRightGen)
   val preconditionsAndRegContractTest: Gen[(GenesisTransaction, RegisterContractTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen

@@ -202,18 +202,18 @@ object ProtoType {
   val initParaTypeWrong: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val initParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
   val supersedeParaType: Array[Byte] = Array(DataType.Account.id.toByte)
-  val issueParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val destroyParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val splitParaType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val sendParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val transferParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val depositParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  // val depositParaType: List[Byte] = List(DataType.Address.id.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val withdrawParaType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  //val withdrawParaType: List[Byte] = List(DataType.Address.id.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.Int32.id.toByte)
-  val totalSupplyParaType: Array[Byte] = Array(DataType.Int32.id.toByte)
-  val maxSupplyParaType: Array[Byte] = Array(DataType.Int32.id.toByte)
-  val balanceOfParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Int32.id.toByte)
+  val issueParaType: Array[Byte] = Array(DataType.Amount.id.toByte)
+  val destroyParaType: Array[Byte] = Array(DataType.Amount.id.toByte)
+  val splitParaType: Array[Byte] = Array(DataType.Amount.id.toByte)
+  val sendParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val transferParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val depositParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte)
+  // val depositParaType: List[Byte] = List(DataType.Address.id.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val withdrawParaType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  //val withdrawParaType: List[Byte] = List(DataType.Address.id.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val totalSupplyParaType: Array[Byte] = Array.empty
+  val maxSupplyParaType: Array[Byte] = Array.empty
+  val balanceOfParaType: Array[Byte] = Array(DataType.Account.id.toByte)
   val getIssuerParaType: Array[Byte] = Array.empty
 }
 
@@ -249,7 +249,7 @@ trait ListOpc extends ByteArrayGen {
 
 object ListOpc {
   val opcLoadSignerIndex: Array[Byte] = Array(3.toByte)
-  val opcLoadCallerIndex: Array[Byte] = Array(3.toByte)
+  val opcLoadCallerIndex: Array[Byte] = Array(2.toByte)
 
   val initOpcCDBVSetSignerIndex: Array[Byte] = Array(StateVar.issuer, DataStack.initInput.issuerLoadIndex)
   val initOpcCDBVSetMakerIndex: Array[Byte] = Array(StateVar.maker, DataStack.initInput.issuerLoadIndex)
@@ -265,59 +265,58 @@ object ListOpc {
   val supersedeOpcIndex: List[Array[Byte]] = List(supersedeOpcCDBVRGetIndex, superAssertIsSignerOriginIndex, supersedeOpcCDBVSetIndex)
 
 
-  val issueOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 2.toByte)
+  val issueOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 1.toByte)
   val issueOpcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.issueInput.issuerGetIndex)
-  val issueOpcTDBADepositIndex: Array[Byte] = Array(DataStack.issueInput.issuerGetIndex, DataStack.issueInput.amountIndex, DataStack.issueInput.tokenIndex)
+  val issueOpcTDBADepositIndex: Array[Byte] = Array(DataStack.issueInput.issuerGetIndex, DataStack.issueInput.amountIndex)
   val issueOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBADeposit)
   val issueOpcIndex: List[Array[Byte]] = List(issueOpcCDBVRGetIndex, issueOpcAssertIsCallerOriginIndex, issueOpcTDBADepositIndex)
 
-  val destroyOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 2.toByte)
+  val destroyOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 1.toByte)
   val destroyOpcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.destroyInput.issuerGetIndex)
-  val destroyOpcTDBAWithdrawIndex: Array[Byte] = Array(DataStack.destroyInput.issuerGetIndex, DataStack.destroyInput.destroyAmountIndex,
-    DataStack.destroyInput.tokenIndex)
+  val destroyOpcTDBAWithdrawIndex: Array[Byte] = Array(DataStack.destroyInput.issuerGetIndex, DataStack.destroyInput.destroyAmountIndex)
   val destroyOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBAWithdraw)
   val destroyOpcIndex: List[Array[Byte]] = List(destroyOpcCDBVRGetIndex, destroyOpcAssertIsCallerOriginIndex, destroyOpcTDBAWithdrawIndex)
 
-  val splitOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 2.toByte)
+  val splitOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 1.toByte)
   val splitOpcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.splitInput.issuerGetIndex)
-  val splitOpcTDBSplitIndex: Array[Byte] = Array(DataStack.splitInput.newUnityIndex, DataStack.splitInput.tokenIndex)
+  val splitOpcTDBSplitIndex: Array[Byte] = Array(DataStack.splitInput.newUnityIndex)
   val splitOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBSplit)
   val splitOpcIndex: List[Array[Byte]] = List(splitOpcCDBVRGetIndex, splitOpcAssertIsCallerOriginIndex, splitOpcTDBSplitIndex)
 
   val sendOpcTDBATransferIndex: Array[Byte] = Array(DataStack.sendInput.senderIndex,
-    DataStack.sendInput.recipientIndex, DataStack.sendInput.amountIndex, DataStack.sendInput.tokenIndex)
+    DataStack.sendInput.recipientIndex, DataStack.sendInput.amountIndex)
   val sendOpc: List[Array[Byte]] = List(OpcId.opcLoadCaller, OpcId.opcTDBATransfer)
   val sendOpcIndex: List[Array[Byte]] = List(opcLoadCallerIndex, sendOpcTDBATransferIndex)
 
   val transferOpcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex)
   val transferOpcTDBATransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex, DataStack.transferInput.recipientIndex,
-    DataStack.transferInput.amountIndex, DataStack.transferInput.tokenIndex)
+    DataStack.transferInput.amountIndex)
   val transferOpc: List[Array[Byte]] = List(OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBATransfer)
   val transferOpcIndex: List[Array[Byte]] = List(transferOpcAssertIsCallerOriginIndex, transferOpcTDBATransferIndex)
 
   val depositOpcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex)
   val depositOpcTDBATransferIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex, DataStack.depositInput.smartContractIndex,
-    DataStack.depositInput.amountIndex, DataStack.depositInput.tokenIndex)
+    DataStack.depositInput.amountIndex)
   val depositOpc: List[Array[Byte]] = List(OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBATransfer)
   val depositOpcIndex: List[Array[Byte]] = List(depositOpcAssertIsCallerOriginIndex, depositOpcTDBATransferIndex)
 
   val withdrawOpcAssertIsCallerOriginIndex: Array[Byte] = Array(DataStack.withdrawInput.recipientIndex)
   val withdrawOpcTDBATransferIndex: Array[Byte] = Array(DataStack.withdrawInput.smartContractIndex, DataStack.withdrawInput.recipientIndex,
-    DataStack.withdrawInput.amountIndex, DataStack.withdrawInput.tokenIndex)
+    DataStack.withdrawInput.amountIndex)
   val withdrawOpc: List[Array[Byte]] = List(OpcId.opcAssertIsCallerOrigin, OpcId.opcTDBATransfer)
   val withdrawOpcIndex: List[Array[Byte]] = List(withdrawOpcAssertIsCallerOriginIndex, withdrawOpcTDBATransferIndex)
 
-  val totalSupplyOpcTDBRTotalIndex: Array[Byte] = Array(DataStack.totalSupplyInput.tokenIndex, 1.toByte)
+  val totalSupplyOpcTDBRTotalIndex: Array[Byte] = Array(0.toByte)
   val totalSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcTotal, OpcId.opcReturnValue)
-  val totalSupplyOpcIndex: List[Array[Byte]] = List(totalSupplyOpcTDBRTotalIndex, Array(1.toByte))
+  val totalSupplyOpcIndex: List[Array[Byte]] = List(totalSupplyOpcTDBRTotalIndex, Array(0.toByte))
 
-  val maxSupplyOpcTDBRMaxIndex: Array[Byte] = Array(DataStack.maxSupplyInput.tokenIndex, 1.toByte)
+  val maxSupplyOpcTDBRMaxIndex: Array[Byte] = Array(0.toByte)
   val maxSupplyOpc: List[Array[Byte]] = List(OpcId.opcTDBROpcMax, OpcId.opcReturnValue)
-  val maxSupplyOpcIndex: List[Array[Byte]] = List(maxSupplyOpcTDBRMaxIndex, Array(1.toByte))
+  val maxSupplyOpcIndex: List[Array[Byte]] = List(maxSupplyOpcTDBRMaxIndex, Array(0.toByte))
 
-  val balanceOfOpcTDBARBalanceIndex: Array[Byte] = Array(DataStack.balanceOfInput.accountIndex, DataStack.balanceOfInput.tokenIndex, 2.toByte)
+  val balanceOfOpcTDBARBalanceIndex: Array[Byte] = Array(DataStack.balanceOfInput.accountIndex, 1.toByte)
   val balanceOfOpc: List[Array[Byte]] = List(OpcId.opcTDBARBalance, OpcId.opcReturnValue)
-  val balanceOfOpcIndex: List[Array[Byte]] = List(balanceOfOpcTDBARBalanceIndex, Array(2.toByte))
+  val balanceOfOpcIndex: List[Array[Byte]] = List(balanceOfOpcTDBARBalanceIndex, Array(1.toByte))
 
   val getIssuerOpcCDBVRGetIndex: Array[Byte] = Array(StateVar.issuer, 0.toByte)
   val getIssuerOpc: List[Array[Byte]] = List(OpcId.opcCDBVRGet, OpcId.opcReturnValue)

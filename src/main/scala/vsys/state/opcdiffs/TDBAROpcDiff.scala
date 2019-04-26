@@ -33,12 +33,21 @@ object TDBAROpcDiff {
     }
   }
 
+  def balanceWithoutTokenIndex(context: ExecutionContext)(address: DataEntry,
+                                         dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+
+    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
+    balance(context)(address, tokenIndex, dataStack, pointer)
+  }
+
   object TDBARType extends Enumeration {
     val BalanceTBDAR= Value(1)
   }
 
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
+    case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 2, context.stateVar.length, data.length, 1) =>
+      balanceWithoutTokenIndex(context)(data(bytes(1)), data, bytes(2))
     case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 1) =>
       balance(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
     case _ => Left(GenericError("Wrong TDBAR opcode"))
