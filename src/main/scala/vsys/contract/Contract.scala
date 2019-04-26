@@ -105,12 +105,12 @@ object Contract extends ScorexLogging {
   }
 
   private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])] = Try {
-    val initializerFuncBytes = Deser.parseArrays(bs.head)
-    val initializerFunc = funcFromBytes(initializerFuncBytes)
+    val triggerFuncBytes = Deser.parseArrays(bs.head)
+    val triggerFunc = funcFromBytes(triggerFuncBytes)
     val descriptorFuncBytes = Deser.parseArrays(bs(1))
     val descriptorFunc = funcFromBytes(descriptorFuncBytes)
     val stateVar = paraFromBytes(bs.last)
-    (initializerFunc, descriptorFunc, stateVar)
+    (triggerFunc, descriptorFunc, stateVar)
   }
 
   private def funcFromBytes(bs: Seq[Array[Byte]]): Seq[Seq[String]] = {
