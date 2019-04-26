@@ -27,6 +27,10 @@ object ApiError {
     case ValidationError.NegativeAmount => NegativeAmount
     case ValidationError.InsufficientFee => InsufficientFee
     case ValidationError.InvalidName => InvalidName
+    case ValidationError.InvalidContract => InvalidContract
+    case ValidationError.InvalidDataEntry => InvalidDataEntry
+    case ValidationError.InvalidDataLength => InvalidDataLength
+    case ValidationError.InvalidContractAddress => InvalidContractAddress
     case ValidationError.InvalidDbKey => InvalidDbKey
     case ValidationError.InvalidSignature(_, _) => InvalidSignature
     case ValidationError.InvalidRequestSignature => InvalidSignature
@@ -189,6 +193,30 @@ case class InvalidUTF8String(field: String) extends ApiError {
   override val id: Int = 118
   override val code = StatusCodes.BadRequest
   override val message: String = s"The $field is not a valid utf8 string"
+}
+
+case object InvalidContract extends ApiError {
+  override val id: Int = 119
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Contract"
+}
+
+case object InvalidDataEntry extends ApiError {
+  override val id: Int = 120
+  override val message: String = "Invalid DataEntry"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case object InvalidDataLength extends ApiError {
+  override val id: Int = 121
+  override val message: String = "Invalid DataEntry Length"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case object InvalidContractAddress extends ApiError {
+  override val id: Int = 122
+  override val message: String = "Invalid Contract Address"
+  override val code: StatusCode = StatusCodes.BadRequest
 }
 
 case class CustomValidationError(errorMessage: String) extends ApiError {
