@@ -34,6 +34,9 @@ object ApiError {
     case ValidationError.InvalidDbKey => InvalidDbKey
     case ValidationError.InvalidSignature(_, _) => InvalidSignature
     case ValidationError.InvalidRequestSignature => InvalidSignature
+    case ValidationError.InvalidProofBytes => InvalidProofBytes
+    case ValidationError.InvalidProofLength => InvalidProofLength
+    case ValidationError.InvalidProofType => InvalidProofType
     case ValidationError.TooBigArray => TooBigArrayAllocation
     case ValidationError.OverflowError => OverflowError
     case ValidationError.ToSelf => ToSelfError
@@ -195,26 +198,44 @@ case class InvalidUTF8String(field: String) extends ApiError {
   override val message: String = s"The $field is not a valid utf8 string"
 }
 
-case object InvalidContract extends ApiError {
+case object InvalidProofBytes extends ApiError {
   override val id: Int = 119
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Proof Bytes"
+}
+
+case object InvalidProofLength extends ApiError {
+  override val id: Int = 120
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Proof Length"
+}
+
+case object InvalidProofType extends ApiError {
+  override val id: Int = 121
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Proof Type"
+}
+
+case object InvalidContract extends ApiError {
+  override val id: Int = 122
   override val code = StatusCodes.BadRequest
   override val message: String = "Invalid Contract"
 }
 
 case object InvalidDataEntry extends ApiError {
-  override val id: Int = 120
+  override val id: Int = 123
   override val message: String = "Invalid DataEntry"
   override val code: StatusCode = StatusCodes.BadRequest
 }
 
 case object InvalidDataLength extends ApiError {
-  override val id: Int = 121
+  override val id: Int = 124
   override val message: String = "Invalid DataEntry Length"
   override val code: StatusCode = StatusCodes.BadRequest
 }
 
 case object InvalidContractAddress extends ApiError {
-  override val id: Int = 122
+  override val id: Int = 125
   override val message: String = "Invalid Contract Address"
   override val code: StatusCode = StatusCodes.BadRequest
 }
