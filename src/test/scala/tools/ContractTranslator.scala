@@ -34,7 +34,7 @@ object ContractTranslator extends App {
   val (triggerBytes, triggerEnd) = Deser.parseArraySize(bytes, LanguageCodeByteLength + LanguageVersionByteLength)
   val trigger = Deser.parseArrays(triggerBytes)
 
-  println("Trigger:")
+  println("Triggers:")
   printSeqHex(trigger)
 
   val (descriptorBytes, descriptorEnd) = Deser.parseArraySize(bytes, triggerEnd)
@@ -46,7 +46,7 @@ object ContractTranslator extends App {
   val (stateVarBytes, stateVarEnd) = Deser.parseArraySize(bytes, descriptorEnd)
   val stateVar = Deser.parseArrays(stateVarBytes)
 
-  println("State Variable:")
+  println("State Variables:")
   printSeqHex(stateVar)
 
   val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
@@ -117,9 +117,9 @@ object ContractTranslator extends App {
             print("    ")
             val x = opcToName(l, inputVarList)
             println(x)
-            print("    " + convertBytesToHex(l.slice(0, 2)))
+            print("    | " + convertBytesToHex(l.slice(0, 2)))
             print("| ")
-            println(convertBytesToHex(l.slice(2, l.length)))
+            println(convertBytesToHex(l.slice(2, l.length)) + "|")
           }
           println()
         }
@@ -157,7 +157,7 @@ object ContractTranslator extends App {
     if (t.isFailure) println("Invalid Texture")
     else {
       val r = t.get
-      println("Initializer Functions:")
+      println("Trigger Functions:")
       printSeqSeqString(r._1)
       println("Descriptor Functions:")
       printSeqSeqString(r._2)
