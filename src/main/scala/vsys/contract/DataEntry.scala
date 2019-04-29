@@ -6,6 +6,7 @@ import scorex.account.{Address, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser.{AmountLength, KeyLength}
 import scorex.transaction.ValidationError
+import scorex.transaction.ValidationError.InvalidDataEntry
 import vsys.account.ContractAccount
 import vsys.transaction.contract.RegisterContractTransaction.MaxDescriptionSize
 
@@ -39,13 +40,13 @@ object DataEntry {
     dataType match {
       case DataType.ShortText if checkDataType(Shorts.toByteArray(data.length.toShort) ++ data, dataType) => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
       case _ if checkDataType(data, dataType) => Right(DataEntry(data, dataType))
-      case _ => Left(ValidationError.ContractInvalidDataEntry)
+      case _ => Left(InvalidDataEntry)
     }
   }
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, DataEntry] = {
     if (bytes.length == 0 || DataType.fromByte(bytes(0)).isEmpty)
-      Left(ValidationError.ContractInvalidDataEntry)
+      Left(InvalidDataEntry)
     else
       DataType.fromByte(bytes(0)) match {
         case Some(DataType.ShortText) => create(bytes.slice(3, bytes.length), DataType(bytes(0)))
@@ -56,7 +57,7 @@ object DataEntry {
   def fromBase58String(base58String: String): Either[ValidationError, Seq[DataEntry]] = {
     Base58.decode(base58String) match {
       case Success(byteArray) => parseArrays(byteArray)
-      case _ => Left(ValidationError.ContractInvalidDataEntry)
+      case _ => Left(InvalidDataEntry)
     }
   }
 
@@ -74,7 +75,7 @@ object DataEntry {
         Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
       case Some(DataType.ContractAccount) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount) =>
         Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
-      case _ => Left(ValidationError.ContractInvalidDataEntry)
+      case _ => Left(InvalidDataEntry)
     }
   }
 

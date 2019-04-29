@@ -28,7 +28,7 @@ object ValidationError {
   case object InvalidRequestSignature extends ValidationError
   case object InvalidContract extends ValidationError
   case object InvalidContractAddress extends ValidationError
-  case object ContractInvalidDataEntry extends ValidationError
+  case object InvalidDataEntry extends ValidationError
   case object ContractDataTypeMissMatch extends ValidationError
   case object ContractInvalidStateVariable extends ValidationError
   case object ContractVariableNotDefined extends ValidationError

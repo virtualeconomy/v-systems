@@ -6,7 +6,7 @@ import org.scalacheck.Gen
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import scorex.account.PublicKeyAccount
-import scorex.transaction.ValidationError.ContractInvalidDataEntry
+import scorex.transaction.ValidationError.InvalidDataEntry
 
 class DataEntrySpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -48,10 +48,10 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
     val byteArray3 = Array.fill[Byte](1 + 32)(1)
     val byteArray4 = Array.fill[Byte](1 + 26)(2)
     val byteArray5 = Array.fill[Byte](1 + 8)(3)
-    DataEntry.fromBytes(byteArray1) should be (Left(ContractInvalidDataEntry))
-    DataEntry.fromBytes(byteArray2) should be (Left(ContractInvalidDataEntry))
+    DataEntry.fromBytes(byteArray1) should be (Left(InvalidDataEntry))
+    DataEntry.fromBytes(byteArray2) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray3).map(_.dataType) should be (Right(DataType.PublicKey))
-    DataEntry.fromBytes(byteArray4).map(_.dataType) should be (Left(ContractInvalidDataEntry))
+    DataEntry.fromBytes(byteArray4).map(_.dataType) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray5).map(_.dataType) should be (Right(DataType.Amount))
   }
 
