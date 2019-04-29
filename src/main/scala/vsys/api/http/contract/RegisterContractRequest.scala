@@ -10,7 +10,7 @@ case class RegisterContractRequest(@ApiModelProperty(value = "Base58 encoded sen
                                    contract: String,
                                    @ApiModelProperty(value = "Base58 encoded dataStack", required = true)
                                    data: String,
-                                   @ApiModelProperty(value = "Base58 encoded description of contract")
+                                   @ApiModelProperty(value = "Description of contract")
                                    description: Option[String],
                                    @ApiModelProperty(required = true)
                                    fee: Long,

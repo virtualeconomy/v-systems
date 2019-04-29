@@ -29,16 +29,16 @@ object ValidationError {
   case object InvalidContract extends ValidationError
   case object InvalidContractAddress extends ValidationError
   case object ContractInvalidDataEntry extends ValidationError
+  case object ContractDataTypeMissMatch extends ValidationError
   case object ContractInvalidStateVariable extends ValidationError
   case object ContractVariableNotDefined extends ValidationError
   case object ContractInvalidOPCode extends ValidationError
-  case object ContractInvalidOPCType extends ValidationError
   case object ContractUnsupportedOPCType extends ValidationError
   case object ContractInvalidFunction extends ValidationError
   case object ContractInvalidInputDataType extends ValidationError
   case object ContractInvalidTokenIndex extends ValidationError
   case object ContractInvalidAmount extends ValidationError
-  case object ContractInvalidTotal extends ValidationError
+  case object ContractInvalidPointer extends ValidationError
   case object ContractTokenBalanceInsufficient extends ValidationError
   case object ContractAmountOverflowError extends ValidationError
   case object ContractInvalidTokenInfo extends ValidationError

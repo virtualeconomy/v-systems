@@ -5,7 +5,7 @@ import com.google.common.primitives.Shorts
 import com.wavesplatform.state2.reader.CompositeStateReader
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.GenericError
+import scorex.transaction.ValidationError.ContractInvalidFunction
 import scorex.utils.ScorexLogging
 import vsys.contract.{DataEntry, ExecutionContext}
 import vsys.contract.DataType.checkTypes
@@ -26,7 +26,7 @@ object OpcFuncDiffer extends ScorexLogging {
     fromBytes(opcFunc) match {
       case Success((_, _, _, listParaTypes, listOpcLines)) =>
         if (!checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
-          Left(ValidationError.ContractInvalidDataEntry)
+          Left(ValidationError.ContractDataTypeMissMatch)
         } else if (listOpcLines.forall(_.length < 2)) {
           Left(ValidationError.ContractInvalidOPCode)
         } else {
@@ -41,7 +41,7 @@ object OpcFuncDiffer extends ScorexLogging {
             case Left(l) => Left(l)
           }
         }
-      case Failure(_) => Left(GenericError("Invalid opc function"))
+      case Failure(_) => Left(ContractInvalidFunction)
     }
   }
 

@@ -1,7 +1,7 @@
 package vsys.state.opcdiffs
 
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.GenericError
+import scorex.transaction.ValidationError.ContractUnsupportedOPCType
 import vsys.contract.{DataEntry, ExecutionContext}
 
 
@@ -78,7 +78,7 @@ object OpcDiffer {
         case Left(validationError: ValidationError) => Left(validationError)
       }
 
-    case _ => Left(GenericError("Invalid Opc type"))
+    case _ => Left(ContractUnsupportedOPCType)
 
   }
 

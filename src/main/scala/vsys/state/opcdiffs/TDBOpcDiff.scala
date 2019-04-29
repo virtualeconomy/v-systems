@@ -1,9 +1,9 @@
 package vsys.state.opcdiffs
 
-import com.google.common.primitives.{Bytes, Longs, Ints}
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.GenericError
+import scorex.transaction.ValidationError.{ContractInvalidInputDataType, ContractInvalidOPCode, ContractInvalidTokenIndex, ContractInvalidTokenInfo}
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -15,11 +15,11 @@ object TDBOpcDiff {
               (max: DataEntry, unity: DataEntry, desc: DataEntry):Either[ValidationError, OpcDiff] = {
 
     if (max.dataType != DataType.Amount || unity.dataType != DataType.Amount || desc.dataType != DataType.ShortText) {
-      Left(GenericError("Input contains invalid dataType"))
+      Left(ContractInvalidInputDataType)
     } else if (Longs.fromByteArray(max.data) < 0) {
-      Left(GenericError(s"Invalid token max ${Longs.fromByteArray(max.data)}"))
+      Left(ContractInvalidTokenInfo)
     } else if (Longs.fromByteArray(unity.data) <= 0) {
-      Left(GenericError(s"Invalid token unity ${Longs.fromByteArray(unity.data)}"))
+      Left(ContractInvalidTokenInfo)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, Ints.toByteArray(contractTokens)))
@@ -42,7 +42,7 @@ object TDBOpcDiff {
            (newUnity: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (newUnity.dataType != DataType.Amount || tokenIndex.dataType != DataType.Int32) {
-      Left(GenericError("Input contains invalid dataType"))
+      Left(ContractInvalidInputDataType)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -50,9 +50,9 @@ object TDBOpcDiff {
       val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
       val tokenUnityKey = ByteStr(Bytes.concat(tokenID.arr, Array(2.toByte)))
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
-        Left(GenericError(s"Token $tokenNumber not exist"))
+        Left(ContractInvalidTokenIndex)
       } else if (newUnityValue <= 0) {
-        Left(GenericError(s"Invalid unity value $newUnityValue"))
+        Left(ContractInvalidTokenInfo)
       } else {
         Right(OpcDiff(tokenDB = Map(tokenUnityKey -> newUnity.bytes)))
       }
@@ -79,7 +79,7 @@ object TDBOpcDiff {
       splitWithoutTokenIndex(context)(data(bytes(1)))
     case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
       split(context)(data(bytes(1)), data(bytes(2)))
-    case _ => Left(GenericError("Wrong TDB opcode"))
+    case _ => Left(ContractInvalidOPCode)
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {

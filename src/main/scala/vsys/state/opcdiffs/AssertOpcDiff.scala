@@ -3,7 +3,7 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.Longs
 import scorex.account.Address
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.GenericError
+import scorex.transaction.ValidationError.{ContractInvalidInputDataType, ContractInvalidOPCode, GenericError}
 import vsys.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
@@ -53,7 +53,7 @@ object AssertOpcDiff {
   def isCallerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
     val signer = context.signers.head
     if (address.dataType != DataType.Address)
-      Left(GenericError("Issuer not defined"))
+      Left(ContractInvalidInputDataType)
     else if (!(address.data sameElements signer.bytes.arr))
       Left(GenericError(s"Address ${address.data} does not equal $signer 's address"))
     else
@@ -63,7 +63,7 @@ object AssertOpcDiff {
   def isSignerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
     val signer = context.signers.head
     if (address.dataType != DataType.Address)
-      Left(GenericError("Issuer not defined"))
+      Left(ContractInvalidInputDataType)
     else if (!(address.data sameElements signer.bytes.arr))
       Left(GenericError(s"Address ${address.data} does not equal $signer 's address"))
     else
@@ -96,7 +96,7 @@ object AssertOpcDiff {
       && bytes.tail.max < data.length && bytes.tail.min >= 0 => isCallerOrigin(context)(data(bytes(1)))
     case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id && bytes.length == 2
       && bytes.tail.max < data.length && bytes.tail.min >= 0 => isSignerOrigin(context)(data(bytes(1)))
-    case _ => Left(GenericError("Wrong opcode"))
+    case _ => Left(ContractInvalidOPCode)
   }
 
 }

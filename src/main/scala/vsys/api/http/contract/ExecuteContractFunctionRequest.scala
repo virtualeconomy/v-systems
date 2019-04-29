@@ -8,7 +8,7 @@ case class ExecuteContractFunctionRequest(@ApiModelProperty(value = "Base58 enco
                                           sender: String,
                                           @ApiModelProperty(value = "Base58 encoded contract id", required = true)
                                           contractId: String,
-                                          @ApiModelProperty(value = "Base58 encoded func index", required = true)
+                                          @ApiModelProperty(required = true)
                                           funcIdx: Short,
                                           @ApiModelProperty(value = "Base58 encoded dataStack", required = true)
                                           data: String,
