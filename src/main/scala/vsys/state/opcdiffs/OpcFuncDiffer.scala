@@ -26,9 +26,9 @@ object OpcFuncDiffer extends ScorexLogging {
     fromBytes(opcFunc) match {
       case Success((_, _, _, listParaTypes, listOpcLines)) =>
         if (!checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
-          Left(ValidationError.InvalidDataEntry)
+          Left(ValidationError.ContractInvalidDataEntry)
         } else if (listOpcLines.forall(_.length < 2)) {
-          Left(ValidationError.InvalidContract)
+          Left(ValidationError.ContractInvalidOPCode)
         } else {
           listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>
             OpcDiffer(executionContext.copy(state = new CompositeStateReader(s,

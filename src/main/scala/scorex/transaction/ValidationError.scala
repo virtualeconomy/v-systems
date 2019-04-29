@@ -8,13 +8,10 @@ trait ValidationError
 object ValidationError {
 
   case object InvalidAddress extends ValidationError
-  case object InvalidContractAddress extends ValidationError
-  case object InvalidContract extends ValidationError
   case object InvalidDataType extends ValidationError
   case object InvalidDataLength extends ValidationError
   case class TooLongDbEntry(actualLength: Int, maxLength: Int) extends ValidationError
   case class InvalidUTF8String(field: String) extends ValidationError
-  case object InvalidDataEntry extends ValidationError
   case object InvalidProofType extends ValidationError
   case object InvalidProofLength extends ValidationError
   case object InvalidProofBytes extends ValidationError
@@ -29,9 +26,12 @@ object ValidationError {
   case object MissingSenderPrivateKey extends ValidationError
   case object UnsupportedTransactionType extends ValidationError
   case object InvalidRequestSignature extends ValidationError
-  case object ContractWrongOPCode extends ValidationError
+  case object InvalidContract extends ValidationError
+  case object InvalidContractAddress extends ValidationError
+  case object ContractInvalidDataEntry extends ValidationError
   case object ContractInvalidStateVariable extends ValidationError
   case object ContractVariableNotDefined extends ValidationError
+  case object ContractInvalidOPCode extends ValidationError
   case object ContractInvalidOPCType extends ValidationError
   case object ContractUnsupportedOPCType extends ValidationError
   case object ContractInvalidFunction extends ValidationError

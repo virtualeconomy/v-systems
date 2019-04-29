@@ -85,8 +85,6 @@ object ExecuteContractFunctionTransaction {
                       proofs: Proofs): Either[ValidationError, ExecuteContractFunctionTransaction] =
     if (description.length > MaxDescriptionSize) {
       Left(ValidationError.TooBigArray)
-    } else if (data.length > 4) {
-      Left(ValidationError.InvalidDataLength)
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {

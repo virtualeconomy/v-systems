@@ -28,7 +28,7 @@ object ApiError {
     case ValidationError.InsufficientFee => InsufficientFee
     case ValidationError.InvalidName => InvalidName
     case ValidationError.InvalidContract => InvalidContract
-    case ValidationError.InvalidDataEntry => InvalidDataEntry
+    case ValidationError.ContractInvalidDataEntry => InvalidDataEntry
     case ValidationError.InvalidDataLength => InvalidDataLength
     case ValidationError.InvalidContractAddress => InvalidContractAddress
     case ValidationError.InvalidDbKey => InvalidDbKey
