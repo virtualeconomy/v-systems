@@ -141,28 +141,28 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction fail with invalid data"){
     forAll(preconditionsAndExecuteContractWithInvalidData) { case (genesis, reg, invalid1, invalid2, invalid3, invalid4) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid3), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid3), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid4), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid4), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
       }
 
     }
@@ -212,22 +212,22 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
   property("execute contract transaction invalid issue"){
     forAll(preconditionsAndExecuteContractIssue) { case (genesis, genesis2, regContract, issue1, issue2, invalid1, invalid2) =>
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract)), TestBlock.create(Seq(issue1))), TestBlock.createWithTxStatus(Seq(issue2), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract)), TestBlock.create(Seq(issue1))), TestBlock.createWithTxStatus(Seq(issue2), TransactionStatus.ContractTokenMaxExceeded)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
       } // total > max
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ContractTokenMaxExceeded)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
       } // total > max
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, regContract))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, regContract))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.Failed)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Failed
       } // invalid issue right
     }
   }
@@ -272,10 +272,10 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction send failed with insufficient token balance"){
     forAll(preconditionsAndExecuteContractSend) { case (genesis, regContract, executeContractIssue, _, executeContractSendFailed) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractSendFailed), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractSendFailed), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
       }
     }
   }
@@ -390,10 +390,10 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction invalid destroy") {
     forAll(preconditionsAndExecuteContractDestroy) { case (genesis, regContract, executeContractIssue, _, executeContractDestroyFailed) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractDestroyFailed), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractDestroyFailed), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
       }
     }
   }
@@ -463,9 +463,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction deposit successfully"){
     forAll(preconditionsAndExecuteContractDeposit) { case (genesis, regContract, executeContractIssue, executeContractDeposit, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractDeposit), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractDeposit), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
       }
     }
   }
@@ -505,9 +505,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction withdraw successfully"){
     forAll(preconditionsAndExecuteContractWithdraw) { case (genesis, regContract, executeContractIssue, _, executeContractWithdraw, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractWithdraw), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractWithdraw), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
       }
     }
   }
@@ -541,9 +541,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction totalSupply successfully"){
     forAll(preconditionsAndExecuteContractTotalSupply) { case (genesis, regContract, executeContractIssue, executeContractTotalSupply, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractTotalSupply), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractTotalSupply), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
@@ -577,9 +577,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction maxSupply successfully"){
     forAll(preconditionsAndExecuteContractMaxSupply) { case (genesis, regContract, executeContractIssue, executeContractMaxSupply, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractMaxSupply), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractMaxSupply), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
@@ -613,9 +613,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction balanceOf successfully"){
     forAll(preconditionsAndExecuteContractBalanceOf) { case (genesis, regContract, executeContractIssue, executeContractBalanceOf, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractBalanceOf), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractBalanceOf), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
@@ -649,9 +649,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction getIssuer successfully"){
     forAll(preconditionsAndExecuteContractGetIssuer) { case (genesis, regContract, executeContractIssue, executeContractGetIssuer, feeCreate) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractGetIssuer), TransactionStatus.ExecuteContractFunctionFailed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractGetIssuer), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ExecuteContractFunctionFailed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
