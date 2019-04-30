@@ -3,7 +3,7 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractInvalidInputDataType, ContractInvalidOPCode, ContractInvalidTokenIndex, ContractInvalidTokenInfo}
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractInvalidTokenInfo}
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -15,7 +15,7 @@ object TDBOpcDiff {
               (max: DataEntry, unity: DataEntry, desc: DataEntry):Either[ValidationError, OpcDiff] = {
 
     if (max.dataType != DataType.Amount || unity.dataType != DataType.Amount || desc.dataType != DataType.ShortText) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else if (Longs.fromByteArray(max.data) < 0) {
       Left(ContractInvalidTokenInfo)
     } else if (Longs.fromByteArray(unity.data) <= 0) {
@@ -42,7 +42,7 @@ object TDBOpcDiff {
            (newUnity: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (newUnity.dataType != DataType.Amount || tokenIndex.dataType != DataType.Int32) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -79,7 +79,7 @@ object TDBOpcDiff {
       splitWithoutTokenIndex(context)(data(bytes(1)))
     case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
       split(context)(data(bytes(1)), data(bytes(2)))
-    case _ => Left(ContractInvalidOPCode)
+    case _ => Left(ContractInvalidOPCData)
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {

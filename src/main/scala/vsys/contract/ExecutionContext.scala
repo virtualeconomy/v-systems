@@ -4,7 +4,7 @@ import com.wavesplatform.state2.reader.StateReader
 import scorex.account.PublicKeyAccount
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.GenericError
+import scorex.transaction.ValidationError.InvalidContractAddress
 import vsys.account.ContractAccount
 import vsys.transaction.ProvenTransaction
 import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
@@ -42,7 +42,7 @@ object ExecutionContext {
     val description = tx.description
     s.contractContent(tx.contractId.bytes) match {
       case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description))
-      case _ => Left(GenericError(s"Invalid contract id"))
+      case _ => Left(InvalidContractAddress)
     }
   }
 

@@ -7,7 +7,7 @@ import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.{GenesisTransaction, ValidationError}
 import com.wavesplatform.state2.diffs._
-import scorex.transaction.ValidationError.ContractInvalidOPCode
+import scorex.transaction.ValidationError.ContractInvalidOPCData
 import vsys.contract._
 import vsys.transaction.contract._
 
@@ -91,7 +91,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
   property("register contract transaction cannot pass due to wrong TDB opcode"){
     forAll(preconditionsAndRegContractWrongFun) { case (genesis, create, feeCreate) =>
       assertOpcFuncDifferEi(2, create) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe Left(ContractInvalidOPCode)
+        OpcFunDiffEi shouldBe Left(ContractInvalidOPCData)
       }
     }
   }

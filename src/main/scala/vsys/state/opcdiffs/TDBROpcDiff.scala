@@ -3,7 +3,7 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractInvalidInputDataType, ContractInvalidOPCode, ContractInvalidPointer, ContractInvalidTokenIndex, ContractVariableNotDefined}
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractInvalidTokenInfo, ContractLocalVariableIndexOutOfRange}
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -15,9 +15,9 @@ object TDBROpcDiff {
                                      dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
     if (tokenIndex.dataType != DataType.Int32) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractInvalidPointer)
+      Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -28,7 +28,7 @@ object TDBROpcDiff {
       } else {
         context.state.tokenInfo(tokenMaxKey) match {
           case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-          case _ => Left(ContractVariableNotDefined)
+          case _ => Left(ContractInvalidTokenInfo)
         }
       }
     }
@@ -45,9 +45,9 @@ object TDBROpcDiff {
                                        dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
     if (tokenIndex.dataType != DataType.Int32) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractInvalidPointer)
+      Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -72,9 +72,9 @@ object TDBROpcDiff {
                                        dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
     if (tokenIndex.dataType != DataType.Int32) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractInvalidPointer)
+      Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -85,7 +85,7 @@ object TDBROpcDiff {
       } else {
         context.state.tokenInfo(tokenUnityKey) match {
           case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-          case _ => Left(ContractVariableNotDefined)
+          case _ => Left(ContractInvalidTokenInfo)
         }
       }
     }
@@ -101,9 +101,9 @@ object TDBROpcDiff {
                                       dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
     if (tokenIndex.dataType != DataType.Int32) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractInvalidPointer)
+      Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -114,7 +114,7 @@ object TDBROpcDiff {
       } else {
         context.state.tokenInfo(tokenDescKey) match {
           case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-          case _ => Left(ContractVariableNotDefined)
+          case _ => Left(ContractInvalidTokenInfo)
         }
       }
     }
@@ -151,7 +151,7 @@ object TDBROpcDiff {
       descWithoutTokenIndex(context)(data, bytes(1))
     case opcType: Byte if opcType == TDBRType.DescTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
       desc(context)(data(bytes(1)), data, bytes(2))
-    case _ => Left(ContractInvalidOPCode)
+    case _ => Left(ContractInvalidOPCData)
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {

@@ -2,7 +2,7 @@ package vsys.state.opcdiffs
 
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractInvalidOPCode, ContractInvalidPointer, ContractInvalidStateVariable, ContractVariableNotDefined}
+import scorex.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable, ContractLocalVariableIndexOutOfRange, ContractStateVariableNotDefined}
 import vsys.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.contract.Contract.checkStateVar
 
@@ -15,11 +15,11 @@ object CDBVROpcDiff {
     if (!checkStateVar(stateVar, DataType(stateVar(1)))) {
       Left(ContractInvalidStateVariable)
     } else if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractInvalidPointer)
+      Left(ContractLocalVariableIndexOutOfRange)
     } else {
       context.state.contractInfo(ByteStr(context.contractId.bytes.arr ++ Array(stateVar(0)))) match {
         case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-        case _ => Left(ContractVariableNotDefined)
+        case _ => Left(ContractStateVariableNotDefined)
       }
     }
   }
@@ -32,7 +32,7 @@ object CDBVROpcDiff {
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
     case opcType: Byte if opcType == CDBVRType.GetCDBVR.id && bytes.length == 3 && bytes(1) < context.stateVar.length &&
       bytes(1) >= 0 => get(context)(context.stateVar(bytes(1)), data, bytes(2))
-    case _ => Left(ContractInvalidOPCode)
+    case _ => Left(ContractInvalidOPCData)
   }
 
 }

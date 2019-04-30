@@ -3,7 +3,7 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractInvalidInputDataType, ContractInvalidOPCode, ContractInvalidPointer, ContractInvalidTokenIndex}
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractLocalVariableIndexOutOfRange}
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -15,9 +15,9 @@ object TDBAROpcDiff {
                                          dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
     if (tokenIndex.dataType != DataType.Int32 || address.dataType != DataType.Address) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractInvalidPointer)
+      Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -49,7 +49,7 @@ object TDBAROpcDiff {
       balanceWithoutTokenIndex(context)(data(bytes(1)), data, bytes(2))
     case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 1) =>
       balance(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
-    case _ => Left(ContractInvalidOPCode)
+    case _ => Left(ContractInvalidOPCData)
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, stateVarLength: Int, dataLength: Int, sep: Int): Boolean = {

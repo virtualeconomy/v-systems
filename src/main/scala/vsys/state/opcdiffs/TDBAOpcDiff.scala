@@ -4,8 +4,7 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.account.Address
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractAmountOverflowError, ContractInvalidAmount, ContractInvalidInputDataType,
-  ContractInvalidOPCode, ContractInvalidTokenIndex, ContractTokenBalanceInsufficient, GenericError}
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractTokenBalanceInsufficient, ContractTokenMaxExceeded, ContractUnsupportedDeposit, ContractUnsupportedWithdraw}
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -18,7 +17,7 @@ object TDBAOpcDiff {
 
     if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -37,7 +36,7 @@ object TDBAOpcDiff {
       } else if (depositAmount < 0) {
         Left(ContractInvalidAmount)
       } else if (depositAmount + currentTotal > tokenMax) {
-        Left(ContractAmountOverflowError)
+        Left(ContractTokenMaxExceeded)
       } else {
         val a = Address.fromBytes(issuer.data).toOption.get
         Right(OpcDiff(relatedAddress = Map(a -> true),
@@ -58,7 +57,7 @@ object TDBAOpcDiff {
 
     if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -95,12 +94,12 @@ object TDBAOpcDiff {
                tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (sender.dataType == DataType.ContractAccount) {
-      Left(GenericError("Contract does not support withdraw"))
+      Left(ContractUnsupportedWithdraw)
     } else if (recipient.dataType == DataType.ContractAccount) {
-      Left(GenericError("Contract does not support deposit"))
+      Left(ContractUnsupportedDeposit)
     } else if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address) ||
       (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractInvalidInputDataType)
+      Left(ContractDataTypeMissMatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -156,7 +155,7 @@ object TDBAOpcDiff {
       transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
     case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,5, data.length) =>
       transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
-    case _ => Left(ContractInvalidOPCode)
+    case _ => Left(ContractInvalidOPCData)
   }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {

@@ -2,7 +2,7 @@ package vsys.state.opcdiffs
 
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractInvalidOPCode, ContractInvalidStateVariable}
+import scorex.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable}
 import scorex.account.Address
 import vsys.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.contract.Contract.checkStateVar
@@ -35,7 +35,7 @@ object CDBVOpcDiff {
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
     case opcType: Byte if opcType == CDBVType.SetCDBV.id && bytes.length == 3 && bytes(1) < context.stateVar.length
       && bytes.last < data.length && bytes.tail.min >= 0 => set(context)(context.stateVar(bytes(1)), data(bytes(2)))
-    case _ => Left(ContractInvalidOPCode)
+    case _ => Left(ContractInvalidOPCData)
   }
 
 }
