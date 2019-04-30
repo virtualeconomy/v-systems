@@ -35,6 +35,9 @@ object ProcessedTransactionParser {
       case status: Byte if status == TransactionStatus.InvalidDataEntry.id =>
         parseTail(TransactionStatus.InvalidDataEntry, data.tail)
 
+      case status: Byte if status == TransactionStatus.InvalidFunctionIndex.id =>
+        parseTail(TransactionStatus.InvalidFunctionIndex, data.tail)
+
       case status: Byte if status == TransactionStatus.ContractDataTypeMissMatch.id =>
         parseTail(TransactionStatus.ContractDataTypeMissMatch, data.tail)
 

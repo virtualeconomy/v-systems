@@ -29,6 +29,7 @@ object ExecuteContractFunctionTransactionDiff {
         case Left(InvalidContract) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidContract)))
         case Left(InvalidContractAddress) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidContractAddress)))
         case Left(InvalidDataEntry) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidDataEntry)))
+        case Left(InvalidFunctionIndex) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidFunctionIndex)))
         case Left(ContractDataTypeMissMatch) => Right(toDiff(height, tx, sender)(fromValidationError(ContractDataTypeMissMatch)))
         case Left(ContractInvalidStateVariable) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidStateVariable)))
         case Left(ContractStateVariableNotDefined) => Right(toDiff(height, tx, sender)(fromValidationError(ContractStateVariableNotDefined)))
@@ -52,6 +53,7 @@ object ExecuteContractFunctionTransactionDiff {
     case InvalidContract => TransactionStatus.InvalidContract
     case InvalidContractAddress => TransactionStatus.InvalidContractAddress
     case InvalidDataEntry => TransactionStatus.InvalidDataEntry
+    case InvalidFunctionIndex => TransactionStatus.InvalidFunctionIndex
     case ContractDataTypeMissMatch => TransactionStatus.ContractDataTypeMissMatch
     case ContractInvalidStateVariable => TransactionStatus.ContractInvalidStateVariable
     case ContractStateVariableNotDefined => TransactionStatus.ContractStateVariableNotDefined

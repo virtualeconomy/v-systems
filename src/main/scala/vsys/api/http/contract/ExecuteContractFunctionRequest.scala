@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
 
 
-case class ExecuteContractFunctionRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
+case class ExecuteContractFunctionRequest(@ApiModelProperty(value = "Base58 encoded sender address", required = true)
                                           sender: String,
                                           @ApiModelProperty(value = "Base58 encoded contract id", required = true)
                                           contractId: String,
