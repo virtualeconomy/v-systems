@@ -15,7 +15,7 @@ class ContractRequestsTests extends FunSuite with Matchers {
           "fee": 20000000,
           "feeScale": 100,
           "contract": "vsys test",
-          "data": "vsys test dataStack",
+          "initData": "vsys test dataStack",
           "description": "vsys test description"
         }
       """
@@ -33,9 +33,9 @@ class ContractRequestsTests extends FunSuite with Matchers {
           "fee": 10000000,
           "feeScale": 100,
           "contractId": "vsys test id",
-          "funcIdx": 0,
-          "data": "vsys test dataStack",
-          "description": "vsys test description"
+          "functionIndex": 0,
+          "functionData": "vsys test dataStack",
+          "attachment": "vsys test description"
         }
       """
 
@@ -52,7 +52,7 @@ class ContractRequestsTests extends FunSuite with Matchers {
          "fee": 20000000,
          "feeScale": 100,
          "contract": "vsys test",
-         "data": "vsys test dataStack",
+         "initData": "vsys test dataStack",
          "description": "vsys test description",
          "timestamp":0,
          "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
@@ -73,9 +73,9 @@ class ContractRequestsTests extends FunSuite with Matchers {
          "fee": 10000000,
          "feeScale": 100,
          "contractId": "vsys test id",
-         "funcIdx": 0,
-         "data": "vsys test dataStack",
-         "description": "vsys test description",
+         "functionIndex": 0,
+         "functionData": "vsys test dataStack",
+         "attachment": "vsys test description",
          "timestamp":0,
          "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
          }

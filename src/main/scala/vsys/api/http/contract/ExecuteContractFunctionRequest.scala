@@ -9,11 +9,11 @@ case class ExecuteContractFunctionRequest(@ApiModelProperty(value = "Base58 enco
                                           @ApiModelProperty(value = "Base58 encoded contract id", required = true)
                                           contractId: String,
                                           @ApiModelProperty(required = true)
-                                          funcIdx: Short,
-                                          @ApiModelProperty(value = "Base58 encoded dataStack", required = true)
-                                          data: String,
-                                          @ApiModelProperty(value = "Base58 encoded description of contract")
-                                          description: Option[String],
+                                          functionIndex: Short,
+                                          @ApiModelProperty(value = "Base58 encoded function data", required = true)
+                                          functionData: String,
+                                          @ApiModelProperty(value = "Base58 encoded attachment of contract")
+                                          attachment: Option[String],
                                           @ApiModelProperty(required = true)
                                           fee: Long,
                                           @ApiModelProperty(required = true)

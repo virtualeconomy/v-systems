@@ -19,7 +19,7 @@ import scala.util.{Failure, Success, Try}
 case class ExecuteContractFunctionTransaction private(contractId: ContractAccount,
                                                       funcIdx: Short,
                                                       data: Seq[DataEntry],
-                                                      description: Array[Byte],
+                                                      attachment: Array[Byte],
                                                       fee: Long,
                                                       feeScale: Short,
                                                       timestamp: Long,
@@ -33,7 +33,7 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
     contractId.bytes.arr,
     Shorts.toByteArray(funcIdx),
     Deser.serializeArray(DataEntry.serializeArrays(data)),
-    BytesSerializable.arrayWithSize(description),
+    BytesSerializable.arrayWithSize(attachment),
     Longs.toByteArray(fee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp)
@@ -43,7 +43,7 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
     "contractId" -> contractId.address,
     "funcIdx" -> funcIdx,
     "data" -> Base58.encode(data.flatMap(_.bytes).toArray),
-    "description" -> Base58.encode(description),
+    "description" -> Base58.encode(attachment),
     "fee" -> fee,
     "feeScale" -> feeScale,
     "timestamp" -> timestamp
@@ -78,32 +78,32 @@ object ExecuteContractFunctionTransaction {
   def createWithProof(contractId: ContractAccount,
                       funcIdx: Short,
                       data: Seq[DataEntry],
-                      description: Array[Byte],
+                      attachment: Array[Byte],
                       fee: Long,
                       feeScale: Short,
                       timestamp: Long,
                       proofs: Proofs): Either[ValidationError, ExecuteContractFunctionTransaction] =
-    if (description.length > MaxDescriptionSize) {
+    if (attachment.length > MaxDescriptionSize) {
       Left(ValidationError.TooBigArray)
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
     } else if (feeScale != 100) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
-      Right(ExecuteContractFunctionTransaction(contractId, funcIdx, data, description, fee, feeScale, timestamp, proofs))
+      Right(ExecuteContractFunctionTransaction(contractId, funcIdx, data, attachment, fee, feeScale, timestamp, proofs))
     }
 
   def create(sender: PrivateKeyAccount,
              contractId: ContractAccount,
              funcIdx: Short,
              data: Seq[DataEntry],
-             description: Array[Byte],
+             attachment: Array[Byte],
              fee: Long,
              feeScale: Short,
              timestamp: Long): Either[ValidationError, ExecuteContractFunctionTransaction] = for {
-    unsigned <- createWithProof(contractId, funcIdx, data, description, fee, feeScale, timestamp, Proofs.empty)
+    unsigned <- createWithProof(contractId, funcIdx, data, attachment, fee, feeScale, timestamp, Proofs.empty)
     proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
-    tx <- createWithProof(contractId, funcIdx, data, description, fee, feeScale, timestamp, proofs)
+    tx <- createWithProof(contractId, funcIdx, data, attachment, fee, feeScale, timestamp, proofs)
   } yield tx
 
   def create(sender: PublicKeyAccount,

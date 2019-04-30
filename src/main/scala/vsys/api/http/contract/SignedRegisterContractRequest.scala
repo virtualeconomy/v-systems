@@ -15,8 +15,8 @@ case class SignedRegisterContractRequest(@ApiModelProperty(value = "Base58 encod
                                          senderPublicKey: String,
                                          @ApiModelProperty(value = "Base58 encoded contract", required = true)
                                          contract: String,
-                                         @ApiModelProperty(value = "Base58 encoded dataStack", required = true)
-                                         data: String,
+                                         @ApiModelProperty(value = "Base58 encoded init data", required = true)
+                                         initData: String,
                                          @ApiModelProperty(value = "Description of contract")
                                          description: Option[String],
                                          @ApiModelProperty(required = true)
@@ -31,9 +31,9 @@ case class SignedRegisterContractRequest(@ApiModelProperty(value = "Base58 encod
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
     _contract <- Contract.fromBase58String(contract)
-    _dataStack <- DataEntry.fromBase58String(data)
+    _initData <- DataEntry.fromBase58String(initData)
     _description = description.filter(_.nonEmpty).getOrElse(Deser.deserilizeString(Array.emptyByteArray))
-    _t <- RegisterContractTransaction.create(_sender, _contract, _dataStack, _description, fee, feeScale, timestamp, _signature)
+    _t <- RegisterContractTransaction.create(_sender, _contract, _initData, _description, fee, feeScale, timestamp, _signature)
   } yield _t
 }
 

@@ -93,11 +93,11 @@ object TransactionFactory {
   def registerContract(request: RegisterContractRequest, wallet: Wallet, time: Time): Either[ValidationError, RegisterContractTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     contract <- Contract.fromBase58String(request.contract)
-    dataStack <- DataEntry.fromBase58String(request.data)
+    initData <- DataEntry.fromBase58String(request.initData)
     tx <- RegisterContractTransaction
       .create(senderPrivateKey,
         contract,
-        dataStack,
+        initData,
         request.description.filter(_.nonEmpty).getOrElse(Deser.deserilizeString(Array.emptyByteArray)),
         request.fee,
         request.feeScale,
@@ -107,13 +107,13 @@ object TransactionFactory {
   def executeContractFunction(request: ExecuteContractFunctionRequest, wallet: Wallet, time: Time): Either[ValidationError, ExecuteContractFunctionTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     contractId <- ContractAccount.fromString(request.contractId)
-    dataStack <- DataEntry.fromBase58String(request.data)
+    functionData <- DataEntry.fromBase58String(request.functionData)
     tx <- ExecuteContractFunctionTransaction
       .create(senderPrivateKey,
         contractId,
-        request.funcIdx,
-        dataStack,
-        request.description.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray),
+        request.functionIndex,
+        functionData,
+        request.attachment.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray),
         request.fee,
         request.feeScale,
         time.getTimestamp())

@@ -39,7 +39,7 @@ object ExecutionContext {
                    tx: ExecuteContractFunctionTransaction): Either[ValidationError, ExecutionContext] = {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
-    val description = tx.description
+    val description = tx.attachment
     s.contractContent(tx.contractId.bytes) match {
       case Some(c) => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description))
       case _ => Left(InvalidContractAddress)
