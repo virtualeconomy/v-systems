@@ -31,10 +31,12 @@ sealed trait Contract {
   lazy val json: JsObject = Json.obj(
     "languageCode" -> Deser.deserilizeString(languageCode),
     "languageVersion" -> Ints.fromByteArray(languageVersion),
-    "trigger" -> trigger.map(p => Base58.encode(p)),
-    "descriptor" -> descriptor.map(p => Base58.encode(p)),
-    "stateVar" -> stateVar.map(p => Base58.encode(p)),
-    "textual" -> textual.map(p => Base58.encode(p))
+    "triggers" -> trigger.map(p => Base58.encode(p)),
+    "descriptors" -> descriptor.map(p => Base58.encode(p)),
+    "stateVariables" -> stateVar.map(p => Base58.encode(p)),
+    "textual" -> Json.obj("triggers" -> Base58.encode(textual.head),
+      "descriptors" -> Base58.encode(textual(1)),
+      "stateVariables" -> Base58.encode(textual.last))
   )
 }
 
