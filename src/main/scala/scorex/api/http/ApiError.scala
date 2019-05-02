@@ -240,6 +240,12 @@ case object InvalidContractAddress extends ApiError {
   override val code: StatusCode = StatusCodes.BadRequest
 }
 
+case object InvalidTokenIndex extends ApiError {
+  override val id: Int = 126
+  override val message: String = "Invalid Token Index"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
 case class CustomValidationError(errorMessage: String) extends ApiError {
   override val id: Int = 199
   override val message: String = errorMessage
