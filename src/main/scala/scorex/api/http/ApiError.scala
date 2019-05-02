@@ -268,10 +268,10 @@ case class AliasNotExists(aoa: AddressOrAlias) extends ApiError {
   override val message: String = s"alias $msgReason doesn't exist"
 }
 
-case class ContractNotExists(name: String) extends ApiError {
+case object ContractNotExists extends ApiError {
   override val id: Int = 401
   override val code = StatusCodes.NotFound
-  override val message: String = s"contract $name doesn't exist"
+  override val message: String = "Contract is not in blockchain"
 }
 
 case class ContractAlreadyEnabled(name: String) extends ApiError {

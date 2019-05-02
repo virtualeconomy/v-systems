@@ -60,7 +60,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     ByteStr.decodeBase58(encoded) match {
       case Success(id) => state.contractContent(id) match {
         case Some((h, _, ct)) => complete(ct.json + ("height" -> JsNumber(h)))
-        case None => complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Contract is not in blockchain"))
+        case None => complete(ContractNotExists)
       }
       case _ => complete(InvalidAddress)
     }
@@ -83,7 +83,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual.last)).zipped.map { (a, b) =>
             (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }))
         )
-        case None => Left(InvalidAddress)
+        case None => Left(ContractNotExists)
       }
       case _ => Left(InvalidAddress)
     }
