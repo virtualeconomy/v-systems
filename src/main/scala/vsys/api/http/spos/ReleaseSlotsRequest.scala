@@ -7,9 +7,9 @@ case class ReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender 
                               sender: String,
                               @ApiModelProperty(required = true)
                               slotId: Int,
-                              @ApiModelProperty(required = true)
+                              @ApiModelProperty(required = true, example = "10000000")
                               fee: Long,
-                              @ApiModelProperty(required = true)
+                              @ApiModelProperty(required = true, example = "100")
                               feeScale: Short)
 
 object ReleaseSlotsRequest {
