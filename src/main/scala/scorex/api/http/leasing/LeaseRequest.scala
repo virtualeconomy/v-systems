@@ -7,9 +7,9 @@ case class LeaseRequest(@ApiModelProperty(value = "Base58 encoded sender public 
                         sender: String,
                         @ApiModelProperty(required = true)
                         amount: Long,
-                        @ApiModelProperty(required = true)
+                        @ApiModelProperty(required = true, example = "10000000")
                         fee: Long,
-                        @ApiModelProperty(required = true)
+                        @ApiModelProperty(required = true, example = "100")
                         feeScale: Short,
                         @ApiModelProperty(value = "Recipient address", required = true)
                         recipient: String)

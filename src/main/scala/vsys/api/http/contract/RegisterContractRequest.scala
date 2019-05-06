@@ -12,9 +12,9 @@ case class RegisterContractRequest(@ApiModelProperty(value = "Base58 encoded sen
                                    initData: String,
                                    @ApiModelProperty(value = "Description of contract")
                                    description: Option[String],
-                                   @ApiModelProperty(required = true)
+                                   @ApiModelProperty(required = true, example = "10000000000")
                                    fee: Long,
-                                   @ApiModelProperty(required = true)
+                                   @ApiModelProperty(required = true, example = "100")
                                    feeScale: Short)
 
 object RegisterContractRequest {
