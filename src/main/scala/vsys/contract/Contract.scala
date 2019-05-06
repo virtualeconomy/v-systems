@@ -100,7 +100,7 @@ object Contract extends ScorexLogging {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||
-      !checkTexture(textualStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
+      !checkTextual(textualStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String])))) {
       log.warn(s"Illegal textual ${textual.mkString(" ")}")
       false
     } else true
@@ -137,7 +137,7 @@ object Contract extends ScorexLogging {
     }
   }
 
-  private def checkTexture(textual: (Seq[Seq[String]], Seq[Seq[String]], Seq[String])): Boolean = {
+  private def checkTextual(textual: (Seq[Seq[String]], Seq[Seq[String]], Seq[String])): Boolean = {
     textual._1.flatten.forall(x => identifierCheck(x)) && textual._2.flatten.forall(x => identifierCheck(x)) &&
       textual._3.forall(x => identifierCheck(x))
   }

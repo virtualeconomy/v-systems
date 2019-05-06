@@ -6,25 +6,25 @@ import scorex.serialization.Deser
 trait TextualForm {
   private val fixedSize: Short = 4
 
-  def textureRandomGen(): Gen[Seq[Array[Byte]]] = for {
+  def textualRandomGen(): Gen[Seq[Array[Byte]]] = for {
     textual <- Gen.listOfN(fixedSize, Arbitrary.arbitrary[Byte]).map(_.toArray)
   } yield Seq(textual)
 
-  def textureGen(initialization: Gen[Array[Byte]], description: Gen[Array[Byte]], stateVar: Gen[Array[Byte]]): Gen[Seq[Array[Byte]]] = for {
+  def textualGen(initialization: Gen[Array[Byte]], description: Gen[Array[Byte]], stateVar: Gen[Array[Byte]]): Gen[Seq[Array[Byte]]] = for {
     init <- initialization
     desc <-  description
     state <- stateVar
   } yield Seq(init, desc, state)
 
   val stateVarTextual: Gen[Array[Byte]] = Gen.const(Deser.serializeArrays(TextualStateVar.stateVarName.map(x => Deser.serilizeString(x))))
-  val initializerTextual: Gen[Array[Byte]] = Gen.const(Deser.serializeArrays(Seq(TextualFun.initFuncBytes.sample.get)))
+  val triggerTextual: Gen[Array[Byte]] = Gen.const(Deser.serializeArrays(Seq(TextualFun.initFuncBytes.sample.get)))
   val descriptorTextual: Gen[Array[Byte]] = Gen.const(Deser.serializeArrays(Seq(TextualFun.supersedeFuncBytes.sample.get,
     TextualFun.issueFuncBytes.sample.get, TextualFun.destroyFuncBytes.sample.get, TextualFun.splitFuncBytes.sample.get,
     TextualFun.sendFuncBytes.sample.get, TextualFun.transferFuncBytes.sample.get, TextualFun.depositFuncBytes.sample.get,
     TextualFun.withdrawFuncBytes.sample.get, TextualFun.totalSupplyFuncBytes.sample.get, TextualFun.maxSupplyFuncBytes.sample.get,
     TextualFun.balanceOfFuncBytes.sample.get, TextualFun.getIssuerFuncBytes.sample.get)))
 
-  val textualRightGen: Gen[Seq[Array[Byte]]] = textureGen(initializerTextual, descriptorTextual, stateVarTextual)
+  val textualRightGen: Gen[Seq[Array[Byte]]] = textualGen(triggerTextual, descriptorTextual, stateVarTextual)
 
 }
 

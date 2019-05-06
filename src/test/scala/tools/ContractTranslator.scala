@@ -49,12 +49,12 @@ object ContractTranslator extends App {
   println("State Variables:")
   printSeqHex(stateVar)
 
-  val texture = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
-  val textualStr = textualFromBytes(texture)
+  val textual = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
+  val textualStr = textualFromBytes(textual)
 
   val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account")
 
-  printTexture(textualStr)
+  printTextual(textualStr)
 
   println("Triggers:")
   printSeqFun(trigger, 0)
@@ -153,7 +153,7 @@ object ContractTranslator extends App {
     }
   }
 
-  def printTexture(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])]): Unit = {
+  def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])]): Unit = {
     if (t.isFailure) println("Invalid Texture")
     else {
       val r = t.get

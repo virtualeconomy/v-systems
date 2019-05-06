@@ -25,6 +25,6 @@ trait ContractGen extends OpcFunction with StateVar with TextualForm {
   } yield Contract.buildContract(langCode, langVer, initializer, descriptor, stateVar, textual).right.get
 
   def contractRandomGen(): Gen[Contract] = for {
-    contract <- contractNewGen("vdds", 1, descriptorRandomGen(), descriptorRandomGen(), stateVarRandomGen(), textureRandomGen())
+    contract <- contractNewGen("vdds", 1, descriptorRandomGen(), descriptorRandomGen(), stateVarRandomGen(), textualRandomGen())
   } yield contract
 }

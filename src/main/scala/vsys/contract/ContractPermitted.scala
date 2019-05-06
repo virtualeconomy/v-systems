@@ -9,7 +9,7 @@ object ContractPermitted {
     Seq(supersedeFunc, issueFunc, destroyFunc, splitFunc, sendFunc, transferFunc, depositFunc, withdrawFunc,
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte)),
-    Seq(initializerTexture, descriptorTexture, stateVarTexture)
+    Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
   lazy val contractWithoutSplit: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1), Seq(initFunc),
@@ -17,7 +17,7 @@ object ContractPermitted {
       transferFuncWithoutSplit, depositFuncWithoutSplit, withdrawFuncWithoutSplit, totalSupplyFuncWithoutSplit,
       maxSupplyFuncWithoutSplit, balanceOfFuncWithoutSplit, getIssuerFuncWithoutSplit),
     Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte)),
-    Seq(initializerTexture, descriptorTextureWithoutSplit, stateVarTexture)
+    Seq(triggerTextual, descriptorTextualWithoutSplit, stateVarTextual)
   ).right.get
 
   object FunId {
@@ -298,7 +298,7 @@ object ContractPermitted {
   lazy val balanceOfFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.balanceOf) ++ Array(publicFuncType) ++ protoType(Array(DataType.Amount.id.toByte), ProtoType.balanceOfParaType) ++ OpcLine.balanceOfOpcLine
   lazy val getIssuerFuncWithoutSplit: Array[Byte] = Shorts.toByteArray(FunIdWithoutSplit.getIssuer) ++ Array(publicFuncType) ++ protoType(Array(DataType.Account.id.toByte), ProtoType.getIssuerParaType) ++ OpcLine.getIssuerOpcLine
 
-  def textureFunc(name: String, ret: Seq[String], para: Seq[String]): Array[Byte] = {
+  def textualFunc(name: String, ret: Seq[String], para: Seq[String]): Array[Byte] = {
     val funcByte = Deser.serializeArray(Deser.serilizeString(name))
     val retByte = Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x))))
     val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
@@ -322,27 +322,27 @@ object ContractPermitted {
   }
 
   val stateVarName = List("issuer", "maker")
-  lazy val stateVarTexture: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
+  lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
-  val initFuncBytes: Array[Byte] = textureFunc("init", Seq(), ParaName.initPara)
-  val supersedeFuncBytes: Array[Byte] = textureFunc("supersede", Seq(), ParaName.supersedePara)
-  val issueFuncBytes: Array[Byte] = textureFunc("issue", Seq(), ParaName.issuePara)
-  val destroyFuncBytes: Array[Byte] = textureFunc("destroy", Seq(), ParaName.destroyPara)
-  val splitFuncBytes: Array[Byte] = textureFunc("split", Seq(), ParaName.splitPara)
-  val sendFuncBytes: Array[Byte] = textureFunc("send", Seq(), ParaName.sendPara)
-  val transferFuncBytes: Array[Byte] = textureFunc("transfer", Seq(), ParaName.transferPara)
-  val depositFuncBytes: Array[Byte] = textureFunc("deposit", Seq(), ParaName.depositPara)
-  val withdrawFuncBytes: Array[Byte] = textureFunc("withdraw", Seq(), ParaName.withdrawPara)
-  val totalSupplyFuncBytes: Array[Byte] = textureFunc("totalSupply", Seq("total"), ParaName.totalSupplyPara)
-  val maxSupplyFuncBytes: Array[Byte] = textureFunc("maxSupply", Seq("max"), ParaName.maxSupplyPara)
-  val balanceOfFuncBytes: Array[Byte] = textureFunc("balanceOf", Seq("balance"), ParaName.balanceOfPara)
-  val getIssuerFuncBytes: Array[Byte] = textureFunc("getIssuer", Seq("issuer"), ParaName.getIssuerPara)
+  val initFuncBytes: Array[Byte] = textualFunc("init", Seq(), ParaName.initPara)
+  val supersedeFuncBytes: Array[Byte] = textualFunc("supersede", Seq(), ParaName.supersedePara)
+  val issueFuncBytes: Array[Byte] = textualFunc("issue", Seq(), ParaName.issuePara)
+  val destroyFuncBytes: Array[Byte] = textualFunc("destroy", Seq(), ParaName.destroyPara)
+  val splitFuncBytes: Array[Byte] = textualFunc("split", Seq(), ParaName.splitPara)
+  val sendFuncBytes: Array[Byte] = textualFunc("send", Seq(), ParaName.sendPara)
+  val transferFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), ParaName.transferPara)
+  val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), ParaName.depositPara)
+  val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), ParaName.withdrawPara)
+  val totalSupplyFuncBytes: Array[Byte] = textualFunc("totalSupply", Seq("total"), ParaName.totalSupplyPara)
+  val maxSupplyFuncBytes: Array[Byte] = textualFunc("maxSupply", Seq("max"), ParaName.maxSupplyPara)
+  val balanceOfFuncBytes: Array[Byte] = textualFunc("balanceOf", Seq("balance"), ParaName.balanceOfPara)
+  val getIssuerFuncBytes: Array[Byte] = textualFunc("getIssuer", Seq("issuer"), ParaName.getIssuerPara)
 
-  lazy val initializerTexture: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
-  lazy val descriptorTexture: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
     destroyFuncBytes, splitFuncBytes, sendFuncBytes, transferFuncBytes, depositFuncBytes, withdrawFuncBytes,
     totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
-  lazy val descriptorTextureWithoutSplit: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+  lazy val descriptorTextualWithoutSplit: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
     destroyFuncBytes, sendFuncBytes, transferFuncBytes, depositFuncBytes, withdrawFuncBytes,
     totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
 
