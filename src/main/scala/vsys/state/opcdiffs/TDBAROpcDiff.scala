@@ -4,6 +4,7 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractLocalVariableIndexOutOfRange}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -21,7 +22,7 @@ object TDBAROpcDiff {
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenBalanceKey = ByteStr(Bytes.concat(tokenID.arr, address.data))
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
         Left(ContractInvalidTokenIndex)

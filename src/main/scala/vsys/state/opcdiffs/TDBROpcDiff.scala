@@ -4,6 +4,7 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractInvalidTokenInfo, ContractLocalVariableIndexOutOfRange}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -21,7 +22,7 @@ object TDBROpcDiff {
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenMaxKey = ByteStr(Bytes.concat(tokenID.arr, Array(0.toByte)))
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
         Left(ContractInvalidTokenIndex)
@@ -51,7 +52,7 @@ object TDBROpcDiff {
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(1.toByte)))
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
         Left(ContractInvalidTokenIndex)
@@ -78,7 +79,7 @@ object TDBROpcDiff {
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenUnityKey = ByteStr(Bytes.concat(tokenID.arr, Array(2.toByte)))
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
         Left(ContractInvalidTokenIndex)
@@ -107,7 +108,7 @@ object TDBROpcDiff {
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenDescKey = ByteStr(Bytes.concat(tokenID.arr, Array(3.toByte)))
       if (tokenNumber >= contractTokens || tokenNumber < 0) {
         Left(ContractInvalidTokenIndex)

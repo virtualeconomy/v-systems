@@ -6,7 +6,7 @@ import scorex.account.AddressScheme
 import scorex.crypto.encode.Base58
 import scorex.crypto.hash.SecureCryptographicHash._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.InvalidContractAddress
+import scorex.transaction.ValidationError.{InvalidContractAddress, InvalidAddress}
 import scorex.utils.ScorexLogging
 
 import scala.util.Success
@@ -33,6 +33,7 @@ object ContractAccount extends ScorexLogging {
   val Prefix: String = "contractAccount:"
 
   val AddressVersion: Byte = 6
+  val TokenAddressVersion: Byte = -124
   val ChecksumLength = 4
   val HashLength = 20
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
@@ -93,5 +94,14 @@ object ContractAccount extends ScorexLogging {
   }
 
   private def calcCheckSum(withoutChecksum: Array[Byte]): Array[Byte] = hash(withoutChecksum).take(ChecksumLength)
+
+  def tokenIdFromBytes(addressBytes: Array[Byte], idxBytes: Array[Byte]): Either[ValidationError, ByteStr] = {
+    if (isByteArrayValid(addressBytes)) {
+      val contractIdNoCheckSum = addressBytes.tail.dropRight(ChecksumLength)
+      val withoutChecksum = Array(TokenAddressVersion) ++ contractIdNoCheckSum ++ idxBytes
+      val bytes = withoutChecksum ++ calcCheckSum(withoutChecksum)
+      Right(ByteStr(bytes))
+    } else Left(InvalidAddress)
+  }
 
 }

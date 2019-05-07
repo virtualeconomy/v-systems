@@ -4,7 +4,9 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.account.Address
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractTokenBalanceInsufficient, ContractTokenMaxExceeded, ContractUnsupportedDeposit, ContractUnsupportedWithdraw}
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex,
+  ContractTokenBalanceInsufficient, ContractTokenMaxExceeded, ContractUnsupportedDeposit, ContractUnsupportedWithdraw}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
 
@@ -22,7 +24,7 @@ object TDBAOpcDiff {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val depositAmount = Longs.fromByteArray(amount.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(1.toByte)))
       val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val currentTotal = context.state.tokenAccountBalance(tokenTotalKey)
@@ -62,7 +64,7 @@ object TDBAOpcDiff {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val withdrawAmount = Longs.fromByteArray(amount.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val tokenTotalKey = ByteStr(Bytes.concat(tokenID.arr, Array(1.toByte)))
       val issuerBalanceKey = ByteStr(Bytes.concat(tokenID.arr, issuer.data))
       val issuerCurrentBalance = context.state.tokenAccountBalance(issuerBalanceKey)
@@ -104,7 +106,7 @@ object TDBAOpcDiff {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val transferAmount = Longs.fromByteArray(amount.data)
-      val tokenID: ByteStr = ByteStr(Bytes.concat(context.contractId.bytes.arr, tokenIndex.data))
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
       val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
       val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
       val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))

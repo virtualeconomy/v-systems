@@ -11,6 +11,7 @@ import scorex.lagonaki.mocks.TestBlock
 import scorex.transaction.GenesisTransaction
 import com.wavesplatform.state2.diffs._
 import scorex.serialization.Deser
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.contract._
 import vsys.transaction.proof.EllipticCurve25519Proof
 import vsys.transaction.contract._
@@ -69,7 +70,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
         totalPortfolioDiff.effectiveBalance shouldBe -reg.fee
         val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         val contractId = reg.contractId.bytes
-        val tokenId = ByteStr(Bytes.concat(contractId.arr, Ints.toByteArray(0)))
+        val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).right.get
         val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
         val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
         val maxKey = ByteStr(Bytes.concat(tokenId.arr, Array(0.toByte)))

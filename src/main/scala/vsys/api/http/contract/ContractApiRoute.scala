@@ -14,10 +14,10 @@ import play.api.libs.json.{JsArray, JsNumber, JsObject, Json}
 import scorex.BroadcastRoute
 import scorex.account.Address
 import scorex.api.http._
-import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
 import scorex.transaction._
 import scorex.utils.Time
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.wallet.Wallet
 
 import scala.util.Success
@@ -183,7 +183,10 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
               path(Segment) { tokenIndexStr =>
                 Exception.allCatch.opt(tokenIndexStr.toInt) match {
                   case Some(tokenIndex) if tokenIndex >= 0 =>
-                    complete(Json.obj("tokenId" -> Base58.encode(c.arr ++ Ints.toByteArray(tokenIndex))))
+                    tokenIdFromBytes(c.arr, Ints.toByteArray(tokenIndex)) match {
+                      case Right(b) => complete(Json.obj("tokenId" -> b))
+                      case Left(e) => complete(e)
+                    }
                   case _ =>
                     complete(InvalidTokenIndex)
                 }
