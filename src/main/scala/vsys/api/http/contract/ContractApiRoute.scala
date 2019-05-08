@@ -17,7 +17,7 @@ import scorex.api.http._
 import scorex.serialization.Deser
 import scorex.transaction._
 import scorex.utils.Time
-import vsys.account.ContractAccount.tokenIdFromBytes
+import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.wallet.Wallet
 
 import scala.util.Success
@@ -59,7 +59,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   def content: Route = (get & path("content" / Segment)) { encoded =>
     ByteStr.decodeBase58(encoded) match {
       case Success(id) => state.contractContent(id) match {
-        case Some((h, _, ct)) => complete(ct.json + ("height" -> JsNumber(h)))
+        case Some((h, txId, ct)) => complete(Json.obj("transactionId" -> txId.base58) ++ ct.json ++ Json.obj("height" -> JsNumber(h)))
         case None => complete(ContractNotExists)
       }
       case _ => complete(InvalidAddress)
@@ -78,10 +78,12 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   private def infoJson(contractIdStr: String): Either[ApiError, JsObject] = {
     ByteStr.decodeBase58(contractIdStr) match {
       case Success(id) => state.contractContent(id) match {
-        case Some((_, _, ct)) => Right(Json.obj(
+        case Some((h, txId, ct)) => Right(Json.obj(
           "contractId" -> contractIdStr,
+          "transactionId" -> txId.base58,
           "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual.last)).zipped.map { (a, b) =>
-            (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }))
+            (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
+          "height" -> JsNumber(h))
         )
         case None => Left(ContractNotExists)
       }
@@ -103,12 +105,13 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         val descKey = ByteStr(id.arr ++ Array(3.toByte))
         state.tokenInfo(maxKey) match {
           case Some(x) => complete(Json.obj("tokenId" -> tokenId,
+            "contractId" -> contractIdFromBytes(id.arr),
             "max" -> x.json.value("data"),
             "total" -> state.tokenAccountBalance(totalKey),
             "unity" -> state.tokenInfo(unityKey).get.json.value("data"),
             "description" -> state.tokenInfo(descKey).get.json.value("data")
           ))
-          case _ => complete(StatusCodes.NotFound -> Json.obj("status" -> "error", "details" -> "Token ID is not in DB"))
+          case _ => complete(TokenNotExists)
         }
       }
       case _ => complete(InvalidAddress)
@@ -137,13 +140,18 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   private def balanceJson(address: String, tokenIdStr: String): Either[ApiError, JsObject] = {
     ByteStr.decodeBase58(tokenIdStr) match {
       case Success(tokenId) =>
-        (for {
-          acc <- Address.fromString(address)
-        } yield Json.obj(
-          "address" -> acc.address,
-          "tokenId" -> tokenIdStr,
-          "balance" -> state.tokenAccountBalance(ByteStr(tokenId.arr ++ acc.bytes.arr)))
-          ).left.map(ApiError.fromValidationError)
+        val unityKey = ByteStr(tokenId.arr ++ Array(2.toByte))
+        state.tokenInfo(unityKey) match {
+          case Some(x) => (for {
+            acc <- Address.fromString(address)
+          } yield Json.obj(
+            "address" -> acc.address,
+            "tokenId" -> tokenIdStr,
+            "balance" -> state.tokenAccountBalance(ByteStr(tokenId.arr ++ acc.bytes.arr)),
+            "unity" -> x.json.value("data"))
+            ).left.map(ApiError.fromValidationError)
+          case _ => Left(TokenNotExists)
+        }
       case _ => Left(InvalidAddress)
     }
   }

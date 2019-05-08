@@ -274,10 +274,10 @@ case object ContractNotExists extends ApiError {
   override val message: String = "Contract is not in blockchain"
 }
 
-case class ContractAlreadyEnabled(name: String) extends ApiError {
+case object TokenNotExists extends ApiError {
   override val id: Int = 402
-  override val code = StatusCodes.BadRequest
-  override val message: String = s"contract $name already enabled"
+  override val code = StatusCodes.NotFound
+  override val message: String = "Token is not in blockchain"
 }
 
 case class ContractAlreadyDisabled(name: String) extends ApiError {

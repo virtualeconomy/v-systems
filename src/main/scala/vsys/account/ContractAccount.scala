@@ -34,6 +34,7 @@ object ContractAccount extends ScorexLogging {
 
   val AddressVersion: Byte = 6
   val TokenAddressVersion: Byte = -124
+  val TokenIndexLength = 4
   val ChecksumLength = 4
   val HashLength = 20
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
@@ -102,6 +103,13 @@ object ContractAccount extends ScorexLogging {
       val bytes = withoutChecksum ++ calcCheckSum(withoutChecksum)
       Right(ByteStr(bytes))
     } else Left(InvalidAddress)
+  }
+
+  def contractIdFromBytes(addressBytes: Array[Byte]): ByteStr = {
+    val contractIdNoCheckSum = addressBytes.tail.dropRight(ChecksumLength + TokenIndexLength)
+    val withoutChecksum = Array(AddressVersion) ++ contractIdNoCheckSum
+    val bytes = withoutChecksum ++ calcCheckSum(withoutChecksum)
+    ByteStr(bytes)
   }
 
 }
