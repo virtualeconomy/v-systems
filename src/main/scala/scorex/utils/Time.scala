@@ -16,7 +16,7 @@ trait Time {
 
 class TimeImpl extends Time with ScorexLogging with AutoCloseable {
   private val offsetPanicThreshold = 1000000L
-  private val ExpirationTimeout = 100.seconds
+  private val ExpirationTimeout = 120000L
   private val RetryDelay = 10.seconds
   private val ResponseTimeout = 10.seconds
   private val NtpServer = "pool.ntp.org"
@@ -69,7 +69,10 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
       case Some((server, newOffset)) if !scheduler.isShutdown =>
         log.trace(s"Adjusting time with $newOffset nanoseconds, source: ${server.getHostAddress}.")
         offset = newOffset
-        updateTask.delayExecution(ExpirationTimeout)
+        val cntSysTime = System.currentTimeMillis()
+        val nextUpdateTime = (ExpirationTimeout - cntSysTime % ExpirationTimeout).toInt.milliseconds + 500.milliseconds
+        // to avoid the miner mint time
+        updateTask.delayExecution(nextUpdateTime)
       case _ => Task.unit
     }
   }
