@@ -69,7 +69,7 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
       case Some((server, newOffset)) if !scheduler.isShutdown =>
         log.trace(s"Adjusting time with $newOffset nanoseconds, source: ${server.getHostAddress}.")
         offset = newOffset
-        val cntSysTime = System.currentTimeMillis()
+        val cntSysTime = correctedTime() / 1000000L
         val nextUpdateTime = (ExpirationTimeout - cntSysTime % ExpirationTimeout).toInt.milliseconds + 500.milliseconds
         // to avoid the miner mint time
         updateTask.delayExecution(nextUpdateTime)
