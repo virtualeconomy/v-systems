@@ -23,4 +23,6 @@ object TransactionStatus extends Enumeration {
   val ContractInvalidTokenInfo = Value(20)
   val ContractUnsupportedWithdraw = Value(21)
   val ContractUnsupportedDeposit = Value(22)
+  val ContractInvalidSigner = Value(23)
+  val ContractInvalidCaller = Value(24)
 }

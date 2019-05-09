@@ -35,6 +35,8 @@ object ValidationError {
   case object ContractStateVariableNotDefined extends ValidationError
   case object ContractInvalidOPCData extends ValidationError
   case object ContractUnsupportedOPC extends ValidationError
+  case object ContractInvalidSigner extends ValidationError
+  case object ContractInvalidCaller extends ValidationError
   case object ContractInvalidFunction extends ValidationError
   case object ContractInvalidTokenIndex extends ValidationError
   case object ContractInvalidAmount extends ValidationError

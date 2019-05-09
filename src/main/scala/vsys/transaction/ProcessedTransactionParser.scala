@@ -80,6 +80,12 @@ object ProcessedTransactionParser {
       case status: Byte if status == TransactionStatus.ContractUnsupportedDeposit.id =>
         parseTail(TransactionStatus.ContractUnsupportedDeposit, data.tail)
 
+      case status: Byte if status == TransactionStatus.ContractInvalidSigner.id =>
+        parseTail(TransactionStatus.ContractInvalidSigner, data.tail)
+
+      case status: Byte if status == TransactionStatus.ContractInvalidCaller.id =>
+        parseTail(TransactionStatus.ContractInvalidCaller, data.tail)
+
       case status => Failure(new Exception(s"Invalid transaction status: $status"))
     }
   }

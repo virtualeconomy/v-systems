@@ -225,10 +225,10 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
         blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
       } // total > max
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, regContract))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.Failed)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, regContract))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ContractInvalidCaller)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Failed
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
       } // invalid issue right
     }
   }

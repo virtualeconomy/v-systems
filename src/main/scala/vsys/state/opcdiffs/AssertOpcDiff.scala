@@ -3,7 +3,7 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.Longs
 import scorex.account.Address
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, GenericError}
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidCaller, ContractInvalidOPCData, ContractInvalidSigner, GenericError}
 import vsys.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
@@ -55,7 +55,7 @@ object AssertOpcDiff {
     if (address.dataType != DataType.Address)
       Left(ContractDataTypeMissMatch)
     else if (!(address.data sameElements signer.bytes.arr))
-      Left(GenericError(s"Address ${address.data} does not equal $signer 's address"))
+      Left(ContractInvalidCaller)
     else
       Right(OpcDiff.empty)
   }
@@ -65,7 +65,7 @@ object AssertOpcDiff {
     if (address.dataType != DataType.Address)
       Left(ContractDataTypeMissMatch)
     else if (!(address.data sameElements signer.bytes.arr))
-      Left(GenericError(s"Address ${address.data} does not equal $signer 's address"))
+      Left(ContractInvalidSigner)
     else
       Right(OpcDiff.empty)
   }

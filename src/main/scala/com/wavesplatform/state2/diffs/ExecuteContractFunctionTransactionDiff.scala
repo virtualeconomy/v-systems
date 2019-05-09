@@ -35,6 +35,8 @@ object ExecuteContractFunctionTransactionDiff {
         case Left(ContractStateVariableNotDefined) => Right(toDiff(height, tx, sender)(fromValidationError(ContractStateVariableNotDefined)))
         case Left(ContractInvalidOPCData) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidOPCData)))
         case Left(ContractUnsupportedOPC) => Right(toDiff(height, tx, sender)(fromValidationError(ContractUnsupportedOPC)))
+        case Left(ContractInvalidSigner) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidSigner)))
+        case Left(ContractInvalidCaller) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidCaller)))
         case Left(ContractInvalidFunction) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidFunction)))
         case Left(ContractInvalidTokenIndex) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidTokenIndex)))
         case Left(ContractInvalidAmount) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidAmount)))
@@ -59,6 +61,8 @@ object ExecuteContractFunctionTransactionDiff {
     case ContractStateVariableNotDefined => TransactionStatus.ContractStateVariableNotDefined
     case ContractInvalidOPCData => TransactionStatus.ContractInvalidOPCData
     case ContractUnsupportedOPC => TransactionStatus.ContractUnsupportedOPC
+    case ContractInvalidSigner => TransactionStatus.ContractInvalidSigner
+    case ContractInvalidCaller => TransactionStatus.ContractInvalidCaller
     case ContractInvalidFunction => TransactionStatus.ContractInvalidFunction
     case ContractInvalidTokenIndex => TransactionStatus.ContractInvalidTokenIndex
     case ContractInvalidAmount => TransactionStatus.ContractInvalidAmount
