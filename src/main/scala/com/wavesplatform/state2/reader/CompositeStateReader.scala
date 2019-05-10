@@ -8,6 +8,8 @@ import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import vsys.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
+import vsys.contract.{Contract, DataEntry}
+
 
 class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends StateReader {
 
@@ -30,25 +32,11 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def height: Int = inner.height + blockDiff.heightDiff
 
-  override def slotAddress(id: Int): Option[String] =
-    txDiff.slotids.get(id) match {
-      case None => inner.slotAddress(id).orElse(None)
-      case add if add.get == "" => None
-      case add => add
-    }
+  override def slotAddress(id: Int): Option[String] = txDiff.slotids.getOrElse(id, inner.slotAddress(id))
+
+  override def addressSlot(add: String): Option[Int] = txDiff.addToSlot.getOrElse(add, inner.addressSlot(add))
 
   override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
-
-  override def addressToSlotID(add: String): Option[Int] = {
-    inner.addressToSlotID(add) match {
-      case None => txDiff.slotids.filter(_._2 == add).keys.headOption
-      case id => txDiff.slotids.filter(_._1 == id.get).values.headOption match {
-        case None => id
-        case adx if adx.get == add => id
-        case _ => None
-      }
-    }
-  }
 
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = {
     val fromDiff = txDiff.accountTransactionIds.get(a).orEmpty
@@ -67,10 +55,26 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
 
-  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
-    txDiff.contracts.get(name)
-      .map(t=>(t._1, t._2.bytes, t._3))
-      .orElse(inner.contractContent(name))
+  override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] =
+    txDiff.contracts.get(id)
+      .map(t => (t._1, t._2, t._3))
+      .orElse(inner.contractContent(id))
+
+  override def contractInfo(id: ByteStr): Option[DataEntry] =
+    txDiff.contractDB.get(id)
+      .map(t => DataEntry.fromBytes(t).explicitGet())
+      .orElse(inner.contractInfo(id))
+
+  override def contractTokens(id: ByteStr): Int = inner.contractTokens(id) + txDiff.contractTokens.getOrElse(id, 0)
+
+  override def tokenInfo(id: ByteStr): Option[DataEntry] = {
+    txDiff.tokenDB.get(id)
+      .map(t => DataEntry.fromBytes(t).explicitGet())
+      .orElse(inner.tokenInfo(id))
+  }
+
+  override def tokenAccountBalance(id: ByteStr): Long =
+    safeSum(txDiff.tokenAccountBalance.getOrElse(id, 0L), inner.tokenAccountBalance(id))
 
   override def dbGet(key: ByteStr): Option[ByteStr] =
     txDiff.dbEntries.get(key).map(v=>v.bytes)
@@ -122,8 +126,20 @@ object CompositeStateReader {
     override def resolveAlias(a: Alias): Option[Address] =
       new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
 
-    override def contractContent(name: String): Option[(Boolean, ByteStr, String)] =
-      new CompositeStateReader(inner, blockDiff()).contractContent(name)
+    override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] =
+      new CompositeStateReader(inner, blockDiff()).contractContent(id)
+
+    override def contractInfo(id: ByteStr): Option[DataEntry] =
+      new CompositeStateReader(inner, blockDiff()).contractInfo(id)
+
+    override def contractTokens(id: ByteStr): Int =
+      new CompositeStateReader(inner, blockDiff()).contractTokens(id)
+
+    override def tokenInfo(id: ByteStr): Option[DataEntry] =
+      new CompositeStateReader(inner, blockDiff()).tokenInfo(id)
+
+    override def tokenAccountBalance(id: ByteStr): Long =
+      new CompositeStateReader(inner, blockDiff()).tokenAccountBalance(id)
 
     override def dbGet(key: ByteStr): Option[ByteStr] =
       new CompositeStateReader(inner, blockDiff()).dbGet(key)
@@ -140,8 +156,8 @@ object CompositeStateReader {
     override def effectiveSlotAddressSize: Int =
       new CompositeStateReader(inner,blockDiff()).effectiveSlotAddressSize
 
-    override def addressToSlotID(add: String): Option[Int] =
-      new CompositeStateReader(inner,blockDiff()).addressToSlotID(add)
+    override def addressSlot(add: String): Option[Int] =
+      new CompositeStateReader(inner,blockDiff()).addressSlot(add)
 
     override def isLeaseActive(leaseTx: LeaseTransaction): Boolean =
       new CompositeStateReader(inner, blockDiff()).isLeaseActive(leaseTx)

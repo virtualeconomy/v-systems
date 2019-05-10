@@ -26,6 +26,7 @@ import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
 import vsys.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
+import vsys.api.http.contract.{ContractApiRoute, ContractBroadcastApiRoute}
 import vsys.api.http.vsys._
 import vsys.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
@@ -35,6 +36,7 @@ import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
 import vsys.wallet.Wallet
 import scorex.waves.http.DebugApiRoute
+import vsys.db.openDB
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -43,8 +45,10 @@ import scala.util.Try
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
 
-  private val checkpointService = new CheckpointServiceImpl(settings.blockchainSettings.checkpointFile, settings.checkpointsSettings)
-  private val (history, stateWriter, stateReader, blockchainUpdater) = StorageFactory(settings.blockchainSettings).get
+  private val db = openDB(settings.dataDirectory)
+
+  private val checkpointService = new CheckpointServiceImpl(db, settings.checkpointsSettings)
+  private val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings)
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
   private val wallet: Wallet = try {
@@ -89,13 +93,13 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       SposConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
       WalletApiRoute(settings.restAPISettings, wallet),
       PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
-      UtilsApiRoute(settings.restAPISettings),
+      UtilsApiRoute(time, settings.restAPISettings),
       PeersApiRoute(settings.restAPISettings, network.connect, peerDatabase, establishedConnections),
       AddressApiRoute(settings.restAPISettings, wallet, stateReader, settings.blockchainSettings.functionalitySettings),
       DebugApiRoute(settings.restAPISettings, wallet, stateReader, history, peerDatabase, establishedConnections, blockchainUpdater, allChannels, utxStorage),
       //WavesApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
       //AssetsApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
-      NodeApiRoute(settings.restAPISettings, () => this.shutdown()),
+      NodeApiRoute(settings.restAPISettings, stateReader, history, () => this.shutdown()),
       //AssetsBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       LeaseApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       LeaseBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
@@ -103,34 +107,34 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       //AliasBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
       SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
-      //ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
-      //ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
+      ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       DbApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader)
     )
 
-    val apiTypes = Seq(
-      typeOf[BlocksApiRoute],
-      typeOf[TransactionsApiRoute],
-      typeOf[SposConsensusApiRoute],
-      typeOf[WalletApiRoute],
-      typeOf[PaymentApiRoute],
-      typeOf[UtilsApiRoute],
-      typeOf[PeersApiRoute],
-      typeOf[AddressApiRoute],
-      typeOf[DebugApiRoute],
-      //typeOf[WavesApiRoute],
-      //typeOf[AssetsApiRoute],
-      typeOf[NodeApiRoute],
-      //typeOf[AssetsBroadcastApiRoute],
-      typeOf[LeaseApiRoute],
-      typeOf[LeaseBroadcastApiRoute],
-      //typeOf[AliasApiRoute],
-      //typeOf[AliasBroadcastApiRoute],
-      typeOf[SPOSApiRoute],
-      typeOf[SPOSBroadcastApiRoute],
-      //typeOf[ContractApiRoute],
-      //typeOf[ContractBroadcastApiRoute],
-      typeOf[DbApiRoute]
+    val apiTypes: Set[Class[_]] = Set(
+      classOf[BlocksApiRoute],
+      classOf[TransactionsApiRoute],
+      classOf[SposConsensusApiRoute],
+      classOf[WalletApiRoute],
+      classOf[PaymentApiRoute],
+      classOf[UtilsApiRoute],
+      classOf[PeersApiRoute],
+      classOf[AddressApiRoute],
+      classOf[DebugApiRoute],
+      //classOf[WavesApiRoute],
+      //classOf[AssetsApiRoute],
+      classOf[NodeApiRoute],
+      //classOf[AssetsBroadcastApiRoute],
+      classOf[LeaseApiRoute],
+      classOf[LeaseBroadcastApiRoute],
+      //classOf[AliasApiRoute],
+      //classOf[AliasBroadcastApiRoute],
+      classOf[SPOSApiRoute],
+      classOf[SPOSBroadcastApiRoute],
+      classOf[ContractApiRoute],
+      classOf[ContractBroadcastApiRoute],
+      classOf[DbApiRoute]
     )
 
     for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {
@@ -186,9 +190,8 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
 
       Try(Await.result(actorSystem.terminate(), 60.seconds))
         .failed.map(e => log.error("Failed to terminate actor system: " + e.getMessage))
-      log.debug("Closing storage")
-      stateWriter.close()
-      history.close()
+      log.info("Closing db")
+      db.close()
       log.info("Shutdown complete")
     }
   }

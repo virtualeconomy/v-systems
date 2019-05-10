@@ -16,7 +16,8 @@ object GenesisTransactionDiff {
           balance = tx.amount,
           LeaseInfo.empty,
           assets = Map.empty)),
-        slotids = Map(tx.slotId -> tx.recipient.address),
+        slotids = Map(tx.slotId -> Option(tx.recipient.address)),
+        addToSlot = Map(tx.recipient.address -> Option(tx.slotId)),
         slotNum = 1
       ))
     else

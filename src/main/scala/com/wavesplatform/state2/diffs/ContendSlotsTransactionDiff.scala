@@ -20,7 +20,7 @@ object ContendSlotsTransactionDiff {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     val proofLength = tx.proofs.proofs.length
 
-    val multiSlotsCheck = s.addressToSlotID(sender.address) match {
+    val multiSlotsCheck = s.addressSlot(sender.address) match {
       case None => false
       case _ => true
     }
@@ -41,17 +41,18 @@ object ContendSlotsTransactionDiff {
       }
       else {
         val contendGen = mintingBalance(s, fs, sender.toAddress, height)
-        val slotGen = s.slotAddress(tx.slotId) match {
+        val (slotGen, slotIncrease) = s.slotAddress(tx.slotId) match {
           //if the slot is occupied, return the generating balance, else return 0
-          case Some(l) => Address.fromString(l).right.map(arr => mintingBalance(s, fs, arr, height)).getOrElse(0L)
-          case None => 0L //here 0 can be changed to min contend cost
+          case Some(l) => (Address.fromString(l).right.map(arr => mintingBalance(s, fs, arr, height)).getOrElse(0L), 0)
+          case None => (0L, 1) //here 0 can be changed to min contend MAB
         }
         if (contendGen > slotGen) {
           // charge transaction fee and contend the slot
           Right(Diff(height = height, tx = tx,
             portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-            slotids = Map(tx.slotId -> sender.toAddress.address),
-            slotNum = 1,
+            slotids = Map(tx.slotId -> Option(sender.toAddress.address)),
+            addToSlot = Map(sender.toAddress.address -> Option(tx.slotId)),
+            slotNum = slotIncrease,
             chargedFee = tx.fee))
         }
         else {
@@ -65,7 +66,7 @@ object ContendSlotsTransactionDiff {
       }
     }
     else if (multiSlotsCheck){
-      Left(GenericError(s"${sender.address} already own one slot."))
+      Left(GenericError(s"${sender.address} already owned one slot or contended by other node"))
     }
     else{
       Left(ValidationError.InvalidSlotId(tx.slotId))

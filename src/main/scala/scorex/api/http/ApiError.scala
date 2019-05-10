@@ -27,9 +27,16 @@ object ApiError {
     case ValidationError.NegativeAmount => NegativeAmount
     case ValidationError.InsufficientFee => InsufficientFee
     case ValidationError.InvalidName => InvalidName
+    case ValidationError.InvalidContract => InvalidContract
+    case ValidationError.InvalidDataEntry => InvalidDataEntry
+    case ValidationError.InvalidDataLength => InvalidDataLength
+    case ValidationError.InvalidContractAddress => InvalidContractAddress
     case ValidationError.InvalidDbKey => InvalidDbKey
     case ValidationError.InvalidSignature(_, _) => InvalidSignature
     case ValidationError.InvalidRequestSignature => InvalidSignature
+    case ValidationError.InvalidProofBytes => InvalidProofBytes
+    case ValidationError.InvalidProofLength => InvalidProofLength
+    case ValidationError.InvalidProofType => InvalidProofType
     case ValidationError.TooBigArray => TooBigArrayAllocation
     case ValidationError.OverflowError => OverflowError
     case ValidationError.ToSelf => ToSelfError
@@ -191,6 +198,54 @@ case class InvalidUTF8String(field: String) extends ApiError {
   override val message: String = s"The $field is not a valid utf8 string"
 }
 
+case object InvalidProofBytes extends ApiError {
+  override val id: Int = 119
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Proof Bytes"
+}
+
+case object InvalidProofLength extends ApiError {
+  override val id: Int = 120
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Proof Length"
+}
+
+case object InvalidProofType extends ApiError {
+  override val id: Int = 121
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Proof Type"
+}
+
+case object InvalidContract extends ApiError {
+  override val id: Int = 122
+  override val code = StatusCodes.BadRequest
+  override val message: String = "Invalid Contract"
+}
+
+case object InvalidDataEntry extends ApiError {
+  override val id: Int = 123
+  override val message: String = "Invalid DataEntry"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case object InvalidDataLength extends ApiError {
+  override val id: Int = 124
+  override val message: String = "Invalid DataEntry Length"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case object InvalidContractAddress extends ApiError {
+  override val id: Int = 125
+  override val message: String = "Invalid Contract Address"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
+case object InvalidTokenIndex extends ApiError {
+  override val id: Int = 126
+  override val message: String = "Invalid Token Index"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
+
 case class CustomValidationError(errorMessage: String) extends ApiError {
   override val id: Int = 199
   override val message: String = errorMessage
@@ -213,16 +268,16 @@ case class AliasNotExists(aoa: AddressOrAlias) extends ApiError {
   override val message: String = s"alias $msgReason doesn't exist"
 }
 
-case class ContractNotExists(name: String) extends ApiError {
+case object ContractNotExists extends ApiError {
   override val id: Int = 401
   override val code = StatusCodes.NotFound
-  override val message: String = s"contract $name doesn't exist"
+  override val message: String = "Contract is not in blockchain"
 }
 
-case class ContractAlreadyEnabled(name: String) extends ApiError {
+case object TokenNotExists extends ApiError {
   override val id: Int = 402
-  override val code = StatusCodes.BadRequest
-  override val message: String = s"contract $name already enabled"
+  override val code = StatusCodes.NotFound
+  override val message: String = "Token is not in blockchain"
 }
 
 case class ContractAlreadyDisabled(name: String) extends ApiError {

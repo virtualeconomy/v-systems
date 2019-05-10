@@ -48,7 +48,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
   property("contend transaction fail, when sender already own a slot") {
     forAll(preconditionsAndContend) { case (genesis, contend, contendM, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(contend, contendM))) { blockDiffEi =>
-        blockDiffEi should produce("already own one slot.")
+        blockDiffEi should produce("already owned one slot or contended by other node")
       }
     }
   }
@@ -61,6 +61,31 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(invalid2))) { blockDiffEi =>
         blockDiffEi shouldBe Left(TransactionValidationError(ValidationError.InvalidSlotId(invalid2.slotId), invalid2))
+      }
+    }
+  }
+
+  val preconditionsAndContendx: Gen[(GenesisTransaction, GenesisTransaction,
+    ContendSlotsTransaction, ContendSlotsTransaction, ContendSlotsTransaction, Long)] = for {
+    master <- accountGen
+    master1 <- accountGen
+    ts <- positiveIntGen
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, 2 * ENOUGH_AMT, -1, ts).right.get
+    contend: ContendSlotsTransaction <- contendGeneratorP(ts + 1, master, 0)
+    contend1: ContendSlotsTransaction <- contendGeneratorP(ts + 2, master1, 0)
+    contend2: ContendSlotsTransaction <- contendGeneratorP(ts + 3, master, 1)
+  } yield (genesis, genesis1, contend, contend1, contend2, contend.fee)
+
+
+  property("node contended by others can not contend a new slot") {
+    forAll(preconditionsAndContendx) { case (genesis, genesis1, contend, contend1, contend2, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1)), TestBlock.create(Seq(contend))), TestBlock.create(Seq(contend1))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+      }
+
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1)), TestBlock.create(Seq(contend)), TestBlock.create(Seq(contend1))), TestBlock.create(Seq(contend2))) { blockDiffEi =>
+        blockDiffEi should produce("already owned one slot or contended by other node")
       }
     }
   }

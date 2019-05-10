@@ -11,7 +11,7 @@ import scorex.utils.ScorexLogging
 import scala.util.Success
 
 
-sealed trait Address extends AddressOrAlias {
+sealed trait Address extends AddressOrAlias with Serializable {
   val bytes: ByteStr
   lazy val address: String = bytes.base58
   lazy val stringRepr: String = address

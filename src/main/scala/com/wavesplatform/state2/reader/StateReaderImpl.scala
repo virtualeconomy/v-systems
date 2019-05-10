@@ -6,26 +6,25 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
+import vsys.contract.{Contract, DataEntry}
 import vsys.transaction.{ProcessedTransaction, ProcessedTransactionParser}
-
-import scala.collection.JavaConverters._
 
 class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWriteLock) extends StateReader {
 
   val sp = Synchronized(p)
 
   override def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)] = read { implicit l =>
-    Option(sp().transactions.get(id)).map {
+    sp().transactions.get(id).map {
       case (h, bytes) => (h, ProcessedTransactionParser.parseBytes(bytes).get)
     }
   }
 
   override def accountPortfolio(a: Address): Portfolio = read { implicit l =>
-    Option(sp().portfolios.get(a.bytes)).map { case (b, (i, o), as) => Portfolio(b, LeaseInfo(i, o), as.map { case (k, v) => ByteStr(k) -> v }) }.orEmpty
+    sp().portfolios.get(a.bytes).map { case (b, (i, o), as) => Portfolio(b, LeaseInfo(i, o), as.map { case (k, v) => ByteStr(k) -> v }) }.orEmpty
   }
 
   override def assetInfo(id: ByteStr): Option[AssetInfo] = read { implicit l =>
-    Option(sp().assets.get(id)).map {
+    Option(sp().assets.get(id).get).map {
       case (is, amt) => AssetInfo(is, amt)
     }
   }
@@ -36,12 +35,12 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def effectiveSlotAddressSize: Int = read {implicit l=> sp().getEffectiveSlotAddressSize}
 
-  override def addressToSlotID(add: String): Option[Int] = read {implicit l=> sp().addressToSlotID(add)}
+  override def addressSlot(add: String): Option[Int] = read {implicit l=> sp().getAddressSlot(add)}
 
   override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = read { implicit l =>
-    val totalRecords = sp().accountTransactionsLengths.getOrDefault(a.bytes, 0)
+    val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
     Range(Math.max(0, totalRecords - limit), totalRecords)
-      .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)))
+      .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)).get)
       .reverse
   }
 
@@ -53,16 +52,34 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def resolveAlias(a: Alias): Option[Address] = read { implicit l =>
-    Option(sp().aliasToAddress.get(a.name))
+    sp().aliasToAddress.get(a.name)
       .map(b => Address.fromBytes(b.arr).explicitGet())
   }
 
-  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] = read { implicit l =>
-    Option(sp().contracts.get(name))
+  override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] = read { implicit l =>
+    sp().contracts.get(id).map {
+      case (h, txId, bytes) => (h, txId, Contract.fromBytes(bytes).explicitGet())
+    }
+  }
+
+  override def contractInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
+    sp().contractDB.get(id).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
+  }
+
+  override def contractTokens(id: ByteStr): Int = read { implicit l =>
+    sp().contractTokens.get(id).getOrElse(0)
+  }
+
+  override def tokenInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
+    sp().tokenDB.get(id).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
+  }
+
+  override def tokenAccountBalance(id: ByteStr): Long = read { implicit l =>
+    sp().tokenAccountBalance.get(id).getOrElse(0L)
   }
 
   override def dbGet(key: ByteStr): Option[ByteStr] = read { implicit l =>
-    Option(sp().dbEntries.get(key))
+    sp().dbEntries.get(key)
   }
 
   override def accountPortfolios: Map[Address, Portfolio] = read { implicit l =>
@@ -74,7 +91,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def isLeaseActive(leaseTx: LeaseTransaction): Boolean = read { implicit l =>
-    sp().leaseState.getOrDefault(leaseTx.id, false)
+    sp().leaseState.get(leaseTx.id).getOrElse(false)
   }
 
   override def activeLeases(): Seq[ByteStr] = read { implicit l =>
@@ -85,15 +102,15 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def lastUpdateHeight(acc: Address): Option[Int] = read { implicit l =>
-    Option(sp().lastBalanceSnapshotHeight.get(acc.bytes))
+    sp().lastBalanceSnapshotHeight.get(acc.bytes)
   }
 
   override def lastUpdateWeightedBalance(acc: Address): Option[Long] = read {implicit l =>
-    Option(sp().lastBalanceSnapshotWeightedBalance.get(acc.bytes))
+    sp().lastBalanceSnapshotWeightedBalance.get(acc.bytes)
   }
 
   override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] = read { implicit l =>
-    Option(sp().balanceSnapshots.get(StateStorage.accountIndexKey(acc, h)))
+    sp().balanceSnapshots.get(StateStorage.accountIndexKey(acc, h))
       .map { case (ph, b, eb, wb) => Snapshot(ph, b, eb, wb) }
   }
 
@@ -102,6 +119,6 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   }
 
   override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo = read { _ =>
-    Option(p.orderFills.get(orderId)).map(oi => OrderFillInfo(oi._1, oi._2)).orEmpty
+    p.orderFills.get(orderId).map(oi => OrderFillInfo(oi._1, oi._2)).orEmpty
   }
 }

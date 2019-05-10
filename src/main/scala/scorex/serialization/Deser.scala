@@ -3,7 +3,7 @@ package scorex.serialization
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder}
 
-import com.google.common.primitives.{Bytes, Shorts}
+import com.google.common.primitives.{Bytes, Ints, Shorts}
 
 object Deser {
 
@@ -47,5 +47,33 @@ object Deser {
 
   def deserilizeString(bytes: Array[Byte]) :String = {
     decoder.get().decode(ByteBuffer.wrap(bytes)).toString
+  }
+
+  def serializeInts(is: Seq[Int]): Array[Byte] = {
+    Shorts.toByteArray(is.length.toShort) ++ Bytes.concat(is.map(Ints.toByteArray): _*)
+  }
+
+  def deserializeInts(bytes: Array[Byte]): Seq[Int] = {
+    val length = Shorts.fromByteArray(bytes.slice(0, 2))
+    val r = (0 until length).foldLeft((Seq.empty[Int], 2)) {
+      case ((acc, pos), _) =>
+        val arr = Ints.fromByteArray(bytes.slice(pos, pos + 4))
+        (acc :+ arr, pos + 4)
+    }
+    r._1
+  }
+
+  def serializeShorts(is: Seq[Short]): Array[Byte] = {
+    Shorts.toByteArray(is.length.toShort) ++ Bytes.concat(is.map(Shorts.toByteArray): _*)
+  }
+
+  def deserializeShorts(bytes: Array[Byte]): Seq[Short] = {
+    val length = Shorts.fromByteArray(bytes.slice(0, 2))
+    val r = (0 until length).foldLeft((Seq.empty[Short], 2)) {
+      case ((acc, pos), _) =>
+        val arr = Shorts.fromByteArray(bytes.slice(pos, pos + 2))
+        (acc :+ arr, pos + 2)
+    }
+    r._1
   }
 }

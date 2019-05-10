@@ -14,10 +14,11 @@ import scorex.transaction.assets.exchange._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.utils.NTP
 import scorex.settings.TestFunctionalitySettings
-import vsys.database.{Entry, DataType}
+import vsys.account.ContractAccount
+import vsys.database.{DataType, Entry}
 import vsys.transaction.database.DbPutTransaction
-import vsys.contract.Contract
-import vsys.transaction.contract.{CreateContractTransaction, ChangeContractStatusTransaction, ChangeContractStatusAction}
+import vsys.contract.{Contract, ContractPermitted, DataEntry, DataType => ContractDataType}
+import vsys.transaction.contract._
 import vsys.spos.SPoSCalc._
 
 trait TransactionGen {
@@ -36,9 +37,16 @@ trait TransactionGen {
     Gen.choose(minSize, maxSize) flatMap { sz => Gen.listOfN(sz, Gen.choose(0, 0x7f).map(_.toByte)).map(_.toArray) }
   }
 
+  def genSeqBoundedBytes(minSize: Int, maxSize: Int): Gen[Seq[Array[Byte]]] = for {
+    length <- Gen.chooseNum(minSize, maxSize)
+    bytes <- byteArrayGen(length)
+  } yield Seq(bytes)
+
   val ntpTimestampGen: Gen[Long] = Gen.choose(1, 1000).map(NTP.correctedTime() - _)
 
   val accountGen: Gen[PrivateKeyAccount] = bytes32gen.map(seed => PrivateKeyAccount(seed))
+
+  val contractAccountGen: Gen[ContractAccount] = Gen.const(ContractAccount.fromId(ByteStr(bytes32gen.sample.get)))
 
   val aliasSymbolChar: Gen[Char] = Gen.oneOf('.','@', '_', '-')
 
@@ -60,6 +68,11 @@ trait TransactionGen {
 
   val validDbKeyStringGen: Gen[String] = for {
     length <- Gen.chooseNum(DbPutTransaction.MinDbKeyLength, DbPutTransaction.MaxDbKeyLength)
+    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+  } yield dbKeyChars.mkString
+
+  val validDescStringGen: Gen[String] = for {
+    length <- Gen.chooseNum(RegisterContractTransaction.MinDescriptionSize, RegisterContractTransaction.MaxDescriptionSize)
     dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
   } yield dbKeyChars.mkString
 
@@ -92,6 +105,7 @@ trait TransactionGen {
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).right.get
+  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, ContractDataType.Address)))
 
   val invalidUtf8StringGen: Gen[String] = for {
     data <- Gen.listOfN(2, invalidUtf8Char)
@@ -101,12 +115,7 @@ trait TransactionGen {
     length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
     contentStr <- Gen.listOfN(length, aliasAlphabetGen)
   } yield contentStr.mkString
-  val contractGen: Gen[Contract] = for {
-    name <- validAliasStringGen
-    content <- contractContentGen
-    enabled <- Arbitrary.arbitrary[Boolean]
-  } yield Contract.buildContract(content, name, enabled).right.get
-  val actionGen: Gen[ChangeContractStatusAction.Value] = Gen.oneOf(ChangeContractStatusAction.Enable, ChangeContractStatusAction.Disable)
+  val contractGen: Gen[Contract] = ContractPermitted.contract
 
   val maxOrderTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
@@ -257,22 +266,33 @@ trait TransactionGen {
     feeScale: Short <- feeScaleGen //set to 100 in this version
   } yield DbPutTransaction.create(sender, dbKey, entry, fee, feeScale, timestamp).right.get
 
-  val createContractGen: Gen[CreateContractTransaction] = for {
+  val registerContractGen: Gen[RegisterContractTransaction] = for {
     sender: PrivateKeyAccount <- accountGen
     contract: Contract <- contractGen
     fee: Long <- smallFeeGen
     timestamp: Long <- positiveLongGen
     feeScale: Short <- feeScaleGen
-  } yield CreateContractTransaction.create(sender, contract, fee, feeScale, timestamp).right.get
+    dataStack: Seq[DataEntry] <- dataEntryGen
+    description <- validDescStringGen
+  } yield RegisterContractTransaction.create(sender, contract, dataStack, description, fee, feeScale, timestamp).right.get
 
-  val changeContractStatusGen: Gen[ChangeContractStatusTransaction] = for {
+  val executeContractGen: Gen[ExecuteContractFunctionTransaction] = for {
     sender: PrivateKeyAccount <- accountGen
-    contractName: String<- validAliasStringGen
-    action: ChangeContractStatusAction.Value <- actionGen
+    contract: Contract <- contractGen
     fee: Long <- smallFeeGen
     timestamp: Long <- positiveLongGen
     feeScale: Short <- feeScaleGen
-  } yield ChangeContractStatusTransaction.create(sender, contractName, action, fee, feeScale, timestamp).right.get
+    dataStack: Seq[DataEntry] <- dataEntryGen
+    description <- validDescStringGen
+    contractTx = RegisterContractTransaction.create(sender, contract, dataStack, description, fee, feeScale, timestamp).right.get
+    otherSender: PrivateKeyAccount <- accountGen
+    fee2: Long <- smallFeeGen
+    feeScale2: Short <- feeScaleGen
+    timestamp2: Long <- positiveLongGen
+    funcIdx: Short <- positiveShortGen
+    data: Seq[DataEntry] <- dataEntryGen
+    description <- genBoundedString(0, RegisterContractTransaction.MaxDescriptionSize)
+  } yield ExecuteContractFunctionTransaction.create(otherSender, contractTx.contractId, funcIdx, data, description, fee2, feeScale2, timestamp2).right.get
 
   val contendSlotsGen: Gen[ContendSlotsTransaction] = for {
     timestamp: Long <- positiveLongGen

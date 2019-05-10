@@ -1,54 +1,102 @@
 package vsys.state.opcdiffs
 
-import com.wavesplatform.state2._
+import com.google.common.primitives.Longs
 import scorex.account.Address
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.GenericError
+import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidCaller, ContractInvalidOPCData, ContractInvalidSigner, GenericError}
+import vsys.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
 
 object AssertOpcDiff {
 
-  def gteq0(v: Long): Either[ValidationError, Diff] = {
-    if (v >= 0)
-      Right(Diff.empty)
+  def gtEq0(v: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) >= 0)
+      Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (gteq0): Value $v is negative"))
+      Left(GenericError(s"Invalid Assert (gteq0): Value ${Longs.fromByteArray(v.data)} is negative"))
   }
 
-  def lteq(v1: Long, v2: Long): Either[ValidationError, Diff] = {
-    if (v1 <= v2)
-      Right(Diff.empty)
+  def ltEq(v1: DataEntry, v2: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (v1.dataType == DataType.Amount && v2.dataType == DataType.Amount
+      && Longs.fromByteArray(v1.data) <= Longs.fromByteArray(v2.data))
+      Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (lteq0): Value $v2 is larger than $v1"))
+      Left(GenericError(s"Invalid Assert (lteq0): Value ${Longs.fromByteArray(v2.data)} is larger than $v1"))
   }
 
-  def ltint64(m: Long): Either[ValidationError, Diff] = {
-    if (m <= Long.MaxValue)
-      Right(Diff.empty)
+  def ltInt64(m: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (m.dataType == DataType.Amount && Longs.fromByteArray(m.data) <= Long.MaxValue)
+      Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (ltint64): Value $m is invalid"))
+      Left(GenericError(s"Invalid Assert (ltint64): Value ${Longs.fromByteArray(m.data)} is invalid"))
   }
 
-  def gt0(v: Long): Either[ValidationError, Diff] = {
-    if (v > 0)
-      Right(Diff.empty)
+  def gt0(v: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) > 0)
+      Right(OpcDiff.empty)
     else
       Left(GenericError(s"Invalid Assert (gt0): Value $v is non-positive"))
   }
 
-  def eq(add1: Address, add2: Address): Either[ValidationError, Diff] = {
-    if (add1 == add2)
-      Right(Diff.empty)
+  def eq(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (add1.dataType == DataType.Address && add2.dataType == DataType.Address
+      && Address.fromBytes(add1.data) == Address.fromBytes(add2.data))
+      Right(OpcDiff.empty)
+    else if (add1.dataType == DataType.Amount && add2.dataType == DataType.Amount
+      && Longs.fromByteArray(add1.data) == Longs.fromByteArray(add2.data))
+      Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (eq): Address ${add1.address} is not equal to ${add2.address}"))
+      Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.data} is not equal to ${add2.data}"))
   }
 
-  def eq(v1: Long, v2: Long): Either[ValidationError, Diff] = {
-    if (v1 == v2)
-      Right(Diff.empty)
+  def isCallerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
+    val signer = context.signers.head
+    if (address.dataType != DataType.Address)
+      Left(ContractDataTypeMissMatch)
+    else if (!(address.data sameElements signer.bytes.arr))
+      Left(ContractInvalidCaller)
     else
-      Left(GenericError(s"Invalid Assert (eq): Address $v1 is not equal to $v2"))
+      Right(OpcDiff.empty)
+  }
+
+  def isSignerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
+    val signer = context.signers.head
+    if (address.dataType != DataType.Address)
+      Left(ContractDataTypeMissMatch)
+    else if (!(address.data sameElements signer.bytes.arr))
+      Left(ContractInvalidSigner)
+    else
+      Right(OpcDiff.empty)
+  }
+
+  object AssertType extends Enumeration {
+    val GteqZeroAssert = Value(1)
+    val LteqAssert = Value(2)
+    val LtInt64Assert = Value(3)
+    val GtZeroAssert = Value(4)
+    val EqAssert = Value(5)
+    val IsCallerOriginAssert = Value(6)
+    val IsSignerOriginAssert = Value(7)
+  }
+
+  def parseBytes(context: ExecutionContext)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
+    case opcType: Byte if opcType == AssertType.GteqZeroAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gtEq0(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.LteqAssert.id && bytes.length == 3
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltEq(data(bytes(1)), data(bytes(2)))
+    case opcType: Byte if opcType == AssertType.LtInt64Assert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltInt64(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.GtZeroAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gt0(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.EqAssert.id && bytes.length == 3
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => eq(data(bytes(1)), data(bytes(2)))
+    case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isCallerOrigin(context)(data(bytes(1)))
+    case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id && bytes.length == 2
+      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isSignerOrigin(context)(data(bytes(1)))
+    case _ => Left(ContractInvalidOPCData)
   }
 
 }

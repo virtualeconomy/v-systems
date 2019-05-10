@@ -3,7 +3,7 @@ package vsys.api.http.database
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
 
-case class DbPutRequest (@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
+case class DbPutRequest (@ApiModelProperty(value = "Base58 encoded sender address", required = true)
                          sender: String,
                          @ApiModelProperty(value = "name", required = true)
                          dbKey: String,
@@ -11,9 +11,9 @@ case class DbPutRequest (@ApiModelProperty(value = "Base58 encoded sender public
                          dataType: String,
                          @ApiModelProperty(value = "data")
                          data: String,
-                         @ApiModelProperty(required = true)
+                         @ApiModelProperty(required = true, example = "100000000")
                          fee: Long,
-                         @ApiModelProperty(value = "Fee Scale (default 100)", required = true)
+                         @ApiModelProperty(required = true, example = "100")
                          feeScale: Short)
 
 object DbPutRequest {

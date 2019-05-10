@@ -11,6 +11,7 @@ import scorex.transaction.assets._
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.transaction.database.DbPutTransaction
 import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
 
 class FeeCalculatorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks
@@ -46,10 +47,16 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
       |      VSYS = 10000000
       |    }
       |    contend-slots {
-      |      VSYS = 100000000000
+      |      VSYS = 5000000000000
       |    }
       |    release-slots {
       |      VSYS = 10000000
+      |    }
+      |    register-contract {
+      |      VSYS = 10000000000
+      |    }
+      |    execute-contract-function {
+      |      VSYS = 30000000
       |    }
       |    db-put {
       |      VSYS = 10000000
@@ -150,7 +157,7 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
   property("Contend slots transaction") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(contendSlotsGen) { tx: ContendSlotsTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 100000000000L)
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 5000000000000L)
     }
   }
 
@@ -158,6 +165,20 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
     val feeCalc = new FeeCalculator(mySettings)
     forAll(releaseSlotsGen) { tx: ReleaseSlotsTransaction =>
       feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
+    }
+  }
+
+  property("Register contract transaction") {
+    val feeCalc = new FeeCalculator(mySettings)
+    forAll(registerContractGen) { tx: RegisterContractTransaction =>
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 100000000000L)
+    }
+  }
+
+  property("Execute contract function transaction") {
+    val feeCalc = new FeeCalculator(mySettings)
+    forAll(executeContractGen) { tx: ExecuteContractFunctionTransaction =>
+      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 30000000)
     }
   }
 

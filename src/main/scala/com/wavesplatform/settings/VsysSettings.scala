@@ -15,6 +15,7 @@ object LogLevel extends Enumeration {
 }
 
 case class VsysSettings(directory: String,
+                         dataDirectory: String,
                          loggingLevel: LogLevel.Value,
                          networkSettings: NetworkSettings,
                          walletSettings: WalletSettings,
@@ -33,6 +34,7 @@ object VsysSettings {
   val configPath: String = "vsys"
   def fromConfig(config: Config): VsysSettings = {
     val directory = config.as[String](s"$configPath.directory")
+    val dataDirectory = config.as[String](s"$configPath.data-directory")
     val loggingLevel = config.as[LogLevel.Value](s"$configPath.logging-level")
 
     val networkSettings = config.as[NetworkSettings]("vsys.network")
@@ -46,7 +48,7 @@ object VsysSettings {
     val synchronizationSettings = SynchronizationSettings.fromConfig(config)
     val utxSettings = config.as[UtxSettings]("vsys.utx")
 
-    VsysSettings(directory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
+    VsysSettings(directory, dataDirectory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
       feesSettings, matcherSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
   }
 }
