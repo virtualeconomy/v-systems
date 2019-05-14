@@ -26,7 +26,7 @@ object FunctionalitySettings {
     mintingSpeed = 1,
     //TODO
     //set the value
-    allowContractTransactionAfterHeight = 423600)
+    allowContractTransactionAfterHeight = 4236000)
 
   val configPath = "vsys.blockchain.custom.functionality"
 }
