@@ -91,7 +91,7 @@ object RegisterContractTransaction {
       Left(ValidationError.InvalidUTF8String("contractDescription"))
     } else if(fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale != 100) {
+    } else if (feeScale != DefaultFeeScale) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(RegisterContractTransaction(contract, data, description, fee, feeScale, timestamp, proofs))

@@ -87,7 +87,7 @@ object PaymentTransaction {
       Left(ValidationError.InsufficientFee)
     } else if (Try(Math.addExact(amount, feeAmount)).isFailure) {
       Left(ValidationError.OverflowError) // CHECK THAT fee+amount won't overflow Long
-    } else if (feeScale != 100) {
+    } else if (feeScale != DefaultFeeScale) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(PaymentTransaction(recipient, amount, feeAmount, feeScale, timestamp, attachment, proofs))

@@ -87,7 +87,7 @@ object ExecuteContractFunctionTransaction {
       Left(ValidationError.TooBigArray)
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale != 100) {
+    } else if (feeScale != DefaultFeeScale) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(ExecuteContractFunctionTransaction(contractId, funcIdx, data, attachment, fee, feeScale, timestamp, proofs))
