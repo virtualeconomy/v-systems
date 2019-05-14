@@ -7,9 +7,9 @@ case class LeaseCancelRequest(@ApiModelProperty(value = "Base58 encoded sender p
                               sender: String,
                               @ApiModelProperty(value = "Base58 encoded lease transaction id", required = true)
                               txId: String,
-                              @ApiModelProperty(required = true)
+                              @ApiModelProperty(required = true, example = "10000000")
                               fee: Long,
-                              @ApiModelProperty(required = true)
+                              @ApiModelProperty(required = true, example = "100")
                               feeScale: Short)
 
 object LeaseCancelRequest {

@@ -143,14 +143,11 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  release-slots {
         |    VSYS = 10000000
         |  }
-        |  minting {
-        |    VSYS = 100000
+        |  register-contract{
+        |    VSYS = 10000000000
         |  }
-        |  create-contract{
-        |    VSYS = 20000000
-        |  }
-        |  change-contract-status{
-        |    VSYS = 10000000
+        |  execute-contract-function{
+        |    VSYS = 30000000
         |  }
         |  db-put{
         |    VSYS = 100000000
@@ -158,16 +155,15 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |}
       """.stripMargin).withFallback(defaultConfig).resolve()
     val settings = FeesSettings.fromConfig(config)
-    settings.fees.size should be(15)
+    settings.fees.size should be(14)
 
     settings.fees(2).toSet should equal(Set(FeeSettings("VSYS", 10000000)))
     settings.fees(3).toSet should equal(Set(FeeSettings("VSYS", 10000000)))
     settings.fees(4).toSet should equal(Set(FeeSettings("VSYS", 10000000)))
-    settings.fees(5).toSet should equal(Set(FeeSettings("VSYS", 100000)))
     settings.fees(6).toSet should equal(Set(FeeSettings("VSYS", 5000000000000L)))
     settings.fees(7).toSet should equal(Set(FeeSettings("VSYS", 10000000)))
-    settings.fees(8).toSet should equal(Set(FeeSettings("VSYS", 20000000)))
-    settings.fees(9).toSet should equal(Set(FeeSettings("VSYS", 10000000)))
+    settings.fees(8).toSet should equal(Set(FeeSettings("VSYS", 10000000000L)))
+    settings.fees(9).toSet should equal(Set(FeeSettings("VSYS", 30000000)))
     settings.fees(10).toSet should equal(Set(FeeSettings("VSYS", 100000000)))
     settings.fees(11).toSet should equal(Set(FeeSettings("VSYS", 100000000)))
     settings.fees(12).toSet should equal(Set(FeeSettings("VSYS", 10000000), FeeSettings("6MPKrD5B7GrfbciHECg1MwdvRUhRETApgNZspreBJ8JL", 1)))

@@ -7,7 +7,7 @@ enablePlugins(sbtdocker.DockerPlugin, JavaServerAppPackaging, JDebPackaging, Sys
 
 name := "vsys"
 organization := "systems.v"
-version := "0.1.1"
+version := "0.2.0"
 scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
 publishArtifact in (Compile, packageDoc) := false
@@ -47,12 +47,13 @@ libraryDependencies ++=
     ("org.scorexfoundation" %% "scrypto" % "1.2.2")
       .exclude("org.slf4j", "slf4j-api"),
     "commons-net" % "commons-net" % "3.+",
-    "org.typelevel" %% "cats-core" % "0.9.0",
+    "org.typelevel" %% "cats-core" % "1.0.0-RC1",
     "io.monix" %% "monix" % "3.0.0-M2"
   )
 
 dependencyOverrides ++= Seq(
-  "com.google.guava" % "guava" % "21.0"
+  "com.google.guava" % "guava" % "21.0",
+  "com.typesafe.akka" % "akka-actor_2.12" % "2.5.14"
 )
 
 sourceGenerators in Compile += Def.task {

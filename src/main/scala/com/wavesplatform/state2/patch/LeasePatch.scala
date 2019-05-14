@@ -24,6 +24,10 @@ object LeasePatch {
       txStatus = TransactionStatus.Unprocessed,
       chargedFee = 0L,
       contracts = Map.empty,
+      contractDB = Map.empty,
+      contractTokens = Map.empty,
+      tokenDB = Map.empty,
+      tokenAccountBalance = Map.empty,
       dbEntries = Map.empty,
       orderFills = Map.empty,
       leaseState = s.activeLeases().map(_ -> false).toMap)

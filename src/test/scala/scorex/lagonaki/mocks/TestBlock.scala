@@ -27,6 +27,16 @@ object TestBlock {
     consensusData = SposConsensusBlockData(0L, 0L),
     transactionData = txs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}))
 
+  def createWithTxStatus(txs: Seq[Transaction], st: TransactionStatus.Value): Block = createWithTxStatus(time = Try(txs.map(_.timestamp).max).getOrElse(0), txs = txs, st)
+
+  def createWithTxStatus(time: Long, txs: Seq[Transaction], st: TransactionStatus.Value): Block = sign(Block(
+    timestamp = time,
+    version = 1,
+    reference = randomSignature(),
+    signerData = SignerData(defaultSigner, ByteStr.empty),
+    consensusData = SposConsensusBlockData(0L, 0L),
+    transactionData = txs.map{tx: Transaction => ProcessedTransaction(st, tx.transactionFee, tx)}))
+
   def randomOfLength(length: Int): ByteStr = ByteStr(Array.fill(length)(random.nextInt().toByte))
 
   def randomSignature(): ByteStr = randomOfLength(SignatureLength)

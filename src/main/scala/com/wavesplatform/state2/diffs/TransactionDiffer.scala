@@ -8,7 +8,8 @@ import scorex.transaction.ValidationError.UnsupportedTransactionType
 import scorex.transaction._
 //import scorex.transaction.assets._
 //import scorex.transaction.assets.exchange.ExchangeTransaction
-import vsys.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.contract.ExecuteContractFunctionTransaction
+import vsys.transaction.contract.RegisterContractTransaction
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.transaction.MintingTransaction
@@ -23,10 +24,11 @@ object TransactionDiffer {
       t0 <- Signed.validateSignatures(tx)
       t1 <- CommonValidation.disallowTxFromFuture(currentBlockTimestamp, t0)
       t2 <- CommonValidation.disallowTxFromPast(prevBlockTimestamp, t1)
-      t3 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t2)
-      t4 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t3)
-      t5 <- CommonValidation.disallowInvalidFeeScale(t4)
-      diff <- t5 match {
+      t3 <- CommonValidation.disallowBeforeActivationHeight(settings, currentBlockHeight, t2)
+      t4 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t3)
+      t5 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t4)
+      t6 <- CommonValidation.disallowInvalidFeeScale(t5)
+      diff <- t6 match {
         case gtx: GenesisTransaction => GenesisTransactionDiff(settings, currentBlockHeight)(gtx)
         case ptx: PaymentTransaction => PaymentTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(ptx)
         //case itx: IssueTransaction => AssetTransactionsDiff.issue(currentBlockHeight)(itx)
@@ -40,8 +42,8 @@ object TransactionDiffer {
         case mtx: MintingTransaction => MintingTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(mtx)
         case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings,currentBlockHeight)(cstx)
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
-        case cctx: CreateContractTransaction => ContractTransactionDiff.create(s, currentBlockHeight)(cctx)
-        case ccstx: ChangeContractStatusTransaction => ContractTransactionDiff.changeStatus(s, currentBlockHeight)(ccstx)
+        case rctx: RegisterContractTransaction => RegisterContractTransactionDiff(s, currentBlockHeight)(rctx)
+        case ectx: ExecuteContractFunctionTransaction => ExecuteContractFunctionTransactionDiff(s, currentBlockHeight)(ectx)
         case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }

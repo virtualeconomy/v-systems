@@ -9,6 +9,7 @@ import scorex.utils.ScorexLogging
 
 import scala.language.higherKinds
 
+
 trait StateWriter {
   def applyBlockDiff(blockDiff: BlockDiff): Unit
 
@@ -93,8 +94,45 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     }
 
     measureSizeLog("contracts")(blockDiff.txsDiff.contracts) {
-      _.foreach { case (name, (status, account, content)) =>
-        sp().contracts.put(name, (status, account.bytes, content))
+      _.foreach { case (id, (h, txId, contract, _)) =>
+        sp().contracts.put(id, (h, txId, contract.bytes.arr))
+      }
+    }
+
+    measureSizeLog("accountContractIds")(blockDiff.txsDiff.accountContractIds) {
+      _.foreach { case (acc, ctIds) =>
+        val startIdxShift = sp().accountContractsLengths.get(acc.bytes).getOrElse(0)
+        ctIds.reverse.foldLeft(startIdxShift) { case (shift, ctId) =>
+          sp().accountContractIds.put(accountIndexKey(acc, shift), ctId)
+          shift + 1
+        }
+        sp().accountContractsLengths.put(acc.bytes, startIdxShift + ctIds.length)
+      }
+    }
+
+    measureSizeLog("contractDB")(blockDiff.txsDiff.contractDB) {
+      _.foreach { case (id, contractData) =>
+        sp().contractDB.put(id, contractData)
+      }
+    }
+
+    measureSizeLog("contractTokens")(blockDiff.txsDiff.contractTokens) {
+      _.foreach { case (id, tokenNum) =>
+        val updatedNum = contractTokens(id) + tokenNum
+        sp().contractTokens.put(id, updatedNum)
+      }
+    }
+
+    measureSizeLog("tokenDB")(blockDiff.txsDiff.tokenDB) {
+      _.foreach { case (id, tokeninfo) =>
+        sp().tokenDB.put(id, tokeninfo)
+      }
+    }
+
+    measureSizeLog("tokenAccountBalance")(blockDiff.txsDiff.tokenAccountBalance) {
+      _.foreach { case (id, balance) =>
+        val updatedBalance = safeSum(tokenAccountBalance(id), balance)
+        sp().tokenAccountBalance.put(id, updatedBalance)
       }
     }
 

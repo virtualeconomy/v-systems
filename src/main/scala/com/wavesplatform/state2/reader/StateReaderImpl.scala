@@ -6,6 +6,7 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
+import vsys.contract.{Contract, DataEntry}
 import vsys.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
 class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWriteLock) extends StateReader {
@@ -55,8 +56,26 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .map(b => Address.fromBytes(b.arr).explicitGet())
   }
 
-  override def contractContent(name: String): Option[(Boolean, ByteStr, String)] = read { implicit l =>
-    sp().contracts.get(name)
+  override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] = read { implicit l =>
+    sp().contracts.get(id).map {
+      case (h, txId, bytes) => (h, txId, Contract.fromBytes(bytes).explicitGet())
+    }
+  }
+
+  override def contractInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
+    sp().contractDB.get(id).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
+  }
+
+  override def contractTokens(id: ByteStr): Int = read { implicit l =>
+    sp().contractTokens.get(id).getOrElse(0)
+  }
+
+  override def tokenInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
+    sp().tokenDB.get(id).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
+  }
+
+  override def tokenAccountBalance(id: ByteStr): Long = read { implicit l =>
+    sp().tokenAccountBalance.get(id).getOrElse(0L)
   }
 
   override def dbGet(key: ByteStr): Option[ByteStr] = read { implicit l =>

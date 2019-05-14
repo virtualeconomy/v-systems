@@ -63,7 +63,19 @@ class StateStorage private(db: DB) extends Storage(db){
 
   val lastBalanceSnapshotWeightedBalance: StateMap[ByteStr, Long] = new StateMap(db, "lastUpdateWeightedBalance", keyType=DataTypes.byteStr)
 
-  val contracts: StateMap[String, (Boolean, ByteStr, String)] = new StateMap(db, "contracts")
+  val contracts: StateMap[ByteStr, (Int, ByteStr, Array[Byte])] = new StateMap(db, "contracts", keyType=DataTypes.byteStr, valueType=DataTypes.contracts)
+
+  val accountContractIds: StateMap[AccountIdxKey, ByteStr] = new StateMap(db, "accountContractIds", valueType=DataTypes.byteStr)
+
+  val accountContractsLengths: StateMap[ByteStr, Int] = new StateMap(db, "accountContractsLengths", keyType=DataTypes.byteStr)
+
+  val contractDB: StateMap[ByteStr, Array[Byte]] = new StateMap(db, "contractDB", keyType=DataTypes.byteStr)
+
+  val contractTokens: StateMap[ByteStr, Int] = new StateMap(db, "contractTokens", keyType=DataTypes.byteStr)
+
+  val tokenDB: StateMap[ByteStr, Array[Byte]] = new StateMap(db, "tokenDB", keyType=DataTypes.byteStr)
+
+  val tokenAccountBalance: StateMap[ByteStr, Long] = new StateMap(db, "tokenAccountBalance", keyType=DataTypes.byteStr)
 
   // only support Entry.bytes, in case later we want to support different types and not sure how to serialize here?
   val dbEntries: StateMap[ByteStr, ByteStr] = new StateMap(db, "dbEntries", keyType=DataTypes.byteStr, valueType=DataTypes.byteStr)

@@ -6,7 +6,7 @@ import play.api.libs.json.{JsObject, Json}
 import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import vsys.database.{DataType, Entry}
 import scorex.serialization.{BytesSerializable, Deser}
-import scorex.transaction.TransactionParser.TransactionType
+import scorex.transaction.TransactionParser._
 import scorex.transaction.ValidationError.DbDataTypeError
 import scorex.transaction.{AssetId, ValidationError}
 import vsys.transaction.ProvenTransaction
@@ -80,7 +80,7 @@ object DbPutTransaction {
       Left(ValidationError.InvalidUTF8String("dbKey"))
     } else if(fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale != 100) {
+    } else if (feeScale != DefaultFeeScale) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(DbPutTransaction(dbKey, dbEntry, fee, feeScale, timestamp, proofs))

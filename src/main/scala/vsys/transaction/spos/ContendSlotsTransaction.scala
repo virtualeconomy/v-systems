@@ -65,7 +65,7 @@ object ContendSlotsTransaction {
              proofs: Proofs): Either[ValidationError, ContendSlotsTransaction] =
     if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale != 100){
+    } else if (feeScale != DefaultFeeScale){
       Left(ValidationError.WrongFeeScale(feeScale))
     } else if (slotId % SlotGap!= 0){
       Left(ValidationError.InvalidSlotId(slotId))

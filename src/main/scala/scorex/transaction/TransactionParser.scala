@@ -3,7 +3,7 @@ package scorex.transaction
 import com.wavesplatform.utils.base58Length
 import scorex.transaction.assets._
 import scorex.transaction.assets.exchange.ExchangeTransaction
-import vsys.transaction.contract.{ChangeContractStatusTransaction, CreateContractTransaction}
+import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.transaction.database.DbPutTransaction
 import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.transaction.MintingTransaction
@@ -21,8 +21,8 @@ object TransactionParser {
     val MintingTransaction = Value(5)
     val ContendSlotsTransaction = Value(6)
     val ReleaseSlotsTransaction = Value(7)
-    val CreateContractTransaction = Value(8)
-    val ChangeContractStatusTransaction = Value(9)
+    val RegisterContractTransaction = Value(8)
+    val ExecuteContractFunctionTransaction = Value(9)
     val DbPutTransaction = Value(10)
     val IssueTransaction = Value(11)
     val TransferTransaction = Value(12)
@@ -39,6 +39,7 @@ object TransactionParser {
   val SignatureStringLength: Int = base58Length(SignatureLength)
   val KeyLength = 32
   val SlotIdLength = 4
+  val DefaultFeeScale: Short = 100
   val KeyStringLength: Int = base58Length(KeyLength)
 
   def parseBytes(data: Array[Byte]): Try[Transaction] =
@@ -82,11 +83,11 @@ object TransactionParser {
       case txType: Byte if txType == TransactionType.ReleaseSlotsTransaction.id =>
         ReleaseSlotsTransaction.parseTail(data.tail)
 
-      case txType: Byte if txType == TransactionType.CreateContractTransaction.id =>
-        CreateContractTransaction.parseTail(data.tail)
+      case txType: Byte if txType == TransactionType.RegisterContractTransaction.id =>
+        RegisterContractTransaction.parseTail(data.tail)
 
-      case txType: Byte if txType == TransactionType.ChangeContractStatusTransaction.id =>
-        ChangeContractStatusTransaction.parseTail(data.tail)
+      case txType: Byte if txType == TransactionType.ExecuteContractFunctionTransaction.id =>
+        ExecuteContractFunctionTransaction.parseTail(data.tail)
 
       case txType: Byte if txType == TransactionType.DbPutTransaction.id =>
         DbPutTransaction.parseTail(data.tail)

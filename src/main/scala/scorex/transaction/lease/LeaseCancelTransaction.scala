@@ -61,7 +61,7 @@ object LeaseCancelTransaction {
       Left(ValidationError.GenericError("Lease transaction id is invalid"))
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale != 100){
+    } else if (feeScale != DefaultFeeScale){
       Left(ValidationError.WrongFeeScale(feeScale))
     } else {
       Right(LeaseCancelTransaction(leaseId, fee, feeScale, timestamp, proofs))

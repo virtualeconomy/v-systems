@@ -7,8 +7,13 @@ import com.wavesplatform.state2.{Portfolio, _}
 import scorex.account.Address
 import scorex.transaction.ValidationError.{GenericError, Mistiming}
 import scorex.transaction._
+import scorex.transaction.lease._
 import scorex.transaction.assets._
 import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.transaction.contract._
+import vsys.transaction.spos._
+import vsys.transaction.database._
+import vsys.transaction._
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -57,6 +62,25 @@ object CommonValidation {
         Left(GenericError(s"Tx id cannot be duplicated. Current height is: $height. Tx with such id already present"))
     else Right(tx)
   }
+
+  def disallowBeforeActivationHeight[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T): Either[ValidationError, T] =
+    tx match {
+      case tx: RegisterContractTransaction if h <= settings.allowContractTransactionAfterHeight =>
+        Left(GenericError(s"must not appear before height=${settings.allowContractTransactionAfterHeight}"))
+      case tx: ExecuteContractFunctionTransaction if h <= settings.allowContractTransactionAfterHeight =>
+        Left(GenericError(s"must not appear before time=${settings.allowContractTransactionAfterHeight}"))
+      case _: GenesisTransaction => Right(tx)
+      case _: PaymentTransaction => Right(tx)
+      case _: LeaseTransaction => Right(tx)
+      case _: LeaseCancelTransaction => Right(tx)
+      case _: MintingTransaction => Right(tx)
+      case _: ContendSlotsTransaction => Right(tx)
+      case _: ReleaseSlotsTransaction => Right(tx)
+      case _: RegisterContractTransaction => Right(tx)
+      case _: ExecuteContractFunctionTransaction => Right(tx)
+      case _: DbPutTransaction => Right(tx)
+      case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))
+    }
 
   def disallowTxFromFuture[T <: Transaction](time: Long, tx: T): Either[ValidationError, T] = {
 

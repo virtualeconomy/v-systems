@@ -1,0 +1,50 @@
+package vsys.contract
+
+import com.wavesplatform.state2.reader.StateReader
+import scorex.account.PublicKeyAccount
+import scorex.serialization.Deser
+import scorex.transaction.ValidationError
+import scorex.transaction.ValidationError.{InvalidContractAddress, InvalidFunctionIndex}
+import vsys.account.ContractAccount
+import vsys.transaction.ProvenTransaction
+import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
+import vsys.transaction.proof.EllipticCurve25519Proof
+
+case class ExecutionContext(signers: Seq[PublicKeyAccount],
+                            state: StateReader,
+                            height: Int,
+                            transaction: ProvenTransaction,
+                            contractId: ContractAccount,
+                            opcFunc: Array[Byte],
+                            stateVar: Seq[Array[Byte]],
+                            description: Array[Byte]) {
+  
+}
+
+object ExecutionContext {
+
+  def fromRegConTx(s: StateReader,
+                   height: Int,
+                   tx: RegisterContractTransaction): Either[ValidationError, ExecutionContext] = {
+    val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
+    val contractId = tx.contractId
+    val opcFunc = tx.contract.trigger.find(a => (a.length > 2) && (a(2) == 0.toByte)).getOrElse(Array[Byte]())
+    val stateVar = tx.contract.stateVar
+    val description = Deser.serilizeString(tx.description)
+    Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc, stateVar, description))
+  }
+
+  def fromExeConTx(s: StateReader,
+                   height: Int,
+                   tx: ExecuteContractFunctionTransaction): Either[ValidationError, ExecutionContext] = {
+    val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
+    val contractId = tx.contractId
+    val description = tx.attachment
+    s.contractContent(tx.contractId.bytes) match {
+      case Some(c) if tx.funcIdx >=0 && tx.funcIdx < c._3.descriptor.length => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description))
+      case Some(_) => Left(InvalidFunctionIndex)
+      case _ => Left(InvalidContractAddress)
+    }
+  }
+
+}

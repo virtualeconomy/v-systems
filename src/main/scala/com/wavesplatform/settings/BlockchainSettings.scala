@@ -10,16 +10,23 @@ import net.ceedubs.ficus.readers.EnumerationReader._
 import vsys.settings._
 
 case class FunctionalitySettings(numOfSlots: Int,
-                                 mintingSpeed: Int)
+                                 mintingSpeed: Int,
+                                 allowContractTransactionAfterHeight: Int)
 
 object FunctionalitySettings {
   val MAINNET = FunctionalitySettings(
     numOfSlots = 60,
-    mintingSpeed = 1)
+    mintingSpeed = 1,
+    //TODO
+    //set the value
+    allowContractTransactionAfterHeight = Int.MaxValue)
 
   val TESTNET = FunctionalitySettings(
     numOfSlots = 60,
-    mintingSpeed = 1)
+    mintingSpeed = 1,
+    //TODO
+    //set the value
+    allowContractTransactionAfterHeight = 423600)
 
   val configPath = "vsys.blockchain.custom.functionality"
 }
