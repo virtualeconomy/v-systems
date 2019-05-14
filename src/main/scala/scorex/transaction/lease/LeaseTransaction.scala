@@ -71,7 +71,7 @@ object LeaseTransaction {
       Left(ValidationError.OverflowError)
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee)
-    } else if (feeScale != 100) {
+    } else if (feeScale != DefaultFeeScale) {
       Left(ValidationError.WrongFeeScale(feeScale))
     } else if (recipient.isInstanceOf[Address]
       && !proofs.equals(Proofs.empty)

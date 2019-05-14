@@ -17,11 +17,7 @@ object LoadOpcDiff {
   }
 
   def caller(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      Right(dataStack.patch(pointer, Seq(DataEntry(context.signers.head.bytes.arr, DataType.Address)), 1))
-    }
+    signer(context)(dataStack, pointer)
   }
 
   object LoadType extends Enumeration {
