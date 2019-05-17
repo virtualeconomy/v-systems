@@ -95,7 +95,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('T')
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
-    settings.functionalitySettings.allowContractTransactionAfterHeight should be (423600) // same as the setting
+    settings.functionalitySettings.allowContractTransactionAfterHeight should be (4236000) // same as the setting
     settings.genesisSettings.blockTimestamp should be(1535356447650226656L)
     settings.genesisSettings.timestamp should be(1535356447650226656L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
