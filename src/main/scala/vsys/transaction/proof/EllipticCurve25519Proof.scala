@@ -22,6 +22,7 @@ sealed trait EllipticCurve25519Proof extends Proof{
   lazy val json: JsObject = Json.obj(
     "proofType" -> proofType, // we can also write the detail name here
     "publicKey" -> Base58.encode(publicKey.publicKey),
+    "address" -> publicKey.address,
     "signature" -> signature.base58
   )
 
