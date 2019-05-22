@@ -18,6 +18,7 @@ import scorex.serialization.Deser
 import scorex.transaction._
 import scorex.utils.Time
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
+import vsys.contract.ContractPermitted
 import vsys.wallet.Wallet
 
 import scala.util.Success
@@ -81,6 +82,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         case Some((h, txId, ct)) => Right(Json.obj(
           "contractId" -> contractIdStr,
           "transactionId" -> txId.base58,
+          "type" -> typeFromBytes(ct.bytes.arr),
           "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual.last)).zipped.map { (a, b) =>
             (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
           "height" -> JsNumber(h))
@@ -88,6 +90,16 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         case None => Left(ContractNotExists)
       }
       case _ => Left(InvalidAddress)
+    }
+  }
+
+  private def typeFromBytes(bytes: Array[Byte]): String = {
+    if (bytes sameElements ContractPermitted.contract.bytes.arr) {
+      "TokenContractWithSplit"
+    } else if (bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) {
+      "TokenContract"
+    } else {
+      "GeneralContract"
     }
   }
 
