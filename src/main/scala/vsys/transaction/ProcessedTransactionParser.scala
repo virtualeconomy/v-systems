@@ -38,8 +38,8 @@ object ProcessedTransactionParser {
       case status: Byte if status == TransactionStatus.InvalidFunctionIndex.id =>
         parseTail(TransactionStatus.InvalidFunctionIndex, data.tail)
 
-      case status: Byte if status == TransactionStatus.ContractDataTypeMissMatch.id =>
-        parseTail(TransactionStatus.ContractDataTypeMissMatch, data.tail)
+      case status: Byte if status == TransactionStatus.ContractDataTypeMismatch.id =>
+        parseTail(TransactionStatus.ContractDataTypeMismatch, data.tail)
 
       case status: Byte if status == TransactionStatus.ContractInvalidStateVariable.id =>
         parseTail(TransactionStatus.ContractInvalidStateVariable, data.tail)

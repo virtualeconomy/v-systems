@@ -9,7 +9,7 @@ object TransactionStatus extends Enumeration {
   val InvalidContractAddress = Value(6)
   val InvalidDataEntry = Value(7)
   val InvalidFunctionIndex = Value(8)
-  val ContractDataTypeMissMatch = Value(9)
+  val ContractDataTypeMismatch = Value(9)
   val ContractInvalidStateVariable = Value(10)
   val ContractStateVariableNotDefined = Value(11)
   val ContractInvalidOPCData = Value(12)

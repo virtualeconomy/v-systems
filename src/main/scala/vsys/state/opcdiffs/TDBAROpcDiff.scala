@@ -3,7 +3,7 @@ package vsys.state.opcdiffs
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractLocalVariableIndexOutOfRange}
+import scorex.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractLocalVariableIndexOutOfRange}
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.contract.{DataEntry, DataType}
 import vsys.contract.ExecutionContext
@@ -16,7 +16,7 @@ object TDBAROpcDiff {
                                          dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
     if (tokenIndex.dataType != DataType.Int32 || address.dataType != DataType.Address) {
-      Left(ContractDataTypeMissMatch)
+      Left(ContractDataTypeMismatch)
     } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {

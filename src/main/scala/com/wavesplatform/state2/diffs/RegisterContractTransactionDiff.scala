@@ -36,7 +36,7 @@ object RegisterContractTransactionDiff {
         case Left(InvalidContract) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidContract)))
         case Left(InvalidContractAddress) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidContractAddress)))
         case Left(InvalidDataEntry) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidDataEntry)))
-        case Left(ContractDataTypeMissMatch) => Right(toDiff(height, tx, sender)(fromValidationError(ContractDataTypeMissMatch)))
+        case Left(ContractDataTypeMismatch) => Right(toDiff(height, tx, sender)(fromValidationError(ContractDataTypeMismatch)))
         case Left(ContractInvalidStateVariable) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidStateVariable)))
         case Left(ContractStateVariableNotDefined) => Right(toDiff(height, tx, sender)(fromValidationError(ContractStateVariableNotDefined)))
         case Left(ContractInvalidOPCData) => Right(toDiff(height, tx, sender)(fromValidationError(ContractInvalidOPCData)))
@@ -61,7 +61,7 @@ object RegisterContractTransactionDiff {
     case InvalidContract => TransactionStatus.InvalidContract
     case InvalidContractAddress => TransactionStatus.InvalidContractAddress
     case InvalidDataEntry => TransactionStatus.InvalidDataEntry
-    case ContractDataTypeMissMatch => TransactionStatus.ContractDataTypeMissMatch
+    case ContractDataTypeMismatch => TransactionStatus.ContractDataTypeMismatch
     case ContractInvalidStateVariable => TransactionStatus.ContractInvalidStateVariable
     case ContractStateVariableNotDefined => TransactionStatus.ContractStateVariableNotDefined
     case ContractInvalidOPCData => TransactionStatus.ContractInvalidOPCData

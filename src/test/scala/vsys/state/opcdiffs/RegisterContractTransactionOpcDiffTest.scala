@@ -46,7 +46,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
   property("register contract transaction cannot pass due to wrong list of parameters"){
     forAll(preconditionsAndRegContractWrongPara) { case (genesis, create, feeCreate) =>
       assertOpcFuncDifferEi(2, create) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe Left(ValidationError.ContractDataTypeMissMatch)
+        OpcFunDiffEi shouldBe Left(ValidationError.ContractDataTypeMismatch)
       }
     }
   }
