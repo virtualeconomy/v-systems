@@ -142,28 +142,28 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction fail with invalid data"){
     forAll(preconditionsAndExecuteContractWithInvalidData) { case (genesis, reg, invalid1, invalid2, invalid3, invalid4) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid3), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid3), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid4), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid4), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
     }
@@ -514,10 +514,10 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction invalid deposit"){
     forAll(preconditionsAndExecuteContractDeposit) { case (genesis, regContract, executeContractIssue, invalidDeposit, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(invalidDeposit), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(invalidDeposit), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
     }
   }
@@ -570,9 +570,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   property("execute contract transaction invalid withdraw"){
     forAll(preconditionsAndExecuteContractWithdraw) { case (genesis, regContract, executeContractIssue, _, invalidWithdraw, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(invalidWithdraw), TransactionStatus.ContractDataTypeMissMatch)) { blockDiffEi =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(invalidWithdraw), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMissMatch
+        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
     }
   }

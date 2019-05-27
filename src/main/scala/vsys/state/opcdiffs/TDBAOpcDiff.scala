@@ -4,7 +4,7 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.wavesplatform.state2._
 import scorex.account.Address
 import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{ContractDataTypeMissMatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex,
+import scorex.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex,
   ContractTokenBalanceInsufficient, ContractTokenMaxExceeded, ContractUnsupportedDeposit, ContractUnsupportedWithdraw}
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.contract.{DataEntry, DataType}
@@ -19,7 +19,7 @@ object TDBAOpcDiff {
 
     if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractDataTypeMissMatch)
+      Left(ContractDataTypeMismatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -59,7 +59,7 @@ object TDBAOpcDiff {
 
     if ((issuer.dataType != DataType.Address) || (amount.dataType != DataType.Amount)
       || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractDataTypeMissMatch)
+      Left(ContractDataTypeMismatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
@@ -101,7 +101,7 @@ object TDBAOpcDiff {
       Left(ContractUnsupportedDeposit)
     } else if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address) ||
       (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractDataTypeMissMatch)
+      Left(ContractDataTypeMismatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
