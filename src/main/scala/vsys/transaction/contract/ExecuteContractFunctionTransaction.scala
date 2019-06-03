@@ -42,7 +42,7 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contractId" -> contractId.address,
     "functionIndex" -> funcIdx,
-    "functionData" -> Base58.encode(DataEntry.serializeArrays(data)),
+    "functionData" -> data.map(p => p.json),
     "attachment" -> Base58.encode(attachment),
     "fee" -> fee,
     "feeScale" -> feeScale,
