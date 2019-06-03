@@ -122,10 +122,15 @@ object TDBAOpcDiff {
       } else {
         val s = Address.fromBytes(sender.data).toOption.get
         val r = Address.fromBytes(recipient.data).toOption.get
-        Right(OpcDiff(relatedAddress = Map(s -> true, r -> true),
-          tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
-          recipientBalanceKey -> transferAmount)
-        ))
+        if (sender.bytes sameElements recipient.bytes) {
+          Right(OpcDiff(relatedAddress = Map(s -> true, r -> true)
+          ))
+        } else {
+          Right(OpcDiff(relatedAddress = Map(s -> true, r -> true),
+            tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
+              recipientBalanceKey -> transferAmount)
+          ))
+        }
       }
     }
   }
