@@ -14,9 +14,6 @@ import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 package object history {
   val MinInMemoryDiffSize = 5
   val DefaultBlockchainSettings = BlockchainSettings(
-    blockchainFile = None,
-    stateFile = None,
-    checkpointFile = None,
     addressSchemeCharacter = 'N',
     minimumInMemoryDiffSize = MinInMemoryDiffSize,
     functionalitySettings = TestFunctionalitySettings.Enabled,

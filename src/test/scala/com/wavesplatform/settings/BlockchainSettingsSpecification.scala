@@ -1,7 +1,5 @@
 package com.wavesplatform.settings
 
-import java.io.File
-
 import com.typesafe.config.ConfigFactory
 import com.wavesplatform.state2.ByteStr
 import org.scalatest.{FlatSpec, Matchers}
@@ -56,9 +54,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/vsys/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/vsys/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/vsys/data/checkpoint.dat")))
     //not snapshot
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('C')
@@ -86,9 +81,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/vsys/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/vsys/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/vsys/data/checkpoint.dat")))
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('T')
     settings.functionalitySettings.numOfSlots should be (60)
@@ -124,9 +116,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/vsys/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/vsys/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/vsys/data/checkpoint.dat")))
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.numOfSlots should be (60)

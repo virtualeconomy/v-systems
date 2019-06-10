@@ -1,7 +1,5 @@
 package com.wavesplatform.settings
 
-import java.io.File
-
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -24,10 +22,7 @@ object FunctionalitySettings {
   val configPath = "vsys.blockchain.custom.functionality"
 }
 
-case class BlockchainSettings(blockchainFile: Option[File],
-                              stateFile: Option[File],
-                              checkpointFile: Option[File],
-                              addressSchemeCharacter: Char,
+case class BlockchainSettings(addressSchemeCharacter: Char,
                               minimumInMemoryDiffSize: Int,
                               functionalitySettings: FunctionalitySettings,
                               genesisSettings: GenesisSettings)
@@ -56,9 +51,6 @@ object BlockchainSettings {
     }
 
     BlockchainSettings(
-      blockchainFile = config.getAs[File](s"$configPath.blockchain-file"),
-      stateFile = config.getAs[File](s"$configPath.state-file"),
-      checkpointFile = config.getAs[File](s"$configPath.checkpoint-file"),
       addressSchemeCharacter = addressSchemeCharacter,
       minimumInMemoryDiffSize = config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
       functionalitySettings = functionalitySettings,
