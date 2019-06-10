@@ -1,5 +1,4 @@
 package vsys.settings
-package vsys.settings
 
 import com.wavesplatform.settings.StateSettings
 

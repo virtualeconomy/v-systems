@@ -43,4 +43,5 @@ minter_target
 test
 !src/test
 !src/test/**
+src/test/**/.DS_Store
 test/*
