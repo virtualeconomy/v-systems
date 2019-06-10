@@ -42,4 +42,5 @@ minter_target
 
 test
 !src/test
+!src/test/**
 test/*
