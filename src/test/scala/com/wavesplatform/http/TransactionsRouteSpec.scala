@@ -95,9 +95,11 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
         (state.transactionInfo _).expects(tx.id).returning(Some((height, ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)))).once()
         if (tx.isInstanceOf[LeaseCancelTransaction])
           (state.transactionInfo _).expects(tx.asInstanceOf[LeaseCancelTransaction].leaseId).returns(None).once()
+        if (tx.isInstanceOf[LeaseTransaction])
+          (state.isLeaseActive _).expects(tx.asInstanceOf[LeaseTransaction]).returns(true).once()
         Get(routePath(s"/info/${tx.id.base58}")) ~> route ~> check {
           status shouldEqual StatusCodes.OK
-          responseAs[JsObject] - "lease" shouldEqual ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx).json + ("height" -> JsNumber(height))
+          responseAs[JsObject] - "lease" - "leaseStatus" shouldEqual ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx).json + ("height" -> JsNumber(height))
         }
       }
     }

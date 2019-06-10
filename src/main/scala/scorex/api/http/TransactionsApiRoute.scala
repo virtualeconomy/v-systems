@@ -147,7 +147,7 @@ case class TransactionsApiRoute(
                     complete(invalidLimit)
                 }
               }
-          }
+          } ~ complete(StatusCodes.NotFound)
       }
     }
   }
