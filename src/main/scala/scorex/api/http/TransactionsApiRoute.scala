@@ -15,7 +15,7 @@ import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.{History, Transaction}
 import vsys.transaction.ProcessedTransaction
-
+import com.wavesplatform.settings.StateSettings
 import vsys.transaction.proof.EllipticCurve25519Proof
 
 import scala.util.Success
@@ -25,6 +25,7 @@ import scala.util.control.Exception
 @Api(value = "/transactions", description = "Information about transactions")
 case class TransactionsApiRoute(
     settings: RestAPISettings,
+    stateSettings: StateSettings,
     state: StateReader,
     history: History,
     utxPool: UtxPool) extends ApiRoute with CommonApiFunctions {
@@ -53,7 +54,12 @@ case class TransactionsApiRoute(
             case Some(txTypeStr) =>
               Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
                 case Some(txType: TransactionType.Value) =>
-                  complete(Json.obj("count" -> state.txTypeAccTxLengths(txType, a)))
+                  if(stateSettings.txTypeAccountTxIds){
+                    complete(Json.obj("count" -> state.txTypeAccTxLengths(txType, a)))
+                  }
+                  else {
+                    complete(unsupportedStateError("tx-type-account-tx-ids"))
+                  }
                 case _ => complete(invalidTxType)
               }
           }
@@ -248,6 +254,10 @@ case class TransactionsApiRoute(
         processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
       }
     )
+  }
+
+  private def unsupportedStateError(stateName: String) = {
+    StatusCodes.BadRequest -> Json.obj("message" -> s"State $stateName is not enabled at this node. You can turn on the state by editing configuration file.")
   }
 }
 

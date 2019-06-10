@@ -88,7 +88,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
 
     val apiRoutes = Seq(
       BlocksApiRoute(settings.restAPISettings, settings.checkpointsSettings, history, allChannels, checkpointService, blockchainUpdater),
-      TransactionsApiRoute(settings.restAPISettings, stateReader, history, utxStorage),
+      TransactionsApiRoute(settings.restAPISettings, settings.blockchainSettings.stateSettings, stateReader, history, utxStorage),
       SposConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
       WalletApiRoute(settings.restAPISettings, wallet),
       PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),

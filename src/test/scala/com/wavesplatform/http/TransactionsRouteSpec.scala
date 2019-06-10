@@ -16,6 +16,7 @@ import scorex.crypto.encode.Base58
 import scorex.transaction._
 import scorex.transaction.lease._
 import vsys.transaction._
+import vsys.settings.TestStateSettings
 
 class TransactionsRouteSpec extends RouteSpec("/transactions")
   with RestAPISettingsHelper with MockFactory with Matchers with TransactionGen with BlockGen with PropertyChecks {
@@ -27,7 +28,7 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
   private val history = mock[History]
   private val state = mock[StateReader]
   private val utx = mock[UtxPool]
-  private val route = TransactionsApiRoute(restAPISettings, state, history, utx).route
+  private val route = TransactionsApiRoute(restAPISettings, TestStateSettings.AllOn, state, history, utx).route
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 

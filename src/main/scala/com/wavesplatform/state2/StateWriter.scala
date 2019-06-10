@@ -6,6 +6,7 @@ import cats.Monoid
 import cats.implicits._
 import com.wavesplatform.state2.reader.StateReaderImpl
 import scorex.utils.ScorexLogging
+import com.wavesplatform.settings.StateSettings
 
 import scala.language.higherKinds
 
@@ -16,7 +17,7 @@ trait StateWriter {
 
 }
 
-class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteLock)
+class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteLock, stateSettings: StateSettings)
   extends StateReaderImpl(p, synchronizationToken) with StateWriter with ScorexLogging {
 
   import StateStorage._
@@ -77,16 +78,19 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
       }
     }
 
-    measureSizeLog("txTypeAccountTxIds")(blockDiff.txsDiff.txTypeAccountTxIds) {
-      _.foreach { case ((txType, acc), txIds) =>
-        val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
-        txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-          sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
-          shift + 1
+    if(stateSettings.txTypeAccountTxIds) {
+      measureSizeLog("txTypeAccountTxIds")(blockDiff.txsDiff.txTypeAccountTxIds) {
+        _.foreach { case ((txType, acc), txIds) =>
+          val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
+          txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
+            sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
+            shift + 1
+          }
+          sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
         }
-        sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
       }
     }
+    
 
     measureSizeLog("effectiveBalanceSnapshots")(blockDiff.snapshots)(
       _.foreach { case (acc, snapshotsByHeight) =>
