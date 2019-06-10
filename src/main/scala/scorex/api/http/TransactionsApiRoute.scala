@@ -98,7 +98,12 @@ case class TransactionsApiRoute(
                     case Some(txTypeStr) =>
                       Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
                         case Some(txType: TransactionType.Value) =>
-                          complete(txListWrapper(state.txTypeAccountTransactions(txType, a, limit, offset)))
+                          if(stateSettings.txTypeAccountTxIds){
+                            complete(txListWrapper(state.txTypeAccountTransactions(txType, a, limit, offset)))
+                          }
+                          else {
+                            complete(unsupportedStateError("tx-type-account-tx-ids"))
+                          }
                         case _ => complete(invalidTxType)
                       }
                   }
