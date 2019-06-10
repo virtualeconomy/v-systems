@@ -41,4 +41,5 @@ native
 minter_target
 
 test
+!src/test
 test/*
