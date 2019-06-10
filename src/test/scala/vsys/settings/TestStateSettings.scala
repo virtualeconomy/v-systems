@@ -7,6 +7,6 @@ object TestStateSettings {
     txTypeAccountTxIds = true
   )
   val AllOff = StateSettings(
-  	txTypeAccountTxIds = false
+    txTypeAccountTxIds = false
   )
 }
