@@ -247,6 +247,8 @@ case class TransactionsApiRoute(
     tx.transaction match {
       case leaseCancel: LeaseCancelTransaction =>
         tx.json ++ Json.obj("lease" -> state.findTransaction[LeaseTransaction](leaseCancel.leaseId).map(_.json).getOrElse[JsValue](JsNull))
+      case lease: LeaseTransaction =>
+        tx.json ++ Json.obj("leaseStatus" -> (if (state.isLeaseActive(lease)) "active" else "canceled"))
       case _ => tx.json
     }
   }
