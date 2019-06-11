@@ -55,8 +55,8 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
 
   private def customizedSwagger: Swagger = {
     val swagger: Swagger = reader.read(apiClasses.asJava)
-    val fiteredPaths: Map[String, Path] = swagger.getPaths().asScala.toMap.filterKeys(cumstomPathsConfig.getOrElse(_, true))
-    swagger.paths(collection.mutable.Map(fiteredPaths.toSeq: _*).asJava)
+    val filteredPaths: Map[String, Path] = swagger.getPaths().asScala.toMap.filterKeys(cumstomPathsConfig.getOrElse(_, true))
+    swagger.paths(collection.mutable.Map(filteredPaths.toSeq: _*).asJava)
     swagger
   }
 
