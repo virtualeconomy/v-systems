@@ -34,11 +34,23 @@ case class TransactionsApiRoute(
 
   override lazy val route =
     pathPrefix("transactions") {
-      unconfirmed ~ transactionCount ~ transactionList ~ addressLimit ~ info ~ activeLeaseList
+      customRoute
     }
 
+  var customRoute = unconfirmed ~ addressLimit ~ info ~ activeLeaseList
+
+  if(settings.customApiSettings.transactionsApiSettings.addressTransactionCount) {
+    customRoute = customRoute ~ transactionCount
+  }
+
+  if(settings.customApiSettings.transactionsApiSettings.addressTransactionList) {
+    customRoute = customRoute ~ transactionList
+  }
+
   @Path("/count")
-  @ApiOperation(value = "Count", notes = "Get count of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiOperation(value = "Count",
+                notes = "Get count of transactions where specified address has been involved. *This is a custom api, you need to enable it in configuration file.*",
+                httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
     new ApiImplicitParam(name = "txType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
@@ -67,16 +79,16 @@ case class TransactionsApiRoute(
     }
   }
 
-
   private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
 
   private val invalidOffset = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.offset")
 
   private val invalidTxType = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.txType")
 
-
   @Path("/list")
-  @ApiOperation(value = "List", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiOperation(value = "List",
+                notes = "Get list of transactions where specified address has been involved. *This is a custom api, you need to enable it in configuration file.*",
+                httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
     new ApiImplicitParam(name = "txType", value = "transaction type ", required = false, dataType = "integer", paramType = "query"),
