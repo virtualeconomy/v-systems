@@ -159,12 +159,13 @@ trait TransactionGen {
     feeScale2: Short <- feeScaleGen
   } yield (lease, LeaseCancelTransaction.create(sender, lease.id, cancelFee, feeScale2, timestamp + 1).right.get)
 
-  def leaseAndCancelGeneratorP(leaseSender: PrivateKeyAccount, recipient: AddressOrAlias, unleaseSender: PrivateKeyAccount): Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
-    (_, amount, fee, feeScale, timestamp, _) <- leaseParamGen
+  def leaseAndCancelGeneratorP(leaseSender: PrivateKeyAccount, recipient: AddressOrAlias, ts: Long = 0): Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
+    (_, amount, fee, feeScale, times, _) <- leaseParamGen
+    timestamp: Long = if (ts > 0) ts else times
     lease = LeaseTransaction.create(leaseSender, amount, fee, feeScale, timestamp, recipient).right.get
     fee2 <- smallFeeGen
     feeScale2: Short <- feeScaleGen
-    unlease = LeaseCancelTransaction.create(unleaseSender, lease.id, fee2, feeScale2, timestamp + 1).right.get
+    unlease = LeaseCancelTransaction.create(leaseSender, lease.id, fee2, feeScale2, timestamp + 1).right.get
   } yield (lease, unlease)
 
   val twoLeasesGen: Gen[(LeaseTransaction, LeaseTransaction)] = for {
