@@ -14,7 +14,9 @@ import scorex.account.Address
 import scorex.api.http.{InvalidAddress, InvalidSignature, TooBigArrayAllocation, TransactionsApiRoute}
 import scorex.crypto.encode.Base58
 import scorex.transaction._
+import scorex.transaction.lease._
 import vsys.transaction._
+import vsys.settings.TestStateSettings
 
 class TransactionsRouteSpec extends RouteSpec("/transactions")
   with RestAPISettingsHelper with MockFactory with Matchers with TransactionGen with BlockGen with PropertyChecks {
@@ -26,7 +28,7 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
   private val history = mock[History]
   private val state = mock[StateReader]
   private val utx = mock[UtxPool]
-  private val route = TransactionsApiRoute(restAPISettings, state, history, utx).route
+  private val route = TransactionsApiRoute(restAPISettings, TestStateSettings.AllOn, state, history, utx).route
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
@@ -51,16 +53,23 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
     }
 
     "working properly otherwise" ignore {
+      val txs = for {
+        count <- choose(1, transactionsCount)
+        txs <- randomProvenTransactionsGen(count)
+      } yield txs
       forAll(
         accountGen,
         choose(1, MaxTransactionsPerRequest),
-        randomTransactionsGen(transactionsCount)) { case (account, limit, txs) =>
-        (state.accountTransactionIds _).expects(account: Address, limit).returning(txs.map(_.id)).once()
+        txs) { case (account, limit, txs) =>
+
+        (state.accountTransactionIds _).expects(account: Address, limit, 0).returning((txs.size, txs.map(_.id))).once()
         txs.foreach { tx =>
           (state.transactionInfo _).expects(tx.id).returning(Some((1, ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)))).once()
+          if (tx.isInstanceOf[LeaseCancelTransaction])
+            (state.transactionInfo _).expects(tx.asInstanceOf[LeaseCancelTransaction].leaseId).returns(None).once()
         }
         Get(routePath(s"/address/${account.address}/limit/$limit")) ~> route ~> check {
-          responseAs[Seq[JsValue]].length shouldEqual txs.length.min(limit)
+          responseAs[Seq[Seq[JsValue]]].head.size shouldEqual txs.length.min(limit)
         }
       }
     }
@@ -78,15 +87,19 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
 
     "working properly otherwise" in {
       val txAvailability = for {
-        tx <- randomTransactionGen
+        tx <- randomProvenTransactionGen
         height <- posNum[Int]
       } yield (tx, height)
 
       forAll(txAvailability) { case (tx, height) =>
         (state.transactionInfo _).expects(tx.id).returning(Some((height, ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)))).once()
+        if (tx.isInstanceOf[LeaseCancelTransaction])
+          (state.transactionInfo _).expects(tx.asInstanceOf[LeaseCancelTransaction].leaseId).returns(None).once()
+        if (tx.isInstanceOf[LeaseTransaction])
+          (state.isLeaseActive _).expects(tx.asInstanceOf[LeaseTransaction]).returns(true).once()
         Get(routePath(s"/info/${tx.id.base58}")) ~> route ~> check {
           status shouldEqual StatusCodes.OK
-          responseAs[JsValue] shouldEqual ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx).json + ("height" -> JsNumber(height))
+          responseAs[JsObject] - "lease" - "leaseStatus" shouldEqual ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx).json + ("height" -> JsNumber(height))
         }
       }
     }
@@ -96,15 +109,19 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
     "returns the list of unconfirmed transactions" in {
       val g = for {
         i <- chooseNum(0, 20)
-        t <- listOfN(i, randomTransactionGen)
+        t <- listOfN(i, randomProvenTransactionGen)
       } yield t
 
       forAll(g) { txs =>
         (utx.all _).expects().returns(txs).once()
+        txs.foreach{ tx =>
+          if (tx.isInstanceOf[LeaseCancelTransaction])
+            (state.transactionInfo _).expects(tx.asInstanceOf[LeaseCancelTransaction].leaseId).returns(None).once()
+        }
         Get(routePath("/unconfirmed")) ~> route ~> check {
           val resp = responseAs[Seq[JsValue]]
           for ((r, t) <- resp.zip(txs)) {
-            (r \ "signature").as[String] shouldEqual t.signature.base58
+            (r \ "proofs").as[JsArray] shouldEqual JsArray(t.proofs.proofs.map(p => p.json))
           }
         }
       }
@@ -115,7 +132,7 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
     "returns the size of unconfirmed transactions" in {
       val g = for {
         i <- chooseNum(0, 20)
-        t <- listOfN(i, randomTransactionGen)
+        t <- listOfN(i, randomProvenTransactionGen)
       } yield t
 
       forAll(g) { txs =>
@@ -139,11 +156,13 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
     }
 
     "working properly otherwise" in {
-      forAll(randomTransactionGen) { tx =>
+      forAll(randomProvenTransactionGen) { tx =>
         (utx.transactionById _).expects(tx.id).returns(Some(tx)).once()
+        if (tx.isInstanceOf[LeaseCancelTransaction])
+          (state.transactionInfo _).expects(tx.asInstanceOf[LeaseCancelTransaction].leaseId).returns(None).once()
         Get(routePath(s"/unconfirmed/info/${tx.id.base58}")) ~> route ~> check {
           status shouldEqual StatusCodes.OK
-          responseAs[JsValue] shouldEqual tx.json
+          responseAs[JsObject] - "lease" shouldEqual tx.json
         }
       }
     }

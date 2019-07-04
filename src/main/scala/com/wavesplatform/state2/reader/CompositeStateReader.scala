@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import cats.implicits._
 import cats.kernel.Monoid
 import com.wavesplatform.state2._
+import scorex.transaction.TransactionParser.TransactionType
 import scorex.account.{Address, Alias}
 import vsys.transaction.ProcessedTransaction
 import scorex.transaction.lease.LeaseTransaction
@@ -36,13 +37,36 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
 
-  override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = {
-    val fromDiff = txDiff.accountTransactionIds.get(a).orEmpty
+  override def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = {
+    val fromDiffOrg = txDiff.accountTransactionIds.get(a).orEmpty
+    val offsetNew = scala.math.max(0, offset - fromDiffOrg.length)
+    val fromDiff = fromDiffOrg.drop(offset)
     if (fromDiff.length >= limit) {
-      fromDiff.take(limit)
+      (fromDiffOrg.size + inner.accountTransactionsLengths(a), fromDiff.take(limit))
     } else {
-      fromDiff ++ inner.accountTransactionIds(a, limit - fromDiff.size) // fresh head ++ stale tail
+      val fromState = inner.accountTransactionIds(a, limit - fromDiff.size, offsetNew)
+      (fromDiffOrg.size + fromState._1, fromDiff ++ fromState._2) // fresh head ++ stale tail
     }
+  }
+
+  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = {
+    val fromDiffOrg = txDiff.txTypeAccountTxIds.get((txType, a)).orEmpty
+    val offsetNew = scala.math.max(0, offset - fromDiffOrg.length)
+    val fromDiff = fromDiffOrg.drop(offset)
+    if (fromDiff.length >= limit) {
+      (fromDiffOrg.size + inner.txTypeAccTxLengths(txType, a), fromDiff.take(limit))
+    } else {
+      val fromState = inner.txTypeAccountTxIds(txType, a, limit - fromDiff.size, offsetNew)
+      (fromDiffOrg.size + fromState._1, fromDiff ++ fromState._2)
+    }
+  }
+
+  override def accountTransactionsLengths(a: Address): Int = {
+    txDiff.accountTransactionIds.get(a).orEmpty.size + inner.accountTransactionsLengths(a)
+  }
+
+  override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int = {
+    txDiff.txTypeAccountTxIds.get((txType, a)).orEmpty.size + inner.txTypeAccTxLengths(txType, a)
   }
 
   override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] =
@@ -96,8 +120,17 @@ object CompositeStateReader {
     override def accountPortfolio(a: Address): Portfolio =
       new CompositeStateReader(inner, blockDiff()).accountPortfolio(a)
 
-    override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] =
-      new CompositeStateReader(inner, blockDiff()).accountTransactionIds(a, limit)
+    override def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) =
+      new CompositeStateReader(inner, blockDiff()).accountTransactionIds(a, limit, offset)
+
+    override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) =
+      new CompositeStateReader(inner, blockDiff()).txTypeAccountTxIds(txType, a, limit, offset)
+
+    override def accountTransactionsLengths(a: Address): Int =
+      new CompositeStateReader(inner, blockDiff()).accountTransactionsLengths(a)
+
+    override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int =
+      new CompositeStateReader(inner, blockDiff()).txTypeAccTxLengths(txType, a)
 
     override def accountPortfolios: Map[Address, Portfolio] =
       new CompositeStateReader(inner, blockDiff()).accountPortfolios

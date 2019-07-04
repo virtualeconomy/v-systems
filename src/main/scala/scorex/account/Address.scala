@@ -30,7 +30,7 @@ object Address extends ScorexLogging {
 
   private def scheme = AddressScheme.current
 
-  private class AddressImpl(val bytes: ByteStr) extends Address
+  private class AddressImpl(val bytes: ByteStr) extends Address with Serializable
 
   def fromPublicKey(publicKey: Array[Byte]): Address = {
     val publicKeyHash = hash(publicKey).take(HashLength)

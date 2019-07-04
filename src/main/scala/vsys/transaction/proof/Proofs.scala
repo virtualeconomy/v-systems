@@ -6,12 +6,14 @@ import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
 import scorex.transaction.ValidationError.GenericError
 import scorex.transaction.{TransactionParser, ValidationError}
+import play.api.libs.json.{JsValue, JsArray}
 
 import scala.util.Try
 
 case class Proofs(proofs: List[Proof]) {
   val bytes: Array[Byte] = Proofs.Version +: Deser.serializeArrays(proofs.map(_.bytes.arr))
   val base58: Seq[String] = proofs.map(p => Base58.encode(p.bytes.arr))
+  lazy val json: JsValue = JsArray(proofs.toSeq.map(_.json))
 }
 
 object Proofs {

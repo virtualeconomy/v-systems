@@ -9,12 +9,13 @@ import scorex.block.Block
 import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.{History, ValidationError}
 import com.wavesplatform.history.db
+import vsys.settings.TestStateSettings
 
 package object diffs {
 
   private val lock = new ReentrantReadWriteLock()
 
-  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(db, dropExisting = true), lock)
+  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(db, dropExisting = true), lock, TestStateSettings.AllOn)
 
   def newHistory(): History = new HistoryWriterImpl(db, lock, true)
 

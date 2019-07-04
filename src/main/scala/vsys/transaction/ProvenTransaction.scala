@@ -14,15 +14,14 @@ trait ProvenTransaction extends Transaction with Signed {
 
   override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
-  protected def proofField: Seq[(String, JsValue)] = Seq("proofs" -> JsArray(proofs.proofs.map(p => p.json)))
-
   protected def jsonBase(): JsObject =
     Json.obj(
       "type" -> transactionType.id,
       "id" -> id.base58,
       "fee" -> assetFee._2,
-      "timestamp" -> timestamp
-    ) ++ JsObject(proofField)
+      "timestamp" -> timestamp,
+      "proofs" -> proofs.json
+    )
 
   lazy val signatureValid : Boolean = Proofs.verifyProofs(toSign, proofs)
 }
