@@ -8,7 +8,7 @@ import scorex.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import scorex.transaction.TransactionParser.KeyLength
 
-sealed trait EllipticCurve25519Proof extends Proof{
+sealed trait EllipticCurve25519Proof extends Proof {
 
   lazy val bytes: ByteStr = ByteStr(Array(proofType.id.asInstanceOf[Byte]) ++
     publicKey.publicKey ++
@@ -22,6 +22,7 @@ sealed trait EllipticCurve25519Proof extends Proof{
   lazy val json: JsObject = Json.obj(
     "proofType" -> proofType, // we can also write the detail name here
     "publicKey" -> Base58.encode(publicKey.publicKey),
+    "address" -> publicKey.address,
     "signature" -> signature.base58
   )
 

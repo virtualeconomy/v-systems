@@ -9,7 +9,7 @@ import scorex.transaction._
 class MintingTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 
   property("Mintingtransaction serialization roundtrip") {
-    forAll(MintingGen) { tx: MintingTransaction =>
+    forAll(mintingGen) { tx: MintingTransaction =>
       require(tx.bytes.head == TransactionType.MintingTransaction.id)
       val recovered = MintingTransaction.parseTail(tx.bytes.tail).get
       assertTxs(recovered, tx)
@@ -17,7 +17,7 @@ class MintingTransactionSpecification extends PropSpec with PropertyChecks with 
   }
 
   property("Mintingtransaction serialization from TypedTransaction") {
-    forAll(MintingGen) { tx: MintingTransaction =>
+    forAll(mintingGen) { tx: MintingTransaction =>
       val recovered = TransactionParser.parseBytes(tx.bytes).get
       assertTxs(recovered.asInstanceOf[MintingTransaction], tx)
     }

@@ -21,7 +21,7 @@ object StorageFactory {
     val lock = new RWL(true)
     val historyWriter = new HistoryWriterImpl(db, lock, renew)
     val ss = createStateStorage(historyWriter, db)
-    val stateWriter = new StateWriterImpl(ss, lock)
+    val stateWriter = new StateWriterImpl(ss, lock, settings.stateSettings)
     val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, lock)
     (historyWriter, stateWriter, bcu.currentPersistedBlocksState, bcu)
   }

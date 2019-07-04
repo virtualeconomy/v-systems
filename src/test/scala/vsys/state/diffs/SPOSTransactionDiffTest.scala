@@ -40,7 +40,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
         totalPortfolioDiff.balance shouldBe -feeContend
         totalPortfolioDiff.effectiveBalance shouldBe -feeContend
         val sender = EllipticCurve25519Proof.fromBytes(contend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 2).size shouldBe 2 // genesis and payment
+        newState.accountTransactionIds(sender, 2, 0)._2.size shouldBe 2 // genesis and payment
       }
     }
   }
@@ -136,7 +136,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
         totalPortfolioDiff.balance shouldBe - f1
         totalPortfolioDiff.effectiveBalance shouldBe -f1
         val sender = EllipticCurve25519Proof.fromBytes(release1.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 10).size shouldBe 2 // genesis and release
+        newState.accountTransactionIds(sender, 10, 0)._2.size shouldBe 2 // genesis and release
       }
     }
   }

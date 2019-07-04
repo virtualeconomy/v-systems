@@ -80,7 +80,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
         val descDE = Deser.serilizeString("init")
         val masterBalanceKey = ByteStr(Bytes.concat(tokenId.arr, master.toAddress.bytes.arr))
 
-        newState.accountTransactionIds(master, 2).size shouldBe 2 // genesis, reg
+        newState.accountTransactionIds(master, 2, 0)._2.size shouldBe 2 // genesis, reg
         newState.contractTokens(contractId) shouldBe 1
         newState.contractContent(contractId).get._1 shouldBe 2
         newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr

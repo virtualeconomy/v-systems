@@ -71,8 +71,8 @@ class BalanceDiffValidationTest extends PropSpec with PropertyChecks with Genera
     attachment <- attachmentGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     masterTransfersToAlice: PaymentTransaction = PaymentTransaction.create(master, alice, amt, fee, 100, ts, attachment).right.get
-    (aliceLeasesToBob, _) <- leaseAndCancelGeneratorP(alice, bob, alice) suchThat (_._1.amount < amt)
-    (masterLeasesToAlice, _) <- leaseAndCancelGeneratorP(master, alice, master) suchThat (_._1.amount > aliceLeasesToBob.amount)
+    (aliceLeasesToBob, _) <- leaseAndCancelGeneratorP(alice, bob) suchThat (_._1.amount < amt)
+    (masterLeasesToAlice, _) <- leaseAndCancelGeneratorP(master, alice) suchThat (_._1.amount > aliceLeasesToBob.amount)
     transferAmt <- Gen.choose(amt - fee - aliceLeasesToBob.amount, amt - fee)
     aliceTransfersMoreThanOwnsMinusLeaseOut = PaymentTransaction.create(alice, cooper, transferAmt, fee, 100, ts, attachment).right.get
 

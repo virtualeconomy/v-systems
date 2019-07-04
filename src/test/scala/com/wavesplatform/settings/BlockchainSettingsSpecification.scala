@@ -1,7 +1,5 @@
 package com.wavesplatform.settings
 
-import java.io.File
-
 import com.typesafe.config.ConfigFactory
 import com.wavesplatform.state2.ByteStr
 import org.scalatest.{FlatSpec, Matchers}
@@ -53,13 +51,13 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        ]
         |      }
         |    }
+        |    state {
+        |      tx-type-account-tx-ids = on
+        |    }
         |  }
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/vsys/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/vsys/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/vsys/data/checkpoint.dat")))
     //not snapshot
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('C')
@@ -75,6 +73,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.genesisSettings.transactions should be(Seq(
       GenesisTransactionSettings("BASE58ADDRESS1", 50000000000001L, -1),
       GenesisTransactionSettings("BASE58ADDRESS2", 49999999999999L, -1)))
+    settings.stateSettings.txTypeAccountTxIds should be (true)
   }
 
   it should "read testnet settings" in {
@@ -84,13 +83,13 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
         |    type = TESTNET
+        |    state {
+        |      tx-type-account-tx-ids = off
+        |    }
         |  }
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/vsys/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/vsys/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/vsys/data/checkpoint.dat")))
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('T')
     settings.functionalitySettings.numOfSlots should be (60)
@@ -114,6 +113,8 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         GenesisTransactionSettings("AUBbpPbymsrM8QiXqS3NU7CrD1vy1EyonCa",40000000000000000L, 8),
         GenesisTransactionSettings("AU7nJLcT1mThXGTT1KDkoAtfPzc82Sgay1V",20000000000000000L, 9)
     ))
+
+    settings.stateSettings.txTypeAccountTxIds should be (false)
   }
 
   it should "read mainnet settings" in {
@@ -123,13 +124,13 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |  blockchain {
         |    minimum-in-memory-diff-blocks = 1
         |    type = MAINNET
+        |    state {
+        |      tx-type-account-tx-ids = off
+        |    }
         |  }
         |}""".stripMargin))
     val settings = BlockchainSettings.fromConfig(config)
 
-    settings.blockchainFile should be(Some(new File("/vsys/data/blockchain.dat")))
-    settings.stateFile should be(Some(new File("/vsys/data/state.dat")))
-    settings.checkpointFile should be(Some(new File("/vsys/data/checkpoint.dat")))
     settings.minimumInMemoryDiffSize should be(1)
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.numOfSlots should be (60)
@@ -171,5 +172,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         GenesisTransactionSettings("ARQ4rDViLmPT7oEgEX6JRpA6qWQXhLypEYx",0L,48),
         GenesisTransactionSettings("ARCkTMPANUYYZudAHTnJUjUYfV3UMnSqYCC",0L,52),
         GenesisTransactionSettings("ARPnxBFbMzQQn4SncJ2WdH61ynqcPcninV4",0L,56)))
+    
+    settings.stateSettings.txTypeAccountTxIds should be (false)
   }
 }

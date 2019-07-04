@@ -6,6 +6,7 @@ import cats.implicits._
 import com.wavesplatform.state2._
 import scorex.account.{Address, Alias}
 import scorex.transaction.lease.LeaseTransaction
+import scorex.transaction.TransactionParser.TransactionType
 import vsys.contract.{Contract, DataEntry}
 import vsys.transaction.{ProcessedTransaction, ProcessedTransactionParser}
 
@@ -31,17 +32,34 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def height: Int = read { implicit l => sp().getHeight }
 
-  override def slotAddress(id: Int): Option[String] = read {implicit l => sp().getSlotAddress(id)}
+  override def slotAddress(id: Int): Option[String] = read { implicit l => sp().getSlotAddress(id) }
 
-  override def effectiveSlotAddressSize: Int = read {implicit l=> sp().getEffectiveSlotAddressSize}
+  override def effectiveSlotAddressSize: Int = read { implicit l => sp().getEffectiveSlotAddressSize }
 
-  override def addressSlot(add: String): Option[Int] = read {implicit l=> sp().getAddressSlot(add)}
+  override def addressSlot(add: String): Option[Int] = read { implicit l => sp().getAddressSlot(add) }
 
-  override def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr] = read { implicit l =>
-    val totalRecords = sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
-    Range(Math.max(0, totalRecords - limit), totalRecords)
-      .map(n => sp().accountTransactionIds.get(StateStorage.accountIndexKey(a, n)).get)
-      .reverse
+  override def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
+    val totalRecords = accountTransactionsLengths(a)
+    (totalRecords, sp().accountTransactionIds.rangeQuery(
+      StateStorage.accountIndexKey(a, Math.max(0, totalRecords - limit - offset)),
+      StateStorage.accountIndexKey(a, Math.max(0, totalRecords - offset)))
+      .map(_._2).reverse)
+  }
+
+  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
+    val totalRecords = txTypeAccTxLengths(txType, a)
+    (totalRecords, sp().txTypeAccountTxIds.rangeQuery(
+      StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - limit - offset)),
+      StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - offset)))
+      .map(_._2).reverse)
+  }
+
+  override def accountTransactionsLengths(a: Address): Int = read { implicit l =>
+    sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
+  }
+
+  override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int = read { implicit l =>
+    sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
   }
 
   override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>

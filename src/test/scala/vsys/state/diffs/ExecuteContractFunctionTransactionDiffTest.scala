@@ -100,8 +100,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
         val masterBalanceKey = ByteStr(Bytes.concat(tokenId.arr, master.toAddress.bytes.arr))
         val userBalanceKey = ByteStr(Bytes.concat(tokenId.arr, user.toAddress.bytes.arr))
 
-        newState.accountTransactionIds(master, 5).size shouldBe 5 // genesis, reg, split, supersede, send
-        newState.accountTransactionIds(user, 6).size shouldBe 6 // genesis2, supersede, issue, destory, send
+        newState.accountTransactionIds(master, 5, 0)._2.size shouldBe 5 // genesis, reg, split, supersede, send
+        newState.accountTransactionIds(user, 6, 0)._2.size shouldBe 6 // genesis2, supersede, issue, destory, send
         newState.contractTokens(contractId) shouldBe 1
         newState.contractContent(contractId).get._1 shouldBe 2
         newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr

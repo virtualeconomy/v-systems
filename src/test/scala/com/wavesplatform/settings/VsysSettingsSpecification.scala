@@ -39,9 +39,6 @@ class VsysSettingsSpecification extends FlatSpec with Matchers {
     settings.networkSettings.file should be(Some(new File("/xxx/data/peers.dat")))
     settings.walletSettings.file should be(Some(new File("/xxx/wallet/wallet.dat")))
     settings.loggingLevel should be(LogLevel.TRACE)
-    settings.blockchainSettings.blockchainFile should be(Some(new File("/xxx/data/blockchain.dat")))
-    settings.blockchainSettings.stateFile should be(Some(new File("/xxx/data/state.dat")))
-    settings.blockchainSettings.checkpointFile should be(Some(new File("/xxx/data/checkpoint.dat")))
     settings.matcherSettings.journalDataDir should be ("/xxx/matcher/journal")
     settings.matcherSettings.snapshotsDataDir should be ("/xxx/matcher/snapshots")
   }

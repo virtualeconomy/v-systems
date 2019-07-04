@@ -3,8 +3,9 @@ package com.wavesplatform.state2
 import cats.Monoid
 import cats.implicits._
 import scorex.account.{Address, Alias}
-import vsys.database.Entry
 import scorex.transaction.Transaction
+import scorex.transaction.TransactionParser.TransactionType
+import vsys.database.Entry
 import vsys.contract.Contract
 import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 
@@ -67,6 +68,18 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
       m.combine(Map(acc -> set))
     }
     groupedByAcc
+      .mapValues(l => l.toList.sortBy { case ((h, t, _)) => (-h, -t) }) // fresh head ([h=2, h=1, h=0])
+      .mapValues(_.map(_._3))
+  }
+
+
+  lazy val txTypeAccountTxIds: Map[(TransactionType.Value, Address), List[ByteStr]] = {
+    val map: List[((TransactionType.Value, Address), Set[(Int, Long, ByteStr)])] = transactions.toList
+      .flatMap { case (id, (h, tx, accs)) => accs.map(acc => (tx.transaction.transactionType, acc) -> Set((h, tx.transaction.timestamp, id))) }
+    val groupedByTuple = map.foldLeft(Map.empty[(TransactionType.Value, Address), Set[(Int, Long, ByteStr)]]) { case (m, (tuple, set)) =>
+      m.combine(Map(tuple -> set))
+    }
+    groupedByTuple
       .mapValues(l => l.toList.sortBy { case ((h, t, _)) => (-h, -t) }) // fresh head ([h=2, h=1, h=0])
       .mapValues(_.map(_._3))
   }

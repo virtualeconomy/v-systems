@@ -39,9 +39,8 @@ class ContractTransactionDiffTest extends PropSpec with PropertyChecks with Gene
 //        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
 //        totalPortfolioDiff.balance shouldBe -feeCreate
 //        totalPortfolioDiff.effectiveBalance shouldBe -feeCreate
-//        newState.accountTransactionIds(EllipticCurve25519Proof.fromBytes(create.proofs.proofs.head.bytes.arr).toOption.get.publicKey, 2).size shouldBe 2 // genesis and create
+//        newState.accountTransactionIds(EllipticCurve25519Proof.fromBytes(create.proofs.proofs.head.bytes.arr).toOption.get.publicKey, 2, 0)._2.size shouldBe 2 // genesis and create
 //      }
 //    }
 //  }
-
 }

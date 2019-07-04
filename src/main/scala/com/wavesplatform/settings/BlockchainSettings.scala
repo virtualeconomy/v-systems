@@ -1,7 +1,5 @@
 package com.wavesplatform.settings
 
-import java.io.File
-
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -31,13 +29,17 @@ object FunctionalitySettings {
   val configPath = "vsys.blockchain.custom.functionality"
 }
 
-case class BlockchainSettings(blockchainFile: Option[File],
-                              stateFile: Option[File],
-                              checkpointFile: Option[File],
-                              addressSchemeCharacter: Char,
+case class StateSettings(txTypeAccountTxIds: Boolean)
+
+object StateSettings {
+  val configPath = "vsys.blockchain.state"
+}
+
+case class BlockchainSettings(addressSchemeCharacter: Char,
                               minimumInMemoryDiffSize: Int,
                               functionalitySettings: FunctionalitySettings,
-                              genesisSettings: GenesisSettings)
+                              genesisSettings: GenesisSettings,
+                              stateSettings: StateSettings)
 
 object BlockchainType extends Enumeration {
   val TESTNET = Value("TESTNET")
@@ -57,18 +59,16 @@ object BlockchainSettings {
         ('M', FunctionalitySettings.MAINNET, GenesisSettings.MAINNET)
       case BlockchainType.CUSTOM =>
         val addressSchemeCharacter = config.as[String](s"$configPath.custom.address-scheme-character").charAt(0)
-        val functionalitySettings = config.as[FunctionalitySettings]("vsys.blockchain.custom.functionality")
-        val genesisSettings = config.as[GenesisSettings]("vsys.blockchain.custom.genesis")
+        val functionalitySettings = config.as[FunctionalitySettings](s"$configPath.custom.functionality")
+        val genesisSettings = config.as[GenesisSettings](s"$configPath.custom.genesis")
         (addressSchemeCharacter, functionalitySettings, genesisSettings)
     }
 
     BlockchainSettings(
-      blockchainFile = config.getAs[File](s"$configPath.blockchain-file"),
-      stateFile = config.getAs[File](s"$configPath.state-file"),
-      checkpointFile = config.getAs[File](s"$configPath.checkpoint-file"),
       addressSchemeCharacter = addressSchemeCharacter,
       minimumInMemoryDiffSize = config.as[Int](s"$configPath.minimum-in-memory-diff-blocks"),
       functionalitySettings = functionalitySettings,
-      genesisSettings = genesisSettings)
+      genesisSettings = genesisSettings,
+      stateSettings = config.as[StateSettings](s"$configPath.state"))
   }
 }

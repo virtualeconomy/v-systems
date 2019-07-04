@@ -12,12 +12,13 @@ import vsys.contract.ExecutionContext
 import vsys.state.opcdiffs.{OpcDiff, OpcFuncDiffer}
 import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import com.wavesplatform.history.db
+import vsys.settings.TestStateSettings
 
 package object diffs {
 
   private val lock = new ReentrantReadWriteLock()
 
-  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(db, dropExisting = true), lock)
+  def newState(): StateWriterImpl = new StateWriterImpl(StateStorage(db, dropExisting = true), lock, TestStateSettings.AllOn)
 
   def newHistory(): History = new HistoryWriterImpl(db, lock, true)
 

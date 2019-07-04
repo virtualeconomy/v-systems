@@ -63,7 +63,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       recipient <- accountGen suchThat (_ != master)
       ts <- positiveIntGen
       genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-      (lease, unlease) <- leaseAndCancelGeneratorP(master, recipient, master)
+      (lease, unlease) <- leaseAndCancelGeneratorP(master, recipient)
     } yield (genesis, lease, unlease, lease.fee, unlease.fee)
 
     forAll(sunnyDayLeaseLeaseCancel) { case ((genesis, lease, leaseCancel, feeLease, feeLeaseCancel)) =>
@@ -98,7 +98,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     blockTime <- timestampGen
     ts <- Gen.choose(blockTime, blockTime + MaxTimeTransactionOverBlockDiff.toNanos - 1)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    (lease, unlease) <- leaseAndCancelGeneratorP(master, recpient, master)
+    (lease, unlease) <- leaseAndCancelGeneratorP(master, recpient)
     fee2 <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
     unlease2 = LeaseCancelTransaction.create(master, lease.id, fee2, 100, ts + 1).right.get
@@ -122,8 +122,8 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       forward <- accountGen suchThat (!Set(master, recipient).contains(_))
       ts <- positiveIntGen
       genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-      (lease, _) <- leaseAndCancelGeneratorP(master, recipient, master)
-      (leaseForward, _) <- leaseAndCancelGeneratorP(recipient, forward, recipient)
+      (lease, _) <- leaseAndCancelGeneratorP(master, recipient)
+      (leaseForward, _) <- leaseAndCancelGeneratorP(recipient, forward)
     } yield (genesis, lease, leaseForward)
 
     forAll(setup) { case ((genesis, lease, leaseForward)) =>
@@ -142,7 +142,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     ts <- Gen.choose(blockTime, blockTime + MaxTimeTransactionOverBlockDiff.toNanos - 1)
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     genesis2: GenesisTransaction = GenesisTransaction.create(unleaser, ENOUGH_AMT, -1, ts).right.get
-    (lease, _) <- leaseAndCancelGeneratorP(master, recipient, master)
+    (lease, _) <- leaseAndCancelGeneratorP(master, recipient)
     fee2 <- smallFeeGen
     unleaseOtherOrRecipient = LeaseCancelTransaction.create(unleaser, lease.id, fee2, 100, ts + 1).right.get
   } yield (genesis, genesis2, lease, unleaseOtherOrRecipient, blockTime)
