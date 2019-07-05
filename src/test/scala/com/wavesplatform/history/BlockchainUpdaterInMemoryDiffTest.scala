@@ -1,13 +1,13 @@
-package com.wavesplatform.history
+package vsys.blockchain.history
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2._
-import com.wavesplatform.state2.diffs._
+import vsys.blockchain.state._
+import vsys.blockchain.state.diffs._
 import org.scalacheck.Gen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.transaction._
-import com.wavesplatform.state2.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
+import vsys.blockchain.transaction._
+import vsys.blockchain.state.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
 class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks with DomainScenarioDrivenPropertyCheck with Matchers with TransactionGen {
   val preconditionsAndPayments: Gen[(GenesisTransaction, PaymentTransaction, PaymentTransaction)] = for {

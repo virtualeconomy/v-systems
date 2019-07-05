@@ -1,13 +1,13 @@
 package scorex.lagonaki.mocks
 
-import com.wavesplatform.state2.ByteStr
-import scorex.account.PrivateKeyAccount
-import scorex.block._
-import vsys.consensus.spos.SposConsensusBlockData
-import scorex.crypto.EllipticCurveImpl
-import scorex.transaction.TransactionParser._
-import scorex.transaction.{Transaction, TransactionParser}
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.blockchain.state.ByteStr
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.block._
+import vsys.blockchain.block.SposConsensusBlockData
+import vsys.utils.crypto.EllipticCurveImpl
+import vsys.blockchain.transaction.TransactionParser._
+import vsys.blockchain.transaction.{Transaction, TransactionParser}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 
 import scala.util.{Random, Try}
 

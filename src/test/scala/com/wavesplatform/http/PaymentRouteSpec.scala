@@ -1,18 +1,18 @@
-package com.wavesplatform.http
+package vsys.api.http
 
-import com.wavesplatform.http.ApiMarshallers._
+import vsys.api.http.ApiMarshallers._
 import com.wavesplatform.{TestWallet, TransactionGen, UtxPool}
 import io.netty.channel.group.ChannelGroup
 import org.scalacheck.Shrink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.{JsObject, Json}
-import scorex.api.http.ApiKeyNotValid
+import vsys.api.http.ApiKeyNotValid
 import scorex.crypto.encode.Base58
 import vsys.api.http.vsys.PaymentApiRoute
-import scorex.transaction.Transaction
-import scorex.transaction.PaymentTransaction
-import scorex.utils.Time
+import vsys.blockchain.transaction.Transaction
+import vsys.blockchain.transaction.PaymentTransaction
+import vsys.utils.Time
 
 class PaymentRouteSpec extends RouteSpec("/vsys/payment")
   with MockFactory with PropertyChecks with RestAPISettingsHelper with TestWallet with TransactionGen {

@@ -1,15 +1,15 @@
-package vsys.state.diffs
+package vsys.blockchain.state.diffs
 
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Assertion, Matchers, PropSpec}
-import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
-import vsys.transaction.MintingTransaction
-import com.wavesplatform.state2.diffs.assertDiffEi
+import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
+import vsys.blockchain.transaction.MintingTransaction
+import vsys.blockchain.state.diffs.assertDiffEi
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.ValidationError.WrongMintingReward
-import vsys.spos.SPoSCalc._
+import vsys.blockchain.transaction.ValidationError.WrongMintingReward
+import vsys.blockchain.consensus.SPoSCalc._
 
 class MintingRewardValidation extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

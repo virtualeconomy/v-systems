@@ -1,11 +1,11 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import java.util.concurrent.ConcurrentMap
 
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.network.{PeerDatabase, PeerInfo}
-import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{LeaseInfo, Portfolio}
+import vsys.api.http.ApiMarshallers._
+import vsys.network.{PeerDatabase, PeerInfo}
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.state.{LeaseInfo, Portfolio}
 import com.wavesplatform.{BlockGen, TestWallet, TransactionGen, UtxPool}
 import io.netty.channel.Channel
 import io.netty.channel.group.ChannelGroup
@@ -13,8 +13,8 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import scorex.transaction.{BlockchainUpdater, History}
-import scorex.waves.http.DebugApiRoute
+import vsys.blockchain.transaction.{BlockchainUpdater, History}
+import vsys.api.http.DebugApiRoute
 
 class DebugRouteSpec
   extends RouteSpec("/debug")

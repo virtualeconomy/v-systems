@@ -1,4 +1,4 @@
-package com.wavesplatform.settings
+package vsys.settings
 
 import com.typesafe.config.ConfigException.BadValue
 import com.typesafe.config.ConfigFactory
@@ -34,7 +34,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
 
   it should "combine read few fees for one transaction type" in {
     val config = ConfigFactory.parseString(
-      """vsys.fees {
+      """vsys.blockchain.blocks {
         |  payment {
         |    VSYS0 = 0
         |  }
@@ -57,7 +57,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
   }
 
   it should "allow empty list" in {
-    val config = ConfigFactory.parseString("vsys.fees = {}").resolve()
+    val config = ConfigFactory.parseString("vsys.blockchain.blocks = {}").resolve()
 
     val settings = FeesSettings.fromConfig(config)
     settings.fees.size should be(0)
@@ -65,13 +65,13 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
 
   it should "override values" in {
     val config = ConfigFactory.parseString(
-      """vsys.fees {
+      """vsys.blockchain.blocks {
         |  payment.VSYS1 = 1111
         |  reissue.VSYS5 = 0
         |}
       """.stripMargin).withFallback(
       ConfigFactory.parseString(
-        """vsys.fees {
+        """vsys.blockchain.blocks {
           |  payment.VSYS = 100000
           |  issue.VSYS = 100000000
           |  transfer.VSYS = 100000
@@ -89,7 +89,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
   }
 
   it should "fail on incorrect long values" in {
-    val config = ConfigFactory.parseString("vsys.fees.payment.VSYS=N/A").resolve()
+    val config = ConfigFactory.parseString("vsys.blockchain.blocks.payment.VSYS=N/A").resolve()
 
     intercept[BadValue] {
       FeesSettings.fromConfig(config)
@@ -97,7 +97,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
   }
 
   it should "fail on unknown transaction type" in {
-    val config = ConfigFactory.parseString("vsys.fees.shmayment.VSYS=100").resolve()
+    val config = ConfigFactory.parseString("vsys.blockchain.blocks.shmayment.VSYS=100").resolve()
 
     intercept[NoSuchElementException] {
       FeesSettings.fromConfig(config)
@@ -108,7 +108,7 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
     val defaultConfig = ConfigFactory.load()
     val config = ConfigFactory.parseString(
       """
-        |vsys.fees {
+        |vsys.blockchain.blocks {
         |  payment {
         |    VSYS = 10000000
         |  }

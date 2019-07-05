@@ -1,8 +1,8 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import akka.http.scaladsl.model.StatusCodes
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.state2.reader.StateReader
+import vsys.api.http.ApiMarshallers._
+import vsys.blockchain.state.reader.StateReader
 import com.wavesplatform.{BlockGen, TransactionGen, UtxPool}
 import org.scalacheck.Gen._
 import org.scalacheck.Shrink
@@ -10,12 +10,12 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.Matchers
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import scorex.account.Address
-import scorex.api.http.{InvalidAddress, InvalidSignature, TooBigArrayAllocation, TransactionsApiRoute}
+import vsys.account.Address
+import vsys.api.http.{InvalidAddress, InvalidSignature, TooBigArrayAllocation, TransactionsApiRoute}
 import scorex.crypto.encode.Base58
-import scorex.transaction._
-import scorex.transaction.lease._
-import vsys.transaction._
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction.lease._
+import vsys.blockchain.transaction._
 import vsys.settings.TestStateSettings
 
 class TransactionsRouteSpec extends RouteSpec("/transactions")

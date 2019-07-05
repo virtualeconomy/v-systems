@@ -2,22 +2,22 @@ package com.wavesplatform
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-import com.wavesplatform.history.{HistoryWriterImpl, StorageFactory}
-import com.wavesplatform.settings.{BlockchainSettings, FeeSettings, FeesSettings, FunctionalitySettings, UtxSettings}
+import vsys.blockchain.history.{HistoryWriterImpl, StorageFactory}
+import vsys.settings.{BlockchainSettings, FeeSettings, FeesSettings, FunctionalitySettings, UtxSettings}
 import org.scalacheck.Gen._
 import org.scalacheck.{Gen, Shrink}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
-import scorex.account.{Address, PrivateKeyAccount, PublicKeyAccount}
-import scorex.block.Block
-import scorex.transaction.{FeeCalculator, PaymentTransaction, Transaction}
-import scorex.utils.Time
+import vsys.account.{Address, PrivateKeyAccount, PublicKeyAccount}
+import vsys.blockchain.block.Block
+import vsys.blockchain.transaction.{FeeCalculator, PaymentTransaction, Transaction}
+import vsys.utils.Time
 import scala.concurrent.duration._
 
-import vsys.spos.SPoSCalc._
+import vsys.blockchain.consensus.SPoSCalc._
 import vsys.db.openDB
-import vsys.transaction.MintingTransaction
+import vsys.blockchain.transaction.MintingTransaction
 import vsys.settings.TestStateSettings
 
 class UtxPoolSpecification extends FreeSpec

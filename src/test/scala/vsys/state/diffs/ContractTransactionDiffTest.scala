@@ -1,17 +1,17 @@
-package vsys.state.diffs
+package vsys.blockchain.state.diffs
 
 //import cats.Monoid
 import com.wavesplatform.TransactionGen
-//import com.wavesplatform.state2._
+//import vsys.blockchain.state._
 import org.scalacheck.Gen
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 //import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.GenesisTransaction
-import vsys.transaction.contract.RegisterContractTransaction
-//import com.wavesplatform.state2.diffs._
-import vsys.contract.DataEntry
-//import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.contract.RegisterContractTransaction
+//import vsys.blockchain.state.diffs._
+import vsys.blockchain.contract.DataEntry
+//import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class ContractTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

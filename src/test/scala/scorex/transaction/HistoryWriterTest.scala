@@ -1,9 +1,9 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-import com.wavesplatform.history.HistoryWriterImpl
-import com.wavesplatform.state2._
+import vsys.blockchain.history.HistoryWriterImpl
+import vsys.blockchain.state._
 import org.scalatest.{FunSuite, Matchers}
 import scorex.lagonaki.mocks.TestBlock
 

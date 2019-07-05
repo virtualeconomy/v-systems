@@ -1,16 +1,16 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import com.wavesplatform.TestWallet
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.settings.FunctionalitySettings
-import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{LeaseInfo, Portfolio}
+import vsys.api.http.ApiMarshallers._
+import vsys.settings.FunctionalitySettings
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.state.{LeaseInfo, Portfolio}
 import org.scalacheck.Gen
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import scorex.api.http.{AddressApiRoute, ApiKeyNotValid, InvalidMessage}
-import scorex.crypto.EllipticCurveImpl
+import vsys.api.http.{AddressApiRoute, ApiKeyNotValid, InvalidMessage}
+import vsys.utils.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 
 class AddressRouteSpec

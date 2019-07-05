@@ -1,4 +1,4 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import org.scalacheck.{Arbitrary, Gen}
 

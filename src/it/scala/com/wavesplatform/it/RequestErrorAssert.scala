@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import com.wavesplatform.it.api.NodeApi.UnexpectedStatusCodeException
 import org.scalatest.{Assertion, Assertions}
 import play.api.libs.json.Json
-import scorex.api.http.ApiErrorResponse
+import vsys.api.http.ApiErrorResponse
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

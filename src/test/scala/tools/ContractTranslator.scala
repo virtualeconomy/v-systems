@@ -1,20 +1,20 @@
 package tools
 
 import com.google.common.primitives.Shorts
-import vsys.contract.ContractPermitted
-import scorex.serialization.Deser
-import vsys.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
+import vsys.blockchain.contract.ContractPermitted
+import vsys.utils.serialization.Deser
+import vsys.blockchain.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
 import scorex.crypto.encode.Base58
 
-import vsys.state.opcdiffs.AssertOpcDiff.AssertType
-import vsys.state.opcdiffs.CDBVOpcDiff.CDBVType
-import vsys.state.opcdiffs.CDBVROpcDiff.CDBVRType
-import vsys.state.opcdiffs.LoadOpcDiff.LoadType
-import vsys.state.opcdiffs.OpcDiffer.OpcType
-import vsys.state.opcdiffs.TDBAOpcDiff.TDBAType
-import vsys.state.opcdiffs.TDBAROpcDiff.TDBARType
-import vsys.state.opcdiffs.TDBOpcDiff.TDBType
-import vsys.state.opcdiffs.TDBROpcDiff.TDBRType
+import vsys.blockchain.state.opcdiffs.AssertOpcDiff.AssertType
+import vsys.blockchain.state.opcdiffs.CDBVOpcDiff.CDBVType
+import vsys.blockchain.state.opcdiffs.CDBVROpcDiff.CDBVRType
+import vsys.blockchain.state.opcdiffs.LoadOpcDiff.LoadType
+import vsys.blockchain.state.opcdiffs.OpcDiffer.OpcType
+import vsys.blockchain.state.opcdiffs.TDBAOpcDiff.TDBAType
+import vsys.blockchain.state.opcdiffs.TDBAROpcDiff.TDBARType
+import vsys.blockchain.state.opcdiffs.TDBOpcDiff.TDBType
+import vsys.blockchain.state.opcdiffs.TDBROpcDiff.TDBRType
 
 import scala.util.{Failure, Success, Try}
 

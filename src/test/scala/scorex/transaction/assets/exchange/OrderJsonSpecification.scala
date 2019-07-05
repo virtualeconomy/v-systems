@@ -1,13 +1,13 @@
-package scorex.transaction.assets.exchange
+package vsys.blockchain.transaction.assets.exchange
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 import play.api.libs.json._
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
+import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
-import scorex.transaction.assets.exchange.OrderJson._
+import vsys.blockchain.transaction.assets.exchange.OrderJson._
 
 class OrderJsonSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 

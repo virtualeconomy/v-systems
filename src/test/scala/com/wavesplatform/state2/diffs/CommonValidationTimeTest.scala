@@ -1,12 +1,12 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2._
+import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.PaymentTransaction
+import vsys.blockchain.transaction.PaymentTransaction
 
 class CommonValidationTimeTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

@@ -1,8 +1,8 @@
-package scorex.transaction.api.http.alias
+package vsys.blockchain.transaction.api.http.alias
 
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
-import scorex.api.http.alias.{CreateAliasRequest, SignedCreateAliasRequest}
+import vsys.api.http.alias.{CreateAliasRequest, SignedCreateAliasRequest}
 
 class AliasRequestTests extends FunSuite with Matchers {
   test("CreateAliasRequest") {

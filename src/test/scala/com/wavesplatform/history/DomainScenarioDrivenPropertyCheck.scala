@@ -1,4 +1,4 @@
-package com.wavesplatform.history
+package vsys.blockchain.history
 
 import org.scalacheck.Gen
 import org.scalatest.Assertion

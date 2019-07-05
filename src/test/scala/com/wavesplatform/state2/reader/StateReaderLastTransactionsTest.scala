@@ -1,14 +1,14 @@
-package com.wavesplatform.state2.reader
+package vsys.blockchain.state.reader
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2.diffs._
+import vsys.blockchain.state.diffs._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
-import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class StateReaderLastTransactionsTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

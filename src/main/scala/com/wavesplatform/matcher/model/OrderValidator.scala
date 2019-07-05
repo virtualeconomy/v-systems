@@ -1,16 +1,16 @@
 package com.wavesplatform.matcher.model
 
 import cats.implicits._
-import com.wavesplatform.UtxPool
+import vsys.blockchain.UtxPool
 import com.wavesplatform.matcher.MatcherSettings
 import com.wavesplatform.matcher.market.OrderBookActor.CancelOrder
 import com.wavesplatform.matcher.model.Events.OrderAdded
-import scorex.account.PublicKeyAccount
-import scorex.transaction.AssetAcc
-import scorex.transaction.ValidationError.GenericError
-import scorex.transaction.assets.exchange.Validation.booleanOperators
-import scorex.transaction.assets.exchange.{AssetPair, Order, Validation}
-import scorex.utils.NTP
+import vsys.account.PublicKeyAccount
+import vsys.blockchain.transaction.AssetAcc
+import vsys.blockchain.transaction.ValidationError.GenericError
+import vsys.blockchain.transaction.assets.exchange.Validation.booleanOperators
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, Validation}
+import vsys.utils.NTP
 import vsys.wallet.Wallet
 
 trait OrderValidator {
@@ -49,7 +49,7 @@ trait OrderValidator {
     val v =
     (order.matcherPublicKey == matcherPubKey) :| "Incorrect matcher public key" &&
       (order.expiration > NTP.correctedTime() + MinExpiration) :| "Order expiration should be > 1 min" &&
-      scorex.transaction.Signed.validateSignatures(order).isRight :| "signature should be valid" &&
+      vsys.blockchain.transaction.Signed.validateSignatures(order).isRight :| "signature should be valid" &&
       order.isValid(NTP.correctedTime()) &&
       (order.matcherFee >= settings.minOrderFee) :| s"Order matcherFee should be >= ${settings.minOrderFee}" &&
       (orderHistory.orderStatus(order.idStr) == LimitOrder.NotFound) :| "Order is already accepted" &&

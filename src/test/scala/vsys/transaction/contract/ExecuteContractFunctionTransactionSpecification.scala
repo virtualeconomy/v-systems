@@ -1,10 +1,10 @@
-package vsys.transaction.contract
+package vsys.blockchain.transaction.contract
 
 import com.wavesplatform.TransactionGen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.transaction.TransactionParser
-import scorex.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.TransactionParser
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 import scala.util.Try
 

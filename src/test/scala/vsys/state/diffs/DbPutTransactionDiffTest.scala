@@ -1,20 +1,20 @@
-package vsys.state.diffs
+package vsys.blockchain.state.diffs
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import scorex.transaction.{GenesisTransaction, ValidationError}
-import vsys.transaction.database.DbPutTransaction
-import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffEi}
-import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
-import scorex.account.PrivateKeyAccount
+import vsys.blockchain.transaction.{GenesisTransaction, ValidationError}
+import vsys.blockchain.transaction.database.DbPutTransaction
+import vsys.blockchain.state.diffs.{ENOUGH_AMT, assertDiffEi}
+import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
+import vsys.account.PrivateKeyAccount
 import scorex.lagonaki.mocks.TestBlock
-import scorex.serialization.{BytesSerializable, Deser}
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.transaction.ValidationError.InvalidDbKey
-import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.utils.serialization.{BytesSerializable, Deser}
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.ValidationError.InvalidDbKey
+import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

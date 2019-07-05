@@ -2,14 +2,13 @@ package vsys.api.http.contract
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
-import scorex.account.PublicKeyAccount
-import scorex.api.http.BroadcastRequest
+import vsys.account.{ContractAccount, PublicKeyAccount}
+import vsys.api.http.BroadcastRequest
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.TransactionParser.SignatureStringLength
+import vsys.blockchain.contract.DataEntry
+import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import scorex.crypto.encode.Base58
-import scorex.transaction.ValidationError
-import scorex.transaction.TransactionParser.SignatureStringLength
-import vsys.account.ContractAccount
-import vsys.contract.DataEntry
-import vsys.transaction.contract.ExecuteContractFunctionTransaction
 
 
 case class SignedExecuteContractFunctionRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)

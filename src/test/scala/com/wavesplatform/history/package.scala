@@ -1,15 +1,15 @@
 package com.wavesplatform
 
-import com.wavesplatform.settings.BlockchainSettings
-import com.wavesplatform.state2._
-import scorex.account.PrivateKeyAccount
-import scorex.block.Block
-import vsys.consensus.spos.SposConsensusBlockData
+import vsys.settings.BlockchainSettings
+import vsys.blockchain.state._
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.block.Block
+import vsys.blockchain.block.SposConsensusBlockData
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.{Transaction, TransactionParser}
+import vsys.blockchain.transaction.{Transaction, TransactionParser}
 import vsys.db.openDB
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 import vsys.settings.TestStateSettings
 
 package object history {

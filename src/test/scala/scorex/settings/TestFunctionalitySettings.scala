@@ -1,6 +1,6 @@
 package scorex.settings
 
-import com.wavesplatform.settings.FunctionalitySettings
+import vsys.settings.FunctionalitySettings
 
 object TestFunctionalitySettings {
   val Enabled = FunctionalitySettings(

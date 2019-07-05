@@ -1,6 +1,6 @@
 package vsys.settings
 
-import com.wavesplatform.settings.StateSettings
+import vsys.settings.StateSettings
 
 object TestStateSettings {
   val AllOn = StateSettings(

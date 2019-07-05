@@ -1,4 +1,4 @@
-package com.wavesplatform.settings
+package vsys.settings
 
 import java.io.File
 

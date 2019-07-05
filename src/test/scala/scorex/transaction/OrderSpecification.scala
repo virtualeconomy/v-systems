@@ -1,13 +1,13 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import com.wavesplatform.TransactionGen
 import com.wavesplatform.matcher.ValidationMatcher
-import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.state2.diffs.produce
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.state.diffs.produce
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import scorex.utils.NTP
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
+import vsys.utils.NTP
 
 class OrderSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen with ValidationMatcher {
 

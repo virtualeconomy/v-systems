@@ -1,4 +1,4 @@
-package com.wavesplatform.network
+package vsys.network
 
 import java.nio.charset.StandardCharsets
 

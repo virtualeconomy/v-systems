@@ -1,4 +1,4 @@
-package com.wavesplatform.state2
+package vsys.blockchain.state
 
 import org.h2.mvstore.{MVMap, MVStore}
 import org.scalatest.{FunSuite, Matchers}

@@ -1,12 +1,12 @@
 package com.wavesplatform
 
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalacheck.Gen
-import scorex.account.PrivateKeyAccount
-import scorex.block.Block
-import vsys.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{SignedTransaction, Transaction}
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.block.Block
+import vsys.blockchain.block.SposConsensusBlockData
+import vsys.blockchain.transaction.{SignedTransaction, Transaction}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 
 trait BlockGen extends TransactionGen {
 

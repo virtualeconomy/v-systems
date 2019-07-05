@@ -3,12 +3,11 @@ package vsys.api.http.spos
 import javax.ws.rs.Path
 
 import akka.http.scaladsl.server.Route
-import com.wavesplatform.UtxPool
-import com.wavesplatform.settings.RestAPISettings
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
-import scorex.BroadcastRoute
-import scorex.api.http._
+import vsys.api.http._
+import vsys.blockchain.UtxPool
+import vsys.settings.RestAPISettings
 
 @Path("/spos/broadcast")
 @Api(value = "/spos")

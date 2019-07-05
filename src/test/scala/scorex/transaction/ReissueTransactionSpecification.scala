@@ -1,10 +1,10 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import com.wavesplatform.TransactionGen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.transaction.assets.ReissueTransaction
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.assets.ReissueTransaction
 
 import scala.util.Try
 

@@ -1,15 +1,15 @@
-package vsys.state.opcdiffs
+package vsys.blockchain.state.opcdiffs
 
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.{GenesisTransaction, ValidationError}
-import com.wavesplatform.state2.diffs._
-import scorex.transaction.ValidationError.ContractInvalidOPCData
-import vsys.contract._
-import vsys.transaction.contract._
+import vsys.blockchain.transaction.{GenesisTransaction, ValidationError}
+import vsys.blockchain.state.diffs._
+import vsys.blockchain.transaction.ValidationError.ContractInvalidOPCData
+import vsys.blockchain.contract._
+import vsys.blockchain.transaction.contract._
 
 
 class RegisterContractTransactionOpcDiffTest extends PropSpec

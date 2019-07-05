@@ -1,9 +1,9 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import com.wavesplatform.TransactionGen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.transaction.assets.BurnTransaction
+import vsys.blockchain.transaction.assets.BurnTransaction
 
 class BurnTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 

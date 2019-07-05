@@ -1,7 +1,7 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import org.scalacheck.Gen
-import vsys.state.opcdiffs._
+import vsys.blockchain.state.opcdiffs._
 
 trait OpcId {
   import OpcId._

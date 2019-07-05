@@ -1,6 +1,6 @@
 package vsys.db
 
-import scorex.utils.ScorexLogging
+import vsys.utils.ScorexLogging
 import org.iq80.leveldb.DBFactory
 
 import scala.util.Try

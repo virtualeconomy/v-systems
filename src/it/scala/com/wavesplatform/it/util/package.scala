@@ -1,7 +1,7 @@
 package com.wavesplatform.it
 
-import com.wavesplatform.settings.Constants
 import io.netty.util.Timer
+import vsys.settings.Constants
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}

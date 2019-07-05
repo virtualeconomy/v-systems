@@ -1,24 +1,24 @@
 package vsys.api.http.contract
 
 import javax.ws.rs.Path
+
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import com.google.common.primitives.Ints
-import com.wavesplatform.UtxPool
-import com.wavesplatform.settings.RestAPISettings
-import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.state2.reader.StateReader
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{JsArray, JsNumber, JsObject, Json}
-import scorex.BroadcastRoute
-import scorex.account.Address
-import scorex.api.http._
-import scorex.serialization.Deser
-import scorex.transaction._
-import scorex.utils.Time
+import vsys.account.Address
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
-import vsys.contract.ContractPermitted
+import vsys.api.http._
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.transaction._
+import vsys.blockchain.UtxPool
+import vsys.blockchain.contract.ContractPermitted
+import vsys.settings.RestAPISettings
+import vsys.utils.serialization.Deser
+import vsys.utils.Time
 import vsys.wallet.Wallet
 
 import scala.util.Success

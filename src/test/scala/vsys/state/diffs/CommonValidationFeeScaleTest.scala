@@ -1,21 +1,21 @@
-package vsys.state.diffs
+package vsys.blockchain.state.diffs
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Assertion, Matchers, PropSpec}
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import scorex.transaction.{GenesisTransaction, PaymentTransaction}
-import vsys.transaction.database.DbPutTransaction
-import vsys.transaction.proof.{EllipticCurve25519Proof, Proofs}
-import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffEi}
-import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction}
+import vsys.blockchain.transaction.database.DbPutTransaction
+import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.blockchain.state.diffs.{ENOUGH_AMT, assertDiffEi}
+import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import scorex.lagonaki.mocks.TestBlock
-import scorex.serialization.BytesSerializable
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.transaction.ValidationError.WrongFeeScale
+import vsys.utils.serialization.BytesSerializable
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.ValidationError.WrongFeeScale
 
 class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

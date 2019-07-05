@@ -1,9 +1,9 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import com.wavesplatform.TestWallet
-import com.wavesplatform.http.ApiMarshallers._
+import vsys.api.http.ApiMarshallers._
 import play.api.libs.json.JsObject
-import scorex.api.http.{ApiKeyNotValid, WalletApiRoute}
+import vsys.api.http.{ApiKeyNotValid, WalletApiRoute}
 
 class WalletRouteSpec extends RouteSpec("/wallet") with RestAPISettingsHelper with TestWallet {
   private val route = WalletApiRoute(restAPISettings, testWallet).route

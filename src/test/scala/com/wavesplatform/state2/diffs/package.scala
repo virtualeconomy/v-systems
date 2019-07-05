@@ -1,17 +1,18 @@
-package com.wavesplatform.state2
+package vsys.blockchain.state
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-import com.wavesplatform.history.HistoryWriterImpl
-import com.wavesplatform.settings.FunctionalitySettings
-import com.wavesplatform.state2.reader.{CompositeStateReader, StateReader}
-import scorex.block.Block
+import vsys.blockchain.history.HistoryWriterImpl
+import vsys.settings.FunctionalitySettings
+import vsys.blockchain.state.reader.{CompositeStateReader, StateReader}
+import vsys.blockchain.block.Block
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.{History, Transaction, ValidationError}
-import vsys.contract.ExecutionContext
-import vsys.state.opcdiffs.{OpcDiff, OpcFuncDiffer}
-import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
-import com.wavesplatform.history.db
+import vsys.blockchain.history.History
+import vsys.blockchain.transaction.{Transaction, ValidationError}
+import vsys.blockchain.contract.ExecutionContext
+import vsys.blockchain.state.opcdiffs.{OpcDiff, OpcFuncDiffer}
+import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
+import vsys.blockchain.history.db
 import vsys.settings.TestStateSettings
 
 package object diffs {

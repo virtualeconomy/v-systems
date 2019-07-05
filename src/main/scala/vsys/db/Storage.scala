@@ -3,9 +3,9 @@ package vsys.db
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.google.common.primitives.{Bytes, Ints, UnsignedBytes}
-import com.wavesplatform.utils.forceStopApplication
+import vsys.utils.forceStopApplication
 import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
-import scorex.utils.ScorexLogging
+import vsys.utils.ScorexLogging
 
 import scala.collection.AbstractIterator
 import scala.util.control.NonFatal

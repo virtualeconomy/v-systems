@@ -1,10 +1,10 @@
-package scorex.network.peer
+package vsys.network.peer
 
 import java.net.InetSocketAddress
 
 import com.typesafe.config.ConfigFactory
-import com.wavesplatform.network.PeerDatabaseImpl
-import com.wavesplatform.settings.NetworkSettings
+import vsys.network.PeerDatabaseImpl
+import vsys.settings.NetworkSettings
 import net.ceedubs.ficus.Ficus._
 import org.scalatest.{Matchers, path}
 

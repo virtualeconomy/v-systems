@@ -2,14 +2,14 @@ package com.wavesplatform
 
 import org.scalacheck.Gen.{alphaNumChar, choose, listOfN, oneOf}
 import org.scalacheck.{Arbitrary, Gen => G}
-import scorex.account.Alias
-import scorex.api.http.alias.SignedCreateAliasRequest
-import scorex.api.http.assets._
-import scorex.api.http.leasing.{SignedLeaseCancelRequest, SignedLeaseRequest}
+import vsys.account.Alias
+import vsys.api.http.alias.SignedCreateAliasRequest
+import vsys.api.http.assets._
+import vsys.api.http.leasing.{SignedLeaseCancelRequest, SignedLeaseRequest}
 import scorex.crypto.encode.Base58
-import scorex.transaction.TransactionParser
-import scorex.transaction.assets.{IssueTransaction, TransferTransaction}
-import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction.TransactionParser
+import vsys.blockchain.transaction.assets.{IssueTransaction, TransferTransaction}
+import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 trait RequestGen extends TransactionGen {
   val nonPositiveLong: G[Long] = choose(Long.MinValue, 0).label("non-positive value")

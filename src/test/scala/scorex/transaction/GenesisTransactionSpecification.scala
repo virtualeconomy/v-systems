@@ -1,11 +1,11 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
+import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
-import scorex.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 import scala.util.{Failure, Try}
 

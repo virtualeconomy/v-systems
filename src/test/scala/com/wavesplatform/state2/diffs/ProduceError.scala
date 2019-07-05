@@ -1,4 +1,4 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import org.scalatest.matchers.{MatchResult, Matcher}
 

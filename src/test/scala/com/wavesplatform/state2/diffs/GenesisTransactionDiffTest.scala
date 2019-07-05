@@ -1,9 +1,9 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import cats._
 import com.wavesplatform.TransactionGen
 import scorex.settings.TestFunctionalitySettings
-import com.wavesplatform.state2._
+import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}

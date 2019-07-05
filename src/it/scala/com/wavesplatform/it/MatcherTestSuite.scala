@@ -3,12 +3,12 @@ package com.wavesplatform.it
 import com.typesafe.config.{Config, ConfigFactory}
 import com.wavesplatform.it.api.NodeApi.{AssetBalance, LevelResponse, MatcherStatusResponse, OrderBookResponse, Transaction}
 import com.wavesplatform.matcher.api.CancelOrderRequest
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
+import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
-import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import scorex.utils.NTP
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
+import vsys.utils.NTP
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global

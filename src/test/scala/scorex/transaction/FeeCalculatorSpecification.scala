@@ -1,17 +1,17 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import com.typesafe.config.ConfigFactory
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.settings.FeesSettings
-import com.wavesplatform.state2.ByteStr
+import vsys.settings.FeesSettings
+import vsys.blockchain.state.ByteStr
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Assertion, Matchers, PropSpec}
-import scorex.account.{Address, PrivateKeyAccount}
-import scorex.transaction.assets._
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.transaction.database.DbPutTransaction
-import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vsys.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
+import vsys.account.{Address, PrivateKeyAccount}
+import vsys.blockchain.transaction.assets._
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vsys.blockchain.transaction.database.DbPutTransaction
+import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
 
 class FeeCalculatorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks

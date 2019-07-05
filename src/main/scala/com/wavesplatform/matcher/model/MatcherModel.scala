@@ -4,8 +4,8 @@ import cats.Monoid
 import cats.implicits._
 import com.wavesplatform.matcher.model.MatcherModel.Price
 import play.api.libs.json.{JsObject, JsValue, Json}
-import scorex.transaction.AssetAcc
-import scorex.transaction.assets.exchange._
+import vsys.blockchain.transaction.AssetAcc
+import vsys.blockchain.transaction.assets.exchange._
 
 import scala.util.Try
 

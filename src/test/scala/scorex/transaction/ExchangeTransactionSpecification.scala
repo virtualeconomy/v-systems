@@ -1,13 +1,13 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.account.PrivateKeyAccount
-import scorex.transaction.ValidationError.OrderValidationError
-import scorex.transaction.assets.exchange.{Order, _}
-import scorex.utils._
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.transaction.ValidationError.OrderValidationError
+import vsys.blockchain.transaction.assets.exchange.{Order, _}
+import vsys.utils._
 
 class ExchangeTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 

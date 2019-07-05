@@ -3,7 +3,7 @@ package com.wavesplatform.matcher.market
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.persistence.inmemory.extension.{InMemoryJournalStorage, InMemorySnapshotStorage, StorageExtension}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
-import com.wavesplatform.UtxPool
+import vsys.blockchain.UtxPool
 import com.wavesplatform.matcher.MatcherTestData
 import com.wavesplatform.matcher.fixtures.RestartableActor
 import com.wavesplatform.matcher.fixtures.RestartableActor.RestartActor
@@ -11,19 +11,19 @@ import com.wavesplatform.matcher.market.OrderBookActor._
 import com.wavesplatform.matcher.market.OrderHistoryActor.{ValidateOrder, ValidateOrderResult}
 import com.wavesplatform.matcher.model.Events.Event
 import com.wavesplatform.matcher.model.{BuyLimitOrder, LimitOrder, SellLimitOrder}
-import com.wavesplatform.settings.{Constants, FunctionalitySettings, WalletSettings}
-import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{ByteStr, LeaseInfo, Portfolio}
+import vsys.settings.{Constants, FunctionalitySettings, WalletSettings}
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.state.{ByteStr, LeaseInfo, Portfolio}
 import io.netty.channel.group.ChannelGroup
 import org.h2.mvstore.MVStore
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest._
-import scorex.account.PrivateKeyAccount
-import scorex.transaction._
-import vsys.transaction._
-import scorex.transaction.assets.IssueTransaction
-import scorex.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
-import scorex.utils.ScorexLogging
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction.assets.IssueTransaction
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
+import vsys.utils.ScorexLogging
 import vsys.wallet.Wallet
 
 import scala.concurrent.duration._

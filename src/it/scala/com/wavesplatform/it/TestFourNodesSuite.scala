@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 import com.wavesplatform.it.transactions._
 import com.wavesplatform.it.transactions.debug._
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers, Suite}
-import scorex.utils.ScorexLogging
+import vsys.utils.ScorexLogging
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.IndexedSeq

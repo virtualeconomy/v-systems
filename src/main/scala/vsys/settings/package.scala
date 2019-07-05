@@ -1,0 +1,26 @@
+package vsys
+
+import java.io.File
+import java.time.Duration
+
+import com.typesafe.config.{Config, ConfigFactory}
+import vsys.blockchain.state.ByteStr
+import net.ceedubs.ficus.readers.namemappers.HyphenNameMapper
+import net.ceedubs.ficus.readers.{NameMapper, ValueReader}
+
+package object settings {
+  implicit val hyphenCase: NameMapper = HyphenNameMapper
+
+  implicit val fileReader: ValueReader[File] = (cfg, path) => new File(cfg.getString(path))
+  implicit val byteStrReader: ValueReader[ByteStr] = (cfg, path) => ByteStr.decodeBase58(cfg.getString(path)).get
+  implicit val javaDurationReader: ValueReader[Duration] = (cfg, path) => cfg.getDuration(path)
+
+  def loadConfig(userConfig: Config): Config = {
+    ConfigFactory
+      .defaultOverrides()
+      .withFallback(userConfig)
+      .withFallback(ConfigFactory.defaultApplication())
+      .withFallback(ConfigFactory.defaultReference())
+      .resolve()
+  }
+}

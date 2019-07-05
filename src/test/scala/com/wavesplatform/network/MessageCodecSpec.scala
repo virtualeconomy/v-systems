@@ -1,16 +1,16 @@
-package com.wavesplatform.network
+package vsys.network
 
 import java.nio.charset.StandardCharsets
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.network.client.NopPeerDatabase
+import vsys.network.client.NopPeerDatabase
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.embedded.EmbeddedChannel
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
-import scorex.transaction.Transaction
-import scorex.transaction.assets.IssueTransaction
+import vsys.blockchain.transaction.Transaction
+import vsys.blockchain.transaction.assets.IssueTransaction
 
 class MessageCodecSpec extends FreeSpec
   with Matchers

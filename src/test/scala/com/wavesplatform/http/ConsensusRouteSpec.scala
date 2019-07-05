@@ -1,18 +1,18 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import com.wavesplatform.BlockGen
-import com.wavesplatform.history.HistoryWriterImpl
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.settings.FunctionalitySettings
-import com.wavesplatform.state2._
-import com.wavesplatform.state2.reader.StateReader
+import vsys.blockchain.history.HistoryWriterImpl
+import vsys.api.http.ApiMarshallers._
+import vsys.settings.FunctionalitySettings
+import vsys.blockchain.state._
+import vsys.blockchain.state.reader.StateReader
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.JsObject
-import scorex.api.http.BlockNotExists
-import vsys.consensus.spos.api.http.SposConsensusApiRoute
+import vsys.api.http.BlockNotExists
+import vsys.api.http.spos.SposConsensusApiRoute
 import vsys.db.openDB
 
 class ConsensusRouteSpec extends RouteSpec("/consensus") with RestAPISettingsHelper with PropertyChecks with MockFactory with BlockGen with HistoryTest {

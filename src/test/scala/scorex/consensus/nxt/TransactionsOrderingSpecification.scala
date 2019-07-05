@@ -1,11 +1,11 @@
-package scorex.consensus.nxt
+package vsys.blockchain.consensus.nxt
 
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalatest.{Assertions, Matchers, PropSpec}
-import scorex.account.{Address, PrivateKeyAccount}
-import scorex.consensus.TransactionsOrdering
-import scorex.transaction.PaymentTransaction
-import scorex.transaction.assets.TransferTransaction
+import vsys.account.{Address, PrivateKeyAccount}
+import vsys.blockchain.consensus.TransactionsOrdering
+import vsys.blockchain.transaction.PaymentTransaction
+import vsys.blockchain.transaction.assets.TransferTransaction
 
 import scala.util.Random
 

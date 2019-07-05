@@ -1,6 +1,6 @@
 package com.wavesplatform
 
-import com.wavesplatform.settings.WalletSettings
+import vsys.settings.WalletSettings
 import vsys.wallet.Wallet
 
 trait TestWallet {

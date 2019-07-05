@@ -3,7 +3,7 @@ package vsys
 import java.io.File
 
 import org.iq80.leveldb.{DB, Options}
-import scorex.utils.ScorexLogging
+import vsys.utils.ScorexLogging
 
 package object db extends ScorexLogging {
 

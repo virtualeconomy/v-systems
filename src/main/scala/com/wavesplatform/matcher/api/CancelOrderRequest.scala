@@ -4,10 +4,10 @@ import io.swagger.annotations.ApiModelProperty
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsObject, JsPath, Json, Reads}
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.crypto.EllipticCurveImpl
+import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
+import vsys.utils.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
-import scorex.transaction.assets.exchange.OrderJson._
+import vsys.blockchain.transaction.assets.exchange.OrderJson._
 
 case class CancelOrderRequest(@ApiModelProperty(dataType = "java.lang.String") senderPublicKey: PublicKeyAccount,
                               @ApiModelProperty(dataType = "java.lang.String") orderId: Array[Byte],

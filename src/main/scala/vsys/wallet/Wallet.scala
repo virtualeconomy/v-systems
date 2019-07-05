@@ -2,16 +2,16 @@ package vsys.wallet
 
 import java.io.File
 
-import scorex.crypto.hash.SecureCryptographicHash
-import com.wavesplatform.settings.WalletSettings
-import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.Version
+import vsys.utils.crypto.hash.SecureCryptographicHash
+import vsys.settings.WalletSettings
+import vsys.blockchain.state.ByteStr
+import vsys.Version
 import vsys.utils.JsonFileStorage
 import play.api.libs.json._
-import scorex.account.{Address, PrivateKeyAccount, AddressScheme}
-import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.MissingSenderPrivateKey
-import scorex.utils.{ScorexLogging, randomBytes}
+import vsys.account.{Address, PrivateKeyAccount, AddressScheme}
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.ValidationError.MissingSenderPrivateKey
+import vsys.utils.{ScorexLogging, randomBytes}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.LinkedHashSet

@@ -1,10 +1,10 @@
-package scorex.transaction
+package vsys.blockchain.transaction
 
 import com.wavesplatform.TransactionGen
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
-import scorex.account.PrivateKeyAccount
-import scorex.transaction.TransactionParser.TransactionType
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 import scala.util.{Failure, Try}
 

@@ -1,10 +1,10 @@
-package com.wavesplatform.settings
+package vsys.settings
 
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
 import com.wavesplatform.matcher.MatcherSettings
 import org.scalatest.{FlatSpec, Matchers}
-import scorex.transaction.assets.exchange.AssetPair
+import vsys.blockchain.transaction.assets.exchange.AssetPair
 
 class MatcherSettingsSpecification extends FlatSpec with Matchers {
   "MatcherSettings" should "read values" in {

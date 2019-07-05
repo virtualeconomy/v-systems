@@ -1,16 +1,16 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ConcurrentMap
 
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.network.{PeerDatabase, PeerInfo}
+import vsys.api.http.ApiMarshallers._
+import vsys.network.{PeerDatabase, PeerInfo}
 import io.netty.channel.Channel
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.{Format, JsObject, JsValue, Json}
-import scorex.api.http.{ApiKeyNotValid, PeersApiRoute}
+import vsys.api.http.{ApiKeyNotValid, PeersApiRoute}
 
 import scala.collection.JavaConverters._
 

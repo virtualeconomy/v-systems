@@ -1,9 +1,9 @@
-package scorex.account
+package vsys.account
 
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.crypto.encode.Base58
-import scorex.crypto.hash.SecureCryptographicHash._
+import vsys.utils.crypto.hash.SecureCryptographicHash._
 
 class AccountSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 

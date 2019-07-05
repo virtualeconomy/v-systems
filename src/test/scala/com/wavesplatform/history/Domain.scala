@@ -1,6 +1,6 @@
-package com.wavesplatform.history
+package vsys.blockchain.history
 
-import com.wavesplatform.state2.reader.StateReader
-import scorex.transaction.{BlockchainUpdater, History}
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.transaction.{BlockchainUpdater, History}
 
 case class Domain(history: History, stateReader: StateReader, blockchainUpdater: BlockchainUpdater)

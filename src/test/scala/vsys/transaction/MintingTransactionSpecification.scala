@@ -1,10 +1,10 @@
-package vsys.transaction
+package vsys.blockchain.transaction
 
 import com.wavesplatform.TransactionGen
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.transaction._
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction._
 
 class MintingTransactionSpecification extends PropSpec with PropertyChecks with Matchers with TransactionGen {
 

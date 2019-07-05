@@ -1,10 +1,10 @@
-package vsys.transaction.proof
+package vsys.blockchain.transaction.proof
 
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import scorex.transaction.ValidationError
-import com.wavesplatform.state2.ByteStr
-import scorex.account.PublicKeyAccount
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.state.ByteStr
+import vsys.account.PublicKeyAccount
 
 class ProofSpecification extends PropSpec
 with PropertyChecks

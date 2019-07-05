@@ -1,20 +1,20 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import cats._
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2._
+import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import scorex.account.{Address, PrivateKeyAccount}
+import vsys.account.{Address, PrivateKeyAccount}
 import scorex.lagonaki.mocks.TestBlock
 import scorex.settings.TestFunctionalitySettings
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import scorex.transaction.{GenesisTransaction, PaymentTransaction}
-import vsys.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
-import scorex.transaction._
-import com.wavesplatform.state2.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction}
+import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
+import vsys.blockchain.transaction._
+import vsys.blockchain.state.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
 class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

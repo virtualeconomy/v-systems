@@ -1,19 +1,19 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import cats._
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.settings.Constants
-import com.wavesplatform.state2._
-import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
+import vsys.settings.Constants
+import vsys.blockchain.state._
+import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Ignore, Inside, Matchers, PropSpec}
-import scorex.account.PrivateKeyAccount
+import vsys.account.PrivateKeyAccount
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.ValidationError.AccountBalanceError
-import scorex.transaction.assets.IssueTransaction
-import scorex.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
-import scorex.transaction.{GenesisTransaction, ValidationError}
+import vsys.blockchain.transaction.ValidationError.AccountBalanceError
+import vsys.blockchain.transaction.assets.IssueTransaction
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
+import vsys.blockchain.transaction.{GenesisTransaction, ValidationError}
 
 @Ignore
 class ExchangeTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks

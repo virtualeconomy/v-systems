@@ -1,4 +1,4 @@
-package com.wavesplatform.settings
+package vsys.settings
 
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{FlatSpec, Matchers}

@@ -1,4 +1,4 @@
-package vsys.transaction.api.http.contract
+package vsys.blockchain.transaction.api.http.contract
 
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json

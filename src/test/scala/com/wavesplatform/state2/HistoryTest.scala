@@ -1,8 +1,8 @@
-package com.wavesplatform.state2
+package vsys.blockchain.state
 
-import com.wavesplatform.history.HistoryWriterImpl
+import vsys.blockchain.history.HistoryWriterImpl
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.TransactionParser.SignatureLength
+import vsys.blockchain.transaction.TransactionParser.SignatureLength
 
 trait HistoryTest {
   def appendGenesisBlock(history: HistoryWriterImpl): Unit =

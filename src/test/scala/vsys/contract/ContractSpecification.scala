@@ -1,4 +1,4 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}

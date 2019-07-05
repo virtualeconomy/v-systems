@@ -1,16 +1,16 @@
-package com.wavesplatform.state2.reader
+package vsys.blockchain.state.reader
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2.diffs._
-import scorex.account.PrivateKeyAccount
+import vsys.blockchain.state.diffs._
+import vsys.account.PrivateKeyAccount
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import scorex.transaction.TransactionParser.TransactionType
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 
 class StateReaderTransactionQueryTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

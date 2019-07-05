@@ -1,9 +1,9 @@
-package vsys.transaction.api.http.payment
+package vsys.blockchain.transaction.api.http.payment
 
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
 import vsys.api.http.vsys.SignedPaymentRequest
-import scorex.api.http.assets.PaymentRequest
+import vsys.api.http.payment.PaymentRequest
 
 class PaymentRequestsTests extends FunSuite with Matchers {
 

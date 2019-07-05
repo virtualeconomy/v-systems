@@ -1,7 +1,7 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import org.scalacheck.{Arbitrary, Gen}
-import scorex.serialization.Deser
+import vsys.utils.serialization.Deser
 
 trait TextualForm {
   private val fixedSize: Short = 4

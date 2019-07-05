@@ -1,12 +1,12 @@
-package com.wavesplatform.state2.reader
+package vsys.blockchain.state.reader
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2.diffs.{ENOUGH_AMT, assertDiffAndState}
+import vsys.blockchain.state.diffs.{ENOUGH_AMT, assertDiffAndState}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.GenesisTransaction
+import vsys.blockchain.transaction.GenesisTransaction
 
 
 class StateReaderEffectiveBalancePropertyTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {

@@ -1,15 +1,15 @@
-package com.wavesplatform.network
+package vsys.network
 
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.network.client.NopPeerDatabase
+import vsys.network.client.NopPeerDatabase
 import io.netty.buffer.Unpooled
 import io.netty.buffer.Unpooled.wrappedBuffer
 import io.netty.channel.embedded.EmbeddedChannel
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
-import scorex.crypto.hash.FastCryptographicHash
-import scorex.network.message.{Message => ScorexMessage}
+import vsys.utils.crypto.hash.FastCryptographicHash
+import vsys.network.message.{Message => ScorexMessage}
 
 class LegacyFrameCodecSpec extends FreeSpec
   with Matchers

@@ -1,4 +1,4 @@
-package scorex.account
+package vsys.account
 
 import com.wavesplatform.TransactionGen
 import org.scalacheck.Shrink

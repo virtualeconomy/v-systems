@@ -1,4 +1,4 @@
-package com.wavesplatform.state2
+package vsys.blockchain.state
 
 import java.nio.charset.StandardCharsets
 

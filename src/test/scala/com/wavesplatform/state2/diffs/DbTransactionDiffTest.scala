@@ -1,15 +1,15 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import cats.Monoid
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2._
+import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.GenesisTransaction
-import vsys.transaction.database.DbPutTransaction
-import vsys.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.database.DbPutTransaction
+import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

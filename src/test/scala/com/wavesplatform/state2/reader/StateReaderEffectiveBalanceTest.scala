@@ -1,11 +1,11 @@
-package com.wavesplatform.state2.reader
+package vsys.blockchain.state.reader
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-import com.wavesplatform.state2.StateStorage
-import com.wavesplatform.state2.StateStorage._
+import vsys.blockchain.state.StateStorage
+import vsys.blockchain.state.StateStorage._
 import org.scalatest.{Matchers, Outcome, fixture}
-import scorex.account.Address
+import vsys.account.Address
 import vsys.db.openDB
 
 class StateReaderEffectiveBalanceTest extends fixture.FunSuite with Matchers {

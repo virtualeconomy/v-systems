@@ -1,12 +1,12 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import com.wavesplatform.TransactionGen
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.lease.LeaseTransaction
-import scorex.transaction.{GenesisTransaction, PaymentTransaction}
+import vsys.blockchain.transaction.lease.LeaseTransaction
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction}
 
 class BalanceDiffValidationTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

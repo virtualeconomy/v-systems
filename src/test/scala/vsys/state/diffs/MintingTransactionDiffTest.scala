@@ -1,15 +1,15 @@
-package vsys.state.diffs
+package vsys.blockchain.state.diffs
 
 import cats.Monoid
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2._
+import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.GenesisTransaction
-import vsys.transaction.MintingTransaction
-import com.wavesplatform.state2.diffs._
+import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.MintingTransaction
+import vsys.blockchain.state.diffs._
 
 class MintingTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

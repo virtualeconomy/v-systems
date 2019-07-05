@@ -1,12 +1,12 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import com.google.common.primitives.Longs
 import com.wavesplatform.TransactionGen
 import org.scalacheck.Gen
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import scorex.account.PublicKeyAccount
-import scorex.transaction.ValidationError.InvalidDataEntry
+import vsys.account.PublicKeyAccount
+import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
 
 class DataEntrySpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

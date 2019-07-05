@@ -1,8 +1,8 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import com.google.common.primitives.Shorts
 import org.scalacheck.{Arbitrary, Gen}
-import scorex.serialization.Deser
+import vsys.utils.serialization.Deser
 
 import scala.util.Random
 

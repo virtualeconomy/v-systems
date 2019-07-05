@@ -1,9 +1,9 @@
-package scorex.network
+package vsys.network
 
-import com.wavesplatform.network.{BlockCheckpoint, Checkpoint, CheckpointMessageSpec}
+import vsys.network.{BlockCheckpoint, Checkpoint, CheckpointMessageSpec}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FreeSpec, Matchers, OneInstancePerTest}
-import scorex.transaction.TransactionParser._
+import vsys.blockchain.transaction.TransactionParser._
 
 class CheckpointSpecification extends FreeSpec
   with Matchers

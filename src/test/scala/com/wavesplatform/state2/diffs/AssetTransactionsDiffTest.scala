@@ -1,14 +1,14 @@
-package com.wavesplatform.state2.diffs
+package vsys.blockchain.state.diffs
 
 import cats._
 import com.wavesplatform.TransactionGen
-import com.wavesplatform.state2._
+import vsys.blockchain.state._
 import org.scalacheck.{Arbitrary, Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Ignore, Matchers, PropSpec}
 import scorex.lagonaki.mocks.TestBlock
-import scorex.transaction.GenesisTransaction
-import scorex.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction}
+import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction}
 
 @Ignore
 class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {

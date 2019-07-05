@@ -1,8 +1,8 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import org.scalacheck.Gen
 import com.google.common.primitives.Ints
-import scorex.serialization.Deser
+import vsys.utils.serialization.Deser
 
 trait ContractGen extends OpcFunction with StateVar with TextualForm {
 

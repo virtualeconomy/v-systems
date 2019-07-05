@@ -1,8 +1,8 @@
-package vsys.contract
+package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import org.scalacheck.Gen
-import scorex.account.Address
+import vsys.account.Address
 
 trait DataStack {
 

@@ -1,26 +1,26 @@
 package com.wavesplatform
 
-import com.wavesplatform.settings.Constants
-import com.wavesplatform.state2._
+import vsys.settings.Constants
+import vsys.blockchain.state._
 import org.scalacheck.Gen.{alphaLowerChar, alphaUpperChar, frequency, numChar}
 import org.scalacheck.{Arbitrary, Gen}
-import scorex.account.PublicKeyAccount._
-import scorex.account._
-import scorex.transaction._
-import vsys.transaction.MintingTransaction
-import vsys.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import scorex.transaction.assets._
-import scorex.transaction.assets.exchange._
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import scorex.utils.NTP
+import vsys.account.PublicKeyAccount._
+import vsys.account._
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction.MintingTransaction
+import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.blockchain.transaction.assets._
+import vsys.blockchain.transaction.assets.exchange._
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vsys.utils.NTP
 import scorex.settings.TestFunctionalitySettings
 import vsys.account.ContractAccount
-import vsys.database.{DataType, Entry}
-import vsys.transaction.database.DbPutTransaction
-import vsys.contract.{Contract, ContractPermitted, DataEntry, DataType => ContractDataType}
-import vsys.transaction.contract._
-import vsys.transaction.ProvenTransaction
-import vsys.spos.SPoSCalc._
+import vsys.blockchain.database.{DataType, Entry}
+import vsys.blockchain.transaction.database.DbPutTransaction
+import vsys.blockchain.contract.{Contract, ContractPermitted, DataEntry, DataType => ContractDataType}
+import vsys.blockchain.transaction.contract._
+import vsys.blockchain.transaction.ProvenTransaction
+import vsys.blockchain.consensus.SPoSCalc._
 
 trait TransactionGen {
 

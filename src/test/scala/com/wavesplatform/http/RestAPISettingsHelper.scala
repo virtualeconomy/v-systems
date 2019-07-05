@@ -1,9 +1,9 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import com.typesafe.config.ConfigFactory
-import com.wavesplatform.settings.RestAPISettings
+import vsys.settings.RestAPISettings
 import scorex.crypto.encode.Base58
-import scorex.crypto.hash.SecureCryptographicHash
+import vsys.utils.crypto.hash.SecureCryptographicHash
 
 trait RestAPISettingsHelper {
   def apiKey: String = "test_api_key"

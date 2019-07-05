@@ -2,15 +2,15 @@ package com.wavesplatform.matcher.market
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import com.wavesplatform.UtxPool
+import vsys.blockchain.UtxPool
 import com.wavesplatform.matcher.market.OrderHistoryActor.GetOrderHistory
 import com.wavesplatform.matcher.{MatcherSettings, MatcherTestData}
-import com.wavesplatform.settings.WalletSettings
-import com.wavesplatform.state2.ByteStr
+import vsys.settings.WalletSettings
+import vsys.blockchain.state.ByteStr
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
-import scorex.transaction.assets.exchange.AssetPair
-import scorex.utils.{NTP, ScorexLogging}
+import vsys.blockchain.transaction.assets.exchange.AssetPair
+import vsys.utils.{NTP, ScorexLogging}
 import vsys.wallet.Wallet
 
 class OrderHistoryActorSpecification extends TestKit(ActorSystem("MatcherTest"))

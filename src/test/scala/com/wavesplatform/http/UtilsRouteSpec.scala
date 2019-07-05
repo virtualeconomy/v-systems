@@ -1,13 +1,13 @@
-package com.wavesplatform.http
+package vsys.api.http
 
-import com.wavesplatform.http.ApiMarshallers._
+import vsys.api.http.ApiMarshallers._
 import org.scalacheck.Gen
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json.{JsObject, JsValue}
-import scorex.api.http.{TooBigArrayAllocation, UtilsApiRoute}
+import vsys.api.http.{TooBigArrayAllocation, UtilsApiRoute}
 import scorex.crypto.encode.Base58
-import scorex.utils.Time
-import scorex.crypto.hash.{FastCryptographicHash, SecureCryptographicHash}
+import vsys.utils.Time
+import vsys.utils.crypto.hash.{FastCryptographicHash, SecureCryptographicHash}
 
 class UtilsRouteSpec extends RouteSpec("/utils") with RestAPISettingsHelper with PropertyChecks {
   private val route = UtilsApiRoute(

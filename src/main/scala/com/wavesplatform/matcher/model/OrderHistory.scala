@@ -4,9 +4,9 @@ import cats.implicits._
 import com.wavesplatform.matcher.model.Events.{Event, OrderAdded, OrderCanceled, OrderExecuted}
 import com.wavesplatform.matcher.model.LimitOrder.{Filled, OrderStatus}
 import play.api.libs.json.Json
-import scorex.transaction.AssetAcc
-import scorex.transaction.assets.exchange.{AssetPair, Order}
-import scorex.utils.ScorexLogging
+import vsys.blockchain.transaction.AssetAcc
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order}
+import vsys.utils.ScorexLogging
 
 import scala.collection.JavaConverters._
 
@@ -98,7 +98,7 @@ case class OrderHistoryImpl(p: OrderHistoryStorage) extends OrderHistory with Sc
     Option(p.ordersInfo.get(id)).map(Json.parse).flatMap(_.validate[OrderInfo].asOpt).getOrElse(OrderInfo.empty)
 
   override def order(id: String): Option[Order] = {
-    import scorex.transaction.assets.exchange.OrderJson.orderFormat
+    import vsys.blockchain.transaction.assets.exchange.OrderJson.orderFormat
     Option(p.orders.get(id)).map(Json.parse).flatMap(_.validate[Order].asOpt)
   }
 

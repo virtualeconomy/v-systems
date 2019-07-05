@@ -1,10 +1,10 @@
-package vsys.database
+package vsys.blockchain.database
 
 import org.scalacheck.Gen
 import org.scalacheck.Gen.{alphaNumChar, frequency}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import scorex.transaction.ValidationError
+import vsys.blockchain.transaction.ValidationError
 
 class EntrySpecification extends PropSpec
 with PropertyChecks

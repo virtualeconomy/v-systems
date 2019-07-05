@@ -1,19 +1,19 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import com.typesafe.config.ConfigFactory
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.settings.RestAPISettings
-import com.wavesplatform.state2.diffs.TransactionDiffer.TransactionValidationError
+import vsys.api.http.ApiMarshallers._
+import vsys.settings.RestAPISettings
+import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import com.wavesplatform.{RequestGen, UtxPool}
 import io.netty.channel.group.ChannelGroup
 import org.scalacheck.Gen.posNum
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import scorex.api.http._
-import scorex.api.http.leasing.LeaseBroadcastApiRoute
-import scorex.transaction.Transaction
-import scorex.transaction.ValidationError.GenericError
+import vsys.api.http._
+import vsys.api.http.leasing.LeaseBroadcastApiRoute
+import vsys.blockchain.transaction.Transaction
+import vsys.blockchain.transaction.ValidationError.GenericError
 
 
 class LeaseBroadcastRouteSpec extends RouteSpec("/leasing/broadcast/") with RequestGen with PathMockFactory with PropertyChecks {

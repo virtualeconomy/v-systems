@@ -1,4 +1,4 @@
-package scorex.utils
+package vsys.utils
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 

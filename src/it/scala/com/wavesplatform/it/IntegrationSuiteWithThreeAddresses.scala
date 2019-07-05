@@ -4,7 +4,7 @@ import com.wavesplatform.it.api.NodeApi.{AssetBalance, FullAssetInfo}
 import com.wavesplatform.it.util._
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import scorex.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future.traverse

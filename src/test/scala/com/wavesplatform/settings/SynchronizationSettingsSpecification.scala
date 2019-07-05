@@ -1,4 +1,4 @@
-package com.wavesplatform.settings
+package vsys.settings
 
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory

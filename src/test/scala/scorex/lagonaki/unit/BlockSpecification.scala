@@ -1,14 +1,14 @@
 package scorex.lagonaki.unit
 
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSuite, Matchers}
-import scorex.account.PrivateKeyAccount
-import scorex.block.Block
-import vsys.consensus.spos.SposConsensusBlockData
-import scorex.transaction._
-import vsys.transaction._
-import scorex.transaction.assets.TransferTransaction
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.block.Block
+import vsys.blockchain.block.SposConsensusBlockData
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction.assets.TransferTransaction
 
 import scala.util.Random
 

@@ -1,8 +1,8 @@
-package scorex.transaction.api.http.leasing
+package vsys.blockchain.transaction.api.http.leasing
 
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
-import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest, SignedLeaseCancelRequest, SignedLeaseRequest}
+import vsys.api.http.leasing.{LeaseCancelRequest, LeaseRequest, SignedLeaseCancelRequest, SignedLeaseRequest}
 
 class LeaseRequestsTests extends FunSuite with Matchers {
 

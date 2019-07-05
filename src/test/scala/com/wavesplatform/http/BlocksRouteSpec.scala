@@ -1,18 +1,18 @@
-package com.wavesplatform.http
+package vsys.api.http
 
 import akka.http.scaladsl.server.Route
 import com.wavesplatform.BlockGen
-import com.wavesplatform.http.ApiMarshallers._
-import com.wavesplatform.state2.ByteStr
+import vsys.api.http.ApiMarshallers._
+import vsys.blockchain.state.ByteStr
 import org.scalacheck.{Gen, Shrink}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.DoNotDiscover
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import scorex.account.PublicKeyAccount
-import scorex.api.http._
-import scorex.block.Block
-import scorex.transaction.History
+import vsys.account.PublicKeyAccount
+import vsys.api.http._
+import vsys.blockchain.block.Block
+import vsys.blockchain.history.History
 
 // this test is currently broken, because there's no easy way to mock History.
 @DoNotDiscover
@@ -28,7 +28,7 @@ class BlocksRouteSpec extends RouteSpec("/blocks") with MockFactory with BlockGe
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-//  private def mockWriteToChannel(checkpoint: com.wavesplatform.network.Checkpoint): Unit = {}
+//  private def mockWriteToChannel(checkpoint: vsys.network.Checkpoint): Unit = {}
 
   private def checkBlock(response: JsValue, expected: Block): Unit = {
     (response \ "version").asOpt[Int].isDefined shouldBe true
