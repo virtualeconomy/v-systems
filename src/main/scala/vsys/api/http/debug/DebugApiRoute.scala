@@ -146,7 +146,7 @@ case class DebugApiRoute(settings: RestAPISettings,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.RollbackParams",
+      dataType = "vsys.api.http.debug.RollbackParams",
       defaultValue = "{\n\t\"rollbackTo\": 3,\n\t\"returnTransactionsToUTX\": false\n}"
     )
   ))

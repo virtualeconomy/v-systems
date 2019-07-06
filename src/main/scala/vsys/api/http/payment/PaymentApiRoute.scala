@@ -56,7 +56,7 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.vsys.SignedPaymentRequest",
+      dataType = "vsys.api.http.payment.SignedPaymentRequest",
       defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"attachment\":\"5VECG3ZHwy\",\n\t\"signature\":\"sig\"\n}"
     )
   ))

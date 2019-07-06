@@ -19,7 +19,7 @@ import org.h2.mvstore.MVStore
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest._
 import vsys.account.PrivateKeyAccount
-import vsys.blockchain.transaction._
+import vsys.blockchain.history.History
 import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.assets.IssueTransaction
 import vsys.blockchain.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}

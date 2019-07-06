@@ -1,11 +1,9 @@
 package tools
 
 import com.google.common.primitives.Shorts
-import vsys.blockchain.contract.ContractPermitted
-import vsys.utils.serialization.Deser
-import vsys.blockchain.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
 import scorex.crypto.encode.Base58
-
+import vsys.blockchain.contract.ContractPermitted
+import vsys.blockchain.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
 import vsys.blockchain.state.opcdiffs.AssertOpcDiff.AssertType
 import vsys.blockchain.state.opcdiffs.CDBVOpcDiff.CDBVType
 import vsys.blockchain.state.opcdiffs.CDBVROpcDiff.CDBVRType
@@ -15,6 +13,7 @@ import vsys.blockchain.state.opcdiffs.TDBAOpcDiff.TDBAType
 import vsys.blockchain.state.opcdiffs.TDBAROpcDiff.TDBARType
 import vsys.blockchain.state.opcdiffs.TDBOpcDiff.TDBType
 import vsys.blockchain.state.opcdiffs.TDBROpcDiff.TDBRType
+import vsys.utils.serialization.Deser
 
 import scala.util.{Failure, Success, Try}
 

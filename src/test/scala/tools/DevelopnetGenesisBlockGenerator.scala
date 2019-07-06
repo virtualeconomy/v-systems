@@ -5,8 +5,7 @@ import vsys.blockchain.state.ByteStr
 import vsys.account.{Address, AddressScheme, PrivateKeyAccount}
 import vsys.blockchain.block.Block
 import vsys.blockchain.block.SposConsensusBlockData
-import vsys.blockchain.transaction.{GenesisTransaction, Transaction}
-import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction}
+import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction, GenesisTransaction, Transaction}
 import vsys.blockchain.transaction.TransactionParser.SignatureLength
 import vsys.settings.Constants._
 

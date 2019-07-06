@@ -21,9 +21,10 @@ import org.h2.mvstore.MVStore
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 import vsys.account.PrivateKeyAccount
+import vsys.blockchain.history.History
 import vsys.blockchain.transaction.assets.IssueTransaction
 import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import vsys.blockchain.transaction.{AssetId, History}
+import vsys.blockchain.transaction.AssetId
 import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 import vsys.utils.{NTP, ScorexLogging}
 import vsys.wallet.Wallet
