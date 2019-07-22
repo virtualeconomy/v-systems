@@ -25,21 +25,20 @@ import io.netty.util.concurrent.GlobalEventExecutor
 import kamon.Kamon
 import scorex.account.AddressScheme
 import scorex.api.http._
-import vsys.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
-import vsys.api.http.vsys._
-import vsys.api.http.database.DbApiRoute
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.block.Block
-import vsys.consensus.spos.api.http.SposConsensusApiRoute
 import scorex.transaction._
 import scorex.utils.{ScorexLogging, Time, TimeImpl}
-import vsys.wallet.Wallet
 import scorex.waves.http.DebugApiRoute
+import vsys.api.http.database.DbApiRoute
+import vsys.api.http.spos.{SPOSApiRoute, SPOSBroadcastApiRoute}
+import vsys.api.http.vsys._
+import vsys.consensus.spos.api.http.SposConsensusApiRoute
 import vsys.db.openDB
+import vsys.wallet.Wallet
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.reflect.runtime.universe._
 import scala.util.Try
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {

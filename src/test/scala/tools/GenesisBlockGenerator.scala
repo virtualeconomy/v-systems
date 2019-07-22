@@ -1,47 +1,50 @@
 package tools
 
-import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
+import java.io.File
+
+import com.typesafe.config.{Config, ConfigFactory}
+import com.wavesplatform.settings.loadConfig
 import com.wavesplatform.state2.ByteStr
 import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
 import scorex.block.Block
-import vsys.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{GenesisTransaction, Transaction}
-import vsys.transaction.{TransactionStatus, ProcessedTransaction}
 import scorex.transaction.TransactionParser.SignatureLength
+import scorex.transaction.{GenesisTransaction, Transaction}
+import vsys.consensus.spos.SposConsensusBlockData
+import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
+import vsys.transaction.{ProcessedTransaction, TransactionStatus}
 import vsys.wallet.Wallet
 
 import scala.concurrent.duration._
 
-object GenesisBlockGenerator extends App {
+object GenesisBlockGenerator {
 
   val genesisSigner = PrivateKeyAccount(Array.empty)
   val reference = ByteStr(Array.fill(SignatureLength)(-1: Byte))
-  val distributions = Map(
-    1 -> Seq(1000000000000000000L),
-    2 -> Seq(800000000000000000L, 200000000000000000L),
-    3 -> Seq(650000000000000000L, 200000000000000000L, 150000000000000000L),
-    4 -> Seq(600000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L),
-    5 -> Seq(480000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L),
-    6 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L, 180000000000000000L),
-    7 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L, 120000000000000000L, 60000000000000000L),
-    8 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 120000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L),
-    9 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L),
-    10 -> Seq(300000000000000000L, 200000000000000000L, 150000000000000000L, 50000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 60000000000000000L, 40000000000000000L, 20000000000000000L)
-  )
 
-  // add test use wallet address
-  val test_wallet_addresses = Array (
-    "ATxpELPa3yhE5h4XELxtPrW9TfXPrmYE7ze",
-    "ATtRykARbyJS1RwNsA6Rn1Um3S7FuVSovHK",
-    "ATtchuwHVQmNTsRA8ba19juGK9m1gNsUS1V",
-    "AU4AoB2WzeXiJvgDhCZmr6B7uDqAzGymG3L",
-    "AUBHchRBY4mVNktgCgJdGNcYbwvmzPKgBgN",
-    "AU6qstXoazCHDK5dmuCqEnnTWgTqRugHwzm",
-    "AU9HYFXuPZPbFVw8vmp7mFmHb7qiaMmgEYE",
-    "AUBLPMpHVV74fHQD8D6KosA76nusw4FqRr1",
-    "AUBbpPbymsrM8QiXqS3NU7CrD1vy1EyonCa",
-    "AU7nJLcT1mThXGTT1KDkoAtfPzc82Sgay1V",
+  val file = new File("testnet_easy_start.conf")
+  var cfg: Config = ConfigFactory.parseFile(file)
+  loadConfig(cfg)
+
+  val initial_balance: Long = cfg.getLong("vsys.wallet.initial-balance")
+  var distributions = Map(
+    1 -> Seq(initial_balance)
   )
+  val miner_num: Int = cfg.getInt("vsys.miner.quorum")
+  val peer_num: Int = cfg.getInt("vsys.peer.quorum")
+  val addresses: Config = cfg.getConfig("vsys.wallet.slots")
+  // add test use wallet address
+  var test_wallet_addresses: Array[String] = Array.empty[String]
+  var last_sequence = Seq(initial_balance)
+  for (miner_index <- 0 until miner_num + peer_num) {
+    test_wallet_addresses :+= addresses.getConfig("slot" + miner_index.toString).getString("address")
+    if (miner_index > 0) {
+      var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + miner_index.toString).getDouble("balance_distribution")).toLong
+      last_sequence = last_sequence.updated(0, last_sequence(0) - miner_balance)
+      last_sequence :+= miner_balance
+      distributions += miner_index + 1 -> last_sequence
+    }
+  }
+
 
   def generateFullAddressInfo(n: Int) = {
     println("n=" + n + ", address = " + test_wallet_addresses(n))
@@ -50,7 +53,7 @@ object GenesisBlockGenerator extends App {
     val acc = Wallet.generateNewAccount(seed, 0)
     val privateKey = ByteStr(acc.privateKey)
     val publicKey = ByteStr(acc.publicKey)
-    // change address value for testnet
+    // change address value for testnetwow
     //    val address = acc.toAddress
     val address = Address.fromString(test_wallet_addresses(n)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
 
@@ -95,7 +98,6 @@ object GenesisBlockGenerator extends App {
            |
        """.stripMargin)
     }
-
     println(
       s"""GenesisSettings:
          | timestamp: ${settings.timestamp}
@@ -108,7 +110,8 @@ object GenesisBlockGenerator extends App {
      """.stripMargin)
   }
 
-  val (a, s) = generate('T', 10, -1, 60.seconds)
-  print(a, s)
-
+  def main(args: Array[String]): Unit = {
+    val (a, s) = generate('T', miner_num + peer_num, -1, 60.seconds)
+    print(a, s)
+  }
 }
