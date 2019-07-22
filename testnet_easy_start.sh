@@ -1,8 +1,23 @@
 #!/bin/bash
+
+git clone https://github.com/virtualeconomy/v-systems.git
+
+cd v-systems
+
+git checkout isolatedNet
+
+sbt clean
+echo "[-----INFO-----] Old target cleaned!"
+sbt -Dnetwork=testnet packageAll
+
+echo "[-----INFO-----] Project compiled!"
+sbt it:test
+echo "[-----INFO-----] Docker file completed!"
+
 touch genesis_settings.txt || exit
 
 echo "[-----INFO-----] Generating Genesis Block Info!"
-java -cp "target/vsys-all-0.1.1.jar:target/test-classes" tools.GenesisBlockGenerator > genesis_settings.txt
+java -cp "target/vsys-all-0.1.1.jar" vsys.utils.GenesisBlockGenerator > genesis_settings.txt
 
 echo "[-----INFO-----] Updating template.conf!"
 
@@ -106,6 +121,8 @@ do
     fi
 
 done < testnet_easy_start.conf
+
+git checkout master
 
 sbt clean
 echo "[-----INFO-----] Old target cleaned!"
