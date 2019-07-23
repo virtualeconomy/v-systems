@@ -7,19 +7,19 @@ cd v-systems
 git checkout isolatedNet
 
 sbt clean
-echo "[-----INFO-----] Old target cleaned!"
+echo "[-----INFO-----] Old target cleaned"
 sbt -Dnetwork=testnet packageAll
 
-echo "[-----INFO-----] Project compiled!"
+echo "[-----INFO-----] Project compiled"
 sbt it:test
-echo "[-----INFO-----] Docker file completed!"
+echo "[-----INFO-----] Docker file completed"
 
 touch genesis_settings.txt || exit
 
-echo "[-----INFO-----] Generating Genesis Block Info!"
+echo "[-----INFO-----] Generating Genesis Block info"
 java -cp "target/vsys-all-0.1.1.jar" vsys.utils.GenesisBlockGenerator > genesis_settings.txt
 
-echo "[-----INFO-----] Updating template.conf!"
+echo "[-----INFO-----] Updating template.conf"
 
 transactionMode=false
 transactions=""
@@ -125,12 +125,12 @@ done < testnet_easy_start.conf
 git checkout master
 
 sbt clean
-echo "[-----INFO-----] Old target cleaned!"
+echo "[-----INFO-----] Old target cleaned"
 sbt -Dnetwork=testnet packageAll
 
-echo "[-----INFO-----] Project compiled!"
+echo "[-----INFO-----] Project compiled"
 sbt it:test
-echo "[-----INFO-----] Docker file completed!"
+echo "[-----INFO-----] Docker file completed"
 
 echo "[-----INFO-----] Stopping and Removing old containers..."
 docker stop $(docker ps -a -q)
@@ -140,7 +140,7 @@ echo "[-----INFO-----] Removing old images..."
 docker rmi $(docker images 'peer_node*')
 docker rmi $(docker images 'minter_node*')
 
-echo "[-----INFO-----] Building peer node(s)!"
+echo "[-----INFO-----] Building peer node(s)"
 
 ip=19923
 peer_quorum_index=$(( $peer_quorum - 1 ))
@@ -153,15 +153,15 @@ do
     fip=$ip
     ip=$(( $ip - 1 ))
     sip=$ip
-    ip=$(( $ip - 1 ))
+    ip=$(( $ip + 10001 ))
 
     echo "[-----INFO-----] Starting peer node..."
     osascript -e 'tell app "Terminal" to do script "docker run --name peer_container'$i' -p '$fip':9923 -p '$sip':9922 peer_node_img'$i' -it sh"'
-    echo "[-----INFO-----] Peer node started!"
+    echo "[-----INFO-----] Peer node started"
 done
 
 
-echo "[-----INFO-----] Building minter node(s)!"
+echo "[-----INFO-----] Building minter node(s)"
 
 if [ -x minter_target ]; then
     	rm -rf minter_target
@@ -185,5 +185,5 @@ do
     ip=$(( $ip - 1 ))
     echo "[-----INFO-----] Starting minter node..."
     osascript -e 'tell app "Terminal" to do script "docker run --name minter_container'$i' -p '$fip':9923 -p '$sip':9922 minter_node_img'$i' -it sh"'
-    echo "[-----INFO-----] Minter node started!"
+    echo "[-----INFO-----] Minter node started"
 done
