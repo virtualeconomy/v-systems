@@ -2,8 +2,7 @@ package vsys.transaction.api.http.payment
 
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
-import vsys.api.http.vsys.SignedPaymentRequest
-import scorex.api.http.assets.PaymentRequest
+import vsys.api.http.vsys._
 
 class PaymentRequestsTests extends FunSuite with Matchers {
 
@@ -22,7 +21,25 @@ class PaymentRequestsTests extends FunSuite with Matchers {
 
     val req = Json.parse(json).validate[PaymentRequest].get
 
-    req shouldBe PaymentRequest(100000000000000L, 10000000L, 100, "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", Option("v"), "ATuYeyAT3HBkMQkbZRoyjR75Ajxd1ppWBYV")
+    req shouldEqual PaymentRequest(100000000000000L, 10000000L, 100, "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", Option("v"), "ATuYeyAT3HBkMQkbZRoyjR75Ajxd1ppWBYV")
+  }
+
+  test("PaymentRequest with string amount") {
+    val json =
+      """
+        {
+          "sender": "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
+          "fee": 10000000,
+          "feeScale": 100,
+          "recipient": "ATuYeyAT3HBkMQkbZRoyjR75Ajxd1ppWBYV",
+          "amount": "0100000000000000",
+          "attachment": "v"
+        }
+      """
+
+    val req = Json.parse(json).validate[PaymentRequest].get
+
+    req shouldEqual PaymentRequest(100000000000000L, 10000000L, 100, "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", Option("v"), "ATuYeyAT3HBkMQkbZRoyjR75Ajxd1ppWBYV")
   }
 
   test("SignedPaymentRequest") {

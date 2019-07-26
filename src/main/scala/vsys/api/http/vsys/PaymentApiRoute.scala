@@ -7,7 +7,6 @@ import com.wavesplatform.settings.RestAPISettings
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import scorex.BroadcastRoute
-import scorex.api.http.assets.PaymentRequest
 import scorex.transaction.TransactionFactory
 import scorex.utils.Time
 import vsys.wallet.Wallet
@@ -34,7 +33,7 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.api.http.assets.PaymentRequest",
+      dataType = "vsys.api.http.vsys.PaymentRequest",
       defaultValue = "{\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"sender\":\"senderId\",\n\t\"recipient\":\"recipientId\",\n\t\"attachment\":\"5VECG3ZHwy\"\n}"
     )
   ))

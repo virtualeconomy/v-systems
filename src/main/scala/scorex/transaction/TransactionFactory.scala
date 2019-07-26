@@ -7,6 +7,7 @@ import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
 import vsys.api.http.contract.{ChangeContractStatusRequest, CreateContractRequest, SignedChangeContractStatusRequest}
 import vsys.api.http.database.DbPutRequest
+import vsys.api.http.vsys._
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
 import vsys.contract.Contract
