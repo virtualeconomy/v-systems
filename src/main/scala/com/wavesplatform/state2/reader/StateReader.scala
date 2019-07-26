@@ -6,6 +6,8 @@ import scorex.account.{AddressOrAlias, Address, Alias}
 import scorex.transaction.ValidationError.AliasNotExists
 import scorex.transaction._
 import vsys.transaction._
+
+import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.assets.IssueTransaction
 import scorex.transaction.lease.LeaseTransaction
 import scorex.utils.{ScorexLogging, Synchronized}
@@ -34,7 +36,13 @@ trait StateReader extends Synchronized {
 
   def effectiveSlotAddressSize: Int
 
-  def accountTransactionIds(a: Address, limit: Int): Seq[ByteStr]
+  def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr])
+
+  def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr])
+
+  def accountTransactionsLengths(a: Address): Int
+
+  def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int
 
   def aliasesOfAddress(a: Address): Seq[Alias]
 
@@ -85,9 +93,18 @@ object StateReader {
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 
-    def accountTransactions(account: Address, limit: Int): Seq[(Int, _ <: ProcessedTransaction)] = s.read { _ =>
-      s.accountTransactionIds(account, limit)
-        .flatMap(s.transactionInfo)
+    def accountTransactions(account: Address, limit: Int, offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
+      val res = s.accountTransactionIds(account, limit, offset)
+      (res._1, res._2.flatMap(s.transactionInfo))
+    }
+
+    def txTypeAccountTransactions(
+      txType: TransactionType.Value,
+      account: Address,
+      limit: Int,
+      offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
+      val res = s.txTypeAccountTxIds(txType, account, limit, offset)
+      (res._1, res._2.flatMap(s.transactionInfo))
     }
 
     def balance(account: Address): Long = s.accountPortfolio(account).balance

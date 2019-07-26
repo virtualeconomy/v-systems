@@ -10,17 +10,16 @@ import scorex.settings.TestFunctionalitySettings
 import scorex.transaction.{Transaction, TransactionParser}
 import vsys.db.openDB
 import vsys.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.settings.TestStateSettings
 
 package object history {
   val MinInMemoryDiffSize = 5
   val DefaultBlockchainSettings = BlockchainSettings(
-    blockchainFile = None,
-    stateFile = None,
-    checkpointFile = None,
     addressSchemeCharacter = 'N',
     minimumInMemoryDiffSize = MinInMemoryDiffSize,
     functionalitySettings = TestFunctionalitySettings.Enabled,
-    genesisSettings = null)
+    genesisSettings = null,
+    stateSettings = TestStateSettings.AllOn)
 
   val db = openDB("./test/data", true)
   def domain(): Domain = {

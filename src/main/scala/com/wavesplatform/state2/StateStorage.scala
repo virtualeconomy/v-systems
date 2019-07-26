@@ -2,6 +2,7 @@ package com.wavesplatform.state2
 
 import com.google.common.primitives.Ints
 import scorex.account.Address
+import scorex.transaction.TransactionParser.TransactionType
 import org.iq80.leveldb.{DB, WriteBatch}
 
 import vsys.db.{Storage, SubStorage}
@@ -50,6 +51,10 @@ class StateStorage private(db: DB) extends Storage(db){
   val accountTransactionIds: StateMap[AccountIdxKey, ByteStr] = new StateMap(db, "accountTransactionIds", valueType=DataTypes.byteStr)
 
   val accountTransactionsLengths: StateMap[ByteStr, Int] = new StateMap(db, "accountTransactionsLengths", keyType=DataTypes.byteStr)
+
+  val txTypeAccountTxIds: StateMap[txTypeAccIdxKey, ByteStr] = new StateMap(db, "txTypeAccountTxIds", valueType=DataTypes.byteStr)
+
+  val txTypeAccTxLengths: StateMap[txTypeAccKey, Int] = new StateMap(db, "txTypeAccTxLengths")
 
   val balanceSnapshots: StateMap[AccountIdxKey, (Int, Long, Long, Long)] = new StateMap(db, "balanceSnapshots", valueType=DataTypes.balanceSnapshots)
 
@@ -103,6 +108,11 @@ object StateStorage {
   }
 
   type AccountIdxKey = Array[Byte]
+  type txTypeAccKey = Array[Byte]
+  type txTypeAccIdxKey = Array[Byte]
 
   def accountIndexKey(acc: Address, index: Int): AccountIdxKey = acc.bytes.arr ++ Ints.toByteArray(index)
+  def txTypeAccKey(txType: TransactionType.Value, acc: Address): txTypeAccKey = Ints.toByteArray(txType.id) ++ acc.bytes.arr
+  def txTypeAccIndexKey(txType: TransactionType.Value, acc: Address, index: Int): txTypeAccKey =
+    Ints.toByteArray(txType.id) ++ acc.bytes.arr ++ Ints.toByteArray(index)
 }
