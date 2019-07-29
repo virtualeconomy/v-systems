@@ -11,7 +11,7 @@ import io.swagger.annotations._
 import scorex.BroadcastRoute
 import scorex.api.http._
 import scorex.api.http.leasing.LeaseCancelRequest.leaseCancelRequestFormat
-import scorex.api.http.leasing.LeaseRequest.leaseCancelRequestFormat
+import scorex.api.http.leasing.LeaseRequest.leaseRequestFormat
 import scorex.transaction._
 import scorex.utils.Time
 import vsys.wallet.Wallet
