@@ -38,7 +38,7 @@ case class SignedPaymentRequest( @ApiModelProperty(required = true)
 
 object SignedPaymentRequest {
   val broadcastPaymentReads: Reads[SignedPaymentRequest] = (
-    (__ \ "timestamp").read[Long] and
+      (__ \ "timestamp").read[Long] and
       ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
       (__ \ "fee").read[Long] and
       (__ \ "feeScale").read[Short] and
@@ -49,8 +49,8 @@ object SignedPaymentRequest {
     )(SignedPaymentRequest.apply _)
 
   val broadcastPaymentWrites: Writes[SignedPaymentRequest] = (
-    (__ \ "timestamp").write[Long] and
-    (__ \ "amount").write[Long] and
+      (__ \ "timestamp").write[Long] and
+      (__ \ "amount").write[Long] and
       (__ \ "fee").write[Long] and
       (__ \ "feeScale").write[Short] and
       (__ \ "recipient").write[String] and

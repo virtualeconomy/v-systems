@@ -19,7 +19,7 @@ case class PaymentRequest( @ApiModelProperty(required = true)
 
 object PaymentRequest {
   val paymentReads: Reads[PaymentRequest] = (
-    ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
+      ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
       (__ \ "fee").read[Long] and
       (__ \ "feeScale").read[Short] and
       (__ \ "sender").read[String] and
@@ -28,7 +28,7 @@ object PaymentRequest {
   )(PaymentRequest.apply _)
 
   val paymentWrites: Writes[PaymentRequest] = (
-    (__ \ "amount").write[Long] and
+      (__ \ "amount").write[Long] and
       (__ \ "fee").write[Long] and
       (__ \ "feeScale").write[Short] and
       (__ \ "sender").write[String] and

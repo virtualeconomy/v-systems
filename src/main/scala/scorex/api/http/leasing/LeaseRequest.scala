@@ -17,7 +17,7 @@ case class LeaseRequest(@ApiModelProperty(value = "Base58 encoded sender public 
 
 object LeaseRequest {
   val leaseRequestReads: Reads[LeaseRequest] = (
-    (__ \ "sender").read[String] and
+      (__ \ "sender").read[String] and
       ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
       (__ \ "fee").read[Long] and
       (__ \ "feeScale").read[Short] and
@@ -25,7 +25,7 @@ object LeaseRequest {
     )(LeaseRequest.apply _)
 
   val leaseRequestWrites: Writes[LeaseRequest] = (
-    (__ \ "sender").write[String] and
+      (__ \ "sender").write[String] and
       (__ \ "amount").write[Long] and
       (__ \ "fee").write[Long] and
       (__ \ "feeScale").write[Short] and

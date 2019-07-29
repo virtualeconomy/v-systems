@@ -33,7 +33,7 @@ case class SignedLeaseRequest(@ApiModelProperty(value = "Base58 encoded sender p
 
 object SignedLeaseRequest {
   val broadcastLeaseRequestReads: Reads[SignedLeaseRequest] = (
-    (__ \ "senderPublicKey").read[String] and
+      (__ \ "senderPublicKey").read[String] and
       ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
       (__ \ "fee").read[Long] and
       (__ \ "feeScale").read[Short] and
@@ -43,7 +43,7 @@ object SignedLeaseRequest {
     )(SignedLeaseRequest.apply _)
 
   val broadcastLeaseRequestWrites: Writes[SignedLeaseRequest] = (
-    (__ \ "senderPublicKey").write[String] and
+      (__ \ "senderPublicKey").write[String] and
       (__ \ "amount").write[Long] and
       (__ \ "fee").write[Long] and
       (__ \ "feeScale").write[Short] and
