@@ -1,7 +1,8 @@
 package scorex.api.http.leasing
 
 import io.swagger.annotations.ApiModelProperty
-import play.api.libs.json.{Format, Json}
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 import scorex.account.{AddressOrAlias, PublicKeyAccount}
 import scorex.api.http.BroadcastRequest
 import scorex.transaction.TransactionParser.SignatureStringLength
@@ -31,5 +32,25 @@ case class SignedLeaseRequest(@ApiModelProperty(value = "Base58 encoded sender p
 }
 
 object SignedLeaseRequest {
-  implicit val broadcastLeaseRequestReadsFormat: Format[SignedLeaseRequest] = Json.format
+  val broadcastLeaseRequestReads: Reads[SignedLeaseRequest] = (
+      (__ \ "senderPublicKey").read[String] and
+      ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
+      (__ \ "fee").read[Long] and
+      (__ \ "feeScale").read[Short] and
+      (__ \ "recipient").read[String] and
+      (__ \ "timestamp").read[Long] and
+      (__ \ "signature").read[String]
+    )(SignedLeaseRequest.apply _)
+
+  val broadcastLeaseRequestWrites: Writes[SignedLeaseRequest] = (
+      (__ \ "senderPublicKey").write[String] and
+      (__ \ "amount").write[Long] and
+      (__ \ "fee").write[Long] and
+      (__ \ "feeScale").write[Short] and
+      (__ \ "recipient").write[String] and
+      (__ \ "timestamp").write[Long] and
+      (__ \ "signature").write[String]
+    )(unlift(SignedLeaseRequest.unapply))
+
+  implicit val broadcastLeaseRequestFormat: Format[SignedLeaseRequest] = Format(broadcastLeaseRequestReads, broadcastLeaseRequestWrites)
 }

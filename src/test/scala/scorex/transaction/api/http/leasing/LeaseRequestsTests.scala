@@ -23,6 +23,23 @@ class LeaseRequestsTests extends FunSuite with Matchers {
     req shouldBe LeaseRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 100000, 1000, 100, "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7")
   }
 
+  test("LeaseRequest with string amount") {
+    val json =
+      """
+        {
+          "amount": "100000",
+          "recipient": "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7",
+          "sender": "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
+          "fee": 1000,
+          "feeScale": 100
+        }
+      """
+
+    val req = Json.parse(json).validate[LeaseRequest].get
+
+    req shouldBe LeaseRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 100000, 1000, 100, "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7")
+  }
+
   test("LeaseCancelRequest") {
     val json =
       """
@@ -43,14 +60,34 @@ class LeaseRequestsTests extends FunSuite with Matchers {
     val json =
       """
         {
-         "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
-         "recipient":"3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
-         "fee":1000000,
-         "feeScale": 100,
-         "timestamp":0,
-         "amount":100000,
-         "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
-         }
+          "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+          "recipient":"3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
+          "fee":1000000,
+          "feeScale": 100,
+          "timestamp":0,
+          "amount":100000,
+          "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
+        }
+      """
+
+    val req = Json.parse(json).validate[SignedLeaseRequest].get
+
+    req shouldBe SignedLeaseRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000L, 1000000L, 100,
+      "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+  }
+
+  test("SignedLeaseRequest with string amount") {
+    val json =
+      """
+        {
+          "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+          "recipient":"3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb",
+          "fee":1000000,
+          "feeScale": 100,
+          "timestamp":0,
+          "amount":"100000",
+          "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
+        }
       """
 
     val req = Json.parse(json).validate[SignedLeaseRequest].get
@@ -63,13 +100,13 @@ class LeaseRequestsTests extends FunSuite with Matchers {
     val json =
       """
         {
-         "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
-         "txId":"D6HmGZqpXCyAqpz8mCAfWijYDWsPKncKe5v3jq1nTpf5",
-         "timestamp":0,
-         "fee": 1000000,
-         "feeScale": 100,
-         "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
-         }
+          "senderPublicKey":"CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+          "txId":"D6HmGZqpXCyAqpz8mCAfWijYDWsPKncKe5v3jq1nTpf5",
+          "timestamp":0,
+          "fee": 1000000,
+          "feeScale": 100,
+          "signature":"4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"
+        }
       """
 
     val req = Json.parse(json).validate[SignedLeaseCancelRequest].get

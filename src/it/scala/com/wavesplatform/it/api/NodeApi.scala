@@ -15,6 +15,7 @@ import play.api.libs.json.Json.{parse, stringify, toJson}
 import play.api.libs.json._
 import scorex.api.http.alias.CreateAliasRequest
 import scorex.api.http.assets._
+import vsys.api.http.vsys._
 import scorex.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import scorex.transaction.assets.exchange.Order
 import scorex.utils.{LoggerFacade, ScorexLogging}
