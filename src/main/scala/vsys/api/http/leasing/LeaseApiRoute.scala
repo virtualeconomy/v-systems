@@ -7,7 +7,7 @@ import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import vsys.api.http._
 import vsys.api.http.leasing.LeaseCancelRequest.leaseCancelRequestFormat
-import vsys.api.http.leasing.LeaseRequest.leaseCancelRequestFormat
+import vsys.api.http.leasing.LeaseRequest.leaseRequestFormat
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction._
 import vsys.blockchain.UtxPool

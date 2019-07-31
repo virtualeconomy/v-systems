@@ -1,4 +1,4 @@
-package vsys.api.http.vsys
+package vsys.api.http.payment
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json._
