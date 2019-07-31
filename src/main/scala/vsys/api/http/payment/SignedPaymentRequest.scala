@@ -1,7 +1,8 @@
 package vsys.api.http.payment
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import play.api.libs.json.{Format, Json}
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 import vsys.account.{Address, PublicKeyAccount}
 import vsys.api.http.BroadcastRequest
 import vsys.blockchain.state.ByteStr

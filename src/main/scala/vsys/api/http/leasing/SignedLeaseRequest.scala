@@ -1,7 +1,8 @@
 package vsys.api.http.leasing
 
 import io.swagger.annotations.ApiModelProperty
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import vsys.account.{AddressOrAlias, PublicKeyAccount}
 import vsys.api.http.BroadcastRequest
 import vsys.blockchain.transaction.TransactionParser.SignatureStringLength
