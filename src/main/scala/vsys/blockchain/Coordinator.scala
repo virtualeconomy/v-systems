@@ -166,6 +166,10 @@ object Coordinator extends ScorexLogging {
       // commit this validation first
       //_ <- Either.cond(Math.abs(currentTs-mintTime) < MaxBlockTimeRange, (), s"Block too old or from future, current time ${currentTs}, mint time ${mintTime}")
 
+      mintBalance = block.consensusData.mintBalance
+      checkedMintBalance = mintingBalance(state, fs, generator.toAddress, state.height)
+      _ <- Either.cond(mintBalance == checkedMintBalance, (), s"Block minting average balance $mintBalance is not equal to exact $checkedMintBalance")
+
       // check mint time is larger than parent block mint time
       _ <- Either.cond(mintTime > prevBlockData.mintTime, (), s"Block mint time $mintTime is not larger than parent mint time ${prevBlockData.mintTime}")
 

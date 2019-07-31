@@ -36,5 +36,27 @@ case class SignedPaymentRequest( @ApiModelProperty(required = true)
 }
 
 object SignedPaymentRequest {
-  implicit val broadcastPaymentFormat: Format[SignedPaymentRequest] = Json.format
+  val broadcastPaymentReads: Reads[SignedPaymentRequest] = (
+      (__ \ "timestamp").read[Long] and
+      ((__ \ "amount").read[Long] | (__ \ "amount").read[String].map(_.toLong)) and
+      (__ \ "fee").read[Long] and
+      (__ \ "feeScale").read[Short] and
+      (__ \ "recipient").read[String] and
+      (__ \ "senderPublicKey").read[String] and
+      (__ \ "attachment").readNullable[String] and
+      (__ \ "signature").read[String]
+    )(SignedPaymentRequest.apply _)
+
+  val broadcastPaymentWrites: Writes[SignedPaymentRequest] = (
+      (__ \ "timestamp").write[Long] and
+      (__ \ "amount").write[Long] and
+      (__ \ "fee").write[Long] and
+      (__ \ "feeScale").write[Short] and
+      (__ \ "recipient").write[String] and
+      (__ \ "senderPublicKey").write[String] and
+      (__ \ "attachment").writeNullable[String] and
+      (__ \ "signature").write[String]
+    )(unlift(SignedPaymentRequest.unapply))
+
+  implicit val broadcastPaymentFormat: Format[SignedPaymentRequest] = Format(broadcastPaymentReads, broadcastPaymentWrites)
 }
