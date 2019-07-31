@@ -4,12 +4,12 @@ import java.nio.charset.StandardCharsets
 
 import com.wavesplatform.it._
 import com.wavesplatform.it.api.NodeApi
-import com.wavesplatform.network.{RawBytes, TransactionMessageSpec}
+import vsys.network.{RawBytes, TransactionMessageSpec}
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import scorex.account.{Address, PrivateKeyAccount}
+import vsys.account.{Address, PrivateKeyAccount}
 import scorex.crypto.encode.Base58
-import scorex.transaction.PaymentTransaction
+import vsys.blockchain.transaction.PaymentTransaction
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global

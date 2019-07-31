@@ -1,13 +1,12 @@
 package vsys.account
 
-import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.utils.base58Length
-import scorex.account.AddressScheme
 import scorex.crypto.encode.Base58
-import scorex.crypto.hash.SecureCryptographicHash._
-import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.{InvalidContractAddress, InvalidAddress}
-import scorex.utils.ScorexLogging
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.ValidationError.{InvalidContractAddress, InvalidAddress}
+import vsys.utils.base58Length
+import vsys.utils.crypto.hash.SecureCryptographicHash._
+import vsys.utils.ScorexLogging
 
 import scala.util.Success
 

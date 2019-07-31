@@ -2,7 +2,7 @@ package com.wavesplatform.it.network.client
 
 import java.net.{InetAddress, InetSocketAddress}
 
-import com.wavesplatform.network.PeerDatabase
+import vsys.network.PeerDatabase
 import io.netty.channel.Channel
 
 object NopPeerDatabase extends PeerDatabase {

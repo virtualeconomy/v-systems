@@ -4,7 +4,7 @@ import java.net.InetSocketAddress
 import java.util.concurrent.ConcurrentHashMap
 
 import com.wavesplatform.it.network.client.NetworkClient
-import com.wavesplatform.network.{PeerInfo, RawBytes}
+import vsys.network.{PeerInfo, RawBytes}
 import io.netty.channel.Channel
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.util.HashedWheelTimer

@@ -1,7 +1,7 @@
 package com.wavesplatform.matcher.model
 
 import play.api.libs.json.{Json, Writes}
-import scorex.transaction.assets.exchange.AssetPair
+import vsys.blockchain.transaction.assets.exchange.AssetPair
 
 case class OrderBookResult(timestamp: Long, pair: AssetPair, bids: Seq[LevelAgg], asks: Seq[LevelAgg]) {
 

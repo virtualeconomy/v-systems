@@ -5,12 +5,12 @@ import com.wavesplatform.matcher.market.MatcherActor.OrderBookCreated
 import com.wavesplatform.matcher.market.OrderBookActor.Snapshot
 import com.wavesplatform.matcher.model.MatcherModel.{Level, Price}
 import com.wavesplatform.matcher.model.MatcherSerializer._
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.scalacheck.Gen
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 import play.api.libs.json.Json
-import scorex.transaction.assets.exchange.AssetPair
+import vsys.blockchain.transaction.assets.exchange.AssetPair
 
 import scala.collection.immutable.TreeMap
 

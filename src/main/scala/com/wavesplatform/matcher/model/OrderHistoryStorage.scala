@@ -4,7 +4,7 @@ import java.util
 
 import com.wavesplatform.matcher.model.OrderHistoryStorage.AssetPairAddressKey
 import org.h2.mvstore.MVStore
-import scorex.transaction.assets.exchange.AssetPair
+import vsys.blockchain.transaction.assets.exchange.AssetPair
 
 class OrderHistoryStorage(db: MVStore) {
   val orders: util.Map[String, String] = db.openMap("orders")

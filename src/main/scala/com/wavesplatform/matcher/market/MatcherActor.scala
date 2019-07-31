@@ -3,19 +3,21 @@ package com.wavesplatform.matcher.market
 import akka.actor.{ActorRef, Props}
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import akka.persistence.{PersistentActor, RecoveryCompleted}
-import com.wavesplatform.UtxPool
 import com.wavesplatform.matcher.MatcherSettings
 import com.wavesplatform.matcher.api.{MatcherResponse, StatusCodeMatcherResponse}
 import com.wavesplatform.matcher.market.OrderBookActor.{DeleteOrderBookRequest, GetOrderBookResponse, OrderBookRequest}
-import com.wavesplatform.settings.FunctionalitySettings
-import com.wavesplatform.state2.reader.StateReader
 import io.netty.channel.group.ChannelGroup
 import play.api.libs.json._
 import scorex.crypto.encode.Base58
-import scorex.transaction.assets.exchange.Validation.booleanOperators
-import scorex.transaction.assets.exchange.{AssetPair, Order, Validation}
-import scorex.transaction.{AssetId, History}
-import scorex.utils._
+import scorex.utils.ByteArray
+import vsys.blockchain.UtxPool
+import vsys.blockchain.history.History
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.transaction.assets.exchange.Validation.booleanOperators
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, Validation}
+import vsys.blockchain.transaction.AssetId
+import vsys.settings.FunctionalitySettings
+import vsys.utils._
 import vsys.wallet.Wallet
 
 import scala.collection.{immutable, mutable}

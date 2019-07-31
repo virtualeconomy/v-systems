@@ -9,14 +9,15 @@ import com.wavesplatform.matcher.market.OrderHistoryActor._
 import com.wavesplatform.matcher.model.Events.{OrderAdded, OrderCanceled, OrderExecuted}
 import com.wavesplatform.matcher.model.LimitOrder.Filled
 import com.wavesplatform.matcher.model._
-import com.wavesplatform.{UtxPool, utils}
 import org.h2.mvstore.MVStore
 import play.api.libs.json._
-import scorex.account.Address
-import scorex.transaction.AssetAcc
-import scorex.transaction.ValidationError.GenericError
-import scorex.transaction.assets.exchange.{AssetPair, Order}
-import scorex.utils.NTP
+import vsys.account.Address
+import vsys.blockchain.UtxPool
+import vsys.blockchain.transaction.AssetAcc
+import vsys.blockchain.transaction.ValidationError.GenericError
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order}
+import vsys.utils
+import vsys.utils.NTP
 import vsys.wallet.Wallet
 
 import scala.concurrent.duration._

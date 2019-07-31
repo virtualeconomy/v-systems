@@ -12,7 +12,7 @@ scalaVersion in ThisBuild := "2.12.6"
 crossPaths := false
 publishArtifact in (Compile, packageDoc) := false
 publishArtifact in (Compile, packageSrc) := false
-mainClass in Compile := Some("com.wavesplatform.Application")
+mainClass in Compile := Some("vsys.Application")
 scalacOptions ++= Seq(
   "-feature",
   "-deprecation",
@@ -57,11 +57,11 @@ dependencyOverrides ++= Seq(
 )
 
 sourceGenerators in Compile += Def.task {
-  val versionFile = (sourceManaged in Compile).value / "com" / "wavesplatform" / "Version.scala"
+  val versionFile = (sourceManaged in Compile).value / "vsys" / "Version.scala"
   val versionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
   val versionExtractor(major, minor, bugfix) = version.value
   IO.write(versionFile,
-    s"""package com.wavesplatform
+    s"""package vsys
       |
       |object Version {
       |  val VersionString = "${version.value}"

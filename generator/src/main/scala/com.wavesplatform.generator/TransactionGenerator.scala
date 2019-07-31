@@ -1,13 +1,13 @@
 package com.wavesplatform.generator
 
 import org.slf4j.LoggerFactory
-import scorex.account.{Alias, PrivateKeyAccount}
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
-import scorex.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction, TransferTransaction}
-import scorex.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import scorex.transaction.{CreateAliasTransaction, PaymentTransaction, Transaction, ValidationError}
-import scorex.utils.LoggerFacade
+import vsys.account.{Alias, PrivateKeyAccount}
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, ExchangeTransaction, Order}
+import vsys.blockchain.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction, TransferTransaction}
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
+import vsys.blockchain.transaction.{CreateAliasTransaction, PaymentTransaction, Transaction, ValidationError}
+import vsys.utils.LoggerFacade
 
 import scala.concurrent.duration._
 import scala.util.Random

@@ -5,14 +5,14 @@ import java.net.InetSocketAddress
 
 import com.google.common.base.CaseFormat
 import com.typesafe.config.{Config, ConfigFactory}
-import com.wavesplatform.settings.loadConfig
+import vsys.settings.loadConfig
 import net.ceedubs.ficus.Ficus._
 import org.slf4j.LoggerFactory
-import scorex.account.PrivateKeyAccount
-import scorex.crypto.encode.Base58
-import scorex.transaction.TransactionParser
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.utils.LoggerFacade
+import vsys.account.PrivateKeyAccount
+import vsys.utils.crypto.encode.Base58
+import vsys.blockchain.transaction.TransactionParser
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.utils.LoggerFacade
 
 import scala.concurrent.duration.FiniteDuration
 
