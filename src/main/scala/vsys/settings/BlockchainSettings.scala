@@ -15,7 +15,7 @@ object FunctionalitySettings {
     mintingSpeed = 1,
     //TODO
     //set the value
-    allowContractTransactionAfterHeight = 6010000)
+    allowContractTransactionAfterHeight = 6100000)
 
   val TESTNET = FunctionalitySettings(
     numOfSlots = 60,
