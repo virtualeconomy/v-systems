@@ -2,13 +2,13 @@ package com.wavesplatform.matcher
 
 import com.typesafe.config.ConfigFactory
 import com.wavesplatform.matcher.model.{BuyLimitOrder, SellLimitOrder}
-import com.wavesplatform.settings.loadConfig
-import com.wavesplatform.state2.ByteStr
+import vsys.settings.loadConfig
+import vsys.blockchain.state.ByteStr
 import org.scalacheck.{Arbitrary, Gen}
-import scorex.account.PrivateKeyAccount
-import scorex.crypto.hash.SecureCryptographicHash
-import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import scorex.utils.NTP
+import vsys.account.PrivateKeyAccount
+import vsys.utils.crypto.hash.SecureCryptographicHash
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
+import vsys.utils.NTP
 
 trait MatcherTestData {
   private val signatureSize = 32
@@ -25,7 +25,7 @@ trait MatcherTestData {
 
   val assetPairGen = Gen.zip(assetIdGen, assetIdGen).
     suchThat(p => p._1 != p._2).
-    map(p => AssetPair(p._1.map(com.wavesplatform.state2.ByteStr(_)), p._2.map(com.wavesplatform.state2.ByteStr(_))))
+    map(p => AssetPair(p._1.map(vsys.blockchain.state.ByteStr(_)), p._2.map(vsys.blockchain.state.ByteStr(_))))
 
   val maxTimeGen: Gen[Long] = Gen.choose(10000L, Order.MaxLiveTime).map(_ + NTP.correctedTime())
   val createdTimeGen: Gen[Long] = Gen.choose(0L, 10000L).map(NTP.correctedTime() - _)

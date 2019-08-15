@@ -10,12 +10,12 @@ import com.wavesplatform.it.api.NodeApi
 import com.wavesplatform.it.util.NetworkSender
 import com.wavesplatform.network.RawBytes
 import org.slf4j.LoggerFactory
-import scorex.account.{AddressScheme, PrivateKeyAccount}
-import scorex.crypto.encode.Base58
-import scorex.transaction.TransactionParser
-import scorex.transaction.TransactionParser.{TransactionType => TT}
-import scorex.transaction.assets.exchange.AssetPair
-import scorex.utils.LoggerFacade
+import vsys.account.{AddressScheme, PrivateKeyAccount}
+import vsys.utils.crypto.encode.Base58
+import vsys.blockchain.transaction.TransactionParser
+import vsys.blockchain.transaction.TransactionParser.{TransactionType => TT}
+import vsys.blockchain.transaction.assets.exchange.AssetPair
+import vsys.utils.LoggerFacade
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global

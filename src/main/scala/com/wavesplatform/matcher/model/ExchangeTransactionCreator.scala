@@ -1,12 +1,12 @@
 package com.wavesplatform.matcher.model
 
-import com.wavesplatform.UtxPool
+import vsys.blockchain.UtxPool
 import com.wavesplatform.matcher.MatcherSettings
-import com.wavesplatform.settings.FunctionalitySettings
-import com.wavesplatform.state2.reader.StateReader
-import scorex.transaction.ValidationError
-import scorex.transaction.assets.exchange.{ExchangeTransaction, Order}
-import scorex.utils.{NTP, ScorexLogging}
+import vsys.settings.FunctionalitySettings
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.assets.exchange.{ExchangeTransaction, Order}
+import vsys.utils.{NTP, ScorexLogging}
 import vsys.wallet.Wallet
 
 trait ExchangeTransactionCreator extends ScorexLogging {

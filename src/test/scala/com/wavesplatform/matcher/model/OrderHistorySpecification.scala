@@ -3,13 +3,13 @@ package com.wavesplatform.matcher.model
 import ch.qos.logback.classic.Level
 import com.wavesplatform.matcher.MatcherTestData
 import com.wavesplatform.matcher.model.Events.{OrderAdded, OrderCanceled, OrderExecuted}
-import com.wavesplatform.state2.ByteStr
+import vsys.blockchain.state.ByteStr
 import org.h2.mvstore.MVStore
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.account.PrivateKeyAccount
-import scorex.transaction.AssetAcc
-import scorex.transaction.assets.exchange.AssetPair
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.transaction.AssetAcc
+import vsys.blockchain.transaction.assets.exchange.AssetPair
 
 class OrderHistorySpecification extends PropSpec
   with PropertyChecks

@@ -6,15 +6,15 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.stream.ActorMaterializer
-import com.wavesplatform.UtxPool
+import vsys.blockchain.UtxPool
 import com.wavesplatform.matcher.api.MatcherApiRoute
 import com.wavesplatform.matcher.market.{MatcherActor, MatcherTransactionWriter, OrderHistoryActor}
-import com.wavesplatform.settings.{BlockchainSettings, RestAPISettings}
-import com.wavesplatform.state2.reader.StateReader
+import vsys.settings.{BlockchainSettings, RestAPISettings}
+import vsys.blockchain.state.reader.StateReader
 import io.netty.channel.group.ChannelGroup
-import scorex.api.http.CompositeHttpService
-import scorex.transaction.History
-import scorex.utils.ScorexLogging
+import vsys.api.http.CompositeHttpService
+import vsys.blockchain.history.History
+import vsys.utils.ScorexLogging
 import vsys.wallet.Wallet
 
 import scala.concurrent.Await

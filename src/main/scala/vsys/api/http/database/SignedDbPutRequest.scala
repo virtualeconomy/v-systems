@@ -2,11 +2,11 @@ package vsys.api.http.database
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
-import scorex.account.PublicKeyAccount
-import scorex.api.http.BroadcastRequest
-import scorex.transaction.TransactionParser.SignatureStringLength
-import scorex.transaction.ValidationError
-import vsys.transaction.database.DbPutTransaction
+import vsys.account.PublicKeyAccount
+import vsys.api.http.BroadcastRequest
+import vsys.blockchain.transaction.TransactionParser.SignatureStringLength
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.database.DbPutTransaction
 
 case class SignedDbPutRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                      senderPublicKey: String,
@@ -18,7 +18,7 @@ case class SignedDbPutRequest(@ApiModelProperty(value = "Base58 encoded sender p
                                      data: String,
                                      @ApiModelProperty(required = true)
                                      fee: Long,
-                                     @ApiModelProperty(value = "Fee Scale (default 100)", required = true)
+                                     @ApiModelProperty(required = true)
                                      feeScale: Short,
                                      @ApiModelProperty(required = true)
                                      timestamp: Long,

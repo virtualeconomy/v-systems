@@ -4,7 +4,7 @@ import java.io.File
 
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
-import scorex.transaction.assets.exchange.AssetPair
+import vsys.blockchain.transaction.assets.exchange.AssetPair
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
@@ -33,7 +33,7 @@ case class MatcherSettings(enable: Boolean,
 
 object MatcherSettings {
   val configPath: String = "vsys.matcher"
-  import com.wavesplatform.settings.fileReader
+  import vsys.settings.fileReader
 
   def fromConfig(config: Config): MatcherSettings = {
     val enabled = config.as[Boolean](s"$configPath.enable")

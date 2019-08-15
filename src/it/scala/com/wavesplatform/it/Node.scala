@@ -2,11 +2,11 @@ package com.wavesplatform.it
 
 import com.typesafe.config.Config
 import com.wavesplatform.it.api._
-import com.wavesplatform.settings.VsysSettings
+import vsys.settings.VsysSettings
 import org.asynchttpclient._
 import org.slf4j.LoggerFactory
-import scorex.transaction.TransactionParser.TransactionType
-import scorex.utils.LoggerFacade
+import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.utils.LoggerFacade
 
 import scala.concurrent.duration.FiniteDuration
 

@@ -13,17 +13,17 @@ import com.wavesplatform.matcher.market.MatcherActor.{GetMarkets, GetMarketsResp
 import com.wavesplatform.matcher.market.MatcherTransactionWriter.GetTransactionsByOrder
 import com.wavesplatform.matcher.market.OrderBookActor._
 import com.wavesplatform.matcher.market.OrderHistoryActor._
-import com.wavesplatform.settings.RestAPISettings
-import com.wavesplatform.state2.reader.StateReader
+import vsys.settings.RestAPISettings
+import vsys.blockchain.state.reader.StateReader
 import io.swagger.annotations._
 import play.api.libs.json._
-import scorex.account.PublicKeyAccount
-import scorex.api.http._
-import scorex.crypto.EllipticCurveImpl
+import vsys.account.PublicKeyAccount
+import vsys.api.http._
+import vsys.utils.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
-import scorex.transaction.assets.exchange.OrderJson._
-import scorex.transaction.assets.exchange.{AssetPair, Order}
-import scorex.utils.NTP
+import vsys.blockchain.transaction.assets.exchange.OrderJson._
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order}
+import vsys.utils.NTP
 import vsys.wallet.Wallet
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -91,7 +91,7 @@ case class MatcherApiRoute(wallet: Wallet,storedState: StateReader,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "scorex.transaction.assets.exchange.Order"
+      dataType = "vsys.blockchain.transaction.assets.exchange.Order"
     )
   ))
   def place: Route = path("orderbook") {

@@ -1,20 +1,20 @@
 package com.wavesplatform.matcher.market
 
-import com.wavesplatform.UtxPool
 import com.wavesplatform.matcher.model._
 import com.wavesplatform.matcher.{MatcherSettings, MatcherTestData}
-import com.wavesplatform.settings.{Constants, WalletSettings}
-import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{AssetInfo, ByteStr, LeaseInfo, Portfolio}
+import vsys.settings.{Constants, WalletSettings}
 import org.h2.mvstore.MVStore
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import scorex.account.{PrivateKeyAccount, PublicKeyAccount}
-import scorex.transaction.ValidationError
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
-import scorex.transaction.assets.IssueTransaction
-import scorex.transaction.assets.exchange.{AssetPair, Order}
+import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.state.{AssetInfo, ByteStr, LeaseInfo, Portfolio}
+import vsys.blockchain.transaction.assets.IssueTransaction
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order}
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.UtxPool
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 import vsys.wallet.Wallet
 
 class OrderValidatorSpecification extends WordSpec

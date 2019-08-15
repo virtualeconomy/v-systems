@@ -1,13 +1,13 @@
 package tools
 
 import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
-import com.wavesplatform.state2.ByteStr
-import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
-import scorex.block.Block
-import vsys.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{GenesisTransaction, Transaction}
-import vsys.transaction.{TransactionStatus, ProcessedTransaction}
-import scorex.transaction.TransactionParser.SignatureLength
+import vsys.blockchain.state.ByteStr
+import vsys.account.{Address, AddressScheme, PrivateKeyAccount}
+import vsys.blockchain.block.Block
+import vsys.blockchain.block.SposConsensusBlockData
+import vsys.blockchain.transaction.{GenesisTransaction, Transaction}
+import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction}
+import vsys.blockchain.transaction.TransactionParser.SignatureLength
 import vsys.wallet.Wallet
 
 import scala.concurrent.duration._
@@ -58,7 +58,7 @@ object GenesisBlockGenerator extends App {
   }
 
   def generate(networkByte: Char, accountsTotal: Int, mintTime: Long, averageBlockDelay: FiniteDuration) = {
-    scorex.account.AddressScheme.current = new AddressScheme {
+    vsys.account.AddressScheme.current = new AddressScheme {
       override val chainId: Byte = networkByte.toByte
     }
 

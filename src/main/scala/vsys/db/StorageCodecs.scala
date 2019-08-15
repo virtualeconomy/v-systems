@@ -2,9 +2,9 @@ package vsys.db
 
 import com.google.common.base.Charsets
 import com.google.common.primitives.{Ints, Longs, Shorts}
-import com.wavesplatform.network.{BlockCheckpoint, Checkpoint}
-import com.wavesplatform.state2.ByteStr
-import scorex.transaction.AssetId
+import vsys.network.{BlockCheckpoint, Checkpoint}
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.transaction.AssetId
 
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds

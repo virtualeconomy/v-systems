@@ -3,15 +3,15 @@ package com.wavesplatform.it.network.client
 import java.net.InetSocketAddress
 import java.util.concurrent.ConcurrentHashMap
 
-import com.wavesplatform.Version
-import com.wavesplatform.network.{Handshake, HandshakeHandler, PeerInfo}
-import com.wavesplatform.settings._
+import vsys.Version
+import vsys.network.{Handshake, HandshakeHandler, PeerInfo}
+import vsys.settings._
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
-import scorex.utils.ScorexLogging
+import vsys.utils.ScorexLogging
 
 class NetworkClient(
     chainId: Char,

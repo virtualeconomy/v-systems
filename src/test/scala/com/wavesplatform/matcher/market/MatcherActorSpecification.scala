@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.model.StatusCodes
 import akka.persistence.inmemory.extension.{InMemoryJournalStorage, StorageExtension}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
-import com.wavesplatform.UtxPool
+import vsys.blockchain.UtxPool
 import com.wavesplatform.matcher.MatcherTestData
 import com.wavesplatform.matcher.api.StatusCodeMatcherResponse
 import com.wavesplatform.matcher.fixtures.RestartableActor
@@ -13,19 +13,20 @@ import com.wavesplatform.matcher.market.MatcherActor.{GetMarkets, GetMarketsResp
 import com.wavesplatform.matcher.market.OrderBookActor._
 import com.wavesplatform.matcher.market.OrderHistoryActor.{ValidateOrder, ValidateOrderResult}
 import com.wavesplatform.matcher.model.LevelAgg
-import com.wavesplatform.settings.{FunctionalitySettings, WalletSettings}
-import com.wavesplatform.state2.reader.StateReader
-import com.wavesplatform.state2.{AssetInfo, ByteStr, LeaseInfo, Portfolio}
+import vsys.settings.{FunctionalitySettings, WalletSettings}
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.state.{AssetInfo, ByteStr, LeaseInfo, Portfolio}
 import io.netty.channel.group.ChannelGroup
 import org.h2.mvstore.MVStore
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
-import scorex.account.PrivateKeyAccount
-import scorex.transaction.assets.IssueTransaction
-import scorex.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import scorex.transaction.{AssetId, History}
-import vsys.transaction.{ProcessedTransaction, TransactionStatus}
-import scorex.utils.{NTP, ScorexLogging}
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.history.History
+import vsys.blockchain.transaction.assets.IssueTransaction
+import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
+import vsys.blockchain.transaction.AssetId
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.utils.{NTP, ScorexLogging}
 import vsys.wallet.Wallet
 
 class MatcherActorSpecification extends TestKit(ActorSystem.apply("MatcherTest2"))

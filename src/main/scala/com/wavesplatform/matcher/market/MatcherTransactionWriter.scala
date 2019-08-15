@@ -8,10 +8,10 @@ import com.wavesplatform.matcher.MatcherSettings
 import com.wavesplatform.matcher.api.MatcherResponse
 import com.wavesplatform.matcher.market.MatcherTransactionWriter.{GetTransactionsByOrder, GetTransactionsResponse}
 import com.wavesplatform.matcher.model.Events._
-import com.wavesplatform.utils
+import vsys.utils
 import org.h2.mvstore.MVStore
 import play.api.libs.json.JsArray
-import scorex.transaction.assets.exchange.ExchangeTransaction
+import vsys.blockchain.transaction.assets.exchange.ExchangeTransaction
 
 class MatcherTransactionWriter(val settings: MatcherSettings)
   extends Actor {

@@ -3,7 +3,7 @@ package com.wavesplatform.it.api
 import java.net.InetSocketAddress
 
 import com.wavesplatform.it.util.NetworkSender
-import com.wavesplatform.network.RawBytes
+import vsys.network.RawBytes
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -1,10 +1,8 @@
 package vsys.settings
 
+import vsys.blockchain.state.ByteStr
+
 import scala.concurrent.duration._
-
-import com.wavesplatform.settings.Constants
-import com.wavesplatform.state2.ByteStr
-
 
 case class GenesisTransactionSettings(recipient: String, amount: Long, slotId: Int)
 
