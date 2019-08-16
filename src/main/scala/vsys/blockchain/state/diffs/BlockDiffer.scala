@@ -18,8 +18,8 @@ object BlockDiffer extends ScorexLogging {
 
   def right(diff: Diff): Either[ValidationError, Diff] = Right(diff)
 
-  def fromBlock(settings: FunctionalitySettings, s: StateReader,  pervBlockTimestamp : Option[Long])(block: Block): Either[ValidationError, BlockDiff] =
-    Signed.validateSignatures(block).flatMap { _ => apply(settings, s, pervBlockTimestamp)(block.feesDistribution, block.timestamp, block.transactionData, 1) }
+  def fromBlock(settings: FunctionalitySettings, s: StateReader,  prevBlockTimestamp : Option[Long])(block: Block): Either[ValidationError, BlockDiff] =
+    Signed.validateSignatures(block).flatMap { _ => apply(settings, s, prevBlockTimestamp)(block.feesDistribution, block.timestamp, block.transactionData, 1) }
 
   def unsafeDiffMany(settings: FunctionalitySettings, s: StateReader, prevBlockTimestamp: Option[Long])(blocks: Seq[Block]): BlockDiff =
     blocks.foldLeft((Monoid[BlockDiff].empty, prevBlockTimestamp)) { case ((diff, prev), block) =>
@@ -29,13 +29,13 @@ object BlockDiffer extends ScorexLogging {
 
   private def apply(settings: FunctionalitySettings,
                     s: StateReader,
-                    pervBlockTimestamp : Option[Long])(feesDistribution: Diff,
+                    prevBlockTimestamp : Option[Long])(feesDistribution: Diff,
                                                        timestamp: Long,
                                                        txs: Seq[ProcessedTransaction],
                                                        heightDiff: Int): Either[ValidationError, BlockDiff] = {
     val currentBlockHeight = s.height + 1
 
-    val txDiffer = TransactionDiffer(settings, pervBlockTimestamp, timestamp, currentBlockHeight) _
+    val txDiffer = TransactionDiffer(settings, prevBlockTimestamp, timestamp, currentBlockHeight) _
 
     // since we have some in block transactions with status not equal to success
     // we need a much stricter validation about fee charge in later version
