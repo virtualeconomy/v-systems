@@ -54,7 +54,7 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
       ContractAccount.fromString(addressStr1) shouldEqual ContractAccount.fromBytes(bytes)
       ContractAccount.fromString(addressStr1) shouldEqual ContractAccount.fromString(addressStr2)
       ContractAccount.fromString(addressStr1).right.get should not equal None
-      ContractAccount.fromString("1" * (ContractAccount.AddressLength + 1)).isRight shouldBe false
+      ContractAccount.fromString("1" * (ContractAccount.AddressStringLength + 1)).isRight shouldBe false
     }
   }
 }
