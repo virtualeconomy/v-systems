@@ -16,7 +16,7 @@ trait PublicKeyAccount {
 
   override def hashCode(): Int = publicKey.hashCode()
 
-  override lazy val toString: String = this.toAddress.address  // string here is address?
+  override lazy val toString: String = this.toAddress.address
 }
 
 object PublicKeyAccount {
@@ -32,6 +32,6 @@ object PublicKeyAccount {
   }
 
   def fromBase58String(s: String): Either[ValidationError, PublicKeyAccount] =
-    if (s.length > TransactionParser.KeyStringLength) Left(InvalidAddress)    // is s.length < TransactionParser.KeyStringLength ok ?
+    if (s.length > TransactionParser.KeyStringLength) Left(InvalidAddress)
     else Base58.decode(s).toOption.map(PublicKeyAccount(_)).toRight(InvalidAddress)
 }
