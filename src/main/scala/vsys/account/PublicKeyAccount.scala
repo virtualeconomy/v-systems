@@ -1,8 +1,8 @@
 package vsys.account
 
+import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.ValidationError.InvalidAddress
 import vsys.blockchain.transaction.{TransactionParser, ValidationError}
-import scorex.crypto.encode.Base58
 
 import scala.language.implicitConversions
 
@@ -16,7 +16,7 @@ trait PublicKeyAccount {
 
   override def hashCode(): Int = publicKey.hashCode()
 
-  override lazy val toString: String = this.toAddress.address
+  override lazy val toString: String = this.toAddress.address  // string here is address?
 }
 
 object PublicKeyAccount {
@@ -32,6 +32,6 @@ object PublicKeyAccount {
   }
 
   def fromBase58String(s: String): Either[ValidationError, PublicKeyAccount] =
-    if (s.length > TransactionParser.KeyStringLength) Left(InvalidAddress)
+    if (s.length > TransactionParser.KeyStringLength) Left(InvalidAddress)    // is s.length < TransactionParser.KeyStringLength ok ?
     else Base58.decode(s).toOption.map(PublicKeyAccount(_)).toRight(InvalidAddress)
 }
