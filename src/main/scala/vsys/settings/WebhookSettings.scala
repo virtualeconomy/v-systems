@@ -22,6 +22,7 @@ object WebhookSettings extends ScorexLogging{
 
 	def fromConfig(config: Config): Seq[WebhookSettings] = {
 		val isEnable = config.getConfBoolean(s"$configPath.enable", false)
+		
 		if(!config.hasPath(s"$configPath.webHooks") && !isEnable){
 			Seq(WebhookSettings("0.0.0.0", null))
 		}else{
