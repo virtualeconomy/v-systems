@@ -9,6 +9,7 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
 			"""vsys {
 			  |	# Webhook Event Settings
 			  |  Event {
+			  |	    enable = true
 			  |	    webHooks: [
 			  |	      {
 			  |	        url: "example.com",
@@ -146,11 +147,15 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
 			}
 		}
 
+	}
 
+
+	it should "read event type in string" in {
 		val stringTypeConfig =  loadConfig(ConfigFactory.parseString(
 			"""vsys {
 			  |	# Webhook Event Settings
 			  |  Event {
+			  |	    enable = true
 			  |	    webHooks: [
 			  |	      {
 			  |	        url: "example.com",
@@ -158,86 +163,24 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
 			  |	        encryptKey: "pubkey_for_encrypt",
 			  |	        events: [
 			  |	          {
-			  |	            type: Block Appended,
-			  |	            rules: {
-			  |	              withTxs: false,
-			  |	              afterHeight: 0,
-			  |	              afterTime: 0
-			  |	            }
+			  |	            type: Block Appended
 			  |	          },
               |
 			  |	          {
 			  |	            type: Tx Confirmed,
-			  |	            rules: {
-			  |	              relatedAccount: [
-			  |	                "addr1"
-			  |	              ],
-			  |	              afterHeight: 0,
-			  |	              afterTime: 0,
-              |
-			  |	              includeTypes: [
-			  |	                1,
-			  |	                2
-			  |	              ],
-			  |
-			  |	              excludeTypes: [
-			  |	                3,
-			  |	                4
-			  |	              ],
-              |
-			  |	              amount: {
-			  |	                gte: 0,
-			  |	                gt: 0,
-			  |	                lte: 600000000000000000,
-			  |	                lt: 600000000000000000,
-			  |	                withFee: true
-			  |	              }
-			  |	            }
 			  |	          },
               |
 			  |	          {
 			  |	            type: State Updated,
-			  |	            rules: {
-			  |	              afterHeight: 0,
-			  |	              afterTime: 0,
-              |
-			  |	              relatedAccount: [
-			  |	                "addr1"
-			  |	              ]
-			  |	            },
 			  |	          },
               |
 			  |	          {
 			  |	            type: Block Rollback,
-			  |	            rules: {
-			  |	              afterHeight: 0,
-			  |	              afterTime: 0,
-              |
-			  |	              relatedAccount: [
-			  |	                "addr1"
-			  |	              ],
-              |
-			  |	              withTxsOfTypes: [
-			  |	                1,
-			  |		            2
-			  |	              ],
-              |
-			  |	              withTxsOfAccs: [
-			  |	                "addr3"
-			  |	              ],
-              |
-			  |	              withStateOfAccs: [
-			  |	                "addr4"
-			  |	              ]
-			  |	            }
 			  |	          },
 			  |
 			  |			  {
 			  |				type: 8
-			  |	        	rules: {
-			  |					afterHeight: 0,
-			  |					afterTime: 0
-			  |				}
+			  |	        	
 			  |			  }
               |
 			  |	        ],
@@ -258,5 +201,23 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
 				case _ => fail("The type description matching in setEventSettings goes wrong")
 			}
 		}
+	}
+
+	"WebhookSettings" should "return default Webhook setting when no webHooks provided" in {
+		val defaultConfig = loadConfig(ConfigFactory.parseString(
+			"""vsys {
+			  |	Event {
+			  |	 enable = false
+			  |  
+			  |	}
+			  |}""".stripMargin))
+
+		val setInst = WebhookSettings.fromConfig(defaultConfig)(0)
+
+		setInst.url should be("0.0.0.0")
+		setInst.events should be(null)
+		setInst.secretKey should be("")
+		setInst.encryptKey should be("")
+		setInst.maxSize should be(1000)
 	}
 }
