@@ -37,10 +37,10 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
   }
 
   property("Contract Id and Token Id should be consistent") {
-    forAll { (data: Array[Byte]) =>
+    forAll { (data: Array[Byte], randomIdx: Int) =>
       val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.chainId +: hash(data).take(ContractAccount.HashLength)
       val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(ContractAccount.ChecksumLength)
-      val idxBytes = Ints.toByteArray(0)
+      val idxBytes = Ints.toByteArray(randomIdx)
       val tokenId = ContractAccount.tokenIdFromBytes(addressBytes, idxBytes).right.get
       ContractAccount.fromBytes(addressBytes).right.get.bytes shouldEqual ContractAccount.contractIdFromBytes(tokenId.arr)
     }
