@@ -8,7 +8,7 @@ import vsys.utils.crypto.hash.SecureCryptographicHash._
 
 class ContractAccountSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
-  property("Address should be invalid for another address version") {
+  property("Contract address should be invalid for another address version") {
     forAll { (data: Array[Byte], AddressVersion2: Byte) =>
       val publicKeyHash = hash(data).take(ContractAccount.HashLength)
       val withoutChecksum = AddressVersion2 +: AddressScheme.current.chainId +: publicKeyHash
@@ -17,7 +17,7 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
     }
   }
 
-  property("Address should be invalid for incorrect chainId") {
+  property("Contract address should be invalid for incorrect chainId") {
     forAll { (data: Array[Byte], network: Byte) =>
       val withoutChecksum = ContractAccount.AddressVersion +: network +: hash(data).take(ContractAccount.HashLength)
       val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(ContractAccount.ChecksumLength)
@@ -25,12 +25,14 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
     }
   }
 
-  property("Address should be invalid for incorrect addressByteLength") {
-    forAll { (data: Array[Byte], random: Byte) =>
-      val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.chainId +: random +: hash(data).take(Address.HashLength)
-      val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(Address.ChecksumLength)
-      ContractAccount.fromBytes(addressBytes).isRight shouldBe false
-      ContractAccount.tokenIdFromBytes(addressBytes, Ints.toByteArray(0)).isRight shouldBe false
+  property("Contract address should be invalid for incorrect addressByteLength") {
+    forAll { (data: Array[Byte], random: Int) =>
+      whenever(random > -5 && random < 5) {
+        val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.chainId +: hash(data).take(Address.HashLength + random)
+        val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(Address.ChecksumLength)
+        ContractAccount.fromBytes(addressBytes).isRight shouldBe (random == 0)
+        ContractAccount.tokenIdFromBytes(addressBytes, Ints.toByteArray(0)).isRight shouldBe (random == 0)
+      }
     }
   }
 

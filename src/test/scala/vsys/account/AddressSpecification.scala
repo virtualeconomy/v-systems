@@ -25,11 +25,12 @@ class AddressSpecification extends PropSpec with PropertyChecks with GeneratorDr
   }
 
   property("Address should be invalid for incorrect addressByteLength") {
-    forAll { (data: Array[Byte], random: Byte) =>
-      val withoutChecksum = Address.AddressVersion +: AddressScheme.current.chainId +: random +: hash(data).take(Address.HashLength)
-      val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(Address.ChecksumLength)
-      Address.fromBytes(addressBytes).isRight shouldBe false
+    forAll { (data: Array[Byte], random: Int) =>
+      whenever(random > -5 && random < 5) {
+        val withoutChecksum = Address.AddressVersion +: AddressScheme.current.chainId +: hash(data).take(Address.HashLength + random)
+        val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(Address.ChecksumLength)
+        Address.fromBytes(addressBytes).isRight shouldBe (random == 0)
+      }
     }
   }
-
 }
