@@ -26,7 +26,8 @@ case class VsysSettings(directory: String,
                          minerSettings: MinerSettings,
                          restAPISettings: RestAPISettings,
                          synchronizationSettings: SynchronizationSettings,
-                         utxSettings: UtxSettings)
+                         utxSettings: UtxSettings,
+                         webhookSettings: Seq[WebhookSettings])
 
 object VsysSettings {
   import NetworkSettings.networkSettingsValueReader
@@ -47,8 +48,9 @@ object VsysSettings {
     val restAPISettings = RestAPISettings.fromConfig(config)
     val synchronizationSettings = SynchronizationSettings.fromConfig(config)
     val utxSettings = config.as[UtxSettings]("vsys.utx")
+    val webhookSettings = WebhookSettings.fromConfig(config)
 
     VsysSettings(directory, dataDirectory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
-      feesSettings, matcherSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
+      feesSettings, matcherSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings, webhookSettings)
   }
 }
