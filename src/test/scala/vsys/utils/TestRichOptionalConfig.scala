@@ -6,74 +6,74 @@ import vsys.settings.loadConfig
 
 
 class TestRichOptionalConfig extends FlatSpec with Matchers {
-	"RichConfigVal" should "get value from config" in {
-		import vsys.utils.RichOptionalConfig.RichConfigVal
+  "RichConfigVal" should "get value from config" in {
+    import vsys.utils.RichOptionalConfig.RichConfigVal
 
-		val path = "vsys.Event"
-		val config = loadConfig(ConfigFactory.parseString(
-			"""vsys {
-			  |	Event {
-			  |  	testBoolean: false,
-			  |		testInt: 1,
-			  |		testLong: 2,
-			  |		testString: "yes"
-			  |	}
-			  |}""".stripMargin))
+    val path = "vsys.Event"
+    val config = loadConfig(ConfigFactory.parseString(
+      """vsys {
+        | Event {
+        |   testBoolean: false,
+        |   testInt: 1,
+        |   testLong: 2,
+        |   testString: "yes"
+        | }
+        |}""".stripMargin))
 
-		config.getConfBoolean(s"$path.testBoolean", true) should be(false)
-		config.getConfInt(s"$path.testInt", 0) should be(1)
-		config.getConfLong(s"$path.testLong", 600000000000000000L) should be(2)
-		config.getConfString(s"$path.testString", "no") should be("yes")
+    config.getConfBoolean(s"$path.testBoolean", true) should be(false)
+    config.getConfInt(s"$path.testInt", 0) should be(1)
+    config.getConfLong(s"$path.testLong", 600000000000000000L) should be(2)
+    config.getConfString(s"$path.testString", "no") should be("yes")
 
-	}
+  }
 
-	it should "get default value" in {
-		import vsys.utils.RichOptionalConfig.RichConfigVal
+  it should "get default value" in {
+    import vsys.utils.RichOptionalConfig.RichConfigVal
 
-		val path = "vsys.Event"
-		val config = loadConfig(ConfigFactory.parseString(
-			"""vsys {
-			  |	Event {}
-			  |}""".stripMargin))
+    val path = "vsys.Event"
+    val config = loadConfig(ConfigFactory.parseString(
+      """vsys {
+        | Event {}
+        |}""".stripMargin))
 
-		config.getConfBoolean(s"$path.testBoolean", true) should be(true)
-		config.getConfInt(s"$path.testInt", 0) should be(0)
-		config.getConfLong(s"$path.testLong", 600000000000000000L) should be(600000000000000000L)
-		config.getConfString(s"$path.testString", "no") should be("no")
-	}
+    config.getConfBoolean(s"$path.testBoolean", true) should be(true)
+    config.getConfInt(s"$path.testInt", 0) should be(0)
+    config.getConfLong(s"$path.testLong", 600000000000000000L) should be(600000000000000000L)
+    config.getConfString(s"$path.testString", "no") should be("no")
+  }
 
-	"RichConfigRef" should "get value from config" in {
-		import vsys.utils.RichOptionalConfig.RichConfigRef
+  "RichConfigRef" should "get value from config" in {
+    import vsys.utils.RichOptionalConfig.RichConfigRef
 
-		val path = "vsys.Event"
-		val config = loadConfig(ConfigFactory.parseString(
-			"""vsys{
-			  |	Event {
-			  |		testSeqInt: [
-			  |			1,
-			  |			2,
-			  |			3
-			  |		],
-              | 
-			  |		testSeqString: []
-              |
-			  |	}
-			  |}""".stripMargin))
+    val path = "vsys.Event"
+    val config = loadConfig(ConfigFactory.parseString(
+      """vsys{
+        | Event {
+        |   testSeqInt: [
+        |     1,
+        |     2,
+        |     3
+        |   ],
+        | 
+        |   testSeqString: []
+        |
+        | }
+        |}""".stripMargin))
 
-		config.getConfSeqInt(s"$path.testSeqInt", null) should be(Seq(1, 2, 3))
-		config.getConfSeqString(s"$path.testSeqString", Seq("b")) should be(Seq())
-	}
+    config.getConfSeqInt(s"$path.testSeqInt", null) should be(Seq(1, 2, 3))
+    config.getConfSeqString(s"$path.testSeqString", Seq("b")) should be(Seq())
+  }
 
-	it should "get default value" in {
-		import vsys.utils.RichOptionalConfig.RichConfigRef
+  it should "get default value" in {
+    import vsys.utils.RichOptionalConfig.RichConfigRef
 
-		val path = "vsys.Event"
-		val config = loadConfig(ConfigFactory.parseString(
-			"""vsys {
-			  |	Event {}
-			  |}""".stripMargin))
+    val path = "vsys.Event"
+    val config = loadConfig(ConfigFactory.parseString(
+      """vsys {
+        | Event {}
+        |}""".stripMargin))
 
-		config.getConfSeqInt(s"$path.testSeqInt", null) should be(null)
-		config.getConfSeqString(s"path.testSeqString", null) should be(null)
-	}
+    config.getConfSeqInt(s"$path.testSeqInt", null) should be(null)
+    config.getConfSeqString(s"path.testSeqString", null) should be(null)
+  }
 }

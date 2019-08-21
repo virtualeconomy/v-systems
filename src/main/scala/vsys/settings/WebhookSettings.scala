@@ -76,6 +76,7 @@ object WebhookSettings extends ScorexLogging{
         val wStateOfAccs = config.getConfSeqString(s"$path.withStateOfAccs", null)
 
         Right(BlockRollbackEventSettings(acc, afterH, afterT, wTxsOfTypes, wTxsOfAccs, wStateOfAccs))
+        
       case _ => 
         Left(ValidationError.InvalidEventTypeError)
       
