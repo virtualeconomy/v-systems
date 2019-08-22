@@ -15,11 +15,11 @@ case class BlockAppendedEventSettings(
 }
 
 case class TxConfirmedEventSettings(
-  relatedAcc: Seq[String],
+  relatedAcc: Option[Seq[String]],
   afterHeight: Long,
   afterTime: Long,
-  includeTypes: Seq[Int],
-  excludeTypes: Seq[Int],
+  includeTypes: Option[Seq[Int]],
+  excludeTypes: Option[Seq[Int]],
   amtGTE: Long,       //amount greater or equal to 
   amtGT: Long,        //grater 
   amtLTE: Long,       //less than or equal to
@@ -32,7 +32,7 @@ case class TxConfirmedEventSettings(
 
 
 case class StateUpdatedEventSettings(
-  relatedAcc: Seq[String],
+  relatedAcc: Option[Seq[String]],
   afterHeight: Long,
   afterTime: Long
 ) extends WebhookEventSettings {
@@ -42,12 +42,12 @@ case class StateUpdatedEventSettings(
 
 
 case class BlockRollbackEventSettings(
-  relatedAcc: Seq[String],
+  relatedAcc: Option[Seq[String]],
   afterHeight: Long,
   afterTime: Long,
-  withTxsOfTypes: Seq[Int],
-  withTxsOfAccs: Seq[String],
-  withStateOfAccs: Seq[String]
+  withTxsOfTypes: Option[Seq[Int]],
+  withTxsOfAccs: Option[Seq[String]],
+  withStateOfAccs: Option[Seq[String]]
 ) extends WebhookEventSettings {
   override val typeId = 4
   override val typeDescription = "Block Rollback"
@@ -63,11 +63,11 @@ object BlockAppendedEventSettings {
 
 object TxConfirmedEventSettings {
 
-  def apply(relatedAcc: Seq[String],
+  def apply(relatedAcc: Option[Seq[String]],
             afterHeight: Long, 
             afterTime: Long,
-            includeTypes: Seq[Int], 
-            excludeTypes: Seq[Int], 
+            includeTypes: Option[Seq[Int]], 
+            excludeTypes: Option[Seq[Int]], 
             amtGTE: Long, 
             amtGT: Long, 
             amtLTE: Long, 
@@ -80,19 +80,19 @@ object TxConfirmedEventSettings {
 
 object StateUpdatedEventSettings {
 
-  def apply(relatedAcc: Seq[String], afterHeight: Long, afterTime: Long): StateUpdatedEventSettings = {
+  def apply(relatedAcc: Option[Seq[String]], afterHeight: Long, afterTime: Long): StateUpdatedEventSettings = {
     new StateUpdatedEventSettings(relatedAcc, afterHeight, afterTime)
   }
 }
 
 object BlockRollbackEventSettings {
 
-  def apply(relatedAcc: Seq[String], 
+  def apply(relatedAcc: Option[Seq[String]], 
             afterHeight: Long, 
             afterTime: Long,
-            withTxsOfTypes: Seq[Int], 
-            withTxsOfAccs: Seq[String], 
-            withStateOfAccs: Seq[String]): BlockRollbackEventSettings = {
+            withTxsOfTypes: Option[Seq[Int]], 
+            withTxsOfAccs: Option[Seq[String]], 
+            withStateOfAccs: Option[Seq[String]]): BlockRollbackEventSettings = {
     new BlockRollbackEventSettings(relatedAcc, afterHeight, afterTime, withTxsOfTypes, withTxsOfAccs, withStateOfAccs)
   }
 }
