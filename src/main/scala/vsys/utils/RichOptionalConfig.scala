@@ -35,16 +35,16 @@ object RichOptionalConfig {
 
 	implicit class RichConfigRef(val config: Config) extends AnyRef {
 
-		def getConfSeqInt(path: String, defaultVal: Seq[Int]): Seq[Int] = if (config.hasPath(path)){
-			config.as[Seq[Int]](path)
+		def getConfSeqInt(path: String, defaultVal: Seq[Int]): Option[Seq[Int]] = if (config.hasPath(path)){
+			Some(config.as[Seq[Int]](path))
 		}else{
-			defaultVal
+			Option(defaultVal)
 		}
 
-		def getConfSeqString(path: String, defaultVal: Seq[String]): Seq[String] = if (config.hasPath(path)){
-			config.as[Seq[String]](path)
+		def getConfSeqString(path: String, defaultVal: Seq[String]): Option[Seq[String]] = if (config.hasPath(path)){
+			Some(config.as[Seq[String]](path))
 		}else{
-			defaultVal
+			Option(defaultVal)
 		}
 	}
 }
