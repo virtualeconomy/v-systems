@@ -117,9 +117,9 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
       e.typeDescription should be("Tx Confirmed")
       e.afterHeight should be(0)
       e.afterTime should be(0)
-      e.relatedAcc should be(Seq("addr1"))
-      e.includeTypes should be(Seq(1, 2))
-      e.excludeTypes should be(Seq(3, 4))
+      e.relatedAcc.get should be(Seq("addr1"))
+      e.includeTypes.get should be(Seq(1, 2))
+      e.excludeTypes.get should be(Seq(3, 4))
       e.amtGTE should be(0)
       e.amtGT should be(0)
       e.amtLTE should be(600000000000000000L)
@@ -127,19 +127,19 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
     case e: StateUpdatedEventSettings =>
       e.typeId should be(3)
       e.typeDescription should be("State Updated")
-      e.relatedAcc should be(Seq("addr1"))
+      e.relatedAcc.get should be(Seq("addr1"))
       e.afterHeight should be(0)
       e.afterTime should be(0)
 
     case e: BlockRollbackEventSettings => 
       e.typeId should be(4)
       e.typeDescription should be("Block Rollback")
-      e.relatedAcc should be(Seq.empty)
+      e.relatedAcc.get should be(Seq.empty)
       e.afterHeight should be(0)
       e.afterTime should be(0)
-      e.withTxsOfTypes should be(Seq(1, 2))
-      e.withTxsOfAccs should be(Seq("addr3"))
-      e.withStateOfAccs should be(Seq("addr4"))
+      e.withTxsOfTypes.get should be(Seq(1, 2))
+      e.withTxsOfAccs.get should be(Seq("addr3"))
+      e.withStateOfAccs.get should be(Seq("addr4"))
 
 
     case _ => fail("The filter func in fromConfig is not working correctly")
