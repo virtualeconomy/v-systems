@@ -60,8 +60,8 @@ class TestRichOptionalConfig extends FlatSpec with Matchers {
         | }
         |}""".stripMargin))
 
-    config.getConfSeqInt(s"$path.testSeqInt", null) should be(Seq(1, 2, 3))
-    config.getConfSeqString(s"$path.testSeqString", Seq("b")) should be(Seq())
+    config.getConfSeqInt(s"$path.testSeqInt", null) should be(Option(Seq(1, 2, 3)))
+    config.getConfSeqString(s"$path.testSeqString", Seq("b")) should be(Option(Seq()))
   }
 
   it should "get default value" in {
@@ -73,7 +73,7 @@ class TestRichOptionalConfig extends FlatSpec with Matchers {
         | Event {}
         |}""".stripMargin))
 
-    config.getConfSeqInt(s"$path.testSeqInt", null) should be(null)
-    config.getConfSeqString(s"path.testSeqString", null) should be(null)
+    config.getConfSeqInt(s"$path.testSeqInt", null) should be(None)
+    config.getConfSeqString(s"path.testSeqString", null) should be(None)
   }
 }
