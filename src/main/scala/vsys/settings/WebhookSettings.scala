@@ -5,9 +5,6 @@ import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import vsys.blockchain.transaction.ValidationError
-import vsys.utils.ScorexLogging
-
-//import scala.collection.JavaConversions._
 
 case class WebhookSettings(url: String,
             events: Seq[WebhookEventSettings],
@@ -15,26 +12,27 @@ case class WebhookSettings(url: String,
             encryptKey: String = "",
             maxSize: Int = 1000)
 
-object WebhookSettings extends ScorexLogging{
+object WebhookSettings{
   import vsys.utils.RichOptionalConfig._
   val configPath = "vsys.Event"
 
   def fromConfig(config: Config): Seq[WebhookSettings] = {
-    val isEnable = config.getConfBoolean(s"$configPath.enable", false)
     
-    if(!config.hasPath(s"$configPath.webHooks") && !isEnable){
+    if(!config.hasPath(s"$configPath.webHooks")){
+      //send all event notifications
       Seq(WebhookSettings("0.0.0.0", null))
+
     }else{
       val hooks  = config.as[Seq[Config]](s"$configPath.webHooks") map {aHook => 
         val url = aHook.as[String]("url")
         val secret = aHook.getConfString("secret", "")
         val encryptKey = aHook.getConfString("encryptKey", "")
         val maxSize = aHook.getConfInt("maxSize", 1000)
-        
-        val eventList = aHook.as[Seq[Config]]("events").map(eventConfig =>
-          setEventSettings(eventConfig)
-        ).filter(_.isRight).map(_.right.get)
 
+        val eventList = aHook.as[Seq[Config]]("events").map(eventConfig => 
+            setWebhookEventSettings(eventConfig)
+          ).filter(_.isRight).map(_.right.get)
+        
         (url, eventList, secret, encryptKey, maxSize)
 
       }
@@ -42,7 +40,7 @@ object WebhookSettings extends ScorexLogging{
     }
   }
 
-  private def setEventSettings(config: Config): Either[ValidationError, WebhookEventSettings] = {
+  private def setWebhookEventSettings(config: Config): Either[ValidationError, WebhookEventSettings] = {
     val path = "rules"
     val afterH = config.getConfInt(s"$path.afterHeight", 0)
     val afterT = config.getConfInt(s"$path.afterTime", 0)
