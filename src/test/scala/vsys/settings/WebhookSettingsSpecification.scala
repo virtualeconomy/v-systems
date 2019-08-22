@@ -20,6 +20,7 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
     |             type: 1, # Block Appended
     |             rules: {
     |               withTxs: false,
+    |               withMintingTxs: true
     |               afterHeight: 0,
     |               afterTime: 0
     |             }
@@ -109,6 +110,7 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
       e.typeId should be(1) 
       e.typeDescription should be("Block Appended")
       e.withTxs should be(false)
+      e.withMintingTxs should be(true)
       e.afterHeight should be(0)
       e.afterTime should be(0)
       

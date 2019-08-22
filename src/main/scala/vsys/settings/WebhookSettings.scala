@@ -49,7 +49,8 @@ object WebhookSettings{
 
       case "1" | "Block Appended" => 
         val withTxs = config.getConfBoolean(s"$path.withTxs", false)
-        Right(BlockAppendedEventSettings(withTxs, afterH, afterT))
+        val withMintingTxs = config.getConfBoolean(s"$path.withMintingTxs", false)
+        Right(BlockAppendedEventSettings(withTxs, withMintingTxs, afterH, afterT))
 
       case "2" | "Tx Confirmed" =>
         val acc = config.getConfSeqString(s"$path.relatedAccount", null)

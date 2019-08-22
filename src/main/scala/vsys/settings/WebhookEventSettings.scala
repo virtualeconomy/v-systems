@@ -6,7 +6,8 @@ trait WebhookEventSettings{
 }
 
 case class BlockAppendedEventSettings(
-  withTxs: Boolean, 
+  withTxs: Boolean,
+  withMintingTxs: Boolean, 
   afterHeight: Long, 
   afterTime: Long
 ) extends WebhookEventSettings {
@@ -56,8 +57,8 @@ case class BlockRollbackEventSettings(
 
 object BlockAppendedEventSettings {
 
-  def apply(withTxs: Boolean, afterHeight: Long, afterTime: Long): BlockAppendedEventSettings = {
-    new BlockAppendedEventSettings(withTxs, afterHeight, afterTime)
+  def apply(withTxs: Boolean, withMintingTxs: Boolean, afterHeight: Long, afterTime: Long): BlockAppendedEventSettings = {
+    new BlockAppendedEventSettings(withTxs, withMintingTxs, afterHeight, afterTime)
   }
 }
 
