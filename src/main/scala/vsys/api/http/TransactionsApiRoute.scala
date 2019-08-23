@@ -168,7 +168,7 @@ case class TransactionsApiRoute(
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
   ))
-  def activeLeaseList: Route = (pathPrefix("activeLeaseList") & get) {
+  def activeLeaseList: Route = (pathPrefix("activeLeaseList") & get & withAuth) {
     pathPrefix(Segment) { address =>
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
