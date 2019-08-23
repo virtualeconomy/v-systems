@@ -72,7 +72,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
   }
 
   property("WrongFeeScale should cause err which id is 114") {
-    forAll(feeScaleGen) { (feeScale: Short) => 
+    forAll(feeScaleGen) { feeScale => 
       val err = ValidationError.WrongFeeScale(feeScale) 
       val result = ApiError.fromValidationError(err)
       result.id should be(114)
@@ -91,7 +91,6 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     }
   }
 
-  //InvalidMintingReward(errMintingReward)
   property("InvalidMintingReward") {
     forAll(mintingAmountGen){ errMintingReward => 
       val err = ValidationError.WrongMintingReward(errMintingReward)
@@ -102,7 +101,6 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     }
   }
   
-  //TooLongDbEntry(actualLength, maxLength)
   property("TooLongDbEntry should throw error if actual length is greater than maxLength") {
     val maxLength = Entry.maxLength
     val actualLength = maxLength + 2
