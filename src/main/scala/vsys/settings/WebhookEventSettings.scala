@@ -1,99 +1,67 @@
 package vsys.settings
 
-trait WebhookEventSettings{
+import com.typesafe.config.Config
+import vsys.blockchain.transaction.ValidationError
+
+trait WebhookEventSettings {
   val typeId: Int 
   val typeDescription: String
+  val eventRules: Seq[WebhookEventRules]
 }
 
-case class BlockAppendedEventSettings(
-  withTxs: Boolean,
-  withMintingTxs: Boolean, 
-  afterHeight: Long, 
-  afterTime: Long
-) extends WebhookEventSettings {
+case class BlockAppendedEventSettings(override val eventRules: Seq[WebhookEventRules]) extends WebhookEventSettings {
   override val typeId = 1
   override val typeDescription = "Block Appended"
 }
 
-case class TxConfirmedEventSettings(
-  relatedAcc: Option[Seq[String]],
-  afterHeight: Long,
-  afterTime: Long,
-  includeTypes: Option[Seq[Int]],
-  excludeTypes: Option[Seq[Int]],
-  amtGTE: Long,       //amount greater or equal to 
-  amtGT: Long,        //grater 
-  amtLTE: Long,       //less than or equal to
-  amtLT: Long,
-  withFee: Boolean
-) extends WebhookEventSettings {
+case class TxConfirmedEventSettings(override val eventRules: Seq[WebhookEventRules]) extends WebhookEventSettings {
   override val typeId = 2
   override val typeDescription = "Tx Confirmed"
 }
 
-
-case class StateUpdatedEventSettings(
-  relatedAcc: Option[Seq[String]],
-  afterHeight: Long,
-  afterTime: Long
-) extends WebhookEventSettings {
+case class StateUpdatedEventSettings(override val eventRules: Seq[WebhookEventRules]) extends WebhookEventSettings {
   override val typeId = 3
   override val typeDescription = "State Updated"
 }
 
-
-case class BlockRollbackEventSettings(
-  relatedAcc: Option[Seq[String]],
-  afterHeight: Long,
-  afterTime: Long,
-  withTxsOfTypes: Option[Seq[Int]],
-  withTxsOfAccs: Option[Seq[String]],
-  withStateOfAccs: Option[Seq[String]]
-) extends WebhookEventSettings {
+case class BlockRollbackEventSettings(override val eventRules: Seq[WebhookEventRules]) extends WebhookEventSettings {
   override val typeId = 4
   override val typeDescription = "Block Rollback"
 }
 
 
-object BlockAppendedEventSettings {
+object WebhookEventSettings {
+  def apply(config: Config, typeId: String): Either[ValidationError, WebhookEventSettings] = typeId match {
+    case "1" | "Block Appended" =>
+      val ruleFields = Seq("afterHeight", "afterTime", "withTxs", "withMintingTxs")
+      val ruleList = formWebhookEventRules(config, ruleFields)
 
-  def apply(withTxs: Boolean, withMintingTxs: Boolean, afterHeight: Long, afterTime: Long): BlockAppendedEventSettings = {
-    new BlockAppendedEventSettings(withTxs, withMintingTxs, afterHeight, afterTime)
+      Right(BlockAppendedEventSettings(ruleList))
+
+    case "2" | "Tx Confirmed" =>
+      val ruleFields = Seq("relatedAccount", "afterHeight", "afterTime", "includeTypes", 
+        "excludeTypes", "amount.gte", "amount.gt", "amount.lte", "amount.lt, amount.withFee")
+      val ruleList = formWebhookEventRules(config, ruleFields)
+
+      Right(TxConfirmedEventSettings(ruleList))
+
+    case "3" | "State Updated" =>
+      val ruleFields = Seq("afterTime", "afterHeight", "relatedAccount")
+      val ruleList = formWebhookEventRules(config, ruleFields)
+
+      Right(StateUpdatedEventSettings(ruleList))
+
+    case "4" | "Block Rollback" =>
+      val ruleFields = Seq("afterTime", "afterHeight", "withTxsOfTypes", "withTxsOfAccs", "withStateOfAccs")
+      val ruleList = formWebhookEventRules(config, ruleFields)
+
+      Right(BlockRollbackEventSettings(ruleList))
+
+    case _ => Left(ValidationError.InvalidEventTypeError)
   }
-}
 
-object TxConfirmedEventSettings {
-
-  def apply(relatedAcc: Option[Seq[String]],
-            afterHeight: Long, 
-            afterTime: Long,
-            includeTypes: Option[Seq[Int]], 
-            excludeTypes: Option[Seq[Int]], 
-            amtGTE: Long, 
-            amtGT: Long, 
-            amtLTE: Long, 
-            amtLT: Long, 
-            withFee: Boolean): TxConfirmedEventSettings = {
-
-    new TxConfirmedEventSettings(relatedAcc, afterHeight, afterTime, includeTypes, excludeTypes, amtGTE, amtGT, amtLTE, amtLT, withFee)
-  }
-}
-
-object StateUpdatedEventSettings {
-
-  def apply(relatedAcc: Option[Seq[String]], afterHeight: Long, afterTime: Long): StateUpdatedEventSettings = {
-    new StateUpdatedEventSettings(relatedAcc, afterHeight, afterTime)
-  }
-}
-
-object BlockRollbackEventSettings {
-
-  def apply(relatedAcc: Option[Seq[String]], 
-            afterHeight: Long, 
-            afterTime: Long,
-            withTxsOfTypes: Option[Seq[Int]], 
-            withTxsOfAccs: Option[Seq[String]], 
-            withStateOfAccs: Option[Seq[String]]): BlockRollbackEventSettings = {
-    new BlockRollbackEventSettings(relatedAcc, afterHeight, afterTime, withTxsOfTypes, withTxsOfAccs, withStateOfAccs)
+  private def formWebhookEventRules(config: Config, ruleFields: Seq[String]): Seq[WebhookEventRules] = {
+    val generator = WebhookEventRules(config)(_)
+    ruleFields.map(aStr => generator(s"rules.$aStr")).filter(_.isRight).map(_.right.get)
   }
 }
