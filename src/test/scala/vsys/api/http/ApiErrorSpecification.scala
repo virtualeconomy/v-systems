@@ -5,7 +5,6 @@ import vsys.blockchain.transaction.{ValidationError, TransactionGen}
 import vsys.blockchain.transaction.assets.exchange.Order
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.database.Entry
-import vsys.blockchain.consensus.SPoSCalc._
 
 import akka.http.scaladsl.model.StatusCodes
 
@@ -13,22 +12,22 @@ import vsys.account.{Alias, Address}
 
 class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
   property("ApiError should be thrown if alias not exist") {
-    val alias = Alias.fromString("alias:T:sawesha").right.get
-    val err = ValidationError.AliasNotExists(alias)
-    val result = ApiError.fromValidationError(err)
-    result.id should be(302)
-    result.code should be(StatusCodes.NotFound)
+      val alias = Alias.fromString("alias:T:sawesha").right.get
+      val err = ValidationError.AliasNotExists(alias)
+      val result = ApiError.fromValidationError(err)
+      result.id should be(302)
+      result.code should be(StatusCodes.NotFound)
   }
   property("UnsupportedTransactionType should result in CustomValidationError with msg 'UnsupportedTransactionType'") {
-    val err = ValidationError.UnsupportedTransactionType
-    val result = ApiError.fromValidationError(err)
-    result.id should be(199)
-    result.code should be(StatusCodes.BadRequest)
-    result.message should be("UnsupportedTransactionType")
+      val err = ValidationError.UnsupportedTransactionType
+      val result = ApiError.fromValidationError(err)
+      result.id should be(199)
+      result.code should be(StatusCodes.BadRequest)
+      result.message should be("UnsupportedTransactionType")
   }
 
   property("AccountBalanceError should get err which value is err message list"){
-    forAll(accountGen, accountGen) { (account1, account2) => 
+      forAll(accountGen, accountGen) { (account1, account2) => 
       var errs: Map[Address, String] = Map()
       val addr1 = account1.toAddress
       val addr2 = account2.toAddress
