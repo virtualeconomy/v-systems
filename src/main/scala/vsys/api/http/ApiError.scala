@@ -2,7 +2,6 @@ package vsys.api.http
 
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import play.api.libs.json._
-import vsys.account.Address
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.transaction.{Transaction, ValidationError}
 

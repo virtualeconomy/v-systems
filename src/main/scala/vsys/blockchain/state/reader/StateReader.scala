@@ -14,7 +14,6 @@ import vsys.blockchain.contract.{Contract, DataEntry}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import scala.util.Right
 
 trait StateReader extends Synchronized {
 

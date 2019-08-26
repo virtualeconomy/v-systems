@@ -1,6 +1,6 @@
 package vsys.blockchain.transaction
 
-import org.scalacheck.Gen.{alphaLowerChar, alphaUpperChar, frequency, numChar}
+import org.scalacheck.Gen.{alphaLowerChar, frequency, numChar}
 import org.scalacheck.{Arbitrary, Gen}
 import vsys.account.PublicKeyAccount._
 import vsys.account._
