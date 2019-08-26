@@ -16,7 +16,7 @@ object TransferTransactionDiff {
     val sender = Address.fromPublicKey(tx.sender.publicKey)
 
     val isInvalidEi = for {
-      recipient <- state.resolveAliasEi(tx.recipient)
+      recipient = tx.recipient
       portfolios = (
         tx.assetId match {
           case None => Map(sender -> Portfolio(-tx.amount, LeaseInfo.empty, Map.empty)).combine(

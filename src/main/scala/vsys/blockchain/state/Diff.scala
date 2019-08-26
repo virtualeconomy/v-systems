@@ -131,7 +131,7 @@ object Diff {
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
     TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty,
     Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
