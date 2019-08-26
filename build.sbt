@@ -31,6 +31,8 @@ assemblyMergeStrategy in assembly := {
 }
 test in assembly := {}
 
+coverageExcludedPackages := "com.wavesplatform.*;"
+
 libraryDependencies ++=
   Dependencies.network ++
   Dependencies.db ++

@@ -46,3 +46,5 @@ test/*/data/*
 !src/test
 !src/test/**
 src/test/**/.DS_Store
+
+*.sublime-*
