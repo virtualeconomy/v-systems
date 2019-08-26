@@ -10,6 +10,8 @@ import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 
 import vsys.account.{Alias, Address}
 
+import play.api.libs.json.JsError
+
 class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
   property("ApiError should be thrown if alias not exist") {
     val alias = Alias.fromString("alias:T:sawesha").right.get
@@ -140,35 +142,35 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
  
   property("InvalidSeed should be error which has specific id, code and message") {
     val result = InvalidSeed
-    result.id should be(103)
+    result.id should be(InvalidSeed.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid seed")
   }
   
   property("InvalidAmount should be error which has specific id, code and message") {
     val result = InvalidAmount
-    result.id should be(104)
+    result.id should be(InvalidAmount.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid amount")
   }
 
   property("InvalidSender should be error which has specific id, code and message") {
     val result = InvalidSender
-    result.id should be(106)
+    result.id should be(InvalidSender.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid sender")
   }
 
   property("InvalidRecipient should be error which has specific id, code and message") {
     val result = InvalidRecipient
-    result.id should be(107)
+    result.id should be(InvalidRecipient.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid recipient")
   }
 
   property("InvalidPublicKey should be error which has specific id, code and message") {
     val result = InvalidPublicKey
-    result.id should be(108)
+    result.id should be(InvalidPublicKey.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid public key")
   }
@@ -196,33 +198,49 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
       TokenNotExists,
       InvalidFee,
       invalidDbNameSpace("NameSpace"),
-      dbEntryNotExist("Entity", "NameSpace")
+      dbEntryNotExist("Entity", "NameSpace"),
+      WalletSeedExportFailed,
+      WalletNotExist,
+      WalletLocked,
+      WalletAlreadyExists,
+      WalletAddressNotExists,
+      TransactionNotExists,
+      NoBalance,
+      NegativeFee
     )
 
     errors.map((err) => {
       err.id.getClass shouldEqual classOf[Int]
-      err.message.getClass shouldEqual classOf[String]
+      err.message shouldBe a [String]
       err.code shouldBe a [StatusCode]
     })
   }
 
-  property("StateCheckFailed should be error id, code and message with specific type") {
+  property("StateCheckFailed shouldBe error id, code and message with specific type") {
     forAll (randomTransactionGen) { (transaction) => 
       val err = ValidationError.InvalidProofType 
       val invalidTransacErr = TransactionValidationError(err, transaction)
       val result = ApiError.fromValidationError(invalidTransacErr)
       result.id shouldBe StateCheckFailed(transaction, ApiError.fromValidationError(err).message).id
-      result.message.getClass shouldEqual classOf[String]
+      result.message shouldBe a [String]
       result.code shouldBe StatusCodes.BadRequest
     }
   }
 
-   property("ContractAlreadyDisabled should be error id, code and message with specific type") {
+   property("ContractAlreadyDisabled shouldBe error id, code and message with specific type") {
     forAll (contractGen) { (contract) => 
       val err = ContractAlreadyDisabled(contract.toString)
       err.id.getClass shouldEqual classOf[Int]
-      err.message.getClass shouldEqual classOf[String]
+      err.message shouldBe a [String]
       err.code shouldBe a [StatusCode]
     }
   }
+
+  property("WrongTransactionJson") {
+    val err = WrongTransactionJson (JsError("Expected JsString"))
+    err.id.getClass shouldEqual classOf[Int]
+    err.message shouldBe a [String]
+    err.code shouldBe a [StatusCode]
+  }
+
 }
