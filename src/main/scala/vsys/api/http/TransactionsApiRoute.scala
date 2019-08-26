@@ -177,8 +177,7 @@ case class TransactionsApiRoute(
               .map(a => (a._1,a._2,a._2.transaction))
               .collect{
                 case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
-                  if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address
-                  || state.resolveAliasEi(lt.recipient).toOption.get.address == address =>
+                  if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
                   processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
               }
           )))

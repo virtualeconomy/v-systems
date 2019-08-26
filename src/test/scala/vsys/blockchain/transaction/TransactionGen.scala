@@ -86,7 +86,7 @@ trait TransactionGen {
     aliasChars <- Gen.listOfN(length, invalidAliasAlphabetGen)
   } yield aliasChars.mkString
 
-  val accountOrAliasGen: Gen[AddressOrAlias] = Gen.oneOf(aliasGen, accountGen.map(PublicKeyAccount.toAddress(_)))
+  val accountOrAliasGen: Gen[Address] = Gen.oneOf(aliasGen, accountGen.map(PublicKeyAccount.toAddress(_)))
   val mintingAddressGen: Gen[Address] = accountGen.map(PublicKeyAccount.toAddress(_))
 
   def otherAccountGen(candidate: PrivateKeyAccount): Gen[PrivateKeyAccount] = accountGen.flatMap(Gen.oneOf(candidate, _))
@@ -163,7 +163,7 @@ trait TransactionGen {
     feeScale2: Short <- feeScaleGen
   } yield (lease, LeaseCancelTransaction.create(sender, lease.id, cancelFee, feeScale2, timestamp + 1).right.get)
 
-  def leaseAndCancelGeneratorP(leaseSender: PrivateKeyAccount, recipient: AddressOrAlias, ts: Long = 0): Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
+  def leaseAndCancelGeneratorP(leaseSender: PrivateKeyAccount, recipient: Address, ts: Long = 0): Gen[(LeaseTransaction, LeaseCancelTransaction)] = for {
     (_, amount, fee, feeScale, times, _) <- leaseParamGen
     timestamp: Long = if (ts > 0) ts else times
     lease = LeaseTransaction.create(leaseSender, amount, fee, feeScale, timestamp, recipient).right.get
@@ -203,7 +203,7 @@ trait TransactionGen {
     recipient <- accountOrAliasGen
   } yield (assetId.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetId.map(ByteStr(_)), feeAmount, attachment)
 
-  def transferGeneratorP(sender: PrivateKeyAccount, recipient: AddressOrAlias,
+  def transferGeneratorP(sender: PrivateKeyAccount, recipient: Address,
                          assetId: Option[AssetId], feeAssetId: Option[AssetId]): Gen[TransferTransaction] = for {
     (_, _, _, amount, timestamp, _, feeAmount, attachment) <- transferParamGen
   } yield TransferTransaction.create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, attachment).right.get

@@ -2,7 +2,7 @@ package vsys.api.http.assets
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import play.api.libs.json.{Format, Json}
-import vsys.account.{AddressOrAlias, PublicKeyAccount}
+import vsys.account.{Address, PublicKeyAccount}
 import vsys.api.http.BroadcastRequest
 import vsys.blockchain.transaction.assets.TransferTransaction
 import vsys.blockchain.transaction.TransactionParser.SignatureStringLength
@@ -37,7 +37,7 @@ case class SignedTransferRequest(@ApiModelProperty(value = "Base58 encoded sende
     _feeAssetId <- parseBase58ToOption(feeAssetId.filter(_.length > 0), "invalid.feeAssetId", AssetIdStringLength)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
     _attachment <- parseBase58(attachment.filter(_.length > 0), "invalid.attachment", TransferTransaction.MaxAttachmentStringSize)
-    _account <-  AddressOrAlias.fromString(recipient)
+    _account <-  Address.fromString(recipient)
     t <- TransferTransaction.create(_assetId, _sender, _account, amount, timestamp, _feeAssetId, fee, _attachment.arr,  _signature)
   } yield t
 }

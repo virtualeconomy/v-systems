@@ -2,7 +2,7 @@ package vsys.blockchain.state
 
 import cats.Monoid
 import cats.implicits._
-import vsys.account.{Address, Alias}
+import vsys.account.Address
 import vsys.blockchain.transaction.Transaction
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.database.Entry
@@ -46,7 +46,6 @@ object AssetInfo {
 case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Address])],
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
-                aliases: Map[Alias, Address],
                 slotids: Map[Int, Option[String]],
                 addToSlot: Map[String, Option[Int]],
                 slotNum: Int,
@@ -100,7 +99,6 @@ object Diff {
   def apply(height: Int, tx: Transaction,
             portfolios: Map[Address, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
-            aliases: Map[Alias, Address] = Map.empty,
             slotids: Map[Int, Option[String]] = Map.empty,
             addToSlot: Map[String, Option[Int]] = Map.empty,
             slotNum: Int = 0,

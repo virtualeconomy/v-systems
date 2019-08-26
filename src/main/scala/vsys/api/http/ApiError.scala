@@ -2,7 +2,7 @@ package vsys.api.http
 
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import play.api.libs.json._
-import vsys.account.{Address, AddressOrAlias, Alias}
+import vsys.account.Address
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.transaction.{Transaction, ValidationError}
 
@@ -42,7 +42,6 @@ object ApiError {
     case ValidationError.ToSelf => ToSelfError
     case ValidationError.MissingSenderPrivateKey => MissingSenderPrivateKey
     case ValidationError.GenericError(ge) => CustomValidationError(ge)
-    case ValidationError.AliasNotExists(tx) => AliasNotExists(tx)
     case ValidationError.UnsupportedTransactionType => CustomValidationError("UnsupportedTransactionType")
     case ValidationError.AccountBalanceError(errs) => CustomValidationError(errs.values.mkString(", "))
     case ValidationError.OrderValidationError(_, m) => CustomValidationError(m)
@@ -256,16 +255,6 @@ case object BlockNotExists extends ApiError {
   override val id: Int = 301
   override val code = StatusCodes.NotFound
   override val message: String = "block does not exist"
-}
-
-case class AliasNotExists(aoa: AddressOrAlias) extends ApiError {
-  override val id: Int = 302
-  override val code = StatusCodes.NotFound
-  private lazy val msgReason = aoa match {
-    case a: Address => s"for address '${a.stringRepr}'"
-    case a: Alias => s"'${a.stringRepr}'"
-  }
-  override val message: String = s"alias $msgReason doesn't exist"
 }
 
 case object ContractNotExists extends ApiError {

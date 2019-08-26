@@ -42,7 +42,7 @@ object TransactionFactory {
   def transferAsset(request: TransferRequest, wallet: Wallet, time: Time): Either[ValidationError, TransferTransaction] =
     for {
       senderPrivateKey <- wallet.findPrivateKey(request.sender)
-      recipientAcc <- AddressOrAlias.fromString(request.recipient)
+      recipientAcc <- Address.fromString(request.recipient)
       tx <- TransferTransaction
         .create(request.assetId.map(s => ByteStr.decodeBase58(s).get),
           senderPrivateKey,
@@ -65,7 +65,7 @@ object TransactionFactory {
 
   def lease(request: LeaseRequest, wallet: Wallet, time: Time): Either[ValidationError, LeaseTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    recipientAcc <- AddressOrAlias.fromString(request.recipient)
+    recipientAcc <- Address.fromString(request.recipient)
     tx <- LeaseTransaction.create(senderPrivateKey, request.amount, request.fee, request.feeScale, time.getTimestamp(), recipientAcc)
   } yield tx
 
