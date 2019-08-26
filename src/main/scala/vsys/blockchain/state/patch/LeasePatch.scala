@@ -17,7 +17,6 @@ object LeasePatch {
     Diff(transactions = Map.empty,
       portfolios = portfolioUpd,
       issuedAssets = Map.empty,
-      aliases = Map.empty,
       slotids = Map.empty,
       addToSlot = Map.empty,
       slotNum = 0,

@@ -103,7 +103,7 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
     forAll(for {
       timestamp <- positiveLongGen
       sender <- accountGen
-      name <- validAliasStringGen
+      name <- validDbKeyStringGen
       entry <- entryGen
       fee <- smallFeeGen
       feeScale <- positiveShortGen

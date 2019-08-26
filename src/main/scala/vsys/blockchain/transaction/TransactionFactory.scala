@@ -3,7 +3,6 @@ package vsys.blockchain.transaction
 import com.google.common.base.Charsets
 import vsys.blockchain.state.ByteStr
 import vsys.account._
-import vsys.api.http.alias.CreateAliasRequest
 import vsys.api.http.assets._
 import vsys.api.http.contract.{ExecuteContractFunctionRequest, RegisterContractRequest}
 import vsys.api.http.database.DbPutRequest
@@ -74,12 +73,6 @@ object TransactionFactory {
       pk <- wallet.findPrivateKey(request.sender)
       tx <- LeaseCancelTransaction.create(pk, ByteStr.decodeBase58(request.txId).get, request.fee, request.feeScale, time.getTimestamp())
     } yield tx
-
-  def alias(request: CreateAliasRequest, wallet: Wallet, time: Time): Either[ValidationError, CreateAliasTransaction] = for {
-    senderPrivateKey <- wallet.findPrivateKey(request.sender)
-    alias <- Alias.buildWithCurrentNetworkByte(request.alias)
-    tx <- CreateAliasTransaction.create(senderPrivateKey, alias, request.fee, time.getTimestamp())
-  } yield tx
 
   def contendSlots(request: ContendSlotsRequest, wallet:Wallet, time: Time): Either[ValidationError, ContendSlotsTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)

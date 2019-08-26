@@ -1,6 +1,6 @@
 package vsys.blockchain.transaction
 
-import vsys.account.{Address, Alias}
+import vsys.account.Address
 import vsys.blockchain.transaction.assets.exchange.Order
 
 trait ValidationError
@@ -47,7 +47,6 @@ object ValidationError {
   case object ContractUnsupportedWithdraw extends ValidationError
   case object ContractUnsupportedDeposit extends ValidationError
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError
-  case class AliasNotExists(a: Alias) extends ValidationError
   case class OrderValidationError(order: Order, err: String) extends ValidationError
   case class AccountBalanceError(errs: Map[Address, String]) extends ValidationError
   case class GenericError(err: String) extends ValidationError

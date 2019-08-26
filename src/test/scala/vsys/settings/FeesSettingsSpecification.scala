@@ -134,9 +134,6 @@ class FeesSettingsSpecification extends FlatSpec with Matchers {
         |  lease-cancel {
         |    VSYS = 10000000
         |  }
-        |  create-alias {
-        |    VSYS = 10000000
-        |  }
         |  contend-slots {
         |    VSYS = 5000000000000
         |  }

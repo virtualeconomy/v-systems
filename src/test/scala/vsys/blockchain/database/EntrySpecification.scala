@@ -13,8 +13,8 @@ with Matchers {
 
   val longStringGen: Gen[String] = for {
     randomCharSet <- frequency[Char]((1, alphaNumChar))
-    aliasChars <- Gen.listOfN(20000, randomCharSet)
-  } yield aliasChars.mkString
+    chars <- Gen.listOfN(20000, randomCharSet)
+  } yield chars.mkString
 
   val invalidEntryGen: Gen[Either[ValidationError, Entry]] = for {
     data: String <- longStringGen

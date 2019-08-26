@@ -44,49 +44,33 @@ trait TransactionGen {
 
   val contractAccountGen: Gen[ContractAccount] = Gen.const(ContractAccount.fromId(ByteStr(bytes32gen.sample.get)))
 
-  val aliasSymbolChar: Gen[Char] = Gen.oneOf('.','@', '_', '-')
+  val dbkeySymbolChar: Gen[Char] = Gen.oneOf('.','@', '_', '-')
 
   val invalidUtf8Char: Gen[Char] = Gen.oneOf('\uD800','\uD801', '\uD802')
 
-  val aliasAlphabetGen: Gen[Char] = frequency((1, numChar), (1, aliasSymbolChar), (9, alphaLowerChar))
-
-  val invalidAliasAlphabetGen: Gen[Char] = frequency((1, numChar), (1, aliasSymbolChar), (9, alphaUpperChar))
+  val validAlphabetGen: Gen[Char] = frequency((1, numChar), (1, dbkeySymbolChar), (9, alphaLowerChar))
 
   val entryDataStringGen: Gen[String] = for {
     length <- Gen.chooseNum(1, Entry.maxLength)
-    aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
-  } yield aliasChars.mkString
-
-  val validAliasStringGen: Gen[String] = for {
-    length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
-    aliasChars <- Gen.listOfN(length, aliasAlphabetGen)
-  } yield aliasChars.mkString
+    chars <- Gen.listOfN(length, validAlphabetGen)
+  } yield chars.mkString
 
   val validDbKeyStringGen: Gen[String] = for {
     length <- Gen.chooseNum(DbPutTransaction.MinDbKeyLength, DbPutTransaction.MaxDbKeyLength)
-    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+    dbKeyChars <- Gen.listOfN(length, validAlphabetGen)
   } yield dbKeyChars.mkString
 
   val validDescStringGen: Gen[String] = for {
     length <- Gen.chooseNum(RegisterContractTransaction.MinDescriptionSize, RegisterContractTransaction.MaxDescriptionSize)
-    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+    dbKeyChars <- Gen.listOfN(length, validAlphabetGen)
   } yield dbKeyChars.mkString
 
   val invalidLengthDbKeyStringGen: Gen[String] = for {
     length <- Gen.chooseNum(DbPutTransaction.MaxDbKeyLength + 1, DbPutTransaction.MaxDbKeyLength * 2)
-    dbKeyChars <- Gen.listOfN(length, aliasAlphabetGen)
+    dbKeyChars <- Gen.listOfN(length, validAlphabetGen)
   } yield dbKeyChars.mkString
 
-  val aliasGen: Gen[Alias] = for {
-    str <- validAliasStringGen
-  } yield Alias.buildWithCurrentNetworkByte(str.mkString).explicitGet()
-
-  val invalidAliasStringGen: Gen[String] = for {
-    length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
-    aliasChars <- Gen.listOfN(length, invalidAliasAlphabetGen)
-  } yield aliasChars.mkString
-
-  val accountOrAliasGen: Gen[Address] = Gen.oneOf(aliasGen, accountGen.map(PublicKeyAccount.toAddress(_)))
+  val addressGen: Gen[Address] = accountGen.map(PublicKeyAccount.toAddress(_))
   val mintingAddressGen: Gen[Address] = accountGen.map(PublicKeyAccount.toAddress(_))
 
   def otherAccountGen(candidate: PrivateKeyAccount): Gen[PrivateKeyAccount] = accountGen.flatMap(Gen.oneOf(candidate, _))
@@ -108,8 +92,8 @@ trait TransactionGen {
   } yield data.mkString
 
   val contractContentGen: Gen[String] = for {
-    length <- Gen.chooseNum(Alias.MinLength, Alias.MaxLength)
-    contentStr <- Gen.listOfN(length, aliasAlphabetGen)
+    length <- Gen.chooseNum(1, 1000)
+    contentStr <- Gen.listOfN(length, validAlphabetGen)
   } yield contentStr.mkString
   val contractGen: Gen[Contract] = ContractPermitted.contract
 
@@ -200,7 +184,7 @@ trait TransactionGen {
     timestamp <- timestampGen
     sender <- accountGen
     attachment <- genBoundedBytes(0, TransferTransaction.MaxAttachmentSize)
-    recipient <- accountOrAliasGen
+    recipient <- addressGen
   } yield (assetId.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetId.map(ByteStr(_)), feeAmount, attachment)
 
   def transferGeneratorP(sender: PrivateKeyAccount, recipient: Address,
@@ -227,12 +211,6 @@ trait TransactionGen {
   } yield TransferTransaction.create(assetId, sender, sender, amount, timestamp, feeAssetId, feeAmount, attachment).right.get
 
   val MinIssueFee = 100000000
-
-  val createAliasGen: Gen[CreateAliasTransaction] = for {
-    timestamp: Long <- positiveLongGen
-    sender: PrivateKeyAccount <- accountGen
-    alias: Alias <- aliasGen
-  } yield CreateAliasTransaction.create(sender, alias, MinIssueFee, timestamp).right.get
 
   val mintingGen: Gen[MintingTransaction] = for {
     recipient: Address <- mintingAddressGen
@@ -435,9 +413,8 @@ trait TransactionGen {
   val randomTransactionGen: Gen[SignedTransaction] = (for {
     tr <- transferGen
     (is, ri, bu) <- issueReissueBurnGen
-    ca <- createAliasGen
     xt <- exchangeTransactionGen
-    tx <- Gen.oneOf(tr, is, ri, ca, bu, xt)
+    tx <- Gen.oneOf(tr, is, ri, bu, xt)
   } yield tx).label("random transaction")
 
   val randomProvenTransactionGen: Gen[ProvenTransaction] = (for {
