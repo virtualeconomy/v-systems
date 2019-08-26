@@ -15,13 +15,13 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
       val alias = Alias.fromString("alias:T:sawesha").right.get
       val err = ValidationError.AliasNotExists(alias)
       val result = ApiError.fromValidationError(err)
-      result.id should be(302)
+      result.id should be(AliasNotExists(alias).id)
       result.code should be(StatusCodes.NotFound)
   }
   property("UnsupportedTransactionType should result in CustomValidationError with msg 'UnsupportedTransactionType'") {
       val err = ValidationError.UnsupportedTransactionType
       val result = ApiError.fromValidationError(err)
-      result.id should be(199)
+      result.id should be(CustomValidationError(result.message).id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be("UnsupportedTransactionType")
   }
@@ -35,7 +35,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
       errs += (addr2 -> "Account is locked")
       val err = ValidationError.AccountBalanceError(errs)
       val result = ApiError.fromValidationError(err)
-      result.id should be(199)
+      result.id should be(CustomValidationError(result.message).id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be("No enough money for output, Account is locked")
     }
@@ -47,7 +47,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
       val testOrder = Order.parseBytes(order.bytes).get
       val err = ValidationError.OrderValidationError(testOrder, "order validation throw error")
       val result = ApiError.fromValidationError(err)
-      result.id should be(199)
+      result.id should be(CustomValidationError(result.message).id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be("order validation throw error")
     }
@@ -66,7 +66,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     val dbDataType = "SuperNode"
     val err = ValidationError.DbDataTypeError(dbDataType) 
     val result = ApiError.fromValidationError(err)
-    result.id should be(504)
+    result.id should be(InvalidDbDataType(dbDataType).id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid database datatype SuperNode")
   }
@@ -75,7 +75,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     forAll(feeScaleGen) { feeScale => 
       val err = ValidationError.WrongFeeScale(feeScale) 
       val result = ApiError.fromValidationError(err)
-      result.id should be(114)
+      result.id should be(ToSelfError.id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be(s"Validation failed for wrong fee scale $feeScale.")
     }
@@ -85,7 +85,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     forAll (slotidGen) { slotId => 
       val err = ValidationError.InvalidSlotId(slotId) 
       val result = ApiError.fromValidationError(err)
-      result.id should be(116)
+      result.id should be(InvalidSlotId(slotId).id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be(s"slot id: $slotId invalid.")
     }
@@ -95,7 +95,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     forAll(mintingAmountGen){ errMintingReward => 
       val err = ValidationError.WrongMintingReward(errMintingReward)
       val result = ApiError.fromValidationError(err)
-      result.id should be(115)
+      result.id should be(InvalidMintingReward(errMintingReward).id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be(s"Validation failed for wrong minting reward $errMintingReward.")
     }
@@ -107,7 +107,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
 
     val err = ValidationError.TooLongDbEntry(actualLength, maxLength) 
     val result = ApiError.fromValidationError(err)
-    result.id should be(505)
+    result.id should be(TooLongDbEntry(actualLength, maxLength).id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be(s"The data is too long for database put, the actual length " +
       s"is $actualLength, the maximun length supported for now is $maxLength")
@@ -116,7 +116,7 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
   property("InvalidUTF8String") {
     val err = ValidationError.InvalidUTF8String("contractDescription") 
     val result = ApiError.fromValidationError(err)
-    result.id should be(118)
+    result.id should be(InvalidUTF8String("contractDescription").id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be(s"The contractDescription is not a valid utf8 string")
   }
@@ -131,4 +131,73 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
       result.message should be("Mistiming error")
     }
   }
+
+  property("Unknown should be error which has specific id, code and message") {
+    val result = Unknown
+    result.id should be(Unknown.id)
+    result.code should be(StatusCodes.InternalServerError)
+    result.message should be("Error is unknown")
+  }
+ 
+  property("InvalidSeed should be error which has specific id, code and message") {
+    val result = InvalidSeed
+    result.id should be(103)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be("invalid seed")
+  }
+  
+  property("InvalidAmount should be error which has specific id, code and message") {
+    val result = InvalidAmount
+    result.id should be(104)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be("invalid amount")
+  }
+
+  property("InvalidSender should be error which has specific id, code and message") {
+    val result = InvalidSender
+    result.id should be(106)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be("invalid sender")
+  }
+
+  property("InvalidRecipient should be error which has specific id, code and message") {
+    val result = InvalidRecipient
+    result.id should be(107)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be("invalid recipient")
+  }
+
+  property("InvalidPublicKey should be error which has specific id, code and message") {
+    val result = InvalidPublicKey
+    result.id should be(108)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be("invalid public key")
+  }
+
+  //StateCheckFailed ContractAlreadyDisabled invalidDbNameSpace dbEntryNotExist invalidDbEntry
+  property("test api error id, message type") {
+    val errors = InvalidNotNumber :: 
+      InvalidMessage ::
+      InvalidName ::
+      OverflowError ::
+      ToSelfError ::
+      MissingSenderPrivateKey ::
+      InvalidDbKey ::
+      InvalidProofBytes ::
+      InvalidProofLength ::
+      InvalidProofType  ::
+      InvalidContract ::
+      InvalidDataEntry ::
+      InvalidDataLength ::
+      InvalidContractAddress ::
+      InvalidTokenIndex ::
+      BlockNotExists ::
+      ContractNotExists ::
+      TokenNotExists ::
+      Nil
+
+    val result = errors.forall(err => err.id.getClass.toString == "int")
+    result should be (true)
+  }
+
 }
