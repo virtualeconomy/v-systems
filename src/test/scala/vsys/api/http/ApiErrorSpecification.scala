@@ -6,28 +6,28 @@ import vsys.blockchain.transaction.assets.exchange.Order
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.database.Entry
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 
 import vsys.account.{Alias, Address}
 
-class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
   property("ApiError should be thrown if alias not exist") {
-      val alias = Alias.fromString("alias:T:sawesha").right.get
-      val err = ValidationError.AliasNotExists(alias)
-      val result = ApiError.fromValidationError(err)
-      result.id should be(AliasNotExists(alias).id)
-      result.code should be(StatusCodes.NotFound)
+    val alias = Alias.fromString("alias:T:sawesha").right.get
+    val err = ValidationError.AliasNotExists(alias)
+    val result = ApiError.fromValidationError(err)
+    result.id should be(AliasNotExists(alias).id)
+    result.code should be(StatusCodes.NotFound)
   }
   property("UnsupportedTransactionType should result in CustomValidationError with msg 'UnsupportedTransactionType'") {
-      val err = ValidationError.UnsupportedTransactionType
-      val result = ApiError.fromValidationError(err)
-      result.id should be(CustomValidationError(result.message).id)
-      result.code should be(StatusCodes.BadRequest)
-      result.message should be("UnsupportedTransactionType")
+    val err = ValidationError.UnsupportedTransactionType
+    val result = ApiError.fromValidationError(err)
+    result.id should be(CustomValidationError(result.message).id)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be("UnsupportedTransactionType")
   }
 
   property("AccountBalanceError should get err which value is err message list"){
-      forAll(accountGen, accountGen) { (account1, account2) => 
+    forAll(accountGen, accountGen) { (account1, account2) => 
       var errs: Map[Address, String] = Map()
       val addr1 = account1.toAddress
       val addr2 = account2.toAddress
@@ -54,7 +54,6 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
   }
 
   property("Mistiming should cause ApiError.Mistiming eror") {
-
     val err = ValidationError.Mistiming("Mistiming error")
     val result = ApiError.fromValidationError(err)
     result.id should be(Mistiming.Id)
@@ -174,30 +173,56 @@ class ApiErrorSpec extends PropSpec with PropertyChecks with GeneratorDrivenProp
     result.message should be("invalid public key")
   }
 
-  //StateCheckFailed ContractAlreadyDisabled invalidDbNameSpace dbEntryNotExist invalidDbEntry
   property("test api error id, message type") {
-    val errors = InvalidNotNumber :: 
-      InvalidMessage ::
-      InvalidName ::
-      OverflowError ::
-      ToSelfError ::
-      MissingSenderPrivateKey ::
-      InvalidDbKey ::
-      InvalidProofBytes ::
-      InvalidProofLength ::
-      InvalidProofType  ::
-      InvalidContract ::
-      InvalidDataEntry ::
-      InvalidDataLength ::
-      InvalidContractAddress ::
-      InvalidTokenIndex ::
-      BlockNotExists ::
-      ContractNotExists ::
-      TokenNotExists ::
-      Nil
+    val errors = List(
+      InvalidNotNumber, 
+      InvalidMessage,
+      InvalidName,
+      OverflowError,
+      ToSelfError,
+      MissingSenderPrivateKey,
+      InvalidDbKey,
+      InvalidProofBytes,
+      InvalidProofLength,
+      InvalidProofType ,
+      InvalidContract,
+      InvalidDataEntry,
+      InvalidDataLength,
+      invalidDbEntry,
+      InvalidContractAddress,
+      InvalidTokenIndex,
+      BlockNotExists,
+      ContractNotExists,
+      TokenNotExists,
+      InvalidFee,
+      invalidDbNameSpace("NameSpace"),
+      dbEntryNotExist("Entity", "NameSpace")
+    )
 
-    val result = errors.forall(err => err.id.getClass.toString == "int")
-    result should be (true)
+    errors.map((err) => {
+      err.id.getClass shouldEqual classOf[Int]
+      err.message.getClass shouldEqual classOf[String]
+      err.code shouldBe a [StatusCode]
+    })
   }
 
+  property("StateCheckFailed should be error id, code and message with specific type") {
+    forAll (randomTransactionGen) { (transaction) => 
+      val err = ValidationError.InvalidProofType 
+      val invalidTransacErr = TransactionValidationError(err, transaction)
+      val result = ApiError.fromValidationError(invalidTransacErr)
+      result.id shouldBe StateCheckFailed(transaction, ApiError.fromValidationError(err).message).id
+      result.message.getClass shouldEqual classOf[String]
+      result.code shouldBe StatusCodes.BadRequest
+    }
+  }
+
+   property("ContractAlreadyDisabled should be error id, code and message with specific type") {
+    forAll (contractGen) { (contract) => 
+      val err = ContractAlreadyDisabled(contract.toString)
+      err.id.getClass shouldEqual classOf[Int]
+      err.message.getClass shouldEqual classOf[String]
+      err.code shouldBe a [StatusCode]
+    }
+  }
 }
