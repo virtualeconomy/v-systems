@@ -173,10 +173,24 @@ case class TransactionsApiRoute(
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
-          complete(state.txTypeAccountTxIds(TransactionType.LeaseTransaction, address).getOrElse(
-            Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
-            ))
-          ))
+          complete(
+            Json.arr(
+              JsArray(
+                state.txTypeAccountTxIds(TransactionType.LeaseTransaction, address, 0, 0)._2
+                .getOrElse(
+                  state.activeLeases()
+                )
+                .flatMap(state.transactionInfo)
+                .map(a => (a._1,a._2,a._2.transaction))
+                .collect{
+                  case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
+                    if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address
+                    || state.resolveAliasEi(lt.recipient).toOption.get.address == address =>
+                    processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+                }
+              )
+            )
+          )
       }
     }
   }
