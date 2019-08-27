@@ -142,40 +142,35 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
  
   property("InvalidSeed should be error which has specific id, code and message") {
     val result = InvalidSeed
-    result.id should be(InvalidSeed.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid seed")
   }
   
   property("InvalidAmount should be error which has specific id, code and message") {
     val result = InvalidAmount
-    result.id should be(InvalidAmount.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid amount")
   }
 
   property("InvalidSender should be error which has specific id, code and message") {
     val result = InvalidSender
-    result.id should be(InvalidSender.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid sender")
   }
 
   property("InvalidRecipient should be error which has specific id, code and message") {
     val result = InvalidRecipient
-    result.id should be(InvalidRecipient.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid recipient")
   }
 
   property("InvalidPublicKey should be error which has specific id, code and message") {
     val result = InvalidPublicKey
-    result.id should be(InvalidPublicKey.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid public key")
   }
 
-  property("test api error id, message type") {
+  property("test api error id, message and code type") {
     val errors = List(
       InvalidNotNumber, 
       InvalidMessage,
