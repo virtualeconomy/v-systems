@@ -210,7 +210,11 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
     )
 
     errors.map((err) => {
+<<<<<<< HEAD
       err.id shouldBe a [Int]
+=======
+      err.id shouldBe a [Integer]
+>>>>>>> feature/api_error_test
       err.message shouldBe a [String]
       err.code shouldBe a [StatusCode]
     })
@@ -230,7 +234,11 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
    property("ContractAlreadyDisabled shouldBe error id, code and message with specific type") {
     forAll (contractGen) { (contract) => 
       val err = ContractAlreadyDisabled(contract.toString)
+<<<<<<< HEAD
       err.id shouldBe a [Int]
+=======
+      err.id shouldBe a [Integer]
+>>>>>>> feature/api_error_test
       err.message shouldBe a [String]
       err.code shouldBe a [StatusCode]
     }
@@ -238,7 +246,11 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
 
   property("WrongTransactionJson") {
     val err = WrongTransactionJson (JsError("Expected JsString"))
+<<<<<<< HEAD
     err.id shouldBe a [Int]
+=======
+    err.id shouldBe a [Integer]
+>>>>>>> feature/api_error_test
     err.message shouldBe a [String]
     err.code shouldBe a [StatusCode]
   }

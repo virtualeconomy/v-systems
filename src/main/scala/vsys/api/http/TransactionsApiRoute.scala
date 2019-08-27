@@ -173,7 +173,7 @@ case class TransactionsApiRoute(
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
-          complete(state.txTypeAccountTxIds().getOrElse(
+          complete(state.txTypeAccountTxIds(TransactionType.LeaseTransaction, address).getOrElse(
             Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
             ))
           ))
