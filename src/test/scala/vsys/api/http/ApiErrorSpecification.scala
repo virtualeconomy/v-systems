@@ -13,6 +13,7 @@ import vsys.account.{Alias, Address}
 import play.api.libs.json.JsError
 
 class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+
   property("ApiError should be thrown if alias not exist") {
     val alias = Alias.fromString("alias:T:sawesha").right.get
     val err = ValidationError.AliasNotExists(alias)
@@ -20,6 +21,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
     result.id should be(AliasNotExists(alias).id)
     result.code should be(StatusCodes.NotFound)
   }
+
   property("UnsupportedTransactionType should result in CustomValidationError with msg 'UnsupportedTransactionType'") {
     val err = ValidationError.UnsupportedTransactionType
     val result = ApiError.fromValidationError(err)
@@ -30,11 +32,9 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
 
   property("AccountBalanceError should get err which value is err message list"){
     forAll(accountGen, accountGen) { (account1, account2) => 
-      var errs: Map[Address, String] = Map()
       val addr1 = account1.toAddress
       val addr2 = account2.toAddress
-      errs += (addr1 -> "No enough money for output")
-      errs += (addr2 -> "Account is locked")
+      val errs: Map[Address, String] = Map(addr1 -> "No enough money for output", addr2 -> "Account is locked")
       val err = ValidationError.AccountBalanceError(errs)
       val result = ApiError.fromValidationError(err)
       result.id should be(CustomValidationError(result.message).id)
@@ -42,7 +42,6 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
       result.message should be("No enough money for output, Account is locked")
     }
   }
-
 
   property("OrderValidationError should cause CustomValidationError which specified msg") {
     forAll(orderGen) { order =>
@@ -73,39 +72,41 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
   }
 
   property("WrongFeeScale should cause err which id is 114") {
-    forAll(feeScaleGen) { feeScale => 
-      val err = ValidationError.WrongFeeScale(feeScale) 
-      val result = ApiError.fromValidationError(err)
-      result.id should be(ToSelfError.id)
-      result.code should be(StatusCodes.BadRequest)
-      result.message should be(s"Validation failed for wrong fee scale $feeScale.")
-    }
+    val randomGen = scala.util.Random
+    val feeScale = randomGen.nextInt(java.lang.Short.MAX_VALUE).toShort
+    val err = ValidationError.WrongFeeScale(feeScale)
+    val result = ApiError.fromValidationError(err)
+    result.id should be(ToSelfError.id)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be(s"Validation failed for wrong fee scale $feeScale.")
   }
 
   property("InvalidSlotId should cause err which id is 116") {
-    forAll (slotidGen) { slotId => 
-      val err = ValidationError.InvalidSlotId(slotId) 
-      val result = ApiError.fromValidationError(err)
-      result.id should be(InvalidSlotId(slotId).id)
-      result.code should be(StatusCodes.BadRequest)
-      result.message should be(s"slot id: $slotId invalid.")
-    }
+    val randomGen = scala.util.Random
+    val slotId = randomGen.nextInt
+    val err = ValidationError.InvalidSlotId(slotId)
+    val result = ApiError.fromValidationError(err)
+    result.id should be(InvalidSlotId(slotId).id)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be(s"slot id: $slotId invalid.")
   }
 
   property("InvalidMintingReward") {
-    forAll(mintingAmountGen){ errMintingReward => 
-      val err = ValidationError.WrongMintingReward(errMintingReward)
-      val result = ApiError.fromValidationError(err)
-      result.id should be(InvalidMintingReward(errMintingReward).id)
-      result.code should be(StatusCodes.BadRequest)
-      result.message should be(s"Validation failed for wrong minting reward $errMintingReward.")
-    }
+    val randomGen = scala.util.Random
+    val errMintingReward = randomGen.nextLong
+    val err = ValidationError.WrongMintingReward(errMintingReward)
+    val result = ApiError.fromValidationError(err)
+    result.id should be(InvalidMintingReward(errMintingReward).id)
+    result.code should be(StatusCodes.BadRequest)
+    result.message should be(s"Validation failed for wrong minting reward $errMintingReward.")
   }
   
   property("TooLongDbEntry should throw error if actual length is greater than maxLength") {
     val maxLength = Entry.maxLength
-    val actualLength = maxLength + 2
-
+    val randomGen = scala.util.Random
+    val intMax = java.lang.Integer.MAX_VALUE
+    val shortMax = java.lang.Short.MAX_VALUE.toInt
+    val actualLength = randomGen.nextInt(intMax - shortMax) + shortMax
     val err = ValidationError.TooLongDbEntry(actualLength, maxLength) 
     val result = ApiError.fromValidationError(err)
     result.id should be(TooLongDbEntry(actualLength, maxLength).id)
@@ -135,47 +136,41 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
 
   property("Unknown should be error which has specific id, code and message") {
     val result = Unknown
-    result.id should be(Unknown.id)
     result.code should be(StatusCodes.InternalServerError)
     result.message should be("Error is unknown")
   }
  
   property("InvalidSeed should be error which has specific id, code and message") {
     val result = InvalidSeed
-    result.id should be(InvalidSeed.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid seed")
   }
   
   property("InvalidAmount should be error which has specific id, code and message") {
     val result = InvalidAmount
-    result.id should be(InvalidAmount.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid amount")
   }
 
   property("InvalidSender should be error which has specific id, code and message") {
     val result = InvalidSender
-    result.id should be(InvalidSender.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid sender")
   }
 
   property("InvalidRecipient should be error which has specific id, code and message") {
     val result = InvalidRecipient
-    result.id should be(InvalidRecipient.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid recipient")
   }
 
   property("InvalidPublicKey should be error which has specific id, code and message") {
     val result = InvalidPublicKey
-    result.id should be(InvalidPublicKey.id)
     result.code should be(StatusCodes.BadRequest)
     result.message should be("invalid public key")
   }
 
-  property("test api error id, message type") {
+  property("test api error id, message and code type") {
     val errors = List(
       InvalidNotNumber, 
       InvalidMessage,
@@ -242,5 +237,4 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
     err.message shouldBe a [String]
     err.code shouldBe a [StatusCode]
   }
-
 }
