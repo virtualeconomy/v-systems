@@ -176,7 +176,7 @@ case class TransactionsApiRoute(
           complete(
             Json.arr(
               JsArray(
-                state.txTypeAccountTxIds(TransactionType.LeaseTransaction, address, 0, 0)._2
+                state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, 0, 0)._2
                 .getOrElse(
                   state.activeLeases()
                 )
