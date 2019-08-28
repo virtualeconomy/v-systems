@@ -3,7 +3,8 @@ package vsys.blockchain.contract
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import scorex.crypto.encode.Base58
-import vsys.account.{Address, PublicKeyAccount, ContractAccount}
+import vsys.account.{Address, ContractAccount, PublicKeyAccount}
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.contract.RegisterContractTransaction.MaxDescriptionSize
 import vsys.blockchain.transaction.TransactionParser.{AmountLength, KeyLength}
 import vsys.blockchain.transaction.ValidationError
@@ -29,6 +30,7 @@ case class DataEntry(data: Array[Byte],
       case DataType.Int32 => Json.toJson(Ints.fromByteArray(d))
       case DataType.ShortText => Json.toJson(Base58.encode(d))
       case DataType.ContractAccount => Json.toJson(ContractAccount.fromBytes(d).right.get.address)
+      case DataType.TokenId => Json.toJson(ByteStr(d).base58)
     }
   }
 }
@@ -74,6 +76,8 @@ object DataEntry {
         Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
       case Some(DataType.ContractAccount) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount) =>
         Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
+      case Some(DataType.TokenId) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId) =>
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId), position + 1 + ContractAccount.TokenAddressLength))
       case _ => Left(InvalidDataEntry)
     }
   }

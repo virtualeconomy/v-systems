@@ -27,6 +27,7 @@ object ContractAccount extends ScorexLogging {
   val ChecksumLength = 4
   val HashLength = 20
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
+  val TokenAddressLength = 1 + 1 + ChecksumLength + HashLength + TokenIndexLength
   val AddressStringLength = base58Length(AddressLength)
 
   private def scheme = AddressScheme.current
