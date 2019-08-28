@@ -7,13 +7,15 @@ object SystemDiffer {
     val SystemDeposit = Value(2)
     val SystemWithdraw = Value(3)
     val SystemTransfer = Value(4)
-
   }
 
-  val SystemFunction: Seq[Array[Byte]] = Seq(SystemSend, SystemDeposit, SystemWithdraw, SystemTransfer)
-  lazy val SystemSend: Array[Byte] = Array.emptyByteArray
-  lazy val SystemDeposit: Array[Byte] = Array.emptyByteArray
-  lazy val SystemWithdraw: Array[Byte] = Array.emptyByteArray
-  lazy val SystemTransfer: Array[Byte] = Array.emptyByteArray
+  object SystemFunction {
+    val SystemSend: Array[Byte] = Array(SystemType.SystemSend.id.toByte)
+    val SystemDeposit: Array[Byte] = Array(SystemType.SystemDeposit.id.toByte)
+    val SystemWithdraw: Array[Byte] = Array(SystemType.SystemWithdraw.id.toByte)
+    val SystemTransfer: Array[Byte] = Array(SystemType.SystemTransfer.id.toByte)
+  }
 
+  val SystemFunctions: Seq[Array[Byte]] = Seq(SystemFunction.SystemSend, SystemFunction.SystemDeposit,
+    SystemFunction.SystemWithdraw, SystemFunction.SystemTransfer)
 }

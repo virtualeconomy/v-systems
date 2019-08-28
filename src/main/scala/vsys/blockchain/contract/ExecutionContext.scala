@@ -7,7 +7,7 @@ import vsys.blockchain.transaction.ValidationError.{GenericError, InvalidContrac
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.state.opcdiffs.OpcDiff
-import vsys.blockchain.state.systemdiffs.SystemDiffer.{SystemFunction, SystemType}
+import vsys.blockchain.state.systemdiffs.SystemDiffer.{SystemFunctions, SystemType}
 import vsys.utils.serialization.Deser
 
 case class ExecutionContext(signers: Seq[PublicKeyAccount],
@@ -58,7 +58,7 @@ object ExecutionContext {
     if (tx.funcIdx < SystemType.SystemTransfer.id || tx.funcIdx  > SystemType.SystemSend.id)
       Left(InvalidFunctionIndex)
     else
-      Right(ExecutionContext(signers, s, height, tx, contractId, SystemFunction(tx.funcIdx), Seq(Array.emptyByteArray), description, 0))
+      Right(ExecutionContext(signers, s, height, tx, contractId, SystemFunctions(tx.funcIdx), Seq(Array.emptyByteArray), description, 0))
   }
 
   def fromCallOpc(c: ExecutionContext,
