@@ -13,8 +13,9 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.fromByte(5) should be (Some(DataType.ShortText))
     DataType.fromByte(6) should be (Some(DataType.ContractAccount))
     DataType.fromByte(7) should be (Some(DataType.Account))
+    DataType.fromByte(8) should be (Some(DataType.TokenId))
     DataType.fromByte(0) should be (None)
-    DataType.fromByte(8) should be (None)
+    DataType.fromByte(9) should be (None)
   }
 
   property("convert DataType to byte") {
@@ -25,5 +26,6 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.ShortText.id should be (5)
     DataType.ContractAccount.id should be (6)
     DataType.Account.id should be (7)
+    DataType.TokenId.id should be (8)
   }
 }
