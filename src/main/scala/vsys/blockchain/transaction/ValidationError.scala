@@ -59,5 +59,4 @@ object ValidationError {
 
   //For Event module
   case object InvalidEventTypeError extends ValidationError
-  case object InvalidRuleTypeError extends ValidationError
 }

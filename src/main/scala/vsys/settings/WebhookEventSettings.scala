@@ -4,7 +4,7 @@ import com.typesafe.config.Config
 import vsys.blockchain.transaction.ValidationError
 
 trait WebhookEventSettings {
-  val typeId: Int 
+  val typeId: Int
   val typeDescription: String
   val eventRules: Seq[WebhookEventRules]
 }

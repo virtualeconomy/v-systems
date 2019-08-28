@@ -231,7 +231,4 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     eventList(0) shouldBe(BlockRollbackEventSettings(Seq.empty))
   }
-
-
-
 }

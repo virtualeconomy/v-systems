@@ -25,7 +25,7 @@ object WebhookSettings extends ScorexLogging {
       Seq(WebhookSettings("0.0.0.0", Seq.empty))
 
     } else {
-      val hooks  = config.as[Seq[Config]](s"$configPath.webHooks") map {aHook => 
+      val hooks = config.as[Seq[Config]](s"$configPath.webHooks") map {aHook =>
         val url: String = Try(aHook.as[String]("url")) match {
           case Success(s) => s
           case Failure(e) => 

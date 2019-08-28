@@ -107,10 +107,10 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
 
     settings.events.length should be(4)
     settings.events map {aEvent =>
-      
+
       aEvent match {
       case e: BlockAppendedEventSettings =>
-        e.typeId should be(1) 
+        e.typeId should be(1)
         e.typeDescription should be("Block Appended")
 
         e.eventRules.length should be(4)
