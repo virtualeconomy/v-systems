@@ -33,35 +33,26 @@ case class BlockRollbackEventSettings(override val eventRules: Seq[WebhookEventR
 object WebhookEventSettings {
   def apply(config: Config, typeId: String): Either[ValidationError, WebhookEventSettings] = typeId match {
     case "1" | "Block Appended" =>
-      val ruleFields = Seq("afterHeight", "afterTime", "withTxs", "withMintingTxs")
-      val ruleList = formWebhookEventRules(config, ruleFields)
-
-      Right(BlockAppendedEventSettings(ruleList))
+      val fields = Seq[EventConfigReader](AfterHeight, AfterTime, WithTxs, WithMintingTxs)
+      
+      Right(BlockAppendedEventSettings(fields.flatMap(_.fromConfig(config))))
 
     case "2" | "Tx Confirmed" =>
-      val ruleFields = Seq("relatedAccount", "afterHeight", "afterTime", "includeTypes", 
-        "excludeTypes", "amount.gte", "amount.gt", "amount.lte", "amount.lt, amount.withFee")
-      val ruleList = formWebhookEventRules(config, ruleFields)
+      val fields = Seq[EventConfigReader](RelatedAccs, AfterHeight, AfterTime, IncludeTypes, 
+        ExcludeTypes, AmtGTE, AmtGT, AmtLTE, AmtLT, AmtWithFee)
 
-      Right(TxConfirmedEventSettings(ruleList))
+      Right(TxConfirmedEventSettings(fields.flatMap(_.fromConfig(config))))
 
     case "3" | "State Updated" =>
-      val ruleFields = Seq("afterTime", "afterHeight", "relatedAccount")
-      val ruleList = formWebhookEventRules(config, ruleFields)
+      val fields = Seq[EventConfigReader](AfterTime, AfterHeight, RelatedAccs)
 
-      Right(StateUpdatedEventSettings(ruleList))
+      Right(StateUpdatedEventSettings(fields.flatMap(_.fromConfig(config))))
 
     case "4" | "Block Rollback" =>
-      val ruleFields = Seq("afterTime", "afterHeight", "withTxsOfTypes", "withTxsOfAccs", "withStateOfAccs")
-      val ruleList = formWebhookEventRules(config, ruleFields)
+      val fields = Seq[EventConfigReader](AfterTime, AfterHeight, RelatedAccs, WithTxsOfTypes, WithTxsOfAccs, WithStateOfAccs)
 
-      Right(BlockRollbackEventSettings(ruleList))
+      Right(BlockRollbackEventSettings(fields.flatMap(_.fromConfig(config))))
 
     case _ => Left(ValidationError.InvalidEventTypeError)
-  }
-
-  private def formWebhookEventRules(config: Config, ruleFields: Seq[String]): Seq[WebhookEventRules] = {
-    val generator = WebhookEventRules(config)(_)
-    ruleFields.map(aStr => generator(s"rules.$aStr")).filter(_.isRight).map(_.right.get)
   }
 }
