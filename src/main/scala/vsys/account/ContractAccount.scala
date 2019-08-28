@@ -15,16 +15,6 @@ sealed trait ContractAccount extends Account with Serializable {
   val bytes: ByteStr
   lazy val address: String = bytes.base58
   lazy val stringRepr: String = address
-
-  override def toString: String = stringRepr
-
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case conAcc: ContractAccount => bytes == conAcc.bytes
-    case _ => false
-  }
-
-  override def hashCode(): Int = java.util.Arrays.hashCode(bytes.arr)
-
 }
 
 object ContractAccount extends ScorexLogging {
