@@ -176,10 +176,11 @@ case class TransactionsApiRoute(
           complete(
             Json.arr(
               JsArray(
-                state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, 0, 0)._2
-                .getOrElse(
-                  state.activeLeases()
+                Option(
+                  (state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, 0, 0)._2)
                 )
+                .filter(_.nonEmpty)
+                .getOrElse(state.activeLeases())
                 .flatMap(state.transactionInfo)
                 .map(a => (a._1,a._2,a._2.transaction))
                 .collect{
