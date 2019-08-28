@@ -38,7 +38,7 @@ object TDBAOpcDiff {
       } else if (depositAmount + currentTotal > tokenMax) {
         Left(ContractTokenMaxExceeded)
       } else {
-        val a = Address.fromBytes(issuer.data).toOption.get
+        val a = Address.fromBytes(issuer.data).explicitGet()
         Right(OpcDiff(relatedAddress = Map(a -> true),
           tokenAccountBalance = Map(tokenTotalKey -> depositAmount, issuerBalanceKey -> depositAmount)))
       }
@@ -74,7 +74,7 @@ object TDBAOpcDiff {
         Left(ContractInvalidAmount)
       }
       else {
-        val a = Address.fromBytes(issuer.data).toOption.get
+        val a = Address.fromBytes(issuer.data).explicitGet()
         Right(OpcDiff(relatedAddress = Map(a -> true),
           tokenAccountBalance = Map(tokenTotalKey -> -withdrawAmount, issuerBalanceKey -> -withdrawAmount)
         ))
@@ -93,26 +93,26 @@ object TDBAOpcDiff {
                             sender: DataEntry, recipient: DataEntry, amount: DataEntry,
                             callType: CallType.Value, callIndex: Int): Either[ValidationError, OpcDiff] = {
     if (callType == CallType.Trigger){
-      if (callIndex == 1) {
-        if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
-        else {
-          val senderContractId = ContractAccount.fromBytes(sender.data).toOption.get
-          CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
-        }
-      } else if (callIndex == 2){
-        if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
-        else {
-          val recipientContractId = ContractAccount.fromBytes(recipient.data).toOption.get
-          CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
-        }
-      } else {
-        Left(GenericError("Invalid Call Index"))
+      callIndex match {
+        case 1 =>
+          if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
+          else {
+            val senderContractId = ContractAccount.fromBytes(sender.data).explicitGet()
+            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
+          }
+        case 2 =>
+          if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
+          else {
+            val recipientContractId = ContractAccount.fromBytes(recipient.data).explicitGet()
+            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
+          }
+        case _ => Left(GenericError("Invalid Call Index"))
       }
     } else {
       Left(GenericError("Invalid Call Type"))
     }
   }
-  
+
   def contractTransfer(context: ExecutionContext)
                       (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
                        tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
@@ -143,12 +143,12 @@ object TDBAOpcDiff {
         // relatedContract needed
         for {
           senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, CallType.Trigger, 1)
-          senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).toOption.get -> true) else Map[Address, Boolean]()
+          senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).explicitGet() -> true) else Map[Address, Boolean]()
           senderDiff = OpcDiff(relatedAddress = senderRelatedAddress,
             tokenAccountBalance = Map(senderBalanceKey -> -transferAmount))
           senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
           recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, CallType.Trigger, 2)
-          recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).toOption.get -> true) else Map[Address, Boolean]()
+          recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
           recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress,
             tokenAccountBalance = Map(recipientBalanceKey -> transferAmount))
           returnDiff = OpcDiff.opcDiffMonoid.combine(
@@ -188,8 +188,8 @@ object TDBAOpcDiff {
       } else if (transferAmount < 0) {
         Left(ContractInvalidAmount)
       } else {
-        val s = Address.fromBytes(sender.data).toOption.get
-        val r = Address.fromBytes(recipient.data).toOption.get
+        val s = Address.fromBytes(sender.data).explicitGet()
+        val r = Address.fromBytes(recipient.data).explicitGet()
         if (sender.bytes sameElements recipient.bytes) {
           Right(OpcDiff(relatedAddress = Map(s -> true, r -> true)
           ))
