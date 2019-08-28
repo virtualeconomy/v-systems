@@ -2,6 +2,7 @@ package vsys.blockchain.state.diffs
 
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.state.reader.StateReader
+import vsys.account.ContractAccount.systemContractId
 import vsys.account.PublicKeyAccount
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
@@ -18,10 +19,14 @@ object ExecuteContractFunctionTransactionDiff {
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     } else {
       val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-      (for {
-        exContext <- ExecutionContext.fromExeConTx(s, height, tx)
-        diff <- OpcFuncDiffer(exContext)(tx.data)
-      } yield diff) match {
+      if (tx.contractId.bytes.arr sameElements systemContractId.bytes.arr) {
+        Right(Diff.empty)
+      } else {
+        (for {
+          exContext <- ExecutionContext.fromExeConTx(s, height, tx)
+          diff <- OpcFuncDiffer(exContext)(tx.data)
+        } yield diff)
+      } match {
         case Right(df) => Right(Diff(height = height, tx = tx,
           portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)), tokenDB = df.tokenDB,
           tokenAccountBalance = df.tokenAccountBalance, contractDB = df.contractDB, contractTokens = df.contractTokens,
