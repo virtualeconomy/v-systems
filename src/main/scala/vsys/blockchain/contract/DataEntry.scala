@@ -3,12 +3,14 @@ package vsys.blockchain.contract
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import scorex.crypto.encode.Base58
-import vsys.account.{Address, ContractAccount, PublicKeyAccount}
+import vsys.account.{Address, AddressScheme, ContractAccount, PublicKeyAccount}
+import vsys.account.ContractAccount.ChecksumLength
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.contract.RegisterContractTransaction.MaxDescriptionSize
 import vsys.blockchain.transaction.TransactionParser.{AmountLength, KeyLength}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
+import vsys.utils.crypto.hash.SecureCryptographicHash._
 
 import scala.util.Success
 
@@ -109,7 +111,28 @@ object DataEntry {
       case DataType.Int32 => data.length == 4 && Ints.fromByteArray(data) >= 0
       case DataType.ShortText => Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length && data.length <= 2 + MaxDescriptionSize
       case DataType.ContractAccount => ContractAccount.fromBytes(data).isRight
+      case DataType.TokenId => isTokenIdValid(data)
       case _ => false
   }
+
+  private def isTokenIdValid(addressBytes: Array[Byte]): Boolean = {
+    val version = addressBytes.head
+    val network = addressBytes.tail.head
+    if (version != ContractAccount.TokenAddressVersion) {
+      false
+    } else if (network != AddressScheme.current.chainId) {
+      false
+    } else {
+      if (addressBytes.length != ContractAccount.TokenAddressLength)
+        false
+      else {
+        val checkSum = addressBytes.takeRight(ChecksumLength)
+        val checkSumGenerated = calcCheckSum(addressBytes.dropRight(ChecksumLength))
+        checkSum.sameElements(checkSumGenerated)
+      }
+    }
+  }
+
+  private def calcCheckSum(withoutChecksum: Array[Byte]): Array[Byte] = hash(withoutChecksum).take(ChecksumLength)
 
 }
