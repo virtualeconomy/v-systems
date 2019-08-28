@@ -172,15 +172,36 @@ case class TransactionsApiRoute(
     pathPrefix(Segment) { address =>
       Address.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
-        case Right(a) =>
-          complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
+        case Right(a) => {
+          if(stateSettings.txTypeAccountTxIds){
+            val txNum = state.txTypeAccTxLengths(TransactionType.LeaseTransaction, a)
+            val txIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, txNum, 0)
+            if (txIds._2 != null && txIds._2.size > 0) {
+              complete(Json.arr(JsArray(txIds._2
+                .flatMap(state.transactionInfo)
+                .map(a => (a._1,a._2,a._2.transaction))
+                .filter(a => state.isLeaseActive(a._3.asInstanceOf[LeaseTransaction]))
+                .collect{
+                  case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
+                    if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
+                    processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+                }
+              )))
+            } else {
+              complete(invalidLimit)
+            }
+
+          } else {
+            complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
               .map(a => (a._1,a._2,a._2.transaction))
               .collect{
                 case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
                   if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
                   processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
               }
-          )))
+            )))
+          }
+        }
       }
     }
   }
