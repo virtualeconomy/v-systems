@@ -112,6 +112,52 @@ object TDBAOpcDiff {
       Left(GenericError("Invalid Call Type"))
     }
   }
+  
+  def contractTransfer(context: ExecutionContext)
+                      (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+                       tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+    val dType = Array(amount.dataType.id.toByte, tokenIndex.dataType.id.toByte, sender.dataType.id.toByte, recipient.dataType.id.toByte)
+    val rType = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte, DataType.Account.id.toByte, DataType.Account.id.toByte)
+
+    if (!DataType.checkTypes(dType, rType)) {
+      Left(ContractDataTypeMismatch)
+    } else {
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      val tokenIndexNumber = Ints.fromByteArray(tokenIndex.data)
+      val transferAmount = Longs.fromByteArray(amount.data)
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
+      val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
+      val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
+      val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))
+      val recipientCurrentBalance = context.state.tokenAccountBalance(recipientBalanceKey)
+      if (tokenIndexNumber >= contractTokens || tokenIndexNumber < 0) {
+        Left(ContractInvalidTokenIndex)
+      } else if (transferAmount > senderCurrentBalance) {
+        Left(ContractTokenBalanceInsufficient)
+      } else if (Try(Math.addExact(transferAmount, recipientCurrentBalance)).isFailure) {
+        Left(ValidationError.OverflowError)
+      } else if (transferAmount < 0) {
+        Left(ContractInvalidAmount)
+      } else {
+        // TODO
+        // relatedContract needed
+        for {
+          senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, CallType.Trigger, 1)
+          senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).toOption.get -> true) else Map[Address, Boolean]()
+          senderDiff = OpcDiff(relatedAddress = senderRelatedAddress,
+            tokenAccountBalance = Map(senderBalanceKey -> -transferAmount))
+          senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
+          recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, CallType.Trigger, 2)
+          recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).toOption.get -> true) else Map[Address, Boolean]()
+          recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress,
+            tokenAccountBalance = Map(recipientBalanceKey -> transferAmount))
+          returnDiff = OpcDiff.opcDiffMonoid.combine(
+            OpcDiff.opcDiffMonoid.combine(senderTotalDiff, recipientCallDiff),
+            recipientDiff)
+        } yield returnDiff
+      }
+    }
+  }
 
   def transfer(context: ExecutionContext)
               (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
