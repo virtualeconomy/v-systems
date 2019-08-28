@@ -2,13 +2,11 @@ package vsys.blockchain.state.opcdiffs
 
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import vsys.blockchain.state._
-import vsys.account.Address
+import vsys.account.{Address, ContractAccount}
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex,
-  ContractTokenBalanceInsufficient, ContractTokenMaxExceeded, ContractUnsupportedDeposit, ContractUnsupportedWithdraw}
+import vsys.blockchain.transaction.ValidationError._
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.blockchain.contract.{DataEntry, DataType}
-import vsys.blockchain.contract.ExecutionContext
+import vsys.blockchain.contract.{CallType, DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right, Try}
 
@@ -48,7 +46,7 @@ object TDBAOpcDiff {
   }
 
   def depositWithoutTokenIndex(context: ExecutionContext)
-             (issuer: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
+                              (issuer: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
 
     val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
     deposit(context)(issuer, amount, tokenIndex)
@@ -85,10 +83,34 @@ object TDBAOpcDiff {
   }
 
   def withdrawWithoutTokenIndex(context: ExecutionContext)
-                              (issuer: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
+                               (issuer: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
 
     val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
     withdraw(context)(issuer, amount, tokenIndex)
+  }
+
+  def getTriggerCallOpcDiff(context: ExecutionContext, diff: OpcDiff,
+                            sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+                            callType: CallType.Value, callIndex: Int): Either[ValidationError, OpcDiff] = {
+    if (callType == CallType.Trigger){
+      if (callIndex == 1) {
+        if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
+        else {
+          val senderContractId = ContractAccount.fromBytes(sender.data).toOption.get
+          CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
+        }
+      } else if (callIndex == 2){
+        if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
+        else {
+          val recipientContractId = ContractAccount.fromBytes(recipient.data).toOption.get
+          CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
+        }
+      } else {
+        Left(GenericError("Invalid Call Index"))
+      }
+    } else {
+      Left(GenericError("Invalid Call Type"))
+    }
   }
 
   def transfer(context: ExecutionContext)
@@ -136,7 +158,7 @@ object TDBAOpcDiff {
   }
 
   def transferWithoutTokenIndex(context: ExecutionContext)
-                              (sender: DataEntry, recipient: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
+                               (sender: DataEntry, recipient: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
 
     val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
     transfer(context)(sender, recipient, amount, tokenIndex)
