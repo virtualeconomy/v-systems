@@ -1,5 +1,10 @@
 package vsys.blockchain.state.systemdiffs
 
+import vsys.blockchain.contract.{DataEntry, ExecutionContext}
+import vsys.blockchain.state.Diff
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.ValidationError.ContractInvalidFunction
+
 object SystemDiffer {
 
   object SystemType extends Enumeration {
@@ -18,4 +23,12 @@ object SystemDiffer {
 
   val SystemFunctions: Seq[Array[Byte]] = Seq(SystemFunction.SystemSend, SystemFunction.SystemDeposit,
     SystemFunction.SystemWithdraw, SystemFunction.SystemTransfer)
+
+  def apply(context: ExecutionContext)
+           (sysType: SystemType.Value,
+            data: Seq[DataEntry]): Either[ValidationError, Diff] = sysType match {
+    case SystemType.SystemTransfer => SystemTransferDiff.transfer(context)(data(1), data(2), data(3))
+
+    case _ => Left(ContractInvalidFunction)
+  }
 }

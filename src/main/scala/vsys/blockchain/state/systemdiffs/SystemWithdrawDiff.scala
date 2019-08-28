@@ -4,10 +4,10 @@ import vsys.blockchain.contract.{DataEntry, ExecutionContext}
 import vsys.blockchain.state.Diff
 import vsys.blockchain.transaction.ValidationError
 
-object SystemTransferDiff {
+object SystemWithdrawDiff {
 
-  def transfer(context: ExecutionContext)
-              (fromAccount: DataEntry, toAccount: DataEntry, amount: DataEntry): Either[ValidationError, Diff] = {
+  def withdraw(context: ExecutionContext)
+              (fromAccount: DataEntry, amount: DataEntry): Either[ValidationError, Diff] = {
     Right(Diff.empty)
   }
 }
