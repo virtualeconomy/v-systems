@@ -34,4 +34,10 @@ object Account {
       case _ => Left(ValidationError.InvalidAddress)
     }
   }
+
+  def fromString(s: String): Either[ValidationError, Account] = {
+    if (s.startsWith(ContractAccount.Prefix) || s.startsWith("C"))
+      ContractAccount.fromString(s)
+    else Address.fromString(s)
+  }
 }
