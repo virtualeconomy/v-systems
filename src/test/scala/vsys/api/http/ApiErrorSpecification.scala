@@ -8,19 +8,11 @@ import vsys.blockchain.database.Entry
 
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 
-import vsys.account.{Alias, Address}
+import vsys.account.Address
 
 import play.api.libs.json.JsError
 
 class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
-
-  property("ApiError should be thrown if alias not exist") {
-    val alias = Alias.fromString("alias:T:sawesha").right.get
-    val err = ValidationError.AliasNotExists(alias)
-    val result = ApiError.fromValidationError(err)
-    result.id should be(AliasNotExists(alias).id)
-    result.code should be(StatusCodes.NotFound)
-  }
 
   property("UnsupportedTransactionType should result in CustomValidationError with msg 'UnsupportedTransactionType'") {
     val err = ValidationError.UnsupportedTransactionType

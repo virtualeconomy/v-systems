@@ -80,21 +80,6 @@ class RollbackSpecSuite extends FreeSpec with ScalaFutures with IntegrationPatie
       hashBeforeApply shouldBe hashAfterApply
     }, 5.minutes)
   }
-
-  "Alias transaction rollback should works fine" in {
-    val alias = "test_alias4"
-
-    val f = for {
-      startHeight <- Future.traverse(nodes)(_.height).map(_.min)
-      aliasTxId <- nodes.head.createAlias(nodes.head.address, alias, 1.vsys).map(_.id)
-      _ <- Future.traverse(nodes)(_.waitForTransaction(aliasTxId))
-      _ <- Future.traverse(nodes)(_.rollback(startHeight, returnToUTX = false))
-      secondAliasTxId <- nodes.head.createAlias(nodes.head.address, alias, 1.vsys).map(_.id)
-      _ <- Future.traverse(nodes)(_.waitForTransaction(secondAliasTxId))
-    } yield succeed
-
-    Await.result(f, 1.minute)
-  }
 }
 
 object RollbackSpecSuite {

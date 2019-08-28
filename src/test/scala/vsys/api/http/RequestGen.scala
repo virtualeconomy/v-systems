@@ -3,8 +3,6 @@ package vsys.api.http
 import org.scalacheck.Gen.{alphaNumChar, choose, listOfN, oneOf}
 import org.scalacheck.{Arbitrary, Gen => G}
 import scorex.crypto.encode.Base58
-import vsys.account.Alias
-import vsys.api.http.alias.SignedCreateAliasRequest
 import vsys.api.http.assets._
 import vsys.api.http.leasing.{SignedLeaseCancelRequest, SignedLeaseRequest}
 import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
@@ -29,22 +27,17 @@ trait RequestGen extends TransactionGen {
     genBoundedString(IssueTransaction.MaxAssetNameLength + 1, IssueTransaction.MaxAssetNameLength + 50)
   ).map(new String(_))
 
-  val invalidAliasStringByLength: G[String] = oneOf(
-    G.choose(0, Alias.MinLength - 1) flatMap { sz => G.listOfN(sz, G.alphaNumChar) },
-    G.choose(Alias.MaxLength + 1, Alias.MaxLength + 50) flatMap { sz => G.listOfN(sz, G.alphaNumChar) }
-  ).map(_.mkString)
-
   val longDescription: G[String] =
     genBoundedBytes(IssueTransaction.MaxDescriptionLength + 1, IssueTransaction.MaxDescriptionLength + 50)
       .map(Base58.encode)
 
-  val addressGen: G[String] = listOfN(32, Arbitrary.arbByte.arbitrary).map(b => Base58.encode(b.toArray))
+  val addressStrGen: G[String] = listOfN(32, Arbitrary.arbByte.arbitrary).map(b => Base58.encode(b.toArray))
   val signatureGen: G[String] = listOfN(TransactionParser.SignatureLength, Arbitrary.arbByte.arbitrary)
     .map(b => Base58.encode(b.toArray))
   private val assetIdStringGen = assetIdGen.map(_.map(_.base58))
 
   private val commonFields = for {
-    _account <- addressGen
+    _account <- addressStrGen
     _fee <- smallFeeGen
   } yield (_account, _fee)
 
@@ -94,7 +87,7 @@ trait RequestGen extends TransactionGen {
 
   val transferReq: G[TransferRequest] = for {
     (account, fee) <- commonFields
-    recipient <- accountOrAliasGen.map(_.stringRepr)
+    recipient <- addressGen.map(_.stringRepr)
     amount <- positiveLongGen
     assetId <- assetIdStringGen
     feeAssetId <- assetIdStringGen
@@ -108,17 +101,11 @@ trait RequestGen extends TransactionGen {
   } yield SignedTransferRequest(_tr.sender, _tr.assetId, _tr.recipient, _tr.amount, _tr.fee, _tr.feeAssetId, _timestamp,
     _tr.attachment, _signature)
 
-  val createAliasReq: G[SignedCreateAliasRequest] = for {
-    _signature <- signatureGen
-    _timestamp <- ntpTimestampGen
-    _alias <- createAliasGen
-  } yield SignedCreateAliasRequest(_alias.sender.toString, _alias.fee, _alias.alias.name, _timestamp, _signature)
-
   val leaseReq: G[SignedLeaseRequest] = for {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
-    _alias <- leaseGen
-  } yield SignedLeaseRequest(EllipticCurve25519Proof.fromBytes(_alias.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toString, _alias.amount, _alias.fee, _alias.feeScale, _alias.recipient.toString, _timestamp, _signature)
+    _leaseTx <- leaseGen
+  } yield SignedLeaseRequest(EllipticCurve25519Proof.fromBytes(_leaseTx.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toString, _leaseTx.amount, _leaseTx.fee, _leaseTx.feeScale, _leaseTx.recipient.toString, _timestamp, _signature)
 
   val leaseCancelReq: G[SignedLeaseCancelRequest] = for {
     _signature <- signatureGen

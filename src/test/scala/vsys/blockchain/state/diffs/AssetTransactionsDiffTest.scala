@@ -42,7 +42,7 @@ class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     }
   }
 
-  property("Cannot reissue/burn non-existing alias") {
+  property("Cannot reissue/burn non-existing asset") {
     val setup: Gen[(GenesisTransaction, ReissueTransaction, BurnTransaction)] = for {
       master <- accountGen
       ts <- timestampGen
@@ -61,7 +61,7 @@ class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     }
   }
 
-  property("Cannot reissue/burn non-owned alias") {
+  property("Cannot reissue/burn non-owned asset") {
     val setup = for {
       ((gen, issue), (_, _)) <- issueReissueBurnTxs(isReissuable = true)
       other <- accountGen.suchThat(_ != issue.sender.toAddress)
@@ -83,7 +83,7 @@ class AssetTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     }
   }
 
-  property("Cannot reissue non-reissuable alias") {
+  property("Cannot reissue non-reissuable asset") {
     forAll(issueReissueBurnTxs(isReissuable = false)) { case ((gen, issue), (reissue, _)) =>
       assertDiffEi(Seq(TestBlock.create(Seq(gen, issue))), TestBlock.create(Seq(reissue))) { blockDiffEi =>
         blockDiffEi should produce("Asset is not reissuable")

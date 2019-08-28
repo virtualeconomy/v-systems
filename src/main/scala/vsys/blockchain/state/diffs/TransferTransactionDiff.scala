@@ -15,44 +15,38 @@ object TransferTransactionDiff {
   def apply(state: StateReader, s: FunctionalitySettings, blockTime: Long, height: Int)(tx: TransferTransaction): Either[ValidationError, Diff] = {
     val sender = Address.fromPublicKey(tx.sender.publicKey)
 
-    val isInvalidEi = for {
-      recipient <- state.resolveAliasEi(tx.recipient)
-      portfolios = (
-        tx.assetId match {
-          case None => Map(sender -> Portfolio(-tx.amount, LeaseInfo.empty, Map.empty)).combine(
-            Map(recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty))
+    val recipient = tx.recipient
+    val portfolios = (
+      tx.assetId match {
+        case None => Map(sender -> Portfolio(-tx.amount, LeaseInfo.empty, Map.empty)).combine(
+          Map(recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty))
+        )
+        case Some(aid) =>
+          Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.amount))).combine(
+            Map(recipient -> Portfolio(0, LeaseInfo.empty, Map(aid -> tx.amount)))
           )
-          case Some(aid) =>
-            Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.amount))).combine(
-              Map(recipient -> Portfolio(0, LeaseInfo.empty, Map(aid -> tx.amount)))
-            )
-        }).combine(
-        tx.feeAssetId match {
-          case None => Map(sender -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty))
-          case Some(aid) =>
-            Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.fee)))
-        }
-      )
-      assetIssued = tx.assetId match {
-        case None => true
-        case Some(aid) => state.assetInfo(aid).isDefined
+      }).combine(
+      tx.feeAssetId match {
+        case None => Map(sender -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty))
+        case Some(aid) =>
+          Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.fee)))
       }
-      feeAssetIssued = tx.feeAssetId match {
-        case None => true
-        case Some(aid) => state.assetInfo(aid).isDefined
-      }
-    } yield (portfolios, !(assetIssued && feeAssetIssued))
-
-    isInvalidEi match {
-      case Left(e) => Left(e)
-      case Right((portfolios, invalid)) =>
-        if (invalid)
-          Left(GenericError(s"Unissued assets are not allowed")) 
-        else  
-          Right(Diff(height = height,
-            tx = tx,
-            portfolios = portfolios,
-            chargedFee = tx.fee))
+    )
+    val assetIssued = tx.assetId match {
+      case None => true
+      case Some(aid) => state.assetInfo(aid).isDefined
     }
+    val feeAssetIssued = tx.feeAssetId match {
+      case None => true
+      case Some(aid) => state.assetInfo(aid).isDefined
+    }
+
+    if (!(assetIssued && feeAssetIssued))
+      Left(GenericError(s"Unissued assets are not allowed")) 
+    else  
+      Right(Diff(height = height,
+        tx = tx,
+        portfolios = portfolios,
+        chargedFee = tx.fee))
   }
 }

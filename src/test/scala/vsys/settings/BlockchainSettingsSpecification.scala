@@ -28,7 +28,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        allow-lease-transaction-after = 10
         |        allow-exchange-transaction-after = 11
         |        allow-invalid-reissue-in-same-block-until-timestamp = 12
-        |        allow-createalias-transaction-after = 13
         |        allow-multiple-lease-cancel-transaction-until-timestamp = 14
         |        reset-effective-balances-at-height = 15
         |        allow-leased-balance-transfer-until = 17

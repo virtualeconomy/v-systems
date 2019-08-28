@@ -17,21 +17,20 @@ object LeaseTransactionsDiff {
 
   def lease(s: StateReader, height: Int)(tx: LeaseTransaction): Either[ValidationError, Diff] = {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-    s.resolveAliasEi(tx.recipient).flatMap { recipient =>
-      if (recipient == sender.toAddress)
-        Left(GenericError("Cannot lease to self"))
+    val recipient = tx.recipient
+    if (recipient == sender.toAddress)
+      Left(GenericError("Cannot lease to self"))
+    else {
+      val ap = s.accountPortfolio(sender)
+      if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
+        Left(GenericError(s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"))
+      }
       else {
-        val ap = s.accountPortfolio(sender)
-        if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
-          Left(GenericError(s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"))
-        }
-        else {
-          val portfolioDiff: Map[Address, Portfolio] = Map(
-            sender.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
-            recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
-          )
-          Right(Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee))
-        }
+        val portfolioDiff: Map[Address, Portfolio] = Map(
+          sender.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
+          recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
+        )
+        Right(Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee))
       }
     }
   }
@@ -44,7 +43,7 @@ object LeaseTransactionsDiff {
     }
     for {
       lease <- leaseEi
-      recipient <- s.resolveAliasEi(lease.recipient)
+      recipient = lease.recipient
       isLeaseActive = s.isLeaseActive(lease)
       leaseSender = EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey
       _ <- if (!isLeaseActive)

@@ -13,7 +13,6 @@ import org.asynchttpclient.util.HttpConstants
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json.{parse, stringify, toJson}
 import play.api.libs.json._
-import vsys.api.http.alias.CreateAliasRequest
 import vsys.api.http.assets._
 import vsys.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.blockchain.transaction.assets.exchange.Order
@@ -165,9 +164,6 @@ trait NodeApi {
 
   def signedTransfer(transfer: SignedTransferRequest): Future[Transaction] =
     postJson("/assets/broadcast/transfer", transfer).as[Transaction]
-
-  def createAlias(targetAddress: String, alias: String, fee: Long): Future[Transaction] =
-    postJson("/alias/create", CreateAliasRequest(targetAddress, alias, fee)).as[Transaction]
 
   def rollback(to: Int, returnToUTX: Boolean = true): Future[Unit] =
     postJson("/debug/rollback", RollbackParams(to, returnToUTX)).map(_ => ())
