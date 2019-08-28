@@ -7,6 +7,7 @@ import vsys.blockchain.transaction.ValidationError.{GenericError, InvalidContrac
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.state.opcdiffs.OpcDiff
+import vsys.blockchain.state.systemdiffs.SystemDiffer.{SystemFunction, SystemType}
 import vsys.utils.serialization.Deser
 
 case class ExecutionContext(signers: Seq[PublicKeyAccount],
@@ -50,30 +51,14 @@ object ExecutionContext {
   def fromExeSysTx(s: StateReader,
                    height: Int,
                    tx: ExecuteContractFunctionTransaction,
-                   contractId: ContractAccount,
-                   callType: CallType.Value,
-                   callIndex: Int): Either[ValidationError, ExecutionContext] = {
+                   ): Either[ValidationError, ExecutionContext] = {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
+    val contractId = tx.contractId
     val description = tx.attachment
-    s.contractContent(contractId.bytes) match {
-      case Some(contract) => if (callType == CallType.Trigger) {
-        val opcFunc = contract._3.trigger.find(a => (a.length > 2) && (a(2) == callIndex.toByte))
-        if (opcFunc.isDefined) {
-          Right(ExecutionContext(signers, s, height, tx, contractId, opcFunc.get, contract._3.stateVar, description, 0))
-        } else {
-          Left(GenericError("no such trigger"))
-        }
-      } else if (callType == CallType.Function) {
-        if (callIndex >= 0 && callIndex < contract._3.descriptor.length) {
-          Right(ExecutionContext(signers, s, height, tx, contractId, contract._3.descriptor(callIndex), contract._3.stateVar, description, 0))
-        } else {
-          Left(GenericError("invalid contract function index"))
-        }
-      } else {
-        Left(GenericError("invalid call type"))
-      }
-      case _ => Left(InvalidContractAddress)
-    }
+    if (tx.funcIdx < SystemType.SystemTransfer.id || tx.funcIdx  > SystemType.SystemSend.id)
+      Left(InvalidFunctionIndex)
+    else
+      Right(ExecutionContext(signers, s, height, tx, contractId, SystemFunction(tx.funcIdx), Seq(Array.emptyByteArray), description, 0))
   }
 
   def fromCallOpc(c: ExecutionContext,
