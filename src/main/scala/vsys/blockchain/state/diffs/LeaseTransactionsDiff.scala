@@ -45,11 +45,19 @@ object LeaseTransactionsDiff {
       lease <- leaseEi
       recipient = lease.recipient
       isLeaseActive = s.isLeaseActive(lease)
-      leaseProof <- EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr)
+      leaseProofsHead <- lease.proofs.proofs.headOption match {
+        case Some(x) => Right(x)
+        case _ => Left(EmptyProofs)
+      }
+      leaseProof <- EllipticCurve25519Proof.fromBytes(leaseProofsHead.bytes.arr)
       leaseSender = leaseProof.publicKey
       _ <- if (!isLeaseActive)
         Left(GenericError(s"Cannot cancel already cancelled lease")) else Right(())
-      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
+      proofsHead <- tx.proofs.proofs.headOption match {
+        case Some(x) => Right(x)
+        case _ => Left(EmptyProofs)
+      }
+      proof <- EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr)
       canceller = proof.publicKey
       portfolioDiff <- if (canceller == leaseSender) {
         Right(Monoid.combine(
