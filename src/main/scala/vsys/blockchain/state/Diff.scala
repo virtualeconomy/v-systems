@@ -2,7 +2,7 @@ package vsys.blockchain.state
 
 import cats.Monoid
 import cats.implicits._
-import vsys.account.Address
+import vsys.account.{Account, Address}
 import vsys.blockchain.transaction.Transaction
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.database.Entry
@@ -43,8 +43,8 @@ object AssetInfo {
   }
 }
 
-case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Address])],
-                portfolios: Map[Address, Portfolio],
+case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Account])],
+                portfolios: Map[Account, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
                 slotids: Map[Int, Option[String]],
                 addToSlot: Map[String, Option[Int]],
@@ -60,10 +60,10 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
                 orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
 
-  lazy val accountTransactionIds: Map[Address, List[ByteStr]] = {
-    val map: List[(Address, Set[(Int, Long, ByteStr)])] = transactions.toList
+  lazy val accountTransactionIds: Map[Account, List[ByteStr]] = {
+    val map: List[(Account, Set[(Int, Long, ByteStr)])] = transactions.toList
       .flatMap { case (id, (h, tx, accs)) => accs.map(acc => acc -> Set((h, tx.transaction.timestamp, id))) }
-    val groupedByAcc = map.foldLeft(Map.empty[Address, Set[(Int, Long, ByteStr)]]) { case (m, (acc, set)) =>
+    val groupedByAcc = map.foldLeft(Map.empty[Account, Set[(Int, Long, ByteStr)]]) { case (m, (acc, set)) =>
       m.combine(Map(acc -> set))
     }
     groupedByAcc
@@ -72,10 +72,10 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
   }
 
 
-  lazy val txTypeAccountTxIds: Map[(TransactionType.Value, Address), List[ByteStr]] = {
-    val map: List[((TransactionType.Value, Address), Set[(Int, Long, ByteStr)])] = transactions.toList
+  lazy val txTypeAccountTxIds: Map[(TransactionType.Value, Account), List[ByteStr]] = {
+    val map: List[((TransactionType.Value, Account), Set[(Int, Long, ByteStr)])] = transactions.toList
       .flatMap { case (id, (h, tx, accs)) => accs.map(acc => (tx.transaction.transactionType, acc) -> Set((h, tx.transaction.timestamp, id))) }
-    val groupedByTuple = map.foldLeft(Map.empty[(TransactionType.Value, Address), Set[(Int, Long, ByteStr)]]) { case (m, (tuple, set)) =>
+    val groupedByTuple = map.foldLeft(Map.empty[(TransactionType.Value, Account), Set[(Int, Long, ByteStr)]]) { case (m, (tuple, set)) =>
       m.combine(Map(tuple -> set))
     }
     groupedByTuple
@@ -97,7 +97,7 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Addre
 
 object Diff {
   def apply(height: Int, tx: Transaction,
-            portfolios: Map[Address, Portfolio] = Map.empty,
+            portfolios: Map[Account, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
             slotids: Map[Int, Option[String]] = Map.empty,
             addToSlot: Map[String, Option[Int]] = Map.empty,

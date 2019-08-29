@@ -2,6 +2,7 @@ package vsys.blockchain.state.diffs
 
 import cats._
 import cats.implicits._
+import vsys.account.Account
 import vsys.blockchain.state._
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.ValidationError
@@ -25,12 +26,12 @@ object ExchangeTransactionDiff {
 
     def vsysPortfolio(amt: Long) = Portfolio(amt, LeaseInfo.empty, Map.empty)
 
-    val feeDiff = Monoid.combineAll(Seq(
+    val feeDiff: Map[Account, Portfolio] = Monoid.combineAll(Seq(
       Map(matcher -> vsysPortfolio(t.buyMatcherFee + t.sellMatcherFee - t.fee)),
       Map(buyer -> vsysPortfolio(-t.buyMatcherFee)),
       Map(seller -> vsysPortfolio(-t.sellMatcherFee))))
 
-    val priceDiff = t.buyOrder.assetPair.priceAsset match {
+    val priceDiff: Map[Account, Portfolio] = t.buyOrder.assetPair.priceAsset match {
       case Some(assetId) => Monoid.combine(
         Map(buyer -> Portfolio(0, LeaseInfo.empty, Map(assetId -> buyPriceAssetChange))),
         Map(seller -> Portfolio(0, LeaseInfo.empty, Map(assetId -> sellPriceAssetChange))))
@@ -39,7 +40,7 @@ object ExchangeTransactionDiff {
         Map(seller -> Portfolio(sellPriceAssetChange, LeaseInfo.empty, Map.empty)))
     }
 
-    val amountDiff = t.buyOrder.assetPair.amountAsset match {
+    val amountDiff: Map[Account, Portfolio] = t.buyOrder.assetPair.amountAsset match {
       case Some(assetId) => Monoid.combine(
         Map(buyer -> Portfolio(0, LeaseInfo.empty, Map(assetId -> buyAmountAssetChange))),
         Map(seller -> Portfolio(0, LeaseInfo.empty, Map(assetId -> sellAmountAssetChange))))
