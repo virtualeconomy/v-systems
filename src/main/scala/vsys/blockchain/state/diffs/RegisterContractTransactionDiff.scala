@@ -5,7 +5,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.state.opcdiffs.OpcFuncDiffer
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
-import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
 import vsys.blockchain.transaction.ValidationError._
 

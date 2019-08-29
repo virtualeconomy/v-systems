@@ -2,7 +2,6 @@ package vsys.blockchain.transaction
 
 import vsys.account.Address
 import vsys.blockchain.transaction.assets.exchange.Order
-import vsys.blockchain.transaction.TransactionStatus
 
 trait ValidationError
 
