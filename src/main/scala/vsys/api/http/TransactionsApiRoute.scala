@@ -17,8 +17,7 @@ import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
 import vsys.blockchain.UtxPool
 import vsys.settings.{RestAPISettings, StateSettings}
 
-import scala.util.{Try, Success}
-
+import scala.util.Success
 import scala.util.control.Exception
 
 @Path("/transactions")
@@ -84,8 +83,6 @@ case class TransactionsApiRoute(
   private val invalidOffset = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.offset")
 
   private val invalidTxType = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.txType")
-
-
 
   @Path("/list")
   @ApiOperation(value = "List",
