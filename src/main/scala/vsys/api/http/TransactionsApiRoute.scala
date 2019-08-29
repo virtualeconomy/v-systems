@@ -176,9 +176,8 @@ case class TransactionsApiRoute(
           if(stateSettings.txTypeAccountTxIds){
             val txNum = state.txTypeAccTxLengths(TransactionType.LeaseTransaction, a)
             val txIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, txNum, 0)
-            if (txIds._2 != null && txIds._2.size > 0) {
-              complete(Json.arr(JsArray(txIds._2
-                .flatMap(state.transactionInfo)
+            val res = Option(txIds._2)
+              .map(_.flatMap(state.transactionInfo)
                 .map(a => (a._1,a._2,a._2.transaction))
                 .filter(a => state.isLeaseActive(a._3.asInstanceOf[LeaseTransaction]))
                 .collect{
@@ -186,9 +185,10 @@ case class TransactionsApiRoute(
                     if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
                     processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
                 }
-              )))
-            } else {
-              complete(StatusCodes.NotFound -> Json.obj("message" -> "Address has no transaction"))
+              )
+            res match {
+              case Some(tx) => complete(Json.arr(JsArray(tx)))
+              case None => complete(StatusCodes.NotFound -> Json.obj("message" -> "Address has no transaction"))
             }
           } else {
             complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
