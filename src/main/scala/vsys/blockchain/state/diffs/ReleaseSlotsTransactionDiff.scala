@@ -19,7 +19,6 @@ object ReleaseSlotsTransactionDiff {
     */
     EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap(proof => {
       val sender = proof.publicKey
-      val proofLength = tx.proofs.proofs.length
 
       val MinimalSlotNumber = 10
 
