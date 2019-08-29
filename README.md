@@ -1,4 +1,4 @@
-# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)
+# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master)
 
 The code in master branch is under development. The latest release for each network can be found in the [Releases section](https://github.com/virtualeconomy/vsys/releases). You can switch to the corresponding tag and build the application.
 
