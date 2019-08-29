@@ -19,7 +19,7 @@ object ReleaseSlotsTransactionDiff {
     */
     tx.proofs.proofs.headOption match {
       case Some(proofsHead) => {
-        EllipticCurve25519Proof.fromBytes(.bytes.arr).flatMap(proof => {
+        EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr).flatMap(proof => {
           val sender = proof.publicKey
 
           val MinimalSlotNumber = 10

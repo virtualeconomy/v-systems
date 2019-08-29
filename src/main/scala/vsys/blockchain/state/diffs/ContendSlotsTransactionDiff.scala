@@ -7,7 +7,7 @@ import vsys.blockchain.transaction.TransactionStatus
 import vsys.blockchain.transaction.spos.ContendSlotsTransaction
 import vsys.account.Address
 import vsys.settings.FunctionalitySettings
-import vsys.blockchain.transaction.ValidationError.GenericError
+import vsys.blockchain.transaction.ValidationError.{EmptyProofs, GenericError}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.consensus.SPoSCalc._
 
@@ -18,7 +18,7 @@ object ContendSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ContendSlotsTransaction): Either[ValidationError, Diff] = {
     tx.proofs.proofs.headOption match {
       case Some(proofsHead) => {
-        EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof => {
+        EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr).flatMap( proof => {
           val sender = proof.publicKey
           val multiSlotsCheck = s.addressSlot(sender.address) match {
             case None => false

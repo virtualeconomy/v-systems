@@ -19,7 +19,7 @@ object RegisterContractTransactionDiff {
     */
     tx.proofs.proofs.headOption match {
       case Some(proofsHead) => {
-        EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof => {
+        EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr).flatMap( proof => {
           val sender = proof.publicKey
           val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
           ( for {

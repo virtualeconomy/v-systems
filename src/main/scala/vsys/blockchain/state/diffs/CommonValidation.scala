@@ -1,7 +1,7 @@
 package vsys.blockchain.state.diffs
 
 import vsys.blockchain.state.reader.StateReader
-import vsys.blockchain.transaction.ValidationError.{GenericError, Mistiming}
+import vsys.blockchain.transaction.ValidationError.{GenericError, Mistiming, EmptyProofs}
 import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.lease._
 import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
@@ -22,7 +22,7 @@ object CommonValidation {
     tx match {
       case ptx: PaymentTransaction =>
         for {
-          proofsHead <- tx.proofs.proofs.headOption match {
+          proofsHead <- ptx.proofs.proofs.headOption match {
             case Some(x) => Right(x)
             case _ => Left(EmptyProofs)
           }

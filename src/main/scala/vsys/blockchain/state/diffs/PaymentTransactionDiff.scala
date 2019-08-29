@@ -6,6 +6,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.transaction.{PaymentTransaction, ValidationError}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction.ValidationError.EmptyProofs
 
 object PaymentTransactionDiff {
 
