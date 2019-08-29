@@ -9,8 +9,8 @@ import scala.util.{Left, Right}
 
 object GenesisTransactionDiff {
   def apply(fs: FunctionalitySettings, height: Int)(tx: GenesisTransaction): Either[ValidationError, Diff] = {
-    if (height != 1) return Left(GenericError("GenesisTransaction cannot appear in non-initial block"))
-    if (tx.slotId < fs.numOfSlots && tx.slotId >=0)
+    if (height != 1) Left(GenericError("GenesisTransaction cannot appear in non-initial block"))
+    else if (tx.slotId < fs.numOfSlots && tx.slotId >=0)
       Right(Diff(
         height = height,
         tx = tx,

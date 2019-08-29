@@ -17,9 +17,6 @@ object RegisterContractTransactionDiff {
       no need to validate the name duplication coz that will create a duplicate transacion and
       will fail with duplicated transaction id
     */
-    if (tx.proofs.proofs.length > Proofs.MaxProofs) {
-      return Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
-    }
     EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof => {
       val sender = proof.publicKey
       val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))

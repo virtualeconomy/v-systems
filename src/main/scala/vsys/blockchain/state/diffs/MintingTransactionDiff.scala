@@ -15,10 +15,10 @@ object MintingTransactionDiff {
   def apply(stateReader: StateReader, height: Int, settings: FunctionalitySettings, blockTime: Long)
            (tx: MintingTransaction): Either[ValidationError, Diff] = {
     if (tx.currentBlockHeight != height)
-      return Left(GenericError(s"Invalid MintingTransaction, minting transaction height is different from the block height"))
-    if (tx.amount != MintingReward)
-      return Left(ValidationError.WrongMintingReward(tx.amount))
-    Right(Diff(
+      Left(GenericError(s"Invalid MintingTransaction, minting transaction height is different from the block height"))
+    else if (tx.amount != MintingReward)
+      Left(ValidationError.WrongMintingReward(tx.amount))
+    else Right(Diff(
       height = height,
       tx = tx,
       portfolios = Map(tx.recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty))

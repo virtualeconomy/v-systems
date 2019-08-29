@@ -78,7 +78,7 @@ object CommonValidation {
 
   def disallowProofsCountOverflow[T <: ProvenTransaction](tx: T): Either[ValidationError, T] = {
     if (tx.proofs.proofs.length > Proofs.MaxProofs){
-      return Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
+      Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     } else Right(tx)
   }
 }

@@ -14,9 +14,9 @@ object DbTransactionDiff {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     // any validation needed? maybe later access control?
     if (tx.dbKey.length > DbPutTransaction.MaxDbKeyLength || tx.dbKey.length < DbPutTransaction.MinDbKeyLength){
-      return Left(ValidationError.InvalidDbKey)
+      Left(ValidationError.InvalidDbKey)
     }
-    Right(Diff(height = height, tx = tx,
+    else Right(Diff(height = height, tx = tx,
       portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
       dbEntries = Map(tx.storageKey -> tx.entry),
       chargedFee = tx.fee
