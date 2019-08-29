@@ -85,9 +85,6 @@ case class TransactionsApiRoute(
 
   private val invalidTxType = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.txType")
 
-  private val internalErr = StatusCodes.InternalServerError -> Json.obj("message" -> "Internal server error")
-
-  private val notFound = StatusCodes.NotFound -> Json.obj("message" -> "Not Found")
 
 
   @Path("/list")
@@ -183,7 +180,7 @@ case class TransactionsApiRoute(
             val txNum = state.txTypeAccTxLengths(TransactionType.LeaseTransaction, a)
             val txIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, txNum, 0)
             if (txIds._2 != null && txIds._2.size > 0) {
-              val res =  Try { Json.arr(JsArray(txIds._2
+              complete(Json.arr(JsArray(txIds._2
                 .flatMap(state.transactionInfo)
                 .map(a => (a._1,a._2,a._2.transaction))
                 .filter(a => state.isLeaseActive(a._3.asInstanceOf[LeaseTransaction]))
@@ -192,14 +189,9 @@ case class TransactionsApiRoute(
                     if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
                     processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
                 }
-              )) }
-              res match {
-                case Success(v) => complete(res)
-                case _ => complete(internalErr)
-              }
-             
+              )))
             } else {
-              complete(notFound)
+              complete(StatusCodes.NotFound -> Json.obj("message" -> "Address has no transaction"))
             }
           } else {
             complete(Json.arr(JsArray(state.activeLeases().flatMap(state.transactionInfo)
