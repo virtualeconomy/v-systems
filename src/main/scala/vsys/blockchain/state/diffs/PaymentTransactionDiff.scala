@@ -14,20 +14,18 @@ object PaymentTransactionDiff {
 
   def apply(stateReader: StateReader, height: Int, settings: FunctionalitySettings, blockTime: Long)
            (tx: PaymentTransaction): Either[ValidationError, Diff] = {
-    val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-    Right(Diff(height = height,
-        tx = tx,
-        portfolios = Map(
-          tx.recipient -> Portfolio(
-            balance = tx.amount,
-            LeaseInfo.empty,
-            assets = Map.empty)) combine Map(
-          sender.toAddress -> Portfolio(
-            balance = -tx.amount - tx.fee,
-            LeaseInfo.empty,
-            assets = Map.empty
-          )),
+    for {
+      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
+      sender = proof.publicKey
+    } yield Right(Diff(
+      height = height,
+      tx = tx,
+      portfolios = Map(
+        tx.recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty)
+      ) combine Map(
+        sender.toAddress -> Portfolio(-tx.amount - tx.fee, LeaseInfo.empty, Map.empty)
+      ),
       chargedFee = tx.fee
-      ))
+    ))
   }
 }

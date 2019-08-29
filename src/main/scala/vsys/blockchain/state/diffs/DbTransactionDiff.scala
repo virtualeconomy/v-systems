@@ -15,17 +15,14 @@ object DbTransactionDiff {
     val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
     val proofLength = tx.proofs.proofs.length
     // any validation needed? maybe later access control?
-    if (proofLength > Proofs.MaxProofs){
-      Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
-    } else if (tx.dbKey.length > DbPutTransaction.MaxDbKeyLength || tx.dbKey.length < DbPutTransaction.MinDbKeyLength){
-      Left(ValidationError.InvalidDbKey)
-    } else {
-      Right(Diff(height = height, tx = tx,
-        portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-        dbEntries = Map(tx.storageKey -> tx.entry),
-        chargedFee = tx.fee
-      ))
+    if (tx.dbKey.length > DbPutTransaction.MaxDbKeyLength || tx.dbKey.length < DbPutTransaction.MinDbKeyLength){
+      return Left(ValidationError.InvalidDbKey)
     }
+    Right(Diff(height = height, tx = tx,
+      portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+      dbEntries = Map(tx.storageKey -> tx.entry),
+      chargedFee = tx.fee
+    ))
   }
 
 }

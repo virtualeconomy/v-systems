@@ -16,23 +16,19 @@ import scala.util.{Left, Right}
 object LeaseTransactionsDiff {
 
   def lease(s: StateReader, height: Int)(tx: LeaseTransaction): Either[ValidationError, Diff] = {
-    val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-    val recipient = tx.recipient
-    if (recipient == sender.toAddress)
-      Left(GenericError("Cannot lease to self"))
-    else {
-      val ap = s.accountPortfolio(sender)
-      if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
-        Left(GenericError(s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"))
-      }
-      else {
-        val portfolioDiff: Map[Address, Portfolio] = Map(
-          sender.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
-          recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
-        )
-        Right(Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee))
-      }
-    }
+    for {
+      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
+      sender = proof.publicKey
+      ap = s.accountPortfolio(sender)
+      portfolioDiff: Map[Address, Portfolio] <- if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
+        Left(GenericError(
+          s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"
+        ))
+      } else Right(Map(
+        sender.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
+        recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
+      ))
+    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee)
   }
 
   def leaseCancel(s: StateReader, settings: FunctionalitySettings, time: Long, height: Int)
@@ -45,10 +41,12 @@ object LeaseTransactionsDiff {
       lease <- leaseEi
       recipient = lease.recipient
       isLeaseActive = s.isLeaseActive(lease)
-      leaseSender = EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+      leaseProof <- EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr)
+      leaseSender = leaseProof.publicKey
       _ <- if (!isLeaseActive)
         Left(GenericError(s"Cannot cancel already cancelled lease")) else Right(())
-      canceller = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
+      canceller = proof.publicKey
       portfolioDiff <- if (canceller == leaseSender) {
         Right(Monoid.combine(
           Map(canceller.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, -lease.amount), Map.empty)),
@@ -58,4 +56,3 @@ object LeaseTransactionsDiff {
     } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false), chargedFee = tx.fee)
   }
 }
-
