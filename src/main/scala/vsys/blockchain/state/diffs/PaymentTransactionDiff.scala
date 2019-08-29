@@ -17,11 +17,8 @@ object PaymentTransactionDiff {
     } yield Diff(
       height = height,
       tx = tx,
-      portfolios = Map(
-        tx.recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty)
-      ) combine Map(
-        sender.toAddress -> Portfolio(-tx.amount - tx.fee, LeaseInfo.empty, Map.empty)
-      ),
+      portfolios = Map(tx.recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty))
+        combine Map(sender.toAddress -> Portfolio(-tx.amount - tx.fee, LeaseInfo.empty, Map.empty)),
       chargedFee = tx.fee
     )
   }

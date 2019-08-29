@@ -18,7 +18,8 @@ object LeaseTransactionsDiff {
     for {
       proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
       sender = proof.publicKey
-      ap = s.accountPortfolio(sender)
+      ap <- if (sender.toAddress == tx.recipient) Left(GenericError("Cannot lease to self"))
+        else Right(s.accountPortfolio(sender))
       portfolioDiff <- if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
         Left(GenericError(
           s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"
