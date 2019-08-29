@@ -29,11 +29,11 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "1").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "1"))
 
-    eventList(0) shouldBe(BlockAppendedEventSettings(
+    eventList(0) shouldBe(Right(BlockAppendedEventSettings(
       Seq(AfterHeight(50), AfterTime(15), WithTxs(true), WithMintingTxs(false))
-    ))
+    )))
   }
 
   it should "only have withTxs and withMintingTxs Rules(default)" in {
@@ -54,9 +54,9 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "1").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "1"))
 
-    eventList(0) shouldBe(BlockAppendedEventSettings(Seq.empty))
+    eventList(0) shouldBe(Right(BlockAppendedEventSettings(Seq.empty)))
   }
 
   "Tx Confirmed Event Settings" should "form Webhook Event Rules Correctly" in {
@@ -91,12 +91,12 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
       val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
       val aHook = hookConf(0)
-      val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "2").right.get)
+      val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "2"))
 
-      eventList(0) shouldBe(TxConfirmedEventSettings(
+      eventList(0) shouldBe(Right(TxConfirmedEventSettings(
         Seq(RelatedAccs(Seq("addr2", "addr3")),  AfterHeight(50), AfterTime(15), IncludeTypes(Seq(1, 2)),
         ExcludeTypes(Seq(3, 4)), AmtGTE(10), AmtGT(0), AmtLTE(100), AmtLT(1000), AmtWithFee(true))
-      ))
+      )))
     }
 
   it should "only have AmtWithFee rule(default)" in {
@@ -117,9 +117,9 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "2").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "2"))
 
-    eventList(0) shouldBe(TxConfirmedEventSettings(Seq.empty))
+    eventList(0) shouldBe(Right(TxConfirmedEventSettings(Seq.empty)))
   }
 
   "State Updated Event Settings" should "form Webhook Event Rules Correctly" in {
@@ -145,11 +145,11 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "3").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "3"))
 
-    eventList(0) shouldBe(StateUpdatedEventSettings(
+    eventList(0) shouldBe(Right(StateUpdatedEventSettings(
       Seq(AfterTime(15), AfterHeight(50), RelatedAccs(Seq("addr3", "addr4")))
-    ))
+    )))
   }
 
   it should "have no rule(default)" in {
@@ -170,9 +170,9 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "3").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "3"))
 
-    eventList(0) shouldBe(StateUpdatedEventSettings(Seq.empty))
+    eventList(0) shouldBe(Right(StateUpdatedEventSettings(Seq.empty)))
   }
 
   "Block Rollback Event Setting" should "form Webhook Event Rules Correctly" in {
@@ -201,12 +201,12 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "4").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "4"))
 
-    eventList(0) shouldBe(BlockRollbackEventSettings(
+    eventList(0) shouldBe(Right(BlockRollbackEventSettings(
       Seq(AfterTime(15), AfterHeight(50), RelatedAccs(Seq("addr7", "addr8")), WithTxsOfTypes(Seq(1, 2)),
          WithTxsOfAccs(Seq("addr3", "addr4")), WithStateOfAccs(Seq("addr5", "addr6")))
-    ))
+    )))
   }
 
   it should "have no rule(default)" in {
@@ -227,8 +227,8 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
-    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "4").right.get)
+    val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "4"))
 
-    eventList(0) shouldBe(BlockRollbackEventSettings(Seq.empty))
+    eventList(0) shouldBe(Right(BlockRollbackEventSettings(Seq.empty)))
   }
 }

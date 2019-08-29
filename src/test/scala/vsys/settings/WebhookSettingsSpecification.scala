@@ -100,9 +100,9 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
     val settings = WebhookSettings.fromConfig(config)(0)
 
     settings.url shouldBe("example.com")
-    settings.secretKey.get shouldBe("secret_key")
-    settings.encryptKey.get shouldBe("pubkey_for_encrypt")
-    settings.maxSize.get shouldBe(1000)
+    settings.secretKey shouldBe(Some("secret_key"))
+    settings.encryptKey shouldBe(Some("pubkey_for_encrypt"))
+    settings.maxSize shouldBe(Some(1000))
 
     settings.events.length shouldBe(4)
     settings.events map {aEvent =>
