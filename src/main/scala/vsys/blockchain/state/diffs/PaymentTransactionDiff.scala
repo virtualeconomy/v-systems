@@ -12,7 +12,11 @@ object PaymentTransactionDiff {
   def apply(stateReader: StateReader, height: Int, settings: FunctionalitySettings, blockTime: Long)
            (tx: PaymentTransaction): Either[ValidationError, Diff] = {
     for {
-      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
+      proofsHead <- tx.proofs.proofs.headOption match {
+        case Some(x) => Right(x)
+        case _ => Left(EmptyProofs)
+      }
+      proof <- EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr)
       sender = proof.publicKey
     } yield Diff(
       height = height,

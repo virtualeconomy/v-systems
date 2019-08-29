@@ -6,7 +6,7 @@ import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state._
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.GenericError
+import vsys.blockchain.transaction.ValidationError.{GenericError, EmptyProofs}
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
@@ -16,7 +16,11 @@ object LeaseTransactionsDiff {
 
   def lease(s: StateReader, height: Int)(tx: LeaseTransaction): Either[ValidationError, Diff] = {
     for {
-      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
+      proofsHead <- tx.proofs.proofs.headOption match {
+        case Some(x) => Right(x)
+        case _ => Left(EmptyProofs)
+      }
+      proof <- EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr)
       sender = proof.publicKey
       ap <- if (sender.toAddress == tx.recipient) Left(GenericError("Cannot lease to self"))
         else Right(s.accountPortfolio(sender))

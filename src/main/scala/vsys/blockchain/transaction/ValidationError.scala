@@ -90,6 +90,7 @@ object ValidationError {
   case object ContractUnsupportedDeposit extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractUnsupportedDeposit
   }
+  case object EmptyProofs extends ValidationError
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError
   case class OrderValidationError(order: Order, err: String) extends ValidationError
   case class AccountBalanceError(errs: Map[Address, String]) extends ValidationError

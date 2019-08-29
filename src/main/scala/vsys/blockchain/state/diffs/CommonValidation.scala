@@ -22,7 +22,11 @@ object CommonValidation {
     tx match {
       case ptx: PaymentTransaction =>
         for {
-          proof <- EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr)
+          proofsHead <- tx.proofs.proofs.headOption match {
+            case Some(x) => Right(x)
+            case _ => Left(EmptyProofs)
+          }
+          proof <- EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr)
           sender = proof.publicKey
           _ <- if(s.accountPortfolio(sender).balance < (ptx.amount + ptx.fee))
             Left(GenericError(s"Attempt to pay unavailable funds: balance " +
