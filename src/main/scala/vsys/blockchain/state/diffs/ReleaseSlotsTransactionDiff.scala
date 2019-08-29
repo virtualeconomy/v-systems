@@ -34,10 +34,7 @@ object ReleaseSlotsTransactionDiff {
 
       // add more ValidationError
 
-      if (proofLength > Proofs.MaxProofs) {
-        Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
-      }
-      else if (hasEnoughMiner && isValidAddress && isValidSlotID) {
+      if (hasEnoughMiner && isValidAddress && isValidSlotID) {
         Right(Diff(
           height = height,
           tx = tx,
