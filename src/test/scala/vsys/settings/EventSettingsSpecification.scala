@@ -1,6 +1,5 @@
 package vsys.settings
 
-
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -15,7 +14,6 @@ class EventSettingsSpecification extends FlatSpec with Matchers {
     val settings = EventSettings.fromConfig(config)
     settings.webhookSettings should be(Seq.empty)
   }
-
 
   it should "get custom websettings which block notification" in {
     val config = loadConfig(ConfigFactory.parseString(
