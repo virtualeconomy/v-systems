@@ -8,7 +8,7 @@ import vsys.settings.FunctionalitySettings
 
 import scala.util.{Left, Right}
 import vsys.blockchain.transaction.ValidationError.GenericError
-import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.consensus.SPoSCalc._
 
 object ReleaseSlotsTransactionDiff {
