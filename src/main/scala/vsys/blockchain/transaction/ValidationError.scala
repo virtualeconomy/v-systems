@@ -56,7 +56,4 @@ object ValidationError {
   case class WrongFeeScale(errFeeScale: Short) extends ValidationError
   case class WrongMintingReward(errReward: Long) extends ValidationError
   case class InvalidSlotId(errSlotId: Int) extends ValidationError
-
-  //For Event module
-  case object InvalidEventTypeError extends ValidationError
 }
