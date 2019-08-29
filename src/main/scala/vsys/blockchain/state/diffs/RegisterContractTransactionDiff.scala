@@ -20,65 +20,41 @@ object RegisterContractTransactionDiff {
       will fail with duplicated transaction id
     */
     if (tx.proofs.proofs.length > Proofs.MaxProofs) {
-      Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
+      return Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     }
-    else {
-      EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof =>
-        val sender = proof.publicKey
-        val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
-        ( for {
-          exContext <- ExecutionContext.fromRegConTx(s, height, tx)
-          diff <- OpcFuncDiffer(exContext)(tx.data)
-        } yield diff) match {
-          case Right(df) => Right(Diff(
+    EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof =>
+      val sender = proof.publicKey
+      val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
+      ( for {
+        exContext <- ExecutionContext.fromRegConTx(s, height, tx)
+        diff <- OpcFuncDiffer(exContext)(tx.data)
+      } yield diff) match {
+        case Right(df) => Right(Diff(
+          height = height,
+          tx = tx,
+          portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+          contracts = Map(tx.contractId.bytes -> contractInfo),
+          contractDB = df.contractDB,
+          contractTokens = df.contractTokens,
+          tokenDB = df.tokenDB,
+          tokenAccountBalance = df.tokenAccountBalance,
+          relatedAddress = df.relatedAddress,
+          chargedFee = tx.fee
+        ))
+        case Left(e) => {
+          val status = e match {
+            case ContractValidationError  => e.transactionStatus
+            case _ => TransactionStatus.Failed
+          }
+          Right(Diff(
             height = height,
             tx = tx,
             portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-            contracts = Map(tx.contractId.bytes -> contractInfo),
-            contractDB = df.contractDB,
-            contractTokens = df.contractTokens,
-            tokenDB = df.tokenDB,
-            tokenAccountBalance = df.tokenAccountBalance,
-            relatedAddress = df.relatedAddress,
-            chargedFee = tx.fee
+            chargedFee = tx.fee,
+            txStatus = status
           ))
-          case Left(e) => Right(toDiff(height, tx, sender)(fromValidationError(e)))
         }
-      )
-    }
-  }
-
-  private def fromValidationError(e: ValidationError): TransactionStatus.Value = e match {
-    case InvalidContract => TransactionStatus.InvalidContract
-    case InvalidContractAddress => TransactionStatus.InvalidContractAddress
-    case InvalidDataEntry => TransactionStatus.InvalidDataEntry
-    case ContractDataTypeMismatch => TransactionStatus.ContractDataTypeMismatch
-    case ContractInvalidStateVariable => TransactionStatus.ContractInvalidStateVariable
-    case ContractStateVariableNotDefined => TransactionStatus.ContractStateVariableNotDefined
-    case ContractInvalidOPCData => TransactionStatus.ContractInvalidOPCData
-    case ContractUnsupportedOPC => TransactionStatus.ContractUnsupportedOPC
-    case ContractInvalidSigner => TransactionStatus.ContractInvalidSigner
-    case ContractInvalidCaller => TransactionStatus.ContractInvalidCaller
-    case ContractInvalidFunction => TransactionStatus.ContractInvalidFunction
-    case ContractInvalidTokenIndex => TransactionStatus.ContractInvalidTokenIndex
-    case ContractInvalidAmount => TransactionStatus.ContractInvalidAmount
-    case ContractLocalVariableIndexOutOfRange => TransactionStatus.ContractLocalVariableIndexOutOfRange
-    case ContractTokenBalanceInsufficient => TransactionStatus.ContractTokenBalanceInsufficient
-    case ContractTokenMaxExceeded => TransactionStatus.ContractTokenMaxExceeded
-    case ContractInvalidTokenInfo => TransactionStatus.ContractInvalidTokenInfo
-    case ContractUnsupportedWithdraw => TransactionStatus.ContractUnsupportedWithdraw
-    case ContractUnsupportedDeposit => TransactionStatus.ContractUnsupportedDeposit
-    case _ => TransactionStatus.Failed
-  }
-
-  private def toDiff(height: Int, tx: RegisterContractTransaction, sender: PublicKeyAccount)(a: TransactionStatus.Value): Diff = {
-    Diff(
-      height = height,
-      tx = tx,
-      portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-      chargedFee = tx.fee,
-      txStatus = a
+      }
     )
   }
-
 }
