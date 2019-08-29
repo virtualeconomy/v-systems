@@ -1,9 +1,9 @@
 package vsys.blockchain.state.systemdiffs
 
-import vsys.blockchain.contract.{DataEntry, ExecutionContext}
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.opcdiffs.OpcDiff
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.ContractInvalidOPCData
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData}
 
 import scala.util.Left
 
@@ -11,7 +11,22 @@ object SystemTransferDiff {
 
   def transfer(context: ExecutionContext)
               (sender: DataEntry, recipient: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
-    Right(OpcDiff.empty)
+
+    if (!checkDataType(sender, recipient)) {
+      Left(ContractDataTypeMismatch)
+    } else {
+      sender.dataType match {
+        case DataType.Address if context.signers.head.toAddress.bytes.arr sameElements sender.bytes =>
+          recipient.dataType match {
+            case DataType.Address => Right(OpcDiff.empty)
+            case DataType.ContractAccount => Right(OpcDiff.empty)
+          }
+        case DataType.ContractAccount => recipient match {
+          case DataType.Address => Right(OpcDiff.empty)
+          case DataType.ContractAccount => Right(OpcDiff.empty)
+        }
+      }
+    }
   }
 
   object TransferType extends Enumeration {
@@ -27,5 +42,10 @@ object SystemTransferDiff {
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
     bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
+  }
+
+  private def checkDataType(sender: DataEntry, recipient: DataEntry): Boolean = {
+    (sender.dataType == DataType.Address || sender.dataType == DataType.ContractAccount) &&
+      (recipient.dataType == DataType.Address && recipient.dataType == DataType.ContractAccount)
   }
 }
