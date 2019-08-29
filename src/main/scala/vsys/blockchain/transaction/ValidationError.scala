@@ -2,12 +2,11 @@ package vsys.blockchain.transaction
 
 import vsys.account.Address
 import vsys.blockchain.transaction.assets.exchange.Order
+import vsys.blockchain.transaction.TransactionStatus
 
 trait ValidationError
 
 object ValidationError {
-
-  import vsys.blockchain.transaction.TransactionStatus
 
   trait ContractValidationError extends ValidationError {
     val transactionStatus: TransactionStatus.Value
