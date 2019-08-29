@@ -19,11 +19,11 @@ object SystemTransferDiff {
         case DataType.Address if context.signers.head.toAddress.bytes.arr sameElements sender.bytes =>
           recipient.dataType match {
             case DataType.Address => Right(OpcDiff.empty)
-            case DataType.ContractAccount => Right(OpcDiff.empty)
+            case _ => Right(OpcDiff.empty)
           }
-        case DataType.ContractAccount => recipient match {
+        case _ => recipient match {
           case DataType.Address => Right(OpcDiff.empty)
-          case DataType.ContractAccount => Right(OpcDiff.empty)
+          case _ => Right(OpcDiff.empty)
         }
       }
     }
