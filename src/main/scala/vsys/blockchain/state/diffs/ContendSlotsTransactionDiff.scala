@@ -16,20 +16,22 @@ import scala.util.Left
 
 object ContendSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ContendSlotsTransaction): Either[ValidationError, Diff] = {
+    
+    EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof => {
+      val sender = proof.publicKey
+      val multiSlotsCheck = s.addressSlot(sender.address) match {
+        case None => false
+        case _ => true
+      }
+      val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0 && (tx.slotId % SlotGap == 0)
 
-    val sender = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-    val proofLength = tx.proofs.proofs.length
+      if (multiSlotsCheck) {
+        return Left(GenericError(s"${sender.address} already owned one slot or contended by other node"))
+      }
+      if (!isValidSlotID) {
+        return Left(ValidationError.InvalidSlotId(tx.slotId))
+      }
 
-    val multiSlotsCheck = s.addressSlot(sender.address) match {
-      case None => false
-      case _ => true
-    }
-    val isValidSlotID = tx.slotId < fs.numOfSlots && tx.slotId >=0 && (tx.slotId % SlotGap == 0)
-
-    if (proofLength > Proofs.MaxProofs){
-      Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
-    }
-    else if (!multiSlotsCheck && isValidSlotID){
       val contendEffectiveBalance = s.accountPortfolio(sender.toAddress).effectiveBalance
       // check effective balance after contend
       if (contendEffectiveBalance - tx.fee < MinimalEffectiveBalanceForContender) {
@@ -64,12 +66,6 @@ object ContendSlotsTransactionDiff {
           ))
         }
       }
-    }
-    else if (multiSlotsCheck){
-      Left(GenericError(s"${sender.address} already owned one slot or contended by other node"))
-    }
-    else{
-      Left(ValidationError.InvalidSlotId(tx.slotId))
-    }
+    })
   }
 }
