@@ -18,7 +18,7 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers {
       |      relatedAccount: ["addr3", "addr4"],
       |      includeTypes: [1, 2],
       |      excludeTypes: [3, 4],
-      |      
+      |
       |      amount: {
       |        gt: 10,
       |        gte: 20,
@@ -26,7 +26,7 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers {
       |        lte: 40,
       |        withFee: false
       |      },
-      | 
+      |
       |      withTxsOfTypes: [1, 2],
       |      withTxsOfAccs: ["addr3", "addr4"],
       |      withStateOfAccs: ["addr5", "addr6"]
@@ -34,11 +34,9 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers {
       |  }
       |}""".stripMargin)).as[Config]("vsys.Event")
 
-    
-
     AfterHeight.fromConfig(config).get.value shouldBe(1)
     AfterTime.fromConfig(config).get.value shouldBe(2)
-    WithTxs.fromConfig(config).get.value shouldBe(true)    
+    WithTxs.fromConfig(config).get.value shouldBe(true)
     WithMintingTxs.fromConfig(config).get.value shouldBe(false)
     RelatedAccs.fromConfig(config).get.value shouldBe(Seq("addr3", "addr4"))
     IncludeTypes.fromConfig(config).get.value shouldBe(Seq(1, 2))
@@ -51,9 +49,7 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers {
     WithTxsOfTypes.fromConfig(config).get.value shouldBe(Seq(1, 2))
     WithTxsOfAccs.fromConfig(config).get.value shouldBe(Seq("addr3", "addr4"))
     WithStateOfAccs.fromConfig(config).get.value shouldBe(Seq("addr5", "addr6"))
-
   }
-
 
   it should "get default value" in {
     val config = loadConfig(ConfigFactory.parseString(

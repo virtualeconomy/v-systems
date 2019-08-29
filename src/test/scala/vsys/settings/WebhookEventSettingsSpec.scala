@@ -30,7 +30,7 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
     val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
     val aHook = hookConf(0)
     val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "1").right.get)
-      
+
     eventList(0) shouldBe(BlockAppendedEventSettings(
       Seq(AfterHeight(50), AfterTime(15), WithTxs(true), WithMintingTxs(false))
     ))
@@ -204,7 +204,7 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
     val eventList = aHook.as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "4").right.get)
 
     eventList(0) shouldBe(BlockRollbackEventSettings(
-      Seq(AfterTime(15), AfterHeight(50), RelatedAccs(Seq("addr7", "addr8")), WithTxsOfTypes(Seq(1, 2)), 
+      Seq(AfterTime(15), AfterHeight(50), RelatedAccs(Seq("addr7", "addr8")), WithTxsOfTypes(Seq(1, 2)),
          WithTxsOfAccs(Seq("addr3", "addr4")), WithStateOfAccs(Seq("addr5", "addr6")))
     ))
   }

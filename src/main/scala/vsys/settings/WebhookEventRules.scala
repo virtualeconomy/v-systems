@@ -9,10 +9,10 @@ import net.ceedubs.ficus.readers.ValueReader
 trait WebhookEventRules extends Product with Serializable {
   //override def applyRule(valIn: Any*): Boolean
   //TO DO
-  val value: Any 
+  val value: Any
 }
 
-trait EventConfigReader {
+trait RuleConfigReader {
   val field: String
   private val path = "rules"
   lazy val valPath = path + "." + field
@@ -24,26 +24,9 @@ trait EventConfigReader {
   }
 }
 
-
 case class AfterHeight(value: Long) extends WebhookEventRules
-case class AfterTime(value: Long) extends WebhookEventRules
-case class WithTxs(value: Boolean) extends WebhookEventRules
-case class WithMintingTxs(value: Boolean) extends WebhookEventRules
-case class RelatedAccs(value: Seq[String]) extends WebhookEventRules
-case class IncludeTypes(value: Seq[Int]) extends WebhookEventRules
-case class ExcludeTypes(value: Seq[Int]) extends WebhookEventRules
-case class AmtGT(value: Long) extends WebhookEventRules
-case class AmtLT(value: Long) extends WebhookEventRules
-case class AmtGTE(value: Long) extends WebhookEventRules
-case class AmtLTE(value: Long) extends WebhookEventRules
-case class AmtWithFee(value: Boolean) extends WebhookEventRules
-case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules
-case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules
-case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules
 
-
-
-object AfterHeight extends EventConfigReader {
+object AfterHeight extends RuleConfigReader {
   override val field = "afterHeight"
 
   override def fromConfig(config: Config): Option[AfterHeight] = {
@@ -51,7 +34,9 @@ object AfterHeight extends EventConfigReader {
   }
 }
 
-object AfterTime extends EventConfigReader {
+case class AfterTime(value: Long) extends WebhookEventRules
+
+object AfterTime extends RuleConfigReader {
   override val field = "afterTime"
 
   override def fromConfig(config: Config): Option[AfterTime] = {
@@ -59,7 +44,9 @@ object AfterTime extends EventConfigReader {
   }
 }
 
-object WithTxs extends EventConfigReader {
+case class WithTxs(value: Boolean) extends WebhookEventRules
+
+object WithTxs extends RuleConfigReader {
   override val field = "withTxs"
 
   override def fromConfig(config: Config): Option[WithTxs] = {
@@ -67,7 +54,9 @@ object WithTxs extends EventConfigReader {
   }
 }
 
-object WithMintingTxs extends EventConfigReader {
+case class WithMintingTxs(value: Boolean) extends WebhookEventRules
+
+object WithMintingTxs extends RuleConfigReader {
   override val field = "withMintingTxs"
 
   override def fromConfig(config: Config): Option[WithMintingTxs] = {
@@ -75,7 +64,9 @@ object WithMintingTxs extends EventConfigReader {
   }
 }
 
-object RelatedAccs extends EventConfigReader {
+case class RelatedAccs(value: Seq[String]) extends WebhookEventRules
+
+object RelatedAccs extends RuleConfigReader {
   override val field = "relatedAccount"
 
   override def fromConfig(config: Config): Option[RelatedAccs] = {
@@ -83,7 +74,9 @@ object RelatedAccs extends EventConfigReader {
   }
 }
 
-object IncludeTypes extends EventConfigReader {
+case class IncludeTypes(value: Seq[Int]) extends WebhookEventRules
+
+object IncludeTypes extends RuleConfigReader {
   override val field = "includeTypes"
 
   override def fromConfig(config: Config): Option[IncludeTypes] = {
@@ -91,7 +84,9 @@ object IncludeTypes extends EventConfigReader {
   }
 }
 
-object ExcludeTypes extends EventConfigReader {
+case class ExcludeTypes(value: Seq[Int]) extends WebhookEventRules
+
+object ExcludeTypes extends RuleConfigReader {
   override val field = "excludeTypes"
 
   override def fromConfig(config: Config): Option[ExcludeTypes] = {
@@ -99,7 +94,9 @@ object ExcludeTypes extends EventConfigReader {
   }
 }
 
-object AmtGT extends EventConfigReader {
+case class AmtGT(value: Long) extends WebhookEventRules
+
+object AmtGT extends RuleConfigReader {
   override val field = "amount.gt"
 
   override def fromConfig(config: Config): Option[AmtGT] = {
@@ -107,7 +104,9 @@ object AmtGT extends EventConfigReader {
   }
 }
 
-object AmtLT extends EventConfigReader {
+case class AmtLT(value: Long) extends WebhookEventRules
+
+object AmtLT extends RuleConfigReader {
   override val field = "amount.lt"
 
   override def fromConfig(config: Config): Option[AmtLT] = {
@@ -115,7 +114,9 @@ object AmtLT extends EventConfigReader {
   }
 }
 
-object AmtGTE extends EventConfigReader {
+case class AmtGTE(value: Long) extends WebhookEventRules
+
+object AmtGTE extends RuleConfigReader {
   override val field = "amount.gte"
 
   override def fromConfig(config: Config): Option[AmtGTE] = {
@@ -123,7 +124,9 @@ object AmtGTE extends EventConfigReader {
   }
 }
 
-object AmtLTE extends EventConfigReader {
+case class AmtLTE(value: Long) extends WebhookEventRules
+
+object AmtLTE extends RuleConfigReader {
   override val field = "amount.lte"
 
   override def fromConfig(config: Config): Option[AmtLTE] = {
@@ -131,7 +134,9 @@ object AmtLTE extends EventConfigReader {
   }
 }
 
-object AmtWithFee extends EventConfigReader {
+case class AmtWithFee(value: Boolean) extends WebhookEventRules
+
+object AmtWithFee extends RuleConfigReader {
   override val field = "amount.withFee"
 
   override def fromConfig(config: Config): Option[AmtWithFee] = {
@@ -139,7 +144,9 @@ object AmtWithFee extends EventConfigReader {
   }
 }
 
-object WithTxsOfTypes extends EventConfigReader {
+case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules
+
+object WithTxsOfTypes extends RuleConfigReader {
   override val field = "withTxsOfTypes"
 
   override def fromConfig(config: Config): Option[WithTxsOfTypes] = {
@@ -147,7 +154,9 @@ object WithTxsOfTypes extends EventConfigReader {
   }
 }
 
-object WithTxsOfAccs extends EventConfigReader {
+case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules
+
+object WithTxsOfAccs extends RuleConfigReader {
   override val field = "withTxsOfAccs"
 
   override def fromConfig(config: Config): Option[WithTxsOfAccs] = {
@@ -155,7 +164,9 @@ object WithTxsOfAccs extends EventConfigReader {
   }
 }
 
-object WithStateOfAccs extends EventConfigReader {
+case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules
+
+object WithStateOfAccs extends RuleConfigReader {
   override val field = "withStateOfAccs"
 
   override def fromConfig(config: Config): Option[WithStateOfAccs] = {
