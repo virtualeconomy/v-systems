@@ -38,58 +38,58 @@ object ValidationError {
   case object InvalidContractAddress extends ContractValidationError {
     override val transactionStatus = TransactionStatus.InvalidContractAddress
   }
-  case object InvalidDataEntry extends ValidationError {
+  case object InvalidDataEntry extends ContractValidationError {
     override val transactionStatus = TransactionStatus.InvalidDataEntry
   }
-  case object InvalidFunctionIndex extends ValidationError {
+  case object InvalidFunctionIndex extends ContractValidationError {
     override val transactionStatus = TransactionStatus.InvalidFunctionIndex
   }
-  case object ContractDataTypeMismatch extends ValidationError {
+  case object ContractDataTypeMismatch extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractDataTypeMismatch
   }
-  case object ContractInvalidStateVariable extends ValidationError {
+  case object ContractInvalidStateVariable extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidStateVariable
   }
-  case object ContractStateVariableNotDefined extends ValidationError {
+  case object ContractStateVariableNotDefined extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractStateVariableNotDefined
   }
-  case object ContractInvalidOPCData extends ValidationError {
+  case object ContractInvalidOPCData extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidOPCData
   }
-  case object ContractUnsupportedOPC extends ValidationError {
+  case object ContractUnsupportedOPC extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractUnsupportedOPC
   }
-  case object ContractInvalidSigner extends ValidationError {
+  case object ContractInvalidSigner extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidSigner
   }
-  case object ContractInvalidCaller extends ValidationError {
+  case object ContractInvalidCaller extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidCaller
   }
-  case object ContractInvalidFunction extends ValidationError {
+  case object ContractInvalidFunction extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidFunction
   }
-  case object ContractInvalidTokenIndex extends ValidationError {
+  case object ContractInvalidTokenIndex extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidTokenIndex
   }
-  case object ContractInvalidAmount extends ValidationError {
+  case object ContractInvalidAmount extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidAmount
   }
-  case object ContractLocalVariableIndexOutOfRange extends ValidationError {
+  case object ContractLocalVariableIndexOutOfRange extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractLocalVariableIndexOutOfRange
   }
-  case object ContractTokenBalanceInsufficient extends ValidationError {
+  case object ContractTokenBalanceInsufficient extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractTokenBalanceInsufficient
   }
-  case object ContractTokenMaxExceeded extends ValidationError {
+  case object ContractTokenMaxExceeded extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractTokenMaxExceeded
   }
-  case object ContractInvalidTokenInfo extends ValidationError {
+  case object ContractInvalidTokenInfo extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidTokenInfo
   }
-  case object ContractUnsupportedWithdraw extends ValidationError {
+  case object ContractUnsupportedWithdraw extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractUnsupportedWithdraw
   }
-  case object ContractUnsupportedDeposit extends ValidationError {
+  case object ContractUnsupportedDeposit extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractUnsupportedDeposit
   }
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError

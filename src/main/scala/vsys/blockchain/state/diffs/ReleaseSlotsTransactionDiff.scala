@@ -17,7 +17,7 @@ object ReleaseSlotsTransactionDiff {
       check the slot list, make sure it is not the last miner (set a min num of miner)
       set the min num to half of total num of slots
     */
-    EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap(proof => 
+    EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap(proof => {
       val sender = proof.publicKey
       val proofLength = tx.proofs.proofs.length
 
@@ -57,6 +57,6 @@ object ReleaseSlotsTransactionDiff {
       else {
         Left(GenericError(s"${sender.address} can not release the minting right of slot id: ${tx.slotId}"))
       }
-    }
+    })
   }
 }

@@ -5,7 +5,6 @@ import cats.implicits._
 import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state._
 import vsys.blockchain.state.reader.StateReader
-import vsys.account.Address
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
@@ -20,13 +19,13 @@ object LeaseTransactionsDiff {
       proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
       sender = proof.publicKey
       ap = s.accountPortfolio(sender)
-      portfolioDiff: Map[Address, Portfolio] <- if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
+      portfolioDiff <- if (ap.balance - ap.leaseInfo.leaseOut < tx.amount) {
         Left(GenericError(
           s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"
         ))
       } else Right(Map(
         sender.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
-        recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
+        tx.recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
       ))
     } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee)
   }

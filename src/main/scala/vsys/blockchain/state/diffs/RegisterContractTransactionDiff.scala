@@ -1,15 +1,13 @@
 package vsys.blockchain.state.diffs
 
+import vsys.blockchain.contract.ExecutionContext
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
-import vsys.account.PublicKeyAccount
-import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError._
-import vsys.blockchain.contract.ExecutionContext
 import vsys.blockchain.state.opcdiffs.OpcFuncDiffer
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
-import vsys.blockchain.transaction.TransactionStatus
 import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
+import vsys.blockchain.transaction.ValidationError._
 
 import scala.util.Left
 
@@ -22,7 +20,7 @@ object RegisterContractTransactionDiff {
     if (tx.proofs.proofs.length > Proofs.MaxProofs) {
       return Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     }
-    EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof =>
+    EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).flatMap( proof => {
       val sender = proof.publicKey
       val contractInfo = (height, tx.id, tx.contract, Set(sender.toAddress))
       ( for {
@@ -43,7 +41,7 @@ object RegisterContractTransactionDiff {
         ))
         case Left(e) => {
           val status = e match {
-            case ContractValidationError  => e.transactionStatus
+            case ce: ContractValidationError  => ce.transactionStatus
             case _ => TransactionStatus.Failed
           }
           Right(Diff(
@@ -55,6 +53,6 @@ object RegisterContractTransactionDiff {
           ))
         }
       }
-    )
+    })
   }
 }

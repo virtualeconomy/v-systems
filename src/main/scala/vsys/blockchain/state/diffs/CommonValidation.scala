@@ -1,19 +1,14 @@
 package vsys.blockchain.state.diffs
 
-import cats._
-import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state.reader.StateReader
-import vsys.blockchain.state.{Portfolio, _}
-import vsys.account.Address
 import vsys.blockchain.transaction.ValidationError.{GenericError, Mistiming}
 import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.lease._
-import vsys.blockchain.transaction.assets._
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
 import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.spos._
 import vsys.blockchain.transaction.database._
-import vsys.blockchain.transaction._
+import vsys.settings.FunctionalitySettings
 
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
@@ -24,17 +19,18 @@ object CommonValidation {
   val MaxTimePrevBlockOverTransactionDiff: FiniteDuration = 2.hours
 
   def disallowSendingGreaterThanBalance[T <: Transaction](s: StateReader, settings: FunctionalitySettings, blockTime: Long, tx: T): Either[ValidationError, T] =
-    for {
-      proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
-      sender = proof.publicKey
-      t <- tx match {
-        case ptx: PaymentTransaction
-          if s.accountPortfolio(sender).balance < (ptx.amount + ptx.fee) =>
-          Left(GenericError(s"Attempt to pay unavailable funds: balance " +
-            s"${s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance} is less than ${ptx.amount + ptx.fee}"))
-        case _ => Right(tx)
-      }
-    } yield t
+    tx match {
+      case ptx: PaymentTransaction =>
+        for {
+          proof <- EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr)
+          sender = proof.publicKey
+          _ <- if(s.accountPortfolio(sender).balance < (ptx.amount + ptx.fee))
+            Left(GenericError(s"Attempt to pay unavailable funds: balance " +
+              s"${s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance} is less than ${ptx.amount + ptx.fee}"))
+            else Right(())
+        } yield tx
+      case _ => Right(tx)
+    }
 
   def disallowDuplicateIds[T <: Transaction](state: StateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = {
     if (state.containsTransaction(tx.id))
@@ -74,13 +70,13 @@ object CommonValidation {
       case _ => Right(tx)
     }
 
-  def disallowInvalidFeeScale[T <: Transaction](tx: T) : Either[ValidationError, T] = {
+  def disallowInvalidFeeScale[T <: Transaction](tx: T): Either[ValidationError, T] = {
     if (tx.assetFee._3 != 100){
       Left(ValidationError.WrongFeeScale(tx.assetFee._3))
     } else Right(tx)
   }
 
-  def disallowProofsCountOverflow[T <: Transaction] (tx: T) Either[ValidationError, T] = {
+  def disallowProofsCountOverflow[T <: ProvenTransaction](tx: T): Either[ValidationError, T] = {
     if (tx.proofs.proofs.length > Proofs.MaxProofs){
       return Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     } else Right(tx)

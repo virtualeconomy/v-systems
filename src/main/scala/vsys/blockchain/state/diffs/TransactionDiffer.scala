@@ -1,19 +1,15 @@
 package vsys.blockchain.state.diffs
 
-
-import vsys.settings.FunctionalitySettings
-import vsys.blockchain.state.Diff
 import vsys.blockchain.state.reader.StateReader
-import vsys.blockchain.transaction.ValidationError.UnsupportedTransactionType
+import vsys.blockchain.state.Diff
 import vsys.blockchain.transaction._
-//import vsys.blockchain.transaction.assets._
-//import vsys.blockchain.transaction.assets.exchange.ExchangeTransaction
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.blockchain.transaction.MintingTransaction
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.blockchain.transaction.ValidationError.UnsupportedTransactionType
+import vsys.settings.FunctionalitySettings
 
 object TransactionDiffer {
 
@@ -29,7 +25,7 @@ object TransactionDiffer {
       t5 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t4)
       t6 <- CommonValidation.disallowInvalidFeeScale(t5)
       t7 <- t6 match {
-        case pt:ProvenTransaction => CommonValidation.disallowProofsCountOverflow(pt)
+        case pt: ProvenTransaction => CommonValidation.disallowProofsCountOverflow(pt)
         case t => Right(t)
       }
       diff <- t7 match {

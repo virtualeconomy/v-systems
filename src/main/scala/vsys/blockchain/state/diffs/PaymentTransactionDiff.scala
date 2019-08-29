@@ -5,10 +5,7 @@ import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.transaction.{PaymentTransaction, ValidationError}
-
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
-
-import scala.util.Right
 
 object PaymentTransactionDiff {
 
@@ -17,7 +14,7 @@ object PaymentTransactionDiff {
     for {
       proof <- EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr)
       sender = proof.publicKey
-    } yield Right(Diff(
+    } yield Diff(
       height = height,
       tx = tx,
       portfolios = Map(
@@ -26,6 +23,6 @@ object PaymentTransactionDiff {
         sender.toAddress -> Portfolio(-tx.amount - tx.fee, LeaseInfo.empty, Map.empty)
       ),
       chargedFee = tx.fee
-    ))
+    )
   }
 }
