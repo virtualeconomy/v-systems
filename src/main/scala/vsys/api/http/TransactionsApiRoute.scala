@@ -178,8 +178,7 @@ case class TransactionsApiRoute(
             val txIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, txNum, 0)
             complete(Json.arr(JsArray(txIds._2
               .flatMap(state.transactionInfo)
-              .map(a => (a._1, a._2, a._2.transaction))
-              .filter(a => state.isLeaseActive(a._3.asInstanceOf[LeaseTransaction]))
+              .filter(a => state.isLeaseActive(a._2.transaction.asInstanceOf[LeaseTransaction]))
               .map(a => (processedTxToExtendedJson(a._2) + ("height" -> JsNumber(a._1))))
             )))
           } else {
