@@ -4,8 +4,8 @@ import cats.implicits._
 import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state._
 import vsys.blockchain.state.reader.StateReader
-import vsys.account.Address
-import vsys.blockchain.transaction.ValidationError
+import vsys.account.{Account, Address}
+import vsys.blockchain.transaction.{AssetId, ValidationError}
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction.assets.TransferTransaction
 
@@ -18,35 +18,36 @@ object TransferTransactionDiff {
     val recipient = tx.recipient
     val portfolios = (
       tx.assetId match {
-        case None => Map(sender -> Portfolio(-tx.amount, LeaseInfo.empty, Map.empty)).combine(
-          Map(recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty))
+        case None => Map[Account, Portfolio](sender -> Portfolio(-tx.amount, LeaseInfo.empty, Map.empty)).combine(
+          Map[Account, Portfolio](recipient -> Portfolio(tx.amount, LeaseInfo.empty, Map.empty))
         )
         case Some(aid) =>
-          Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.amount))).combine(
-            Map(recipient -> Portfolio(0, LeaseInfo.empty, Map(aid -> tx.amount)))
+          Map[Account, Portfolio](sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.amount))).combine(
+            Map[Account, Portfolio](recipient -> Portfolio(0, LeaseInfo.empty, Map(aid -> tx.amount)))
           )
       }).combine(
       tx.feeAssetId match {
-        case None => Map(sender -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty))
+        case None => Map[Account, Portfolio](sender -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty))
         case Some(aid) =>
-          Map(sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.fee)))
+          Map[Account, Portfolio](sender -> Portfolio(0, LeaseInfo.empty, Map(aid -> -tx.fee)))
       }
     )
-    val assetIssued = tx.assetId match {
-      case None => true
-      case Some(aid) => state.assetInfo(aid).isDefined
-    }
-    val feeAssetIssued = tx.feeAssetId match {
-      case None => true
-      case Some(aid) => state.assetInfo(aid).isDefined
-    }
+    val assetIssued = check(tx.assetId, state)
+    val feeAssetIssued = check(tx.feeAssetId, state)
 
     if (!(assetIssued && feeAssetIssued))
-      Left(GenericError(s"Unissued assets are not allowed")) 
-    else  
+      Left(GenericError(s"Unissued assets are not allowed"))
+    else
       Right(Diff(height = height,
         tx = tx,
         portfolios = portfolios,
         chargedFee = tx.fee))
+  }
+
+  private def check(a: Option[AssetId], state: StateReader): Boolean = {
+    a match {
+      case None => true
+      case Some(aid) => state.assetInfo(aid).isDefined
+    }
   }
 }

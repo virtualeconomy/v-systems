@@ -5,7 +5,7 @@ import cats.implicits._
 import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state._
 import vsys.blockchain.state.reader.StateReader
-import vsys.account.Address
+import vsys.account.Account
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
@@ -26,7 +26,7 @@ object LeaseTransactionsDiff {
         Left(GenericError(s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"))
       }
       else {
-        val portfolioDiff: Map[Address, Portfolio] = Map(
+        val portfolioDiff: Map[Account, Portfolio] = Map(
           sender.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
           recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
         )
@@ -49,10 +49,11 @@ object LeaseTransactionsDiff {
       _ <- if (!isLeaseActive)
         Left(GenericError(s"Cannot cancel already cancelled lease")) else Right(())
       canceller = EllipticCurve25519Proof.fromBytes(tx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+      preDiff: Map[Account, Portfolio] = Monoid.combine(
+        Map(canceller.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, -lease.amount), Map.empty)),
+        Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty)))
       portfolioDiff <- if (canceller == leaseSender) {
-        Right(Monoid.combine(
-          Map(canceller.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, -lease.amount), Map.empty)),
-          Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty))))
+        Right(preDiff)
       } else Left(GenericError(s"LeaseTransaction was leased by other sender"))
 
     } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false), chargedFee = tx.fee)
