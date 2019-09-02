@@ -127,36 +127,38 @@ object TDBROpcDiff {
     desc(context)(tokenIndex, dataStack, pointer)
   }
 
-  object TDBRType extends Enumeration {
-    val MaxTDBR = Value(1)
-    val TotalTDBR = Value(2)
-    val UnityTDBR = Value(3)
-    val DescTDBR = Value(4)
+  object TDBRType extends Enumeration(1) {
+    val MaxTDBR, TotalTDBR, UnityTDBR, DescTDBR = Value
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == TDBRType.MaxTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
-      maxWithoutTokenIndex(context)(data, bytes(1))
-    case opcType: Byte if opcType == TDBRType.MaxTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
-      max(context)(data(bytes(1)), data, bytes(2))
-    case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
-      totalWithoutTokenIndex(context)(data, bytes(1))
-    case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
-      total(context)(data(bytes(1)), data, bytes(2))
-    case opcType: Byte if opcType == TDBRType.UnityTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
-      unityWithoutTokenIndex(context)(data, bytes(1))
-    case opcType: Byte if opcType == TDBRType.UnityTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
-      unity(context)(data(bytes(1)), data, bytes(2))
-    case opcType: Byte if opcType == TDBRType.DescTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
-      descWithoutTokenIndex(context)(data, bytes(1))
-    case opcType: Byte if opcType == TDBRType.DescTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
-      desc(context)(data(bytes(1)), data, bytes(2))
-    case _ => Left(ContractInvalidOPCData)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+    if (checkTDBRODataIndex(bytes.slice(0, bytes.length - 1), data.length)) {
+      getTDBRDiff(context)(bytes, data)
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
 
-  private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
-    bytes.length == bLength && (bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0))
+  private def getTDBRDiff(context: ExecutionContext)
+                         (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
+    val MaxTDBRId = TDBRType.MaxTDBR.id.toByte
+    val TotalTDBRId = TDBRType.TotalTDBR.id.toByte
+    val UnityTDBRId = TDBRType.UnityTDBR.id.toByte
+    val DescTDBRId = TDBRType.DescTDBR.id.toByte
+    (bytes.head, bytes.length) match {
+      case (`MaxTDBRId`, 2) => maxWithoutTokenIndex(context)(data, bytes(1))
+      case (`MaxTDBRId`, 3) => max(context)(data(bytes(1)), data, bytes(2))
+      case (`TotalTDBRId`, 2) => totalWithoutTokenIndex(context)(data, bytes(1))
+      case (`TotalTDBRId`, 3) => total(context)(data(bytes(1)), data, bytes(2))
+      case (`UnityTDBRId`, 2) => unityWithoutTokenIndex(context)(data, bytes(1))
+      case (`UnityTDBRId`, 3) => unity(context)(data(bytes(1)), data, bytes(2))
+      case (`DescTDBRId`, 2) => descWithoutTokenIndex(context)(data, bytes(1))
+      case (`DescTDBRId`, 3) => desc(context)(data(bytes(1)), data, bytes(2))
+      case _ => Left(ContractInvalidOPCData)
+    }
   }
 
+  private def checkTDBRODataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0)
 }
