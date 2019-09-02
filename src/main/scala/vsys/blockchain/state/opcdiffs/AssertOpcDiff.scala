@@ -2,9 +2,11 @@ package vsys.blockchain.state.opcdiffs
 
 import com.google.common.primitives.Longs
 import vsys.account.Address
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidCaller, ContractInvalidOPCData, ContractInvalidSigner, GenericError}
+import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.utils.crypto.hash.FastCryptographicHash
 
 import scala.util.{Left, Right}
 
@@ -68,6 +70,16 @@ object AssertOpcDiff {
       Left(ContractInvalidSigner)
     else
       Right(OpcDiff.empty)
+  }
+
+  def checkHash(hashValue: DataEntry, hashKey: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (hashValue.dataType != DataType.ShortText || hashKey.dataType != DataType.ShortText)
+      Left(ContractDataTypeMismatch)
+    val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
+    if (hashResult.equals(ByteStr(hashValue.data)))
+      Right(OpcDiff.empty)
+    else
+      Left(ContractInvalidHash)
   }
 
   object AssertType extends Enumeration {

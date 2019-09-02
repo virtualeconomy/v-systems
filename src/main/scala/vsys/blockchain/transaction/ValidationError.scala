@@ -39,6 +39,7 @@ object ValidationError {
   case object ContractInvalidCaller extends ValidationError
   case object ContractInvalidFunction extends ValidationError
   case object ContractInvalidTokenIndex extends ValidationError
+  case object ContractInvalidHash extends ValidationError
   case object ContractInvalidAmount extends ValidationError
   case object ContractLocalVariableIndexOutOfRange extends ValidationError
   case object ContractTokenBalanceInsufficient extends ValidationError
