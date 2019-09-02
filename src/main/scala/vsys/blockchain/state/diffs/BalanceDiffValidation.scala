@@ -1,16 +1,15 @@
 package vsys.blockchain.state.diffs
 
 import cats.implicits._
+import vsys.account.Address
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{ByteStr, Diff, LeaseInfo, Portfolio}
-import vsys.account.Address
 import vsys.blockchain.transaction.Transaction
 import vsys.blockchain.transaction.ValidationError.AccountBalanceError
 
 import scala.util.{Left, Right}
 
 object BalanceDiffValidation {
-
 
   def apply[T <: Transaction](s: StateReader, time: Long)(d: Diff): Either[AccountBalanceError, Diff] = {
 
