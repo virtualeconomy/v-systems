@@ -82,34 +82,37 @@ object AssertOpcDiff {
       Left(ContractInvalidHash)
   }
 
-  object AssertType extends Enumeration {
-    val GteqZeroAssert = Value(1)
-    val LteqAssert = Value(2)
-    val LtInt64Assert = Value(3)
-    val GtZeroAssert = Value(4)
-    val EqAssert = Value(5)
-    val IsCallerOriginAssert = Value(6)
-    val IsSignerOriginAssert = Value(7)
+  object AssertType extends Enumeration(1) {
+    val GteqZeroAssert, LteqAssert, LtInt64Assert, GtZeroAssert, EqAssert, IsCallerOriginAssert, IsSignerOriginAssert = Value
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == AssertType.GteqZeroAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gtEq0(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.LteqAssert.id && bytes.length == 3
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltEq(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == AssertType.LtInt64Assert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltInt64(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.GtZeroAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gt0(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.EqAssert.id && bytes.length == 3
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => eq(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isCallerOrigin(context)(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isSignerOrigin(context)(data(bytes(1)))
-    case _ => Left(ContractInvalidOPCData)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    if (checkAssertDataIndex(bytes, data.length)) {
+      val GteqZeroAssertId = AssertType.GteqZeroAssert.id.toByte
+      val LteqAssertId = AssertType.LteqAssert.id.toByte
+      val LtInt64AssertId = AssertType.LtInt64Assert.id.toByte
+      val GtZeroAssertId = AssertType.GtZeroAssert.id.toByte
+      val EqAssertId = AssertType.EqAssert.id.toByte
+      val IsCallerOriginAssertId = AssertType.IsCallerOriginAssert.id.toByte
+      val IsSignerOriginAssertId = AssertType.IsSignerOriginAssert.id.toByte
+      (bytes.head, bytes.length) match {
+        case (`GteqZeroAssertId`, 2) => gtEq0(data(bytes(1)))
+        case (`LteqAssertId`, 3) => ltEq(data(bytes(1)), data(bytes(2)))
+        case (`LtInt64AssertId`, 2) => ltInt64(data(bytes(1)))
+        case (`GtZeroAssertId`, 2) => gt0(data(bytes(1)))
+        case (`EqAssertId`, 3) => eq(data(bytes(1)), data(bytes(2)))
+        case (`IsCallerOriginAssertId`, 2) => isCallerOrigin(context)(data(bytes(1)))
+        case (`IsSignerOriginAssertId`, 2) => isSignerOrigin(context)(data(bytes(1)))
+        case _ => Left(ContractInvalidOPCData)
+      }
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
+
+  private def checkAssertDataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.tail.max < dataLength && bytes.tail.min >= 0
 
 }
 
