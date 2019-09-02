@@ -40,10 +40,10 @@ object LeaseTransactionsDiff {
       lease <- leaseEi
       recipient = lease.recipient
       isLeaseActive = s.isLeaseActive(lease)
-      leaseProof <- lease.proofs.firstCurveProof
-      leaseSender = leaseProof.publicKey
       _ <- if (!isLeaseActive)
         Left(GenericError(s"Cannot cancel already cancelled lease")) else Right(())
+      leaseProof <- lease.proofs.firstCurveProof
+      leaseSender = leaseProof.publicKey
       proof <- tx.proofs.firstCurveProof
       canceller = proof.publicKey
       portfolioDiff <- if (canceller == leaseSender) {
