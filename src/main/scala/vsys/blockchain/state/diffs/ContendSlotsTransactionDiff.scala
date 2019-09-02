@@ -2,16 +2,14 @@ package vsys.blockchain.state.diffs
 
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
-import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.TransactionStatus
+import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
 import vsys.blockchain.transaction.spos.ContendSlotsTransaction
 import vsys.account.Address
 import vsys.settings.FunctionalitySettings
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.consensus.SPoSCalc._
 
-import scala.util.Right
-import scala.util.Left
+import scala.util.{Left, Right}
 
 object ContendSlotsTransactionDiff {
   def apply(s: StateReader,fs: FunctionalitySettings,height: Int)(tx: ContendSlotsTransaction): Either[ValidationError, Diff] = {
@@ -28,17 +26,16 @@ object ContendSlotsTransactionDiff {
       } else Left(ValidationError.InvalidSlotId(tx.slotId))
     } yield {
       val contendEffectiveBalance = s.accountPortfolio(senderAddress).effectiveBalance
+      // charge the transaction fee without any modification
+      val txFailDiff = Diff(
+        height = height,
+        tx = tx,
+        portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+        txStatus = TransactionStatus.ContendFailed,
+        chargedFee = tx.fee
+      )
       // check effective balance after contend
-      if (contendEffectiveBalance - tx.fee < MinimalEffectiveBalanceForContender) {
-        // charge the transaction fee without any modification
-        Diff(
-          height = height,
-          tx = tx,
-          portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-          txStatus = TransactionStatus.ContendFailed,
-          chargedFee = tx.fee
-        )
-      }
+      if (contendEffectiveBalance - tx.fee < MinimalEffectiveBalanceForContender) txFailDiff
       else {
         val contendGen = mintingBalance(s, fs, senderAddress, height)
         val (slotGen, slotIncrease) = s.slotAddress(tx.slotId) match {
@@ -58,16 +55,7 @@ object ContendSlotsTransactionDiff {
             chargedFee = tx.fee
           )
         }
-        else {
-          // charge the transaction fee without any modification
-          Diff(
-            height = height,
-            tx = tx,
-            portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-            txStatus = TransactionStatus.ContendFailed,
-            chargedFee = tx.fee
-          )
-        }
+        else txFailDiff
       }
     }
   }
