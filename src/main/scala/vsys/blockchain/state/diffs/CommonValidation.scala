@@ -1,10 +1,10 @@
 package vsys.blockchain.state.diffs
 
 import vsys.blockchain.state.reader.StateReader
-import vsys.blockchain.transaction.ValidationError.{GenericError, Mistiming, EmptyProofs}
+import vsys.blockchain.transaction.ValidationError.{GenericError, Mistiming}
 import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.lease._
-import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.blockchain.transaction.proof.Proofs
 import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.spos._
 import vsys.blockchain.transaction.database._
@@ -22,15 +22,11 @@ object CommonValidation {
     tx match {
       case ptx: PaymentTransaction =>
         for {
-          proofsHead <- ptx.proofs.proofs.headOption match {
-            case Some(x) => Right(x)
-            case _ => Left(EmptyProofs)
-          }
-          proof <- EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr)
+          proof <- ptx.proofs.firstCurveProof
           sender = proof.publicKey
           _ <- if(s.accountPortfolio(sender).balance < (ptx.amount + ptx.fee))
             Left(GenericError(s"Attempt to pay unavailable funds: balance " +
-              s"${s.accountPortfolio(EllipticCurve25519Proof.fromBytes(ptx.proofs.proofs.head.bytes.arr).toOption.get.publicKey).balance} is less than ${ptx.amount + ptx.fee}"))
+              s"${s.accountPortfolio(sender).balance} is less than ${ptx.amount + ptx.fee}"))
             else Right(())
         } yield tx
       case _ => Right(tx)
