@@ -4,8 +4,7 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import vsys.blockchain.state._
 import vsys.account.Address
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidAmount, ContractInvalidOPCData, ContractInvalidTokenIndex,
-  ContractTokenBalanceInsufficient, ContractTokenMaxExceeded, ContractUnsupportedDeposit, ContractUnsupportedWithdraw}
+import vsys.blockchain.transaction.ValidationError._
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.ExecutionContext
@@ -149,24 +148,25 @@ object TDBAOpcDiff {
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,3, data.length) =>
-      depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,4, data.length) =>
-      deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,3, data.length) =>
-      withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,4, data.length) =>
-      withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,4, data.length) =>
-      transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,5, data.length) =>
-      transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
-    case _ => Left(ContractInvalidOPCData)
+                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    if (checkTDBADataIndex(bytes, data.length)) {
+      val depositTDBAId = TDBAType.DepositTDBA.id.toByte
+      val withdrawTDBAId = TDBAType.WithdrawTDBA.id.toByte
+      val transferTDBAId = TDBAType.TransferTDBA.id.toByte
+      (bytes.head, bytes.length) match {
+        case (`depositTDBAId`, 3) => depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (`depositTDBAId`, 4) => deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (`withdrawTDBAId`, 3) => withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (`withdrawTDBAId`, 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (`transferTDBAId`, 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (`transferTDBAId`, 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
+      }
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
 
-  private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
-    bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
-  }
+  private def checkTDBADataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.tail.max < dataLength && bytes.tail.min >= 0
 
 }
