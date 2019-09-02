@@ -1,16 +1,16 @@
 package vsys.blockchain.state.diffs
 
-import cats.Monoid
 import cats.implicits._
-import vsys.settings.FunctionalitySettings
+import cats.Monoid
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.state.reader.{CompositeStateReader, StateReader}
 import vsys.blockchain.block.Block
 import vsys.blockchain.transaction.{Signed, ValidationError}
 import vsys.blockchain.transaction.ProcessedTransaction
-import vsys.utils.ScorexLogging
 import vsys.blockchain.consensus.SPoSCalc
+import vsys.settings.FunctionalitySettings
+import vsys.utils.ScorexLogging
 
 import scala.collection.SortedMap
 
@@ -18,8 +18,8 @@ object BlockDiffer extends ScorexLogging {
 
   def right(diff: Diff): Either[ValidationError, Diff] = Right(diff)
 
-  def fromBlock(settings: FunctionalitySettings, s: StateReader,  pervBlockTimestamp : Option[Long])(block: Block): Either[ValidationError, BlockDiff] =
-    Signed.validateSignatures(block).flatMap { _ => apply(settings, s, pervBlockTimestamp)(block.feesDistribution, block.timestamp, block.transactionData, 1) }
+  def fromBlock(settings: FunctionalitySettings, s: StateReader,  prevBlockTimestamp : Option[Long])(block: Block): Either[ValidationError, BlockDiff] =
+    Signed.validateSignatures(block).flatMap { _ => apply(settings, s, prevBlockTimestamp)(block.feesDistribution, block.timestamp, block.transactionData, 1) }
 
   def unsafeDiffMany(settings: FunctionalitySettings, s: StateReader, prevBlockTimestamp: Option[Long])(blocks: Seq[Block]): BlockDiff =
     blocks.foldLeft((Monoid[BlockDiff].empty, prevBlockTimestamp)) { case ((diff, prev), block) =>
@@ -29,24 +29,26 @@ object BlockDiffer extends ScorexLogging {
 
   private def apply(settings: FunctionalitySettings,
                     s: StateReader,
-                    pervBlockTimestamp : Option[Long])(feesDistribution: Diff,
+                    prevBlockTimestamp : Option[Long])(feesDistribution: Diff,
                                                        timestamp: Long,
                                                        txs: Seq[ProcessedTransaction],
                                                        heightDiff: Int): Either[ValidationError, BlockDiff] = {
     val currentBlockHeight = s.height + 1
 
-    val txDiffer = TransactionDiffer(settings, pervBlockTimestamp, timestamp, currentBlockHeight) _
+    val txDiffer = TransactionDiffer(settings, prevBlockTimestamp, timestamp, currentBlockHeight) _
 
-    // since we have some in block transactions with status not equal to success
-    // we need a much stricter validation about fee charge in later version
+    /**
+      since we have some in block transactions with status not equal to success
+      we need a much stricter validation about fee charge in later version
+    */
     val txsDiffEi = txs.foldLeft(right(feesDistribution)) { case (ei, tx) => ei.flatMap(diff =>
       txDiffer(new CompositeStateReader(s, diff.asBlockDiff), tx.transaction) match {
         case Right(newDiff) => if (newDiff.chargedFee == tx.feeCharged && newDiff.txStatus == tx.status){
-          Right(diff.combine(newDiff))
-        }
-        else{
-          Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
-        }
+            Right(diff.combine(newDiff))
+          }
+          else{
+            Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
+          }
         case Left(l) => Left(l)
       })
     }

@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.implicits._
 import vsys.blockchain.state._
-import vsys.account.{Address, Alias}
+import vsys.account.Address
 import vsys.blockchain.transaction.lease.LeaseTransaction
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.contract.{Contract, DataEntry}
@@ -60,18 +60,6 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int = read { implicit l =>
     sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
-  }
-
-  override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>
-    sp().aliasToAddress.asScala
-      .collect { case (aliasName, addressBytes) if addressBytes == a.bytes =>
-        Alias.buildWithCurrentNetworkByte(aliasName).explicitGet()
-      }.toSeq
-  }
-
-  override def resolveAlias(a: Alias): Option[Address] = read { implicit l =>
-    sp().aliasToAddress.get(a.name)
-      .map(b => Address.fromBytes(b.arr).explicitGet())
   }
 
   override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] = read { implicit l =>

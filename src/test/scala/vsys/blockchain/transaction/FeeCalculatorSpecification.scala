@@ -41,9 +41,6 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
       |    lease-cancel {
       |      VSYS = 10000000
       |    }
-      |    create-alias {
-      |      VSYS = 10000000
-      |    }
       |    contend-slots {
       |      VSYS = 5000000000000
       |    }
@@ -141,13 +138,6 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
   property("Lease cancel transaction") {
     val feeCalc = new FeeCalculator(mySettings)
     forAll(leaseCancelGen) { tx: LeaseCancelTransaction =>
-      feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
-    }
-  }
-
-  property("Create alias transaction") {
-    val feeCalc = new FeeCalculator(mySettings)
-    forAll(createAliasGen) { tx: CreateAliasTransaction =>
       feeCalc.enoughFee(tx) shouldBeRightIf (tx.fee >= 10000000)
     }
   }

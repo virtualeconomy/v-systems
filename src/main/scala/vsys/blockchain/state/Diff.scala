@@ -2,7 +2,7 @@ package vsys.blockchain.state
 
 import cats.Monoid
 import cats.implicits._
-import vsys.account.{Address, Alias}
+import vsys.account.Address
 import vsys.blockchain.transaction.Transaction
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.database.Entry
@@ -46,7 +46,6 @@ object AssetInfo {
 case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Address])],
                 portfolios: Map[Address, Portfolio],
                 issuedAssets: Map[ByteStr, AssetInfo],
-                aliases: Map[Alias, Address],
                 slotids: Map[Int, Option[String]],
                 addToSlot: Map[String, Option[Int]],
                 slotNum: Int,
@@ -100,7 +99,6 @@ object Diff {
   def apply(height: Int, tx: Transaction,
             portfolios: Map[Address, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
-            aliases: Map[Alias, Address] = Map.empty,
             slotids: Map[Int, Option[String]] = Map.empty,
             addToSlot: Map[String, Option[Int]] = Map.empty,
             slotNum: Int = 0,
@@ -118,7 +116,6 @@ object Diff {
     transactions = Map((tx.id, (height, ProcessedTransaction(txStatus, chargedFee, tx), (portfolios.keys ++ relatedAddress.keys).toSet))),
     portfolios = portfolios,
     issuedAssets = assetInfos,
-    aliases = aliases,
     slotids = slotids,
     addToSlot = addToSlot,
     slotNum = slotNum,
@@ -133,7 +130,7 @@ object Diff {
     orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
     TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty,
     Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
@@ -148,7 +145,6 @@ object Diff {
       transactions = older.transactions ++ newer.transactions,
       portfolios = older.portfolios.combine(newer.portfolios),
       issuedAssets = older.issuedAssets.combine(newer.issuedAssets),
-      aliases = older.aliases ++ newer.aliases,
       slotids = older.slotids ++ newer.slotids,
       addToSlot = older.addToSlot ++ newer.addToSlot,
       slotNum = older.slotNum + newer.slotNum,

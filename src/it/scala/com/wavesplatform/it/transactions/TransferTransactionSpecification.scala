@@ -2,7 +2,7 @@ package com.wavesplatform.it.transactions
 
 import com.wavesplatform.it.util._
 import com.wavesplatform.it.{IntegrationSuiteWithThreeAddresses, Node}
-import vsys.account.{AddressOrAlias, PrivateKeyAccount}
+import vsys.account.{Address, PrivateKeyAccount}
 import vsys.api.http.Mistiming
 import vsys.api.http.assets.SignedTransferRequest
 import scorex.crypto.encode.Base58
@@ -84,7 +84,7 @@ class TransferTransactionSpecification(override val allNodes: Seq[Node], overrid
 
     val invalidByTsTx = TransferTransaction.create(None,
       PrivateKeyAccount(Base58.decode(sender.accountSeed).get),
-      AddressOrAlias.fromString(sender.address).right.get,
+      Address.fromString(sender.address).right.get,
       1,
       System.currentTimeMillis() + (1.day).toMillis,
       None,

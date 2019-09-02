@@ -28,7 +28,6 @@ object TransactionParser {
     val ReissueTransaction = Value(13)
     val BurnTransaction = Value(14)
     val ExchangeTransaction = Value(15)
-    val CreateAliasTransaction = Value(16)
   }
 
   val TimestampLength = 8
@@ -69,9 +68,6 @@ object TransactionParser {
 
       case txType: Byte if txType == TransactionType.LeaseCancelTransaction.id =>
         LeaseCancelTransaction.parseTail(data.tail)
-
-      case txType: Byte if txType == TransactionType.CreateAliasTransaction.id =>
-        CreateAliasTransaction.parseTail(data.tail)
       
       case txType: Byte if txType == TransactionType.MintingTransaction.id =>
         MintingTransaction.parseTail(data.tail)

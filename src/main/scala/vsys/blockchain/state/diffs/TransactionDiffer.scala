@@ -1,23 +1,19 @@
 package vsys.blockchain.state.diffs
 
-
-import vsys.settings.FunctionalitySettings
-import vsys.blockchain.state.Diff
 import vsys.blockchain.state.reader.StateReader
-import vsys.blockchain.transaction.ValidationError.UnsupportedTransactionType
+import vsys.blockchain.state.Diff
 import vsys.blockchain.transaction._
-//import vsys.blockchain.transaction.assets._
-//import vsys.blockchain.transaction.assets.exchange.ExchangeTransaction
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.blockchain.transaction.MintingTransaction
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.blockchain.transaction.ValidationError.UnsupportedTransactionType
+import vsys.settings.FunctionalitySettings
 
 object TransactionDiffer {
 
-  case class TransactionValidationError(cause: ValidationError,tx: Transaction) extends ValidationError
+  case class TransactionValidationError(cause: ValidationError, tx: Transaction) extends ValidationError
 
   def apply(settings: FunctionalitySettings, prevBlockTimestamp: Option[Long], currentBlockTimestamp: Long, currentBlockHeight: Int)(s: StateReader, tx: Transaction): Either[ValidationError, Diff] = {
     for {
@@ -28,17 +24,15 @@ object TransactionDiffer {
       t4 <- CommonValidation.disallowDuplicateIds(s, settings, currentBlockHeight, t3)
       t5 <- CommonValidation.disallowSendingGreaterThanBalance(s, settings, currentBlockTimestamp, t4)
       t6 <- CommonValidation.disallowInvalidFeeScale(t5)
-      diff <- t6 match {
+      t7 <- t6 match {
+        case pt: ProvenTransaction => CommonValidation.disallowProofsCountOverflow(pt)
+        case t => Right(t)
+      }
+      diff <- t7 match {
         case gtx: GenesisTransaction => GenesisTransactionDiff(settings, currentBlockHeight)(gtx)
         case ptx: PaymentTransaction => PaymentTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(ptx)
-        //case itx: IssueTransaction => AssetTransactionsDiff.issue(currentBlockHeight)(itx)
-        //case rtx: ReissueTransaction => AssetTransactionsDiff.reissue(s, settings, currentBlockTimestamp, currentBlockHeight)(rtx)
-        //case btx: BurnTransaction => AssetTransactionsDiff.burn(s, currentBlockHeight)(btx)
-        //case ttx: TransferTransaction => TransferTransactionDiff(s, settings, currentBlockTimestamp, currentBlockHeight)(ttx)
         case ltx: LeaseTransaction => LeaseTransactionsDiff.lease(s, currentBlockHeight)(ltx)
         case ltx: LeaseCancelTransaction => LeaseTransactionsDiff.leaseCancel(s, settings, currentBlockTimestamp, currentBlockHeight)(ltx)
-        //case etx: ExchangeTransaction => ExchangeTransactionDiff(s, currentBlockHeight)(etx)
-        //case atx: CreateAliasTransaction => CreateAliasTransactionDiff(currentBlockHeight)(atx)
         case mtx: MintingTransaction => MintingTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(mtx)
         case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings,currentBlockHeight)(cstx)
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
