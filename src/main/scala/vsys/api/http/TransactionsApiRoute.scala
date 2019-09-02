@@ -174,11 +174,13 @@ case class TransactionsApiRoute(
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) => {
           if(stateSettings.txTypeAccountTxIds){
-            val txNum = state.txTypeAccTxLengths(TransactionType.LeaseTransaction, a)
-            val txIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, txNum, 0)
-            complete(Json.arr(JsArray(txIds._2
+            val leaseNum = state.txTypeAccTxLengths(TransactionType.LeaseTransaction, a)
+            val leaseIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, leaseNum, 0)
+            val cancelLeaseNum = state.txTypeAccTxLengths(TransactionType.LeaseCancelTransaction, a)
+            val cancelLeaseIds = state.txTypeAccountTxIds(TransactionType.LeaseCancelTransaction, a, cancelLeaseNum, 0)
+            complete(Json.arr(JsArray(leaseIds._2
+              .diff(cancelLeaseIds._2)
               .flatMap(state.transactionInfo)
-              .filter(a => state.isLeaseActive(a._2.transaction.asInstanceOf[LeaseTransaction]))
               .map(a => (processedTxToExtendedJson(a._2) + ("height" -> JsNumber(a._1))))
             )))
           } else {

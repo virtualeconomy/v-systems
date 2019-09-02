@@ -90,7 +90,7 @@ class StateMap[K, V](
   }
 
   private def setSize(size: Long, batch: Option[WriteBatch]): Unit = {
-
+    //Q ByteBuffer.allocate(8).putLong(10).array()
     put(SizeKey, ByteBuffer.allocate(8).putLong(size).array(), batch)
       
   }
