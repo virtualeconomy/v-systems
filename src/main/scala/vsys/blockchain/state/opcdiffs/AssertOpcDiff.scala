@@ -89,21 +89,21 @@ object AssertOpcDiff {
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
     if (checkAssertDataIndex(bytes, data.length)) {
-      val GteqZeroAssertId = AssertType.GteqZeroAssert.id.toByte
-      val LteqAssertId = AssertType.LteqAssert.id.toByte
-      val LtInt64AssertId = AssertType.LtInt64Assert.id.toByte
-      val GtZeroAssertId = AssertType.GtZeroAssert.id.toByte
-      val EqAssertId = AssertType.EqAssert.id.toByte
-      val IsCallerOriginAssertId = AssertType.IsCallerOriginAssert.id.toByte
-      val IsSignerOriginAssertId = AssertType.IsSignerOriginAssert.id.toByte
+      val gteqZeroAssertId = AssertType.GteqZeroAssert.id.toByte
+      val lteqAssertId = AssertType.LteqAssert.id.toByte
+      val ltInt64AssertId = AssertType.LtInt64Assert.id.toByte
+      val gtZeroAssertId = AssertType.GtZeroAssert.id.toByte
+      val eqAssertId = AssertType.EqAssert.id.toByte
+      val isCallerOriginAssertId = AssertType.IsCallerOriginAssert.id.toByte
+      val isSignerOriginAssertId = AssertType.IsSignerOriginAssert.id.toByte
       (bytes.head, bytes.length) match {
-        case (`GteqZeroAssertId`, 2) => gtEq0(data(bytes(1)))
-        case (`LteqAssertId`, 3) => ltEq(data(bytes(1)), data(bytes(2)))
-        case (`LtInt64AssertId`, 2) => ltInt64(data(bytes(1)))
-        case (`GtZeroAssertId`, 2) => gt0(data(bytes(1)))
-        case (`EqAssertId`, 3) => eq(data(bytes(1)), data(bytes(2)))
-        case (`IsCallerOriginAssertId`, 2) => isCallerOrigin(context)(data(bytes(1)))
-        case (`IsSignerOriginAssertId`, 2) => isSignerOrigin(context)(data(bytes(1)))
+        case (`gteqZeroAssertId`, 2) => gtEq0(data(bytes(1)))
+        case (`lteqAssertId`, 3) => ltEq(data(bytes(1)), data(bytes(2)))
+        case (`ltInt64AssertId`, 2) => ltInt64(data(bytes(1)))
+        case (`gtZeroAssertId`, 2) => gt0(data(bytes(1)))
+        case (`eqAssertId`, 3) => eq(data(bytes(1)), data(bytes(2)))
+        case (`isCallerOriginAssertId`, 2) => isCallerOrigin(context)(data(bytes(1)))
+        case (`isSignerOriginAssertId`, 2) => isSignerOrigin(context)(data(bytes(1)))
         case _ => Left(ContractInvalidOPCData)
       }
     }
