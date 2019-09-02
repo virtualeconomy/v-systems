@@ -142,19 +142,19 @@ object TDBROpcDiff {
 
   private def getTDBRDiff(context: ExecutionContext)
                          (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    val MaxTDBRId = TDBRType.MaxTDBR.id.toByte
-    val TotalTDBRId = TDBRType.TotalTDBR.id.toByte
-    val UnityTDBRId = TDBRType.UnityTDBR.id.toByte
-    val DescTDBRId = TDBRType.DescTDBR.id.toByte
+    val maxTDBRId = TDBRType.MaxTDBR.id.toByte
+    val totalTDBRId = TDBRType.TotalTDBR.id.toByte
+    val unityTDBRId = TDBRType.UnityTDBR.id.toByte
+    val descTDBRId = TDBRType.DescTDBR.id.toByte
     (bytes.head, bytes.length) match {
-      case (`MaxTDBRId`, 2) => maxWithoutTokenIndex(context)(data, bytes(1))
-      case (`MaxTDBRId`, 3) => max(context)(data(bytes(1)), data, bytes(2))
-      case (`TotalTDBRId`, 2) => totalWithoutTokenIndex(context)(data, bytes(1))
-      case (`TotalTDBRId`, 3) => total(context)(data(bytes(1)), data, bytes(2))
-      case (`UnityTDBRId`, 2) => unityWithoutTokenIndex(context)(data, bytes(1))
-      case (`UnityTDBRId`, 3) => unity(context)(data(bytes(1)), data, bytes(2))
-      case (`DescTDBRId`, 2) => descWithoutTokenIndex(context)(data, bytes(1))
-      case (`DescTDBRId`, 3) => desc(context)(data(bytes(1)), data, bytes(2))
+      case (`maxTDBRId`, 2) => maxWithoutTokenIndex(context)(data, bytes(1))
+      case (`maxTDBRId`, 3) => max(context)(data(bytes(1)), data, bytes(2))
+      case (`totalTDBRId`, 2) => totalWithoutTokenIndex(context)(data, bytes(1))
+      case (`totalTDBRId`, 3) => total(context)(data(bytes(1)), data, bytes(2))
+      case (`unityTDBRId`, 2) => unityWithoutTokenIndex(context)(data, bytes(1))
+      case (`unityTDBRId`, 3) => unity(context)(data(bytes(1)), data, bytes(2))
+      case (`descTDBRId`, 2) => descWithoutTokenIndex(context)(data, bytes(1))
+      case (`descTDBRId`, 3) => desc(context)(data(bytes(1)), data, bytes(2))
       case _ => Left(ContractInvalidOPCData)
     }
   }

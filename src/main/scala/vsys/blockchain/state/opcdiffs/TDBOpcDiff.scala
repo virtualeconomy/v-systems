@@ -73,18 +73,23 @@ object TDBOpcDiff {
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes,4, data.length) =>
-      newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,2, data.length) =>
-      splitWithoutTokenIndex(context)(data(bytes(1)))
-    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
-      split(context)(data(bytes(1)), data(bytes(2)))
-    case _ => Left(ContractInvalidOPCData)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    if (checkTDBDataIndex(bytes, data.length)) {
+      val newTokenTDBId = TDBType.NewTokenTDB.id.toByte
+      val splitTDBId = TDBType.SplitTDB.id.toByte
+      val NewTokenDataLength = 4
+      (bytes.head, bytes.length) match {
+        case (`newTokenTDBId`, `NewTokenDataLength`) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (`splitTDBId`, 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
+        case (`splitTDBId`, 3) => split(context)(data(bytes(1)), data(bytes(2)))
+        case _ => Left(ContractInvalidOPCData)
+      }
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
 
-  private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
-    bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
-  }
+  private def checkTDBDataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.tail.max < dataLength && bytes.tail.min >= 0
 
 }
