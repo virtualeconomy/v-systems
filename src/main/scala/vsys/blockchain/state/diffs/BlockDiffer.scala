@@ -1,16 +1,16 @@
 package vsys.blockchain.state.diffs
 
-import cats.Monoid
 import cats.implicits._
-import vsys.settings.FunctionalitySettings
+import cats.Monoid
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.state.reader.{CompositeStateReader, StateReader}
 import vsys.blockchain.block.Block
 import vsys.blockchain.transaction.{Signed, ValidationError}
 import vsys.blockchain.transaction.ProcessedTransaction
-import vsys.utils.ScorexLogging
 import vsys.blockchain.consensus.SPoSCalc
+import vsys.settings.FunctionalitySettings
+import vsys.utils.ScorexLogging
 
 import scala.collection.SortedMap
 
@@ -37,16 +37,18 @@ object BlockDiffer extends ScorexLogging {
 
     val txDiffer = TransactionDiffer(settings, prevBlockTimestamp, timestamp, currentBlockHeight) _
 
-    // since we have some in block transactions with status not equal to success
-    // we need a much stricter validation about fee charge in later version
+    /**
+      since we have some in block transactions with status not equal to success
+      we need a much stricter validation about fee charge in later version
+    */
     val txsDiffEi = txs.foldLeft(right(feesDistribution)) { case (ei, tx) => ei.flatMap(diff =>
       txDiffer(new CompositeStateReader(s, diff.asBlockDiff), tx.transaction) match {
         case Right(newDiff) => if (newDiff.chargedFee == tx.feeCharged && newDiff.txStatus == tx.status){
-          Right(diff.combine(newDiff))
-        }
-        else{
-          Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
-        }
+            Right(diff.combine(newDiff))
+          }
+          else{
+            Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
+          }
         case Left(l) => Left(l)
       })
     }
