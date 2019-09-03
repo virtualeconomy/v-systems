@@ -4,7 +4,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractLocalVariableIndexOutOfRange}
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object LoadOpcDiff {
 
@@ -26,9 +26,9 @@ object LoadOpcDiff {
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == LoadType.SignerLoad.id && bytes.length == 2 => signer(context)(data, bytes.last)
-    case opcType: Byte if opcType == LoadType.CallerLoad.id && bytes.length == 2 => caller(context)(data, bytes.last)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.headOption.flatMap(f => Try(LoadType(f)).toOption) match {
+    case Some(LoadType.SignerLoad) if bytes.length == 2 => signer(context)(data, bytes.last)
+    case Some(LoadType.CallerLoad) if bytes.length == 2 => caller(context)(data, bytes.last)
     case _ => Left(ContractInvalidOPCData)
   }
 

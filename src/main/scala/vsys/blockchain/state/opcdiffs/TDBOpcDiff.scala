@@ -7,7 +7,7 @@ import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, Co
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object TDBOpcDiff {
 
@@ -74,12 +74,10 @@ object TDBOpcDiff {
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
     if (checkTDBDataIndex(bytes, data.length)) {
-      val newTokenTDBId = TDBType.NewTokenTDB.id.toByte
-      val splitTDBId = TDBType.SplitTDB.id.toByte
-      (bytes.headOption, bytes.length) match {
-        case (Some(`newTokenTDBId`), 4) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (Some(`splitTDBId`), 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
-        case (Some(`splitTDBId`), 3) => split(context)(data(bytes(1)), data(bytes(2)))
+      (bytes.headOption.flatMap(f => Try(TDBType(f)).toOption), bytes.length) match {
+        case (Some(TDBType.NewTokenTDB), 4) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBType.SplitTDB), 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
+        case (Some(TDBType.SplitTDB), 3) => split(context)(data(bytes(1)), data(bytes(2)))
         case _ => Left(ContractInvalidOPCData)
       }
     }

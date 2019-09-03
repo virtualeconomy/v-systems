@@ -4,6 +4,8 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.ContractUnsupportedOPC
 import vsys.blockchain.contract.{DataEntry, ExecutionContext}
 
+import scala.util.Try
+
 
 object OpcDiffer {
 
@@ -14,25 +16,16 @@ object OpcDiffer {
   def apply(context: ExecutionContext)
            (opc: Array[Byte],
             data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = {
-    val assertOpcId = OpcType.AssertOpc.id.toByte
-    val loadOpcId = OpcType.LoadOpc.id.toByte
-    val cdbvOpcId = OpcType.CDBVOpc.id.toByte
-    val cdbvrOpcId = OpcType.CDBVROpc.id.toByte
-    val tdbOpcId = OpcType.TDBOpc.id.toByte
-    val tdbrOpcId = OpcType.TDBROpc.id.toByte
-    val tdbaOpcId = OpcType.TDBAOpc.id.toByte
-    val tdbarOpcId = OpcType.TDBAROpc.id.toByte
-    val returnOpcId = OpcType.ReturnOpc.id.toByte
-    opc.headOption match {
-      case Some(`assertOpcId`) => opcDiffReturn(AssertOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(`loadOpcId`) => seqDataEntryReturn(LoadOpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(`cdbvOpcId`) => opcDiffReturn(CDBVOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(`cdbvrOpcId`) => seqDataEntryReturn(CDBVROpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(`tdbOpcId`) => opcDiffReturn(TDBOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(`tdbrOpcId`) => seqDataEntryReturn(TDBROpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(`tdbaOpcId`) => opcDiffReturn(TDBAOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(`tdbarOpcId`) => seqDataEntryReturn(TDBAROpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(`returnOpcId`) => seqDataEntryReturn(ReturnOpcDiff.parseBytes(context)(opc.tail, data))
+    opc.headOption.flatMap(f => Try(OpcType(f)).toOption) match {
+      case Some(OpcType.AssertOpc) => opcDiffReturn(AssertOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(OpcType.LoadOpc) => seqDataEntryReturn(LoadOpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(OpcType.CDBVOpc) => opcDiffReturn(CDBVOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(OpcType.CDBVROpc) => seqDataEntryReturn(CDBVROpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(OpcType.TDBOpc) => opcDiffReturn(TDBOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(OpcType.TDBROpc) => seqDataEntryReturn(TDBROpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(OpcType.TDBAOpc) => opcDiffReturn(TDBAOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(OpcType.TDBAROpc) => seqDataEntryReturn(TDBAROpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(OpcType.ReturnOpc) => seqDataEntryReturn(ReturnOpcDiff.parseBytes(context)(opc.tail, data))
       case _ => Left(ContractUnsupportedOPC)
     }
   }

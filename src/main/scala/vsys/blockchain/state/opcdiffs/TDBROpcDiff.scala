@@ -7,7 +7,7 @@ import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, Co
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object TDBROpcDiff {
 
@@ -141,19 +141,15 @@ object TDBROpcDiff {
 
   private def getTDBRDiff(context: ExecutionContext)
                          (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    val maxTDBRId = TDBRType.MaxTDBR.id.toByte
-    val totalTDBRId = TDBRType.TotalTDBR.id.toByte
-    val unityTDBRId = TDBRType.UnityTDBR.id.toByte
-    val descTDBRId = TDBRType.DescTDBR.id.toByte
-    (bytes.headOption, bytes.length) match {
-      case (Some(`maxTDBRId`), 2) => maxWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(`maxTDBRId`), 3) => max(context)(data(bytes(1)), data, bytes(2))
-      case (Some(`totalTDBRId`), 2) => totalWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(`totalTDBRId`), 3) => total(context)(data(bytes(1)), data, bytes(2))
-      case (Some(`unityTDBRId`), 2) => unityWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(`unityTDBRId`), 3) => unity(context)(data(bytes(1)), data, bytes(2))
-      case (Some(`descTDBRId`), 2) => descWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(`descTDBRId`), 3) => desc(context)(data(bytes(1)), data, bytes(2))
+    (bytes.headOption.flatMap(f => Try(TDBRType(f)).toOption), bytes.length) match {
+      case (Some(TDBRType.MaxTDBR), 2) => maxWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(TDBRType.MaxTDBR), 3) => max(context)(data(bytes(1)), data, bytes(2))
+      case (Some(TDBRType.TotalTDBR), 2) => totalWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(TDBRType.TotalTDBR), 3) => total(context)(data(bytes(1)), data, bytes(2))
+      case (Some(TDBRType.UnityTDBR), 2) => unityWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(TDBRType.UnityTDBR), 3) => unity(context)(data(bytes(1)), data, bytes(2))
+      case (Some(TDBRType.DescTDBR), 2) => descWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(TDBRType.DescTDBR), 3) => desc(context)(data(bytes(1)), data, bytes(2))
       case _ => Left(ContractInvalidOPCData)
     }
   }
