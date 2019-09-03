@@ -23,16 +23,16 @@ object OpcDiffer {
     val tdbaOpcId = OpcType.TDBAOpc.id.toByte
     val tdbarOpcId = OpcType.TDBAROpc.id.toByte
     val returnOpcId = OpcType.ReturnOpc.id.toByte
-    opc.head match {
-      case `assertOpcId`=> opcDiffReturn(AssertOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case `loadOpcId` => seqDataEntryReturn(LoadOpcDiff.parseBytes(context)(opc.tail, data))
-      case `cdbvOpcId` => opcDiffReturn(CDBVOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case `cdbvrOpcId` => seqDataEntryReturn(CDBVROpcDiff.parseBytes(context)(opc.tail, data))
-      case `tdbOpcId` => opcDiffReturn(TDBOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case `tdbrOpcId` => seqDataEntryReturn(TDBROpcDiff.parseBytes(context)(opc.tail, data))
-      case `tdbaOpcId` => opcDiffReturn(TDBAOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case `tdbarOpcId` => seqDataEntryReturn(TDBAROpcDiff.parseBytes(context)(opc.tail, data))
-      case `returnOpcId` => seqDataEntryReturn(ReturnOpcDiff.parseBytes(context)(opc.tail, data))
+    opc.headOption match {
+      case Some(`assertOpcId`) => opcDiffReturn(AssertOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(`loadOpcId`) => seqDataEntryReturn(LoadOpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(`cdbvOpcId`) => opcDiffReturn(CDBVOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(`cdbvrOpcId`) => seqDataEntryReturn(CDBVROpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(`tdbOpcId`) => opcDiffReturn(TDBOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(`tdbrOpcId`) => seqDataEntryReturn(TDBROpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(`tdbaOpcId`) => opcDiffReturn(TDBAOpcDiff.parseBytes(context)(opc.tail, data), data)
+      case Some(`tdbarOpcId`) => seqDataEntryReturn(TDBAROpcDiff.parseBytes(context)(opc.tail, data))
+      case Some(`returnOpcId`) => seqDataEntryReturn(ReturnOpcDiff.parseBytes(context)(opc.tail, data))
       case _ => Left(ContractUnsupportedOPC)
     }
   }
