@@ -8,7 +8,7 @@ import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.utils.crypto.hash.FastCryptographicHash
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object AssertOpcDiff {
 
@@ -77,10 +77,7 @@ object AssertOpcDiff {
       Left(ContractDataTypeMismatch)
     else {
       val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
-      if (hashResult.equals(ByteStr(hashValue.data)))
-        Right(OpcDiff.empty)
-      else
-        Left(ContractInvalidHash)
+      Either.cond(hashResult.equals(ByteStr(hashValue.data)), OpcDiff.empty, ContractInvalidHash)
     }
   }
 
@@ -91,21 +88,14 @@ object AssertOpcDiff {
   def parseBytes(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
     if (checkAssertDataIndex(bytes, data.length)) {
-      val gteqZeroAssertId = AssertType.GteqZeroAssert.id.toByte
-      val lteqAssertId = AssertType.LteqAssert.id.toByte
-      val ltInt64AssertId = AssertType.LtInt64Assert.id.toByte
-      val gtZeroAssertId = AssertType.GtZeroAssert.id.toByte
-      val eqAssertId = AssertType.EqAssert.id.toByte
-      val isCallerOriginAssertId = AssertType.IsCallerOriginAssert.id.toByte
-      val isSignerOriginAssertId = AssertType.IsSignerOriginAssert.id.toByte
-      (bytes.headOption, bytes.length) match {
-        case (Some(`gteqZeroAssertId`), 2) => gtEq0(data(bytes(1)))
-        case (Some(`lteqAssertId`), 3) => ltEq(data(bytes(1)), data(bytes(2)))
-        case (Some(`ltInt64AssertId`), 2) => ltInt64(data(bytes(1)))
-        case (Some(`gtZeroAssertId`), 2) => gt0(data(bytes(1)))
-        case (Some(`eqAssertId`), 3) => eq(data(bytes(1)), data(bytes(2)))
-        case (Some(`isCallerOriginAssertId`), 2) => isCallerOrigin(context)(data(bytes(1)))
-        case (Some(`isSignerOriginAssertId`), 2) => isSignerOrigin(context)(data(bytes(1)))
+      (bytes.headOption.flatMap(f => Try(AssertType(f)).toOption), bytes.length) match {
+        case (Some(AssertType.GteqZeroAssert), 2) => gtEq0(data(bytes(1)))
+        case (Some(AssertType.LteqAssert), 3) => ltEq(data(bytes(1)), data(bytes(2)))
+        case (Some(AssertType.LtInt64Assert), 2) => ltInt64(data(bytes(1)))
+        case (Some(AssertType.GtZeroAssert), 2) => gt0(data(bytes(1)))
+        case (Some(AssertType.EqAssert), 3) => eq(data(bytes(1)), data(bytes(2)))
+        case (Some(AssertType.IsCallerOriginAssert), 2) => isCallerOrigin(context)(data(bytes(1)))
+        case (Some(AssertType.IsSignerOriginAssert), 2) => isSignerOrigin(context)(data(bytes(1)))
         case _ => Left(ContractInvalidOPCData)
       }
     }

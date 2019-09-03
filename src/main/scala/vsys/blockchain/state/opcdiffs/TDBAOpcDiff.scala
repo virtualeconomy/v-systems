@@ -150,16 +150,13 @@ object TDBAOpcDiff {
   def parseBytes(context: ExecutionContext)
                  (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
     if (checkTDBADataIndex(bytes, data.length)) {
-      val depositTDBAId = TDBAType.DepositTDBA.id.toByte
-      val withdrawTDBAId = TDBAType.WithdrawTDBA.id.toByte
-      val transferTDBAId = TDBAType.TransferTDBA.id.toByte
-      (bytes.headOption, bytes.length) match {
-        case (Some(`depositTDBAId`), 3) => depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-        case (Some(`depositTDBAId`), 4) => deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (Some(`withdrawTDBAId`), 3) => withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-        case (Some(`withdrawTDBAId`), 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (Some(`transferTDBAId`), 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (Some(`transferTDBAId`), 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
+      (bytes.headOption.flatMap(f => Try(TDBAType(f)).toOption), bytes.length) match {
+        case (Some(TDBAType.DepositTDBA), 3) => depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (Some(TDBAType.DepositTDBA), 4) => deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBAType.WithdrawTDBA), 3) => withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (Some(TDBAType.WithdrawTDBA), 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBAType.TransferTDBA), 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBAType.TransferTDBA), 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
         case _ => Left(ContractInvalidOPCData)
       }
     }
