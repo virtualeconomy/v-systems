@@ -75,11 +75,13 @@ object AssertOpcDiff {
   def checkHash(hashValue: DataEntry, hashKey: DataEntry): Either[ValidationError, OpcDiff] = {
     if (hashValue.dataType != DataType.ShortText || hashKey.dataType != DataType.ShortText)
       Left(ContractDataTypeMismatch)
-    val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
-    if (hashResult.equals(ByteStr(hashValue.data)))
-      Right(OpcDiff.empty)
-    else
-      Left(ContractInvalidHash)
+    else {
+      val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
+      if (hashResult.equals(ByteStr(hashValue.data)))
+        Right(OpcDiff.empty)
+      else
+        Left(ContractInvalidHash)
+    }
   }
 
   object AssertType extends Enumeration(1) {
