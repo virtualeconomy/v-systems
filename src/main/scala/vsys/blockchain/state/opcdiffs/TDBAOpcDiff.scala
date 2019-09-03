@@ -217,24 +217,23 @@ object TDBAOpcDiff {
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,3, data.length) =>
-      depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,4, data.length) =>
-      deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,3, data.length) =>
-      withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id && checkInput(bytes,4, data.length) =>
-      withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,4, data.length) =>
-      transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBAType.TransferTDBA.id && checkInput(bytes,5, data.length) =>
-      transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
-    case _ => Left(ContractInvalidOPCData)
+                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    if (checkTDBADataIndex(bytes, data.length)) {
+      (bytes.headOption.flatMap(f => Try(TDBAType(f)).toOption), bytes.length) match {
+        case (Some(TDBAType.DepositTDBA), 3) => depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (Some(TDBAType.DepositTDBA), 4) => deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBAType.WithdrawTDBA), 3) => withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (Some(TDBAType.WithdrawTDBA), 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBAType.TransferTDBA), 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBAType.TransferTDBA), 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
+        case _ => Left(ContractInvalidOPCData)
+      }
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
 
-  private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
-    bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
-  }
+  private def checkTDBADataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.tail.max < dataLength && bytes.tail.min >= 0
 
 }

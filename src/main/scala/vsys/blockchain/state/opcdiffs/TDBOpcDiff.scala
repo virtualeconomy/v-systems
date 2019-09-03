@@ -5,10 +5,9 @@ import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractInvalidTokenInfo}
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.blockchain.contract.{DataEntry, DataType}
-import vsys.blockchain.contract.ExecutionContext
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object TDBOpcDiff {
 
@@ -73,18 +72,20 @@ object TDBOpcDiff {
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes,4, data.length) =>
-      newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,2, data.length) =>
-      splitWithoutTokenIndex(context)(data(bytes(1)))
-    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
-      split(context)(data(bytes(1)), data(bytes(2)))
-    case _ => Left(ContractInvalidOPCData)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    if (checkTDBDataIndex(bytes, data.length)) {
+      (bytes.headOption.flatMap(f => Try(TDBType(f)).toOption), bytes.length) match {
+        case (Some(TDBType.NewTokenTDB), 4) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(TDBType.SplitTDB), 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
+        case (Some(TDBType.SplitTDB), 3) => split(context)(data(bytes(1)), data(bytes(2)))
+        case _ => Left(ContractInvalidOPCData)
+      }
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
 
-  private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
-    bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
-  }
+  private def checkTDBDataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.tail.max < dataLength && bytes.tail.min >= 0
 
 }
