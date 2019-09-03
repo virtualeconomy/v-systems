@@ -160,6 +160,7 @@ object TDBAOpcDiff {
         case (`withdrawTDBAId`, 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
         case (`transferTDBAId`, 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
         case (`transferTDBAId`, 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
+        case _ => Left(ContractInvalidOPCData)
       }
     }
     else
