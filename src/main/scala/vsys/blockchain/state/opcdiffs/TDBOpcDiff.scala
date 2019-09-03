@@ -5,8 +5,7 @@ import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractInvalidTokenInfo}
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.blockchain.contract.{DataEntry, DataType}
-import vsys.blockchain.contract.ExecutionContext
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
 
@@ -77,11 +76,10 @@ object TDBOpcDiff {
     if (checkTDBDataIndex(bytes, data.length)) {
       val newTokenTDBId = TDBType.NewTokenTDB.id.toByte
       val splitTDBId = TDBType.SplitTDB.id.toByte
-      val NewTokenDataLength = 4
-      (bytes.head, bytes.length) match {
-        case (`newTokenTDBId`, `NewTokenDataLength`) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (`splitTDBId`, 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
-        case (`splitTDBId`, 3) => split(context)(data(bytes(1)), data(bytes(2)))
+      (bytes.headOption, bytes.length) match {
+        case (Some(`newTokenTDBId`), 4) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(`splitTDBId`), 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
+        case (Some(`splitTDBId`), 3) => split(context)(data(bytes(1)), data(bytes(2)))
         case _ => Left(ContractInvalidOPCData)
       }
     }

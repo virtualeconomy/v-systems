@@ -5,8 +5,7 @@ import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData, ContractInvalidTokenIndex, ContractInvalidTokenInfo, ContractLocalVariableIndexOutOfRange}
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.blockchain.contract.{DataEntry, DataType}
-import vsys.blockchain.contract.ExecutionContext
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right}
 
@@ -146,15 +145,15 @@ object TDBROpcDiff {
     val totalTDBRId = TDBRType.TotalTDBR.id.toByte
     val unityTDBRId = TDBRType.UnityTDBR.id.toByte
     val descTDBRId = TDBRType.DescTDBR.id.toByte
-    (bytes.head, bytes.length) match {
-      case (`maxTDBRId`, 2) => maxWithoutTokenIndex(context)(data, bytes(1))
-      case (`maxTDBRId`, 3) => max(context)(data(bytes(1)), data, bytes(2))
-      case (`totalTDBRId`, 2) => totalWithoutTokenIndex(context)(data, bytes(1))
-      case (`totalTDBRId`, 3) => total(context)(data(bytes(1)), data, bytes(2))
-      case (`unityTDBRId`, 2) => unityWithoutTokenIndex(context)(data, bytes(1))
-      case (`unityTDBRId`, 3) => unity(context)(data(bytes(1)), data, bytes(2))
-      case (`descTDBRId`, 2) => descWithoutTokenIndex(context)(data, bytes(1))
-      case (`descTDBRId`, 3) => desc(context)(data(bytes(1)), data, bytes(2))
+    (bytes.headOption, bytes.length) match {
+      case (Some(`maxTDBRId`), 2) => maxWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(`maxTDBRId`), 3) => max(context)(data(bytes(1)), data, bytes(2))
+      case (Some(`totalTDBRId`), 2) => totalWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(`totalTDBRId`), 3) => total(context)(data(bytes(1)), data, bytes(2))
+      case (Some(`unityTDBRId`), 2) => unityWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(`unityTDBRId`), 3) => unity(context)(data(bytes(1)), data, bytes(2))
+      case (Some(`descTDBRId`), 2) => descWithoutTokenIndex(context)(data, bytes(1))
+      case (Some(`descTDBRId`), 3) => desc(context)(data(bytes(1)), data, bytes(2))
       case _ => Left(ContractInvalidOPCData)
     }
   }

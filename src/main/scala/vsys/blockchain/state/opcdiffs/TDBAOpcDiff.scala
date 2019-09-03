@@ -153,13 +153,13 @@ object TDBAOpcDiff {
       val depositTDBAId = TDBAType.DepositTDBA.id.toByte
       val withdrawTDBAId = TDBAType.WithdrawTDBA.id.toByte
       val transferTDBAId = TDBAType.TransferTDBA.id.toByte
-      (bytes.head, bytes.length) match {
-        case (`depositTDBAId`, 3) => depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-        case (`depositTDBAId`, 4) => deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (`withdrawTDBAId`, 3) => withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-        case (`withdrawTDBAId`, 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (`transferTDBAId`, 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (`transferTDBAId`, 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
+      (bytes.headOption, bytes.length) match {
+        case (Some(`depositTDBAId`), 3) => depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (Some(`depositTDBAId`), 4) => deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(`withdrawTDBAId`), 3) => withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
+        case (Some(`withdrawTDBAId`), 4) => withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(`transferTDBAId`), 4) => transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+        case (Some(`transferTDBAId`), 5) => transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
         case _ => Left(ContractInvalidOPCData)
       }
     }
