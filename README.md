@@ -64,16 +64,6 @@ The code in master branch is under development. The latest release for each netw
 
 Found a bug or issue? Please first read the [issue & bug guidelines](/CONTRIBUTING.md#using-the-issue-tracker) and search for existing and closed issues. If your problem is not addressed yet, please open a [bug report](https://github.com/virtualeconomy/v-systems/issues/new?template=bug_report.md).
 
-
-## Feature requests
-
-Feature requests are highly encouraged. We want to hear from you on what you'd like to see and/or how you'd like to utilize or access the node network.
-
-<a href="https://github.com/virtualeconomy/v-systems/issues/new?template=feature_request.md">› Request a feature</a>
-
-When submitting a feature request, take a moment to find out whether your idea fits with the scope and aims of the project. Please provide as much detail and context as possible.
-
-
 ## Contributing
 
 Please read through our [contributing guidelines](/CONTRIBUTING.md). Included are directions for opening issues, coding standards, and notes on development.
