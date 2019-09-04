@@ -1,5 +1,7 @@
 # History + Roadmap
 
+V Systems is a blockchain network written in Scala.  It is used for decentralized finance.  
+
 * 2016: Vsys First Discussed by Sunny King as "vee"
 * 2017: Technical Whitepaper and Web Site Launched
 * 2018:
