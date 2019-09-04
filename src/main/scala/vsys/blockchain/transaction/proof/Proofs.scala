@@ -4,7 +4,7 @@ import vsys.blockchain.state._
 import vsys.utils.base58Length
 import scorex.crypto.encode.Base58
 import vsys.utils.serialization.Deser
-import vsys.blockchain.transaction.ValidationError.GenericError
+import vsys.blockchain.transaction.ValidationError.{EmptyProofs, GenericError}
 import vsys.blockchain.transaction.{TransactionParser, ValidationError}
 import play.api.libs.json.{JsValue, JsArray}
 
@@ -13,7 +13,21 @@ import scala.util.Try
 case class Proofs(proofs: List[Proof]) {
   val bytes: Array[Byte] = Proofs.Version +: Deser.serializeArrays(proofs.map(_.bytes.arr))
   val base58: Seq[String] = proofs.map(p => Base58.encode(p.bytes.arr))
+
+  /**
+    For now, only Curve25519 Proof is supported, need to update this function when more
+    proofs is supported.
+  */
+  val firstCurveProof: Either[ValidationError, EllipticCurve25519Proof] =
+    for {
+      firstProof <- proofs.headOption match {
+        case Some(p) => Right(p)
+        case None => Left(EmptyProofs)
+      }
+    } yield firstProof.asInstanceOf[EllipticCurve25519Proof]
+
   lazy val json: JsValue = JsArray(proofs.toSeq.map(_.json))
+
 }
 
 object Proofs {

@@ -5,19 +5,13 @@ import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.transaction.{PaymentTransaction, ValidationError}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
-import vsys.blockchain.transaction.ValidationError.EmptyProofs
 
 object PaymentTransactionDiff {
 
   def apply(stateReader: StateReader, height: Int, settings: FunctionalitySettings, blockTime: Long)
            (tx: PaymentTransaction): Either[ValidationError, Diff] = {
     for {
-      proofsHead <- tx.proofs.proofs.headOption match {
-        case Some(x) => Right(x)
-        case _ => Left(EmptyProofs)
-      }
-      proof <- EllipticCurve25519Proof.fromBytes(proofsHead.bytes.arr)
+      proof <- tx.proofs.firstCurveProof
       sender = proof.publicKey
     } yield Diff(
       height = height,
