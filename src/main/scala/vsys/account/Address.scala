@@ -10,10 +10,19 @@ import vsys.utils.ScorexLogging
 
 import scala.util.Success
 
-sealed trait Address extends AddressOrAlias with Serializable {
+sealed trait Address extends Serializable {
   val bytes: ByteStr
   lazy val address: String = bytes.base58
   lazy val stringRepr: String = address
+
+  override def toString: String = stringRepr
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case a: Address => bytes == a.bytes
+    case _ => false
+  }
+
+  override def hashCode(): Int = java.util.Arrays.hashCode(bytes.arr)
 
 }
 
@@ -60,6 +69,15 @@ object Address extends ScorexLogging {
     fromBase58String(base58String)
   }
 
+  def fromBytes(bytes: Array[Byte], position: Int): Either[ValidationError, (Address, Int)] = {
+    bytes(position) match {
+      case Address.AddressVersion =>
+        val addressEnd = position + Address.AddressLength
+        val addressBytes = bytes.slice(position, addressEnd)
+        Address.fromBytes(addressBytes).map((_, addressEnd))
+      case _ => Left(ValidationError.InvalidAddress)
+    }
+  }
 
   private def isByteArrayValid(addressBytes: Array[Byte]): Boolean = {
     val version = addressBytes.head

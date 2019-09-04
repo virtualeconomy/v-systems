@@ -3,7 +3,7 @@ package vsys.api.http.leasing
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import vsys.account.{AddressOrAlias, PublicKeyAccount}
+import vsys.account.{Address, PublicKeyAccount}
 import vsys.api.http.BroadcastRequest
 import vsys.blockchain.transaction.TransactionParser.SignatureStringLength
 import vsys.blockchain.transaction.ValidationError
@@ -26,7 +26,7 @@ case class SignedLeaseRequest(@ApiModelProperty(value = "Base58 encoded sender p
   def toTx: Either[ValidationError, LeaseTransaction] = for {
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
     _signature <- parseBase58(signature, "invalid.signature", SignatureStringLength)
-    _recipient <- AddressOrAlias.fromString(recipient)
+    _recipient <- Address.fromString(recipient)
     _t <- LeaseTransaction.create(_sender, amount, fee, feeScale, timestamp, _recipient, _signature)
   } yield _t
 }

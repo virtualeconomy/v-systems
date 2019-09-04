@@ -2,8 +2,7 @@ package vsys.blockchain.state.reader
 
 import com.google.common.base.Charsets
 import vsys.blockchain.state._
-import vsys.account.{Address, AddressOrAlias, Alias}
-import vsys.blockchain.transaction.ValidationError.AliasNotExists
+import vsys.account.Address
 import vsys.blockchain.transaction._
 import vsys.blockchain.transaction._
 
@@ -15,7 +14,6 @@ import vsys.blockchain.contract.{Contract, DataEntry}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import scala.util.Right
 
 trait StateReader extends Synchronized {
 
@@ -44,10 +42,6 @@ trait StateReader extends Synchronized {
   def accountTransactionsLengths(a: Address): Int
 
   def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int
-
-  def aliasesOfAddress(a: Address): Seq[Alias]
-
-  def resolveAlias(a: Alias): Option[Address]
 
   def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)]
 
@@ -89,16 +83,6 @@ object StateReader {
           Some(tx.asInstanceOf[T])
         else None
       })
-
-    def resolveAliasEi[T <: Transaction](aoa: AddressOrAlias): Either[ValidationError, Address] = {
-      aoa match {
-        case a: Address => Right(a)
-        case a: Alias => s.resolveAlias(a) match {
-          case None => Left(AliasNotExists(a))
-          case Some(acc) => Right(acc)
-        }
-      }
-    }
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 

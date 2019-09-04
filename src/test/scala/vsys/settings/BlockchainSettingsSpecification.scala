@@ -28,7 +28,6 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |        allow-lease-transaction-after = 10
         |        allow-exchange-transaction-after = 11
         |        allow-invalid-reissue-in-same-block-until-timestamp = 12
-        |        allow-createalias-transaction-after = 13
         |        allow-multiple-lease-cancel-transaction-until-timestamp = 14
         |        reset-effective-balances-at-height = 15
         |        allow-leased-balance-transfer-until = 17
@@ -133,7 +132,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.addressSchemeCharacter should be('M')
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
-    settings.functionalitySettings.allowContractTransactionAfterHeight should be (Int.MaxValue) // same as the setting
+    settings.functionalitySettings.allowContractTransactionAfterHeight should be (6100000) // same as the setting
     settings.genesisSettings.blockTimestamp should be(1543286357457333127L)
     settings.genesisSettings.timestamp should be(1543286357457333127L)
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("3yYNd7quEWaWytrAug4yGwQvpL3PVJegf9d9NTv9PVE3ouBYJs5PTQqxCjd294uK1zPLj6G5Tk447LqFMWdSFvaQ").toOption)

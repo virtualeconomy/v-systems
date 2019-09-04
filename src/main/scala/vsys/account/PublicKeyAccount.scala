@@ -1,8 +1,8 @@
 package vsys.account
 
+import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.ValidationError.InvalidAddress
 import vsys.blockchain.transaction.{TransactionParser, ValidationError}
-import scorex.crypto.encode.Base58
 
 import scala.language.implicitConversions
 

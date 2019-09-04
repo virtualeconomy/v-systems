@@ -4,7 +4,7 @@ import com.google.common.primitives.{Bytes, Longs}
 import vsys.blockchain.state.ByteStr
 import vsys.utils.base58Length
 import play.api.libs.json.{JsObject, Json}
-import vsys.account.{AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
+import vsys.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import vsys.utils.crypto.EllipticCurveImpl
 import scorex.crypto.encode.Base58
 import vsys.utils.serialization.{BytesSerializable, Deser}
@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 
 case class TransferTransaction private(assetId: Option[AssetId],
                                        sender: PublicKeyAccount,
-                                       recipient: AddressOrAlias,
+                                       recipient: Address,
                                        amount: Long,
                                        timestamp: Long,
                                        feeAssetId: Option[AssetId],
@@ -80,7 +80,7 @@ object TransferTransaction {
     val feeAmount = Longs.fromByteArray(bytes.slice(s1 + 16, s1 + 24))
 
     (for {
-      recRes <- AddressOrAlias.fromBytes(bytes, s1 + 24)
+      recRes <- Address.fromBytes(bytes, s1 + 24)
       (recipient, recipientEnd) = recRes
       (attachment, _) = Deser.parseArraySize(bytes, recipientEnd)
       tt <- TransferTransaction.create(assetIdOpt.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetIdOpt.map(ByteStr(_)), feeAmount, attachment, signature)
@@ -89,7 +89,7 @@ object TransferTransaction {
 
   def create(assetId: Option[AssetId],
              sender: PublicKeyAccount,
-             recipient: AddressOrAlias,
+             recipient: Address,
              amount: Long,
              timestamp: Long,
              feeAssetId: Option[AssetId],
@@ -111,7 +111,7 @@ object TransferTransaction {
 
   def create(assetId: Option[AssetId],
              sender: PrivateKeyAccount,
-             recipient: AddressOrAlias,
+             recipient: Address,
              amount: Long,
              timestamp: Long,
              feeAssetId: Option[AssetId],

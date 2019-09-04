@@ -6,7 +6,7 @@ import cats.implicits._
 import cats.kernel.Monoid
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.account.{Address, Alias}
+import vsys.account.Address
 import vsys.blockchain.transaction.ProcessedTransaction
 import vsys.blockchain.transaction.lease.LeaseTransaction
 import vsys.blockchain.contract.{Contract, DataEntry}
@@ -33,8 +33,10 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def height: Int = inner.height + blockDiff.heightDiff
 
+  // TODO: return Option[Address] instead of Option[String]
   override def slotAddress(id: Int): Option[String] = txDiff.slotids.getOrElse(id, inner.slotAddress(id))
 
+  // TODO: param as Address instead of String
   override def addressSlot(add: String): Option[Int] = txDiff.addToSlot.getOrElse(add, inner.addressSlot(add))
 
   override def effectiveSlotAddressSize: Int = inner.effectiveSlotAddressSize + txDiff.slotNum
@@ -73,11 +75,6 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
 
   override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] =
     blockDiff.snapshots.get(acc).flatMap(_.get(h)).orElse(inner.snapshotAtHeight(acc, h))
-
-  override def aliasesOfAddress(a: Address): Seq[Alias] =
-    txDiff.aliases.filter(_._2 == a).keys.toSeq ++ inner.aliasesOfAddress(a)
-
-  override def resolveAlias(a: Alias): Option[Address] = txDiff.aliases.get(a).orElse(inner.resolveAlias(a))
 
   override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] =
     txDiff.contracts.get(id)
@@ -132,9 +129,6 @@ object CompositeStateReader {
 
     override def synchronizationToken: ReentrantReadWriteLock = inner.synchronizationToken
 
-    override def aliasesOfAddress(a: Address): Seq[Alias] =
-      new CompositeStateReader(inner, blockDiff()).aliasesOfAddress(a)
-
     override def accountPortfolio(a: Address): Portfolio =
       new CompositeStateReader(inner, blockDiff()).accountPortfolio(a)
 
@@ -155,9 +149,6 @@ object CompositeStateReader {
 
     override def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)] =
       new CompositeStateReader(inner, blockDiff()).transactionInfo(id)
-
-    override def resolveAlias(a: Alias): Option[Address] =
-      new CompositeStateReader(inner, blockDiff()).resolveAlias(a)
 
     override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] =
       new CompositeStateReader(inner, blockDiff()).contractContent(id)
