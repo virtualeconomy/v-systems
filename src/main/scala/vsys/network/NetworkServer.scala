@@ -160,7 +160,7 @@ class NetworkServer(checkpointService: CheckpointService,
     }
   }
 
-  def formatOutgoingChannelEvent(channel: Channel, event: String) = s"${id(channel)} $event, outgoing channel count: ${outgoingChannels.size()}"
+  def formatOutgoingChannelEvent(channel: Channel, event: String): String = s"${id(channel)} $event, outgoing channel count: ${outgoingChannels.size()}"
 
   def connect(remoteAddress: InetSocketAddress): Unit =
     outgoingChannels.computeIfAbsent(remoteAddress, _ => {
