@@ -44,6 +44,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
 
       blockHeightStats.record(h)
 
+
       blockDiff
     }
     else {
@@ -63,6 +64,7 @@ class HistoryWriterImpl(db: DB, val synchronizationToken: ReentrantReadWriteLock
     delete(blockIdByHeightKey(h), batch)
     put(heightKey, Ints.toByteArray(h - 1), batch)
     commit(batch)
+
 
     transactions
   }

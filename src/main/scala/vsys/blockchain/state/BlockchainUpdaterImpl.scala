@@ -15,9 +15,11 @@ import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction._
 import vsys.settings.FunctionalitySettings
 import vsys.utils.ScorexLogging
+import vsys.settings.WebhookSettings
 
 class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
                                     settings: FunctionalitySettings,
+                                    webhookSettings: Seq[WebhookSettings],
                                     minimumInMemoryDiffSize: Int,
                                     historyWriter: HistoryWriter,
                                     val synchronizationToken: ReentrantReadWriteLock) extends BlockchainUpdater with ScorexLogging {
@@ -114,10 +116,11 @@ object BlockchainUpdaterImpl {
                persistedState: StateWriter with StateReader,
                history: HistoryWriter,
                functionalitySettings: FunctionalitySettings,
+               webhookSettings: Seq[WebhookSettings],
                minimumInMemoryDiffSize: Int,
                synchronizationToken: ReentrantReadWriteLock): BlockchainUpdaterImpl = {
     val blockchainUpdater =
-      new BlockchainUpdaterImpl(persistedState, functionalitySettings, minimumInMemoryDiffSize, history, synchronizationToken)
+      new BlockchainUpdaterImpl(persistedState, functionalitySettings, webhookSettings, minimumInMemoryDiffSize, history, synchronizationToken)
     blockchainUpdater.logHeights("Constructing BlockchainUpdaterImpl")
     blockchainUpdater.updatePersistedAndInMemory()
     blockchainUpdater

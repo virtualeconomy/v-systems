@@ -5,10 +5,9 @@ import scala.util.Try
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 trait WebhookEventRules extends Product with Serializable {
-  //override def applyRule(valIn: Any*): Boolean
-  //TO DO
   val value: Any
 }
 
@@ -24,7 +23,11 @@ trait RuleConfigReader {
   }
 }
 
-case class AfterHeight(value: Long) extends WebhookEventRules
+case class AfterHeight(value: Long) extends WebhookEventRules {
+  def applyRule(valIn: Long): Boolean = {
+    if (valIn >= value) true else false
+  }
+}
 
 object AfterHeight extends RuleConfigReader {
   override val field = "afterHeight"
@@ -34,7 +37,11 @@ object AfterHeight extends RuleConfigReader {
   }
 }
 
-case class AfterTime(value: Long) extends WebhookEventRules
+case class AfterTime(value: Long) extends WebhookEventRules {
+  def applyRule(valIn: Long): Boolean = {
+    if (valIn >= value) true else false
+  }
+}
 
 object AfterTime extends RuleConfigReader {
   override val field = "afterTime"
@@ -44,7 +51,9 @@ object AfterTime extends RuleConfigReader {
   }
 }
 
-case class WithTxs(value: Boolean) extends WebhookEventRules
+case class WithTxs(value: Boolean) extends WebhookEventRules {
+  def applyRule(): Boolean = value
+}
 
 object WithTxs extends RuleConfigReader {
   override val field = "withTxs"
@@ -54,7 +63,13 @@ object WithTxs extends RuleConfigReader {
   }
 }
 
-case class WithMintingTxs(value: Boolean) extends WebhookEventRules
+case class WithMintingTxs(value: Boolean) extends WebhookEventRules {
+  def applyRule(txsType: TransactionType.Value): Boolean = {
+    if (txsType == TransactionType.MintingTransaction) 
+      if (value) true else false
+    else true
+  }
+}
 
 object WithMintingTxs extends RuleConfigReader {
   override val field = "withMintingTxs"
@@ -64,7 +79,9 @@ object WithMintingTxs extends RuleConfigReader {
   }
 }
 
-case class RelatedAccs(value: Seq[String]) extends WebhookEventRules
+case class RelatedAccs(value: Seq[String]) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object RelatedAccs extends RuleConfigReader {
   override val field = "relatedAccount"
@@ -74,7 +91,9 @@ object RelatedAccs extends RuleConfigReader {
   }
 }
 
-case class IncludeTypes(value: Seq[Int]) extends WebhookEventRules
+case class IncludeTypes(value: Seq[Int]) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object IncludeTypes extends RuleConfigReader {
   override val field = "includeTypes"
@@ -84,7 +103,9 @@ object IncludeTypes extends RuleConfigReader {
   }
 }
 
-case class ExcludeTypes(value: Seq[Int]) extends WebhookEventRules
+case class ExcludeTypes(value: Seq[Int]) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object ExcludeTypes extends RuleConfigReader {
   override val field = "excludeTypes"
@@ -94,7 +115,9 @@ object ExcludeTypes extends RuleConfigReader {
   }
 }
 
-case class AmtGT(value: Long) extends WebhookEventRules
+case class AmtGT(value: Long) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object AmtGT extends RuleConfigReader {
   override val field = "amount.gt"
@@ -104,7 +127,9 @@ object AmtGT extends RuleConfigReader {
   }
 }
 
-case class AmtLT(value: Long) extends WebhookEventRules
+case class AmtLT(value: Long) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object AmtLT extends RuleConfigReader {
   override val field = "amount.lt"
@@ -114,7 +139,9 @@ object AmtLT extends RuleConfigReader {
   }
 }
 
-case class AmtGTE(value: Long) extends WebhookEventRules
+case class AmtGTE(value: Long) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object AmtGTE extends RuleConfigReader {
   override val field = "amount.gte"
@@ -124,7 +151,9 @@ object AmtGTE extends RuleConfigReader {
   }
 }
 
-case class AmtLTE(value: Long) extends WebhookEventRules
+case class AmtLTE(value: Long) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object AmtLTE extends RuleConfigReader {
   override val field = "amount.lte"
@@ -134,7 +163,9 @@ object AmtLTE extends RuleConfigReader {
   }
 }
 
-case class AmtWithFee(value: Boolean) extends WebhookEventRules
+case class AmtWithFee(value: Boolean) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object AmtWithFee extends RuleConfigReader {
   override val field = "amount.withFee"
@@ -144,7 +175,9 @@ object AmtWithFee extends RuleConfigReader {
   }
 }
 
-case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules
+case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object WithTxsOfTypes extends RuleConfigReader {
   override val field = "withTxsOfTypes"
@@ -154,7 +187,9 @@ object WithTxsOfTypes extends RuleConfigReader {
   }
 }
 
-case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules
+case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object WithTxsOfAccs extends RuleConfigReader {
   override val field = "withTxsOfAccs"
@@ -164,7 +199,9 @@ object WithTxsOfAccs extends RuleConfigReader {
   }
 }
 
-case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules
+case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules {
+  def applyRule() = ???
+}
 
 object WithStateOfAccs extends RuleConfigReader {
   override val field = "withStateOfAccs"

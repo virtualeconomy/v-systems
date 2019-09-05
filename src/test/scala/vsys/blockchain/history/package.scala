@@ -1,6 +1,6 @@
 package vsys.blockchain
 
-import vsys.settings.BlockchainSettings
+import vsys.settings.{BlockchainSettings, EventSettings}
 import vsys.blockchain.state._
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.block.Block
@@ -21,9 +21,10 @@ package object history {
     genesisSettings = null,
     stateSettings = TestStateSettings.AllOn)
 
+  val DefaultEventSetting = EventSettings(Seq.empty)
   val db = openDB("./test/data", true)
   def domain(): Domain = {
-    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, true)
+    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, DefaultEventSetting, true)
     Domain(history, stateReader, blockchainUpdater)
   }
 

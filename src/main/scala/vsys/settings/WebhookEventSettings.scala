@@ -32,7 +32,7 @@ case class BlockAppendedEventSettings(override val eventRules: Seq[WebhookEventR
 }
 
 object BlockAppendedEventSettings extends EventConfigReader {
-  override val rules = Seq[RuleConfigReader](AfterHeight, AfterTime, WithTxs, WithMintingTxs)
+  override val rules = Seq[RuleConfigReader](WithTxs, WithMintingTxs, AfterHeight, AfterTime)
 
   def fromConfig(config: Config): WebhookEventSettings = {
     BlockAppendedEventSettings(getRules(config))
@@ -45,8 +45,8 @@ case class TxConfirmedEventSettings(override val eventRules: Seq[WebhookEventRul
 }
 
 object TxConfirmedEventSettings extends EventConfigReader {
-  override val rules = Seq[RuleConfigReader](RelatedAccs, AfterHeight, AfterTime, IncludeTypes,
-    ExcludeTypes, AmtGTE, AmtGT, AmtLTE, AmtLT, AmtWithFee)
+  override val rules = Seq[RuleConfigReader](IncludeTypes, ExcludeTypes, RelatedAccs, AfterHeight, AfterTime,
+    AmtGTE, AmtGT, AmtLTE, AmtLT, AmtWithFee)
 
   def fromConfig(config: Config): WebhookEventSettings = {
     TxConfirmedEventSettings(getRules(config))
