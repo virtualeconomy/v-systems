@@ -177,9 +177,10 @@ case class TransactionsApiRoute(
             val leaseNum = state.txTypeAccTxLengths(TransactionType.LeaseTransaction, a)
             val leaseIds = state.txTypeAccountTxIds(TransactionType.LeaseTransaction, a, leaseNum, 0)
             val cancelLeaseNum = state.txTypeAccTxLengths(TransactionType.LeaseCancelTransaction, a)
-            val cancelLeaseIds = state.txTypeAccountTxIds(TransactionType.LeaseCancelTransaction, a, cancelLeaseNum, 0)
+            val cancelLeaseTxIds = state.txTypeAccountTransactions(TransactionType.LeaseCancelTransaction, a, cancelLeaseNum, 0)._2
+            .map(a => a._2.transaction.asInstanceOf[LeaseCancelTransaction].leaseId)
             complete(Json.arr(JsArray(leaseIds._2
-              .diff(cancelLeaseIds._2)
+              .diff(cancelLeaseTxIds)
               .flatMap(state.transactionInfo)
               .map(a => (processedTxToExtendedJson(a._2) + ("height" -> JsNumber(a._1))))
             )))
