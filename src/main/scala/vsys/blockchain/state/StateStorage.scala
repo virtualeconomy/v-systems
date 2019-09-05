@@ -100,11 +100,11 @@ object StateStorage {
   private val heightKey = "height"
   private val stateVersion = "stateVersion"
 
-  private def validateVersion(ss: StateStorage): Boolean =  
-    ss.persistedVersion match { 
-      case None =>  
+  private def validateVersion(ss: StateStorage): Boolean =
+    ss.persistedVersion match {
+      case None =>
         ss.setPersistedVersion(Version)
-        true  
+        true
       case Some(v) => v == Version
     }
 

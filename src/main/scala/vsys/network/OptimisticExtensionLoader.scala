@@ -19,7 +19,7 @@ class OptimisticExtensionLoader extends ChannelDuplexHandler with ScorexLogging 
     ctx.writeAndFlush(LoadBlockchainExtension(hopefullyNextIds))
   }
 
-  override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef) = msg match {
+  override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case ExtensionBlocks(extension) if discardNextBlocks =>
       discardNextBlocks = false
       log.debug(s"${id(ctx)} discarding just-loaded ${extension.length} blocks as requested")
@@ -36,7 +36,7 @@ class OptimisticExtensionLoader extends ChannelDuplexHandler with ScorexLogging 
     case _ => super.channelRead(ctx, msg)
   }
 
-  override def write(ctx: ChannelHandlerContext, msg: AnyRef, promise: ChannelPromise) = msg match {
+  override def write(ctx: ChannelHandlerContext, msg: AnyRef, promise: ChannelPromise): Unit = msg match {
     case LoadBlockchainExtension(localIds) if hopefullyNextIds == localIds =>
       if (nextExtensionBlocks.isEmpty) {
         log.debug(s"${id(ctx)} Still waiting for extension to load")
