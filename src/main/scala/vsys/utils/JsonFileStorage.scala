@@ -74,8 +74,10 @@ object JsonFileStorage {
     val file: Option[BufferedSource] = Option(Source.fromFile(path))
     Try {
       ultimately {  file.foreach(_.close()) } {
-        val data = file.get.mkString
-        Json.parse(key.fold(data)(k => decrypt(k, data))).as[T]
+        file.foreach(f => {
+          val data = f.mkString
+          Json.parse(key.fold(data)(k => decrypt(k, data))).as[T]
+        })
       }
     }
   }
