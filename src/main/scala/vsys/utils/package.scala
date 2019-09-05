@@ -1,7 +1,6 @@
 package vsys
 
 import java.io.File
-import java.nio.file.Files
 import java.security.SecureRandom
 
 import org.h2.mvstore.MVStore
