@@ -10,7 +10,8 @@ import play.api.libs.json.{Json, Reads, Writes}
 import scorex.crypto.encode.{Base64 => ScorexBase64}
 
 import scala.io.{BufferedSource, Source}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
+import scala.util.control.Exception.ultimately
 
 object JsonFileStorage {
   private val encoding          = "UTF-8"
@@ -32,6 +33,7 @@ object JsonFileStorage {
       case Success(r) => r
       case Failure(e @ (_: NoSuchAlgorithmException | _: InvalidKeySpecException)) =>
         throw new RuntimeException(e)
+      case Failure(t: Throwable) => throw t
     }
 
   def prepareKey(key: String): SecretKeySpec =
@@ -71,15 +73,11 @@ object JsonFileStorage {
     save(value, path, None)
 
   def load[T](path: String, key: Option[SecretKeySpec] = None)(implicit r: Reads[T]): T = {
-    val file: Option[BufferedSource] = Option(Source.fromFile(path))
-    Try {
-      ultimately {  file.foreach(_.close()) } {
-        file.foreach(f => {
-          val data = f.mkString
-          Json.parse(key.fold(data)(k => decrypt(k, data))).as[T]
-        })
-      }
-    }
+    val file: BufferedSource = Source.fromFile(path)
+    val data = file.mkString
+    val res = Json.parse(key.fold(data)(k => decrypt(k, data))).as[T]
+    file.close()
+    res
   }
 
   def load[T](path: String)(implicit r: Reads[T]): T =

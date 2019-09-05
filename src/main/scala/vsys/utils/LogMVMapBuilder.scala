@@ -3,7 +3,6 @@ package vsys.utils
 import org.h2.mvstore.MVMap
 import org.h2.mvstore.`type`.ObjectDataType
 
-import scala.util.control.NonFatal
 import scala.util.{Try, Success, Failure}
 
 class LogMVMapBuilder[K, V] extends MVMap.Builder[K, V] with ScorexLogging {

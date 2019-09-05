@@ -18,7 +18,7 @@ object Deser {
 
   def parseOption(bytes: Array[Byte], position: Int, length: Int): (Option[Array[Byte]], Int) = {
     bytes.slice(position, position + 1).headOption match {
-      case Some(1): Option[Byte] => {
+      case Some(1) => {
         val b = bytes.slice(position + 1, position + 1 + length)
         (Some(b), position + 1 + length)
       }
