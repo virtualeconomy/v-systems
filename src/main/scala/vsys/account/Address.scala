@@ -3,10 +3,9 @@ package vsys.account
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidAddress
-import vsys.utils.base58Length
 import scorex.crypto.encode.Base58
 import vsys.utils.crypto.hash.SecureCryptographicHash._
-import vsys.utils.ScorexLogging
+import vsys.utils.{base58Length, ScorexLogging}
 
 import scala.util.Success
 
@@ -17,7 +16,7 @@ sealed trait Address extends Serializable {
 
   override def toString: String = stringRepr
 
-  override def equals(obj: scala.Any): Boolean = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case a: Address => bytes == a.bytes
     case _ => false
   }
