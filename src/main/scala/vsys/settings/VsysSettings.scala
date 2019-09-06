@@ -1,7 +1,6 @@
 package vsys.settings
 
 import com.typesafe.config.Config
-import com.wavesplatform.matcher.MatcherSettings
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.EnumerationReader._
@@ -22,7 +21,6 @@ case class VsysSettings(directory: String,
                          blockchainSettings: BlockchainSettings,
                          checkpointsSettings: CheckpointsSettings,
                          feesSettings: FeesSettings,
-                         matcherSettings: MatcherSettings,
                          minerSettings: MinerSettings,
                          restAPISettings: RestAPISettings,
                          synchronizationSettings: SynchronizationSettings,
@@ -42,13 +40,12 @@ object VsysSettings {
     val blockchainSettings = BlockchainSettings.fromConfig(config)
     val checkpointsSettings = CheckpointsSettings.fromConfig(config)
     val feesSettings = FeesSettings.fromConfig(config)
-    val matcherSettings = MatcherSettings.fromConfig(config)
     val minerSettings = config.as[MinerSettings]("vsys.miner")
     val restAPISettings = RestAPISettings.fromConfig(config)
     val synchronizationSettings = SynchronizationSettings.fromConfig(config)
     val utxSettings = config.as[UtxSettings]("vsys.utx")
 
     VsysSettings(directory, dataDirectory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
-      feesSettings, matcherSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
+      feesSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
   }
 }
