@@ -37,31 +37,6 @@ object TransactionFactory {
         request.attachment.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray))
   } yield tx
 
-
-  def transferAsset(request: TransferRequest, wallet: Wallet, time: Time): Either[ValidationError, TransferTransaction] =
-    for {
-      senderPrivateKey <- wallet.findPrivateKey(request.sender)
-      recipientAcc <- Address.fromString(request.recipient)
-      tx <- TransferTransaction
-        .create(request.assetId.map(s => ByteStr.decodeBase58(s).get),
-          senderPrivateKey,
-          recipientAcc,
-          request.amount,
-          time.getTimestamp(),
-          request.feeAssetId.map(s => ByteStr.decodeBase58(s).get),
-          request.fee,
-          request.attachment.filter(_.nonEmpty).map(Base58.decode(_).get).getOrElse(Array.emptyByteArray))
-    } yield tx
-
-  def issueAsset(request: IssueRequest, wallet: Wallet, time: Time): Either[ValidationError, IssueTransaction] =
-    for {
-      senderPrivateKey <- wallet.findPrivateKey(request.sender)
-      tx <- IssueTransaction.create(senderPrivateKey,
-        request.name.getBytes(Charsets.UTF_8),
-        request.description.getBytes(Charsets.UTF_8),
-        request.quantity, request.decimals, request.reissuable, request.fee, time.getTimestamp())
-    } yield tx
-
   def lease(request: LeaseRequest, wallet: Wallet, time: Time): Either[ValidationError, LeaseTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     recipientAcc <- Address.fromString(request.recipient)
@@ -116,16 +91,6 @@ object TransactionFactory {
   def dbPut(request: DbPutRequest, wallet: Wallet, time: Time): Either[ValidationError, DbPutTransaction] = for {
     senderPrivateKey <- wallet.findPrivateKey(request.sender)
     tx <- DbPutTransaction.create(senderPrivateKey, request.dbKey, request.dataType, request.data, request.fee, request.feeScale, time.getTimestamp())
-  } yield tx
-
-  def reissueAsset(request: ReissueRequest, wallet: Wallet, time: Time): Either[ValidationError, ReissueTransaction] = for {
-    pk <- wallet.findPrivateKey(request.sender)
-    tx <- ReissueTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.reissuable, request.fee, time.getTimestamp())
-  } yield tx
-
-  def burnAsset(request: BurnRequest, wallet: Wallet, time: Time): Either[ValidationError, BurnTransaction] = for {
-    pk <- wallet.findPrivateKey(request.sender)
-    tx <- BurnTransaction.create(pk, ByteStr.decodeBase58(request.assetId).get, request.quantity, request.fee, time.getTimestamp())
   } yield tx
 
 }
