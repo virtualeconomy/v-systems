@@ -17,10 +17,13 @@ object Deser {
   }
 
   def parseOption(bytes: Array[Byte], position: Int, length: Int): (Option[Array[Byte]], Int) = {
-    if (bytes.slice(position, position + 1).head == (1: Byte)) {
-      val b = bytes.slice(position + 1, position + 1 + length)
-      (Some(b), position + 1 + length)
-    } else (None, position + 1)
+    bytes.slice(position, position + 1).headOption match {
+      case Some(1) => {
+        val b = bytes.slice(position + 1, position + 1 + length)
+        (Some(b), position + 1 + length)
+      }
+      case _ => (None, position + 1)
+    }
   }
 
   def parseArrays(bytes: Array[Byte]): Seq[Array[Byte]] = {
@@ -30,7 +33,7 @@ object Deser {
         val (arr, nextPos) = parseArraySize(bytes, pos)
         (acc :+ arr, nextPos)
     }
-    r._1
+    r match { case (parsedArray, _) => parsedArray}
   }
 
   val encoder = ThreadLocal.withInitial[CharsetEncoder](() => Charset.forName("UTF-8").newEncoder);
@@ -60,7 +63,7 @@ object Deser {
         val arr = Ints.fromByteArray(bytes.slice(pos, pos + 4))
         (acc :+ arr, pos + 4)
     }
-    r._1
+    r match { case (parsedInts, _) => parsedInts}
   }
 
   def serializeShorts(is: Seq[Short]): Array[Byte] = {
@@ -74,6 +77,6 @@ object Deser {
         val arr = Shorts.fromByteArray(bytes.slice(pos, pos + 2))
         (acc :+ arr, pos + 2)
     }
-    r._1
+    r match { case (parsedShorts, _) => parsedShorts}
   }
 }

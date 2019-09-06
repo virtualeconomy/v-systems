@@ -1,7 +1,6 @@
 package vsys
 
 import java.io.File
-import java.nio.file.Files
 import java.security.SecureRandom
 
 import org.h2.mvstore.MVStore
@@ -62,21 +61,6 @@ package object utils extends ScorexLogging {
     store.rollback()
 
     store
-  }
-
-  def createWithStore[A <: AutoCloseable](storeFile: Option[File], f: => A, pred: A => Boolean, deleteExisting: Boolean = false): Try[A] = Try {
-    for (fileToDelete <- storeFile if deleteExisting) Files.delete(fileToDelete.toPath)
-    val a = f
-    if (pred(a)) a else storeFile match {
-      case Some(file) =>
-        log.info(s"Re-creating file store at $file")
-        a.close()
-        Files.delete(file.toPath)
-        val newA = f
-        require(pred(newA), "store is inconsistent")
-        newA
-      case None => throw new IllegalArgumentException("in-memory store is corrupted")
-    }
   }
 
   def forceStopApplication(): Unit = new Thread(() => { System.exit(1) }, "vsys-shutdown-thread").start()

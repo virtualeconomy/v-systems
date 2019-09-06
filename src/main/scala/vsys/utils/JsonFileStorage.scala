@@ -1,13 +1,17 @@
 package vsys.utils
 
+import javax.crypto.{Cipher, SecretKeyFactory}
+import javax.crypto.spec.{PBEKeySpec, SecretKeySpec}
 import java.io.{File, PrintWriter}
-import javax.crypto.Cipher
-import javax.crypto.spec.SecretKeySpec
+import java.security.NoSuchAlgorithmException
+import java.security.spec.InvalidKeySpecException
 
 import play.api.libs.json.{Json, Reads, Writes}
 import scorex.crypto.encode.{Base64 => ScorexBase64}
 
 import scala.io.{BufferedSource, Source}
+import scala.util.{Failure, Success, Try}
+import scala.util.control.Exception.ultimately
 
 object JsonFileStorage {
   private val encoding          = "UTF-8"
@@ -18,21 +22,18 @@ object JsonFileStorage {
   private val hashingIterations = 9999
   private val keyLength         = 256
 
-  import java.security.NoSuchAlgorithmException
-  import java.security.spec.InvalidKeySpecException
-  import javax.crypto.SecretKeyFactory
-  import javax.crypto.spec.PBEKeySpec
 
   private def hashPassword(password: Array[Char], salt: Array[Byte], iterations: Int, keyLength: Int): Array[Byte] =
-    try {
+    Try {
       val skf  = SecretKeyFactory.getInstance(hashing)
       val spec = new PBEKeySpec(password, salt, iterations, keyLength)
       val key  = skf.generateSecret(spec)
-      val res  = key.getEncoded
-      res
-    } catch {
-      case e @ (_: NoSuchAlgorithmException | _: InvalidKeySpecException) =>
+      key.getEncoded
+    } match {
+      case Success(r) => r
+      case Failure(e @ (_: NoSuchAlgorithmException | _: InvalidKeySpecException)) =>
         throw new RuntimeException(e)
+      case Failure(t: Throwable) => throw t
     }
 
   def prepareKey(key: String): SecretKeySpec =
@@ -51,19 +52,20 @@ object JsonFileStorage {
   }
 
   def save[T](value: T, path: String, key: Option[SecretKeySpec])(implicit w: Writes[T]): Unit = {
-    var file: Option[PrintWriter] = None
-    try {
-      val folder = new File(path).getParentFile
-      if (!folder.exists())
-        folder.mkdirs()
-      file = Option(new PrintWriter(path))
-      file.foreach {
-        val json = Json.toJson(value).toString()
-        val data = key.fold(json)(k => encrypt(k, json))
-        _.write(data)
+    val folder = new File(path).getParentFile
+    if (!folder.exists())
+      folder.mkdirs()
+    val file: Option[PrintWriter] = Option(new PrintWriter(path))
+    Try {
+      ultimately {
+        file.foreach(_.close())
+      } {
+        file.foreach {
+          val json = Json.toJson(value).toString()
+          val data = key.fold(json)(k => encrypt(k, json))
+          _.write(data)
+        }
       }
-    } finally {
-      file.foreach(_.close())
     }
   }
 
@@ -71,14 +73,11 @@ object JsonFileStorage {
     save(value, path, None)
 
   def load[T](path: String, key: Option[SecretKeySpec] = None)(implicit r: Reads[T]): T = {
-    var file: Option[BufferedSource] = None
-    try {
-      file = Option(Source.fromFile(path))
-      val data = file.get.mkString
-      Json.parse(key.fold(data)(k => decrypt(k, data))).as[T]
-    } finally {
-      file.foreach(_.close())
-    }
+    val file: BufferedSource = Source.fromFile(path)
+    val data = file.mkString
+    val res = Json.parse(key.fold(data)(k => decrypt(k, data))).as[T]
+    file.close()
+    res
   }
 
   def load[T](path: String)(implicit r: Reads[T]): T =
