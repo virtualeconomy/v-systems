@@ -49,7 +49,6 @@
 - [Roadmap](#roadmap)
 - [Community](#community)
 - [Events](#events)
-- [Repository maintainers](#repository-maintainers)
 - [License](#license)
 
 
@@ -98,21 +97,10 @@ Join one of the upcoming V Systems events:
 [› Upcoming V Systems Events](https://github.com/virtualeconomy/v-systems/blob/master/EVENTS.md)
 
 
-## Maintainers
 
-**Sunny King**
+## A Sunny King Project
 - <https://twitter.com/sunnyking9999>
 - <https://github.com/sunnyking>
-
-**Rob Zhang**
-- <https://github.com/zl730>
-
-**NC Ying**
-- <https://github.com/ncying>
-
-**Jacob Gadikian**
-- <https://twitter.com/gadikian>
-- <https://github.com/faddat>
 
 
 ## License
