@@ -23,11 +23,11 @@ trait RequestGen extends TransactionGen {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
     _leaseTx <- leaseGen
-  } yield SignedLeaseRequest(EllipticCurve25519Proof.fromBytes(_leaseTx.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toString, _leaseTx.amount, _leaseTx.transactionFee, _leaseTx.feeScale, _leaseTx.recipient.toString, _timestamp, _signature)
+  } yield SignedLeaseRequest(_leaseTx.proofs.firstCurveProof.publicKey.toString, _leaseTx.amount, _leaseTx.transactionFee, _leaseTx.feeScale, _leaseTx.recipient.toString, _timestamp, _signature)
 
   val leaseCancelReq: G[SignedLeaseCancelRequest] = for {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
     _cancel <- leaseCancelGen
-  } yield SignedLeaseCancelRequest(EllipticCurve25519Proof.fromBytes(_cancel.proofs.proofs.head.bytes.arr).toOption.get.publicKey.toString, _cancel.leaseId.base58, _cancel.timestamp, _signature, _cancel.transactionFee, _cancel.feeScale)
+  } yield SignedLeaseCancelRequest(_cancel.proofs.firstCurveProof.publicKey.toString, _cancel.leaseId.base58, _cancel.timestamp, _signature, _cancel.transactionFee, _cancel.feeScale)
 }
