@@ -2,17 +2,16 @@ package vsys.blockchain.state.diffs
 
 import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
-import vsys.blockchain.state.{ByteStr, Portfolio}
+import vsys.blockchain.state.{ByteStr, EitherExt2, Portfolio}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.GenesisTransaction
 import vsys.utils.serialization.Deser
 import vsys.account.PublicKeyAccount
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract._
-import vsys.blockchain.transaction.{TransactionGen, TransactionStatus}
+import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.contract._
 
@@ -59,9 +58,9 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).right.get
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    genesis2: GenesisTransaction = GenesisTransaction.create(user, ENOUGH_AMT, -1, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).explicitGet()
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    genesis2: GenesisTransaction = GenesisTransaction.create(user, ENOUGH_AMT, -1, ts).explicitGet()
     feeEx: Long <- smallFeeGen
     descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     splitData <- splitDataStackGen(1000L)
@@ -70,12 +69,12 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     destoryData <- destroyDataStackGen(100L)
     sendData <- sendDataStackGen(master.toAddress, 500L)
     sendData2 <- sendDataStackGen(user.toAddress, 500L)
-    split: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, splitData, descEx, feeEx, feeScale, ts + 1).right.get
-    supersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, supersedeData, descEx, feeEx, feeScale, ts + 2).right.get
-    issue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.issueIndex, issueData, descEx, feeEx, feeScale, ts + 3).right.get
-    destroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.destroyIndex, destoryData, descEx, feeEx, feeScale, ts + 4).right.get
-    send: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData, descEx, feeEx, feeScale, ts + 5).right.get
-    selfSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData2, descEx, feeEx, feeScale, ts + 5).right.get
+    split: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, splitData, descEx, feeEx, feeScale, ts + 1).explicitGet()
+    supersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, supersedeData, descEx, feeEx, feeScale, ts + 2).explicitGet()
+    issue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.issueIndex, issueData, descEx, feeEx, feeScale, ts + 3).explicitGet()
+    destroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.destroyIndex, destoryData, descEx, feeEx, feeScale, ts + 4).explicitGet()
+    send: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData, descEx, feeEx, feeScale, ts + 5).explicitGet()
+    selfSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData2, descEx, feeEx, feeScale, ts + 5).explicitGet()
   } yield (genesis, genesis2, regContract, split, supersede, issue, destroy, send, selfSend, send.fee)
 
   property("execute contract function transactions doesn't break invariant") {
@@ -84,10 +83,10 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -(feeEx + feeEx)
         totalPortfolioDiff.effectiveBalance shouldBe -(feeEx + feeEx)
-        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        val user = EllipticCurve25519Proof.fromBytes(send.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).explicitGet().publicKey
+        val user = EllipticCurve25519Proof.fromBytes(send.proofs.proofs.head.bytes.arr).explicitGet().publicKey
         val contractId = reg.contractId.bytes
-        val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).right.get
+        val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
         val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
         val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
         val maxKey = ByteStr(Bytes.concat(tokenId.arr, Array(0.toByte)))
@@ -109,7 +108,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
         newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
         newState.tokenAccountBalance(totalKey) shouldBe 9900L
         newState.tokenInfo(unityKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(1000L), DataType.Amount).bytes
-        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).right.get.bytes
+        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).explicitGet().bytes
         newState.tokenAccountBalance(masterBalanceKey) shouldBe 500L
         newState.tokenAccountBalance(userBalanceKey) shouldBe 9400L
       }
@@ -125,8 +124,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).right.get
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).explicitGet()
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     feeEx: Long <- smallFeeGen
     rep <- mintingAddressGen
     descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
@@ -134,36 +133,36 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     dataForSend: Seq[DataEntry] <- sendDataStackGen(rep, 100L)
     dataForSupersede: Seq[DataEntry] <- supersedeDataStackGen(rep)
     invalidData = dataForIssueDestorySplit ++ dataForSend
-    invalidIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.issueIndex, dataForSend, descEx, feeEx, feeScale, ts + 1000).right.get
-    invalidSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, dataForSupersede, descEx, feeEx, feeScale, ts + 1000).right.get
-    invalidSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.sendIndex, dataForSupersede, descEx, feeEx, feeScale, ts + 2000).right.get
-    invalidSuperSede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, dataForIssueDestorySplit, descEx, feeEx, feeScale, ts + 3000).right.get
+    invalidIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.issueIndex, dataForSend, descEx, feeEx, feeScale, ts + 1000).explicitGet()
+    invalidSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.splitIndex, dataForSupersede, descEx, feeEx, feeScale, ts + 1000).explicitGet()
+    invalidSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.sendIndex, dataForSupersede, descEx, feeEx, feeScale, ts + 2000).explicitGet()
+    invalidSuperSede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, FunId.supersedeIndex, dataForIssueDestorySplit, descEx, feeEx, feeScale, ts + 3000).explicitGet()
   } yield (genesis, regContract, invalidIssue, invalidSplit, invalidSend, invalidSuperSede)
 
   property("execute contract transaction fail with invalid data"){
     forAll(preconditionsAndExecuteContractWithInvalidData) { case (genesis, reg, invalid1, invalid2, invalid3, invalid4) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid3), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, reg))), TestBlock.createWithTxStatus(Seq(invalid4), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
 
     }
@@ -179,33 +178,33 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee + 10000000000L, feeScale, ts).explicitGet()
     fee2: Long <- smallFeeGen
     funcIdx: Short <- Gen.const(FunId.issueIndex)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     dataValid1: Seq[DataEntry] <- issueDataStackGen(10000L)
     dataValid2: Seq[DataEntry] <- issueDataStackGen(99999999L)
     dataFailed: Seq[DataEntry] <- issueDataStackGen(100000001L)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    genesis2: GenesisTransaction = GenesisTransaction.create(invalidUser, ENOUGH_AMT, -1, ts).right.get
-    issueValid1: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataValid1, description2, fee2, feeScale, ts + 1).right.get
-    issueValid2: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataValid2, description2, fee2, feeScale, ts + 2).right.get
-    issueFailed1: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataFailed, description2, fee2, feeScale, ts + 3).right.get
-    issueFailed2: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(invalidUser, regContract.contractId, funcIdx, dataValid1, description2, fee2, feeScale, ts + 3).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    genesis2: GenesisTransaction = GenesisTransaction.create(invalidUser, ENOUGH_AMT, -1, ts).explicitGet()
+    issueValid1: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataValid1, description2, fee2, feeScale, ts + 1).explicitGet()
+    issueValid2: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataValid2, description2, fee2, feeScale, ts + 2).explicitGet()
+    issueFailed1: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx, dataFailed, description2, fee2, feeScale, ts + 3).explicitGet()
+    issueFailed2: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(invalidUser, regContract.contractId, funcIdx, dataValid1, description2, fee2, feeScale, ts + 3).explicitGet()
   } yield (genesis, genesis2, regContract, issueValid1, issueValid2, issueFailed1, issueFailed2)
 
   property("execute contract transaction issue successfully"){
     forAll(preconditionsAndExecuteContractIssue) { case (genesis, _, regContract, issue1, issue2, _,  _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.create(Seq(issue1))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.create(Seq(issue2))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -215,20 +214,20 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract)), TestBlock.create(Seq(issue1))), TestBlock.createWithTxStatus(Seq(issue2), TransactionStatus.ContractTokenMaxExceeded)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
       } // total > max
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.createWithTxStatus(Seq(invalid1), TransactionStatus.ContractTokenMaxExceeded)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractTokenMaxExceeded
       } // total > max
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis2, regContract))), TestBlock.createWithTxStatus(Seq(invalid2), TransactionStatus.ContractInvalidCaller)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
       } // invalid issue right
     }
   }
@@ -242,7 +241,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
@@ -256,19 +255,19 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     data3: Seq[DataEntry] <- sendDataStackGen(master.toAddress, 100000L)
     invalidData: Seq[DataEntry] <- sendDataStackGen(recipient, 1000000L)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale, ts1).right.get
-    executeContractSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts2).right.get
-    executeContractSelfSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data3, description2, fee2, feeScale, ts2).right.get
-    executeContractSendFailed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale, ts1).explicitGet()
+    executeContractSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts2).explicitGet()
+    executeContractSelfSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data3, description2, fee2, feeScale, ts2).explicitGet()
+    executeContractSendFailed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractSend, executeContractSelfSend, executeContractSendFailed)
 
   property("execute contract transaction send successfully"){
     forAll(preconditionsAndExecuteContractSend) { case (genesis, regContract, executeContractIssue, executeContractSend, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractSend))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -277,8 +276,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractSend) { case (genesis, regContract, executeContractIssue, _, executeContractSelfSend, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractSelfSend))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -287,8 +286,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractSend) { case (genesis, regContract, executeContractIssue, _, _, executeContractSendFailed) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractSendFailed), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
       }
     }
   }
@@ -303,7 +302,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     ts1: Long <- positiveLongGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
@@ -315,25 +314,25 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.supersedeIndex)
     data2: Seq[DataEntry] <- supersedeDataStackGen(PublicKeyAccount(newIssuer.publicKey).toAddress)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    genesis1: GenesisTransaction = GenesisTransaction.create(newIssuer, ENOUGH_AMT, -1, ts).right.get
-    executeContractSupersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale, ts2).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx1, data1, description2, fee1, feeScale, ts1).right.get
-    invalidSupersed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    genesis1: GenesisTransaction = GenesisTransaction.create(newIssuer, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractSupersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale, ts2).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx1, data1, description2, fee1, feeScale, ts1).explicitGet()
+    invalidSupersed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale, ts2).explicitGet()
   } yield(genesis, genesis1, regContract, executeContractIssue, executeContractSupersede, invalidSupersed, executeContractSupersede.fee)
 
   property("execute contract transaction supersede successfully") {
     forAll(preconditionsAndExecuteContractSupersede) { case (genesis, genesis1, regContract, executeContractIssue, executeContractSupersede, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))), TestBlock.create(Seq(executeContractSupersede))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
 
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract, executeContractSupersede))), TestBlock.create(Seq(executeContractIssue))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -342,8 +341,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractSupersede) { case (genesis, genesis1, regContract, _, _, invaldSupersede, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))), TestBlock.createWithTxStatus(Seq(invaldSupersede), TransactionStatus.ContractInvalidSigner)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.contractDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidSigner
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidSigner
       }
     }
   }
@@ -357,24 +356,24 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee2: Long <- smallFeeGen
     ts2: Long <- positiveLongGen
     funcIdx2: Short <- Gen.const(FunId.splitIndex)
     data2: Seq[DataEntry] <- splitDataStackGen(10000L)
     invalidData: Seq[DataEntry] <- splitDataStackGen(0L)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts2).right.get
-    invalidSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts2).explicitGet()
+    invalidSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts2).explicitGet()
   } yield(genesis, regContract, executeContractSplit, invalidSplit, executeContractSplit.fee)
 
   property("execute contract transaction split successfully") {
     forAll(preconditionsAndExecuteContractSplit) { case (genesis, regContract, executeContractSplit, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.create(Seq(executeContractSplit))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenDB.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenDB.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -383,8 +382,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractSplit) { case (genesis, regContract, _, invalidUnity, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.createWithTxStatus(Seq(invalidUnity), TransactionStatus.ContractInvalidTokenInfo)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenDB.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidTokenInfo
+        blockDiffEi.explicitGet().txsDiff.tokenDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidTokenInfo
       }
     }
   }
@@ -398,7 +397,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     funcIdx1: Short <- Gen.const(FunId.issueIndex)
     data1: Seq[DataEntry] <- issueDataStackGen(100000L)
@@ -408,18 +407,18 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     data2: Seq[DataEntry] <- destroyDataStackGen(10000L)
     invalidData: Seq[DataEntry] <- destroyDataStackGen(100001L)
     description2 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale, ts + 1000000L).right.get
-    executeContractDestroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts + 2000000L).right.get
-    executeContractDestroyFailed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts + 2000000L).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale, ts + 1000000L).explicitGet()
+    executeContractDestroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts + 2000000L).explicitGet()
+    executeContractDestroyFailed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts + 2000000L).explicitGet()
   } yield(genesis, regContract, executeContractIssue, executeContractDestroy, executeContractDestroyFailed)
 
   property("execute contract transaction destroy successfully") {
     forAll(preconditionsAndExecuteContractDestroy) { case (genesis, regContract, executeContractIssue, executeContractDestroy, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractDestroy))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -428,8 +427,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractDestroy) { case (genesis, regContract, executeContractIssue, _, executeContractDestroyFailed) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractDestroyFailed), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
       }
     }
   }
@@ -443,7 +442,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -456,20 +455,20 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.transferIndex)
     data2: Seq[DataEntry] <- transferDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 1000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    executeContractTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    executeContractTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).explicitGet()
     // will change to valid when transfer opc open the Contract Account withdraw and deposit
     invalidData = Seq(DataEntry(PublicKeyAccount(master.publicKey).toAddress.bytes.arr, DataType.Address), DataEntry(regContract.contractId.bytes.arr, DataType.ContractAccount), DataEntry(Longs.toByteArray(1000L), DataType.Amount))
-    invalidTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description1, fee2, feeScale2, ts2).right.get
+    invalidTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractTransfer, invalidTransfer, executeContractTransfer.fee)
 
   property("execute contract transaction transfer successfully"){
     forAll(preconditionsAndExecuteContractTransfer) { case (genesis, regContract, executeContractIssue, executeContractTransfer, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractTransfer))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe false
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.Success
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -478,8 +477,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractTransfer) { case (genesis, regContract, executeContractIssue, _, unsupportedWithdraw, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(unsupportedWithdraw), TransactionStatus.ContractUnsupportedDeposit)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedDeposit
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedDeposit
       }
     }
   }
@@ -493,7 +492,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -506,20 +505,20 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.depositIndex)
     data2: Seq[DataEntry] <- depositDataStackGen(PublicKeyAccount(master.publicKey).toAddress, recipient, 1000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    invalidDeposit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    invalidDeposit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).explicitGet()
     // will change to valid when transfer opc open the Contract Account withdraw and deposit
     invalidData = Seq(DataEntry(PublicKeyAccount(master.publicKey).toAddress.bytes.arr, DataType.Address), DataEntry(regContract.contractId.bytes.arr, DataType.ContractAccount), DataEntry(Longs.toByteArray(1000L), DataType.Amount))
-    unsupported: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description1, fee2, feeScale2, ts2).right.get
+    unsupported: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, invalidDeposit, unsupported, invalidDeposit.fee)
 
   property("execute contract transaction deposit unsupported"){
     forAll(preconditionsAndExecuteContractDeposit) { case (genesis, regContract, executeContractIssue, _, unsupported, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(unsupported), TransactionStatus.ContractUnsupportedDeposit)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedDeposit
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedDeposit
       }
     }
   }
@@ -528,8 +527,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractDeposit) { case (genesis, regContract, executeContractIssue, invalidDeposit, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(invalidDeposit), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
     }
   }
@@ -543,7 +542,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -561,21 +560,21 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx3: Short <- Gen.const(FunId.withdrawIndex)
     data3: Seq[DataEntry] <- withdrawDataStackGen(recipient, PublicKeyAccount(master.publicKey).toAddress, 1000L)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    executeContractTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
-    invalidWithdraw: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx3, data3, description1, fee3, feeScale3, ts3).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    executeContractTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).explicitGet()
+    invalidWithdraw: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx3, data3, description1, fee3, feeScale3, ts3).explicitGet()
     // will change to valid when transfer opc open the Contract Account withdraw and deposit
     invalidData = Seq(DataEntry(regContract.contractId.bytes.arr, DataType.ContractAccount), DataEntry(PublicKeyAccount(master.publicKey).toAddress.bytes.arr, DataType.Address), DataEntry(Longs.toByteArray(1000L), DataType.Amount))
-    unsupported: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx3, invalidData, description1, fee2, feeScale2, ts2).right.get
+    unsupported: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx3, invalidData, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractTransfer, invalidWithdraw, unsupported, invalidWithdraw.fee)
 
   property("execute contract transaction withdraw unsupported"){
     forAll(preconditionsAndExecuteContractWithdraw) { case (genesis, regContract, executeContractIssue, _, _, unsupported, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(unsupported), TransactionStatus.ContractUnsupportedWithdraw)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.tokenAccountBalance.isEmpty shouldBe true
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedWithdraw
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedWithdraw
       }
     }
   }
@@ -584,7 +583,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractWithdraw) { case (genesis, regContract, executeContractIssue, _, invalidWithdraw, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(invalidWithdraw), TransactionStatus.ContractDataTypeMismatch)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
     }
   }
@@ -598,7 +597,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -611,16 +610,16 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.totalSupplyIndex)
     data2: Seq[DataEntry] <- emptyDataStackGen()
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    executeContractTotalSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    executeContractTotalSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractTotalSupply, executeContractTotalSupply.fee)
 
   property("execute contract transaction totalSupply successfully"){
     forAll(preconditionsAndExecuteContractTotalSupply) { case (genesis, regContract, executeContractIssue, executeContractTotalSupply, feeCreate) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractTotalSupply), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
@@ -634,7 +633,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -647,16 +646,16 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.maxSupplyIndex)
     data2: Seq[DataEntry] <- emptyDataStackGen()
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    executeContractMaxSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    executeContractMaxSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractMaxSupply, executeContractMaxSupply.fee)
 
   property("execute contract transaction maxSupply unsupported"){
     forAll(preconditionsAndExecuteContractMaxSupply) { case (genesis, regContract, executeContractIssue, executeContractMaxSupply, feeCreate) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractMaxSupply), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
@@ -670,7 +669,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -683,16 +682,16 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.balanceOfIndex)
     data2: Seq[DataEntry] <- balanceOfDataStackGen(PublicKeyAccount(master.publicKey).toAddress)
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    executeContractBalanceOf: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    executeContractBalanceOf: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractBalanceOf, executeContractBalanceOf.fee)
 
   property("execute contract transaction balanceOf unsupported"){
     forAll(preconditionsAndExecuteContractBalanceOf) { case (genesis, regContract, executeContractIssue, executeContractBalanceOf, feeCreate) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractBalanceOf), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }
@@ -706,7 +705,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).right.get
+    regContract: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, dataStack, description, fee, feeScale, ts).explicitGet()
     fee1: Long <- smallFeeGen
     feeScale1: Short <- feeScaleGen
     ts1: Long <- positiveLongGen
@@ -719,16 +718,16 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     funcIdx2: Short <- Gen.const(FunId.getIssuerIndex)
     //data2: Seq[DataEntry] <- ()
     description1 <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
-    executeContractGetIssuer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, Nil, description1, fee2, feeScale2, ts2).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).explicitGet()
+    executeContractGetIssuer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, Nil, description1, fee2, feeScale2, ts2).explicitGet()
   } yield (genesis, regContract, executeContractIssue, executeContractGetIssuer, executeContractGetIssuer.fee)
 
   property("execute contract transaction getIssuer unsupported"){
     forAll(preconditionsAndExecuteContractGetIssuer) { case (genesis, regContract, executeContractIssue, executeContractGetIssuer, feeCreate) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.createWithTxStatus(Seq(executeContractGetIssuer), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.toOption.get.txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
       }
     }
   }

@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Assertion, Matchers, PropSpec}
 import vsys.account.{Address, PrivateKeyAccount}
-import vsys.blockchain.state.ByteStr
+import vsys.blockchain.state.{ByteStr, EitherExt2}
 import vsys.blockchain.transaction.assets._
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.database.DbPutTransaction
@@ -90,11 +90,11 @@ class FeeCalculatorSpecification extends PropSpec with PropertyChecks with Gener
   property("Transfer transaction with fee in asset") {
     val feeCalculator = new FeeCalculator(mySettings)
     val sender = PrivateKeyAccount(Array.emptyByteArray)
-    val recipient = Address.fromString("AU3AorwRqQhYpRUR3ednaWFvuxAjYCNWd26").right.get
+    val recipient = Address.fromString("AU3AorwRqQhYpRUR3ednaWFvuxAjYCNWd26").explicitGet()
     val tx1: TransferTransaction = TransferTransaction.create(Some(WhitelistedAsset), sender, recipient, 1000000, 100000000,
-      Some(WhitelistedAsset), 2, Array.emptyByteArray).right.get
+      Some(WhitelistedAsset), 2, Array.emptyByteArray).explicitGet()
     val tx2: TransferTransaction = TransferTransaction.create(Some(WhitelistedAsset), sender, recipient, 1000000, 100000000,
-      Some(WhitelistedAsset), 1, Array.emptyByteArray).right.get
+      Some(WhitelistedAsset), 1, Array.emptyByteArray).explicitGet()
 
     feeCalculator.enoughFee(tx1) shouldBe a[Right[_,_]]
     feeCalculator.enoughFee(tx2) shouldBe a[Left[_,_]]
