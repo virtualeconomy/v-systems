@@ -14,16 +14,16 @@ class VsysSettingsSpecification extends FlatSpec with Matchers {
 
     settings.directory should be(home + "/.vsys")
     settings.loggingLevel should be(LogLevel.INFO)
-    settings.networkSettings should be a[NetworkSettings]
-    settings.walletSettings should be a[WalletSettings]
-    settings.blockchainSettings should be a[BlockchainSettings]
-    settings.checkpointsSettings should be a[CheckpointsSettings]
-    settings.feesSettings should be a[FeesSettings]
-    settings.matcherSettings should be a[MatcherSettings]
-    settings.minerSettings should be a[MinerSettings]
-    settings.restAPISettings should be a[RestAPISettings]
-    settings.synchronizationSettings should be a[SynchronizationSettings]
-    settings.utxSettings should be a[UtxSettings]
+    settings.networkSettings shouldBe a[NetworkSettings]
+    settings.walletSettings shouldBe a[WalletSettings]
+    settings.blockchainSettings shouldBe a[BlockchainSettings]
+    settings.checkpointsSettings shouldBe a[CheckpointsSettings]
+    settings.feesSettings shouldBe a[FeesSettings]
+    settings.matcherSettings shouldBe a[MatcherSettings]
+    settings.minerSettings shouldBe a[MinerSettings]
+    settings.restAPISettings shouldBe a[RestAPISettings]
+    settings.synchronizationSettings shouldBe a[SynchronizationSettings]
+    settings.utxSettings shouldBe a[UtxSettings]
   }
 
   "VsysSettings" should "resolver folders correctly" in {

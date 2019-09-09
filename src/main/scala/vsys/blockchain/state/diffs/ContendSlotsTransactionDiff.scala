@@ -30,12 +30,12 @@ object ContendSlotsTransactionDiff {
       val txFailDiff = Diff(
         height = height,
         tx = tx,
-        portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+        portfolios = Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
         txStatus = TransactionStatus.ContendFailed,
-        chargedFee = tx.fee
+        chargedFee = tx.transactionFee
       )
       // check effective balance after contend
-      if (contendEffectiveBalance - tx.fee < MinimalEffectiveBalanceForContender) txFailDiff
+      if (contendEffectiveBalance - tx.transactionFee < MinimalEffectiveBalanceForContender) txFailDiff
       else {
         val contendGen = mintingBalance(s, fs, senderAddress, height)
         val (slotGen, slotIncrease) = s.slotAddress(tx.slotId) match {
@@ -48,11 +48,11 @@ object ContendSlotsTransactionDiff {
           Diff(
             height = height,
             tx = tx,
-            portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+            portfolios = Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
             slotids = Map(tx.slotId -> Option(senderAddress.address)),
             addToSlot = Map(senderAddress.address -> Option(tx.slotId)),
             slotNum = slotIncrease,
-            chargedFee = tx.fee
+            chargedFee = tx.transactionFee
           )
         }
         else txFailDiff

@@ -14,19 +14,18 @@ import scala.util.{Failure, Success, Try}
 
 case class PaymentTransaction private(recipient: Address,
                                       amount: Long,
-                                      fee: Long,
+                                      transactionFee: Long,
                                       feeScale: Short,
                                       timestamp: Long,
                                       attachment: Array[Byte],
-                                      proofs: Proofs) extends ProvenTransaction {
-  override val transactionType = TransactionType.PaymentTransaction
+                                      proofs: Proofs) extends ProvenTransaction with AmountInvoved {
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
+  val transactionType = TransactionType.PaymentTransaction
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
     val amountBytes = Longs.toByteArray(amount)
-    val feeBytes = Longs.toByteArray(fee)
+    val feeBytes = Longs.toByteArray(transactionFee)
     val feeScaleBytes = Shorts.toByteArray(feeScale)
 
     Bytes.concat(Array(transactionType.id.toByte),
@@ -39,9 +38,8 @@ case class PaymentTransaction private(recipient: Address,
     )
   }
 
-  override lazy val json: JsObject =jsonBase() ++ Json.obj(
+  override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "recipient" -> recipient.stringRepr,
-    "feeScale" -> feeScale,
     "amount" -> amount,
     "attachment" -> Base58.encode(attachment)
   )
@@ -50,7 +48,7 @@ case class PaymentTransaction private(recipient: Address,
 
 }
 
-object PaymentTransaction {
+object PaymentTransaction extends TransactionParser {
 
   val MaxAttachmentSize = 140
   val MaxAttachmentStringSize = base58Length(MaxAttachmentSize)

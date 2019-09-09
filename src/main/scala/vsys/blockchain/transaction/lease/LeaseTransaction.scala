@@ -4,44 +4,39 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import vsys.blockchain.state.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import vsys.account.{Address, PrivateKeyAccount, PublicKeyAccount}
+import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.transaction._
-import vsys.blockchain.transaction.ProvenTransaction
-import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Failure, Success, Try}
 
 case class LeaseTransaction private(amount: Long,
-                                    fee: Long,
+                                    transactionFee: Long,
                                     feeScale: Short,
                                     timestamp: Long,
                                     recipient: Address,
-                                    proofs: Proofs)
-  extends ProvenTransaction {
+                                    proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.LeaseTransaction
+  val transactionType = TransactionType.LeaseTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(Array(transactionType.id.toByte),
     recipient.bytes.arr,
     Longs.toByteArray(amount),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "amount" -> amount,
     "recipient" -> recipient.stringRepr,
-    "fee" -> fee,
-    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object LeaseTransaction {
+object LeaseTransaction extends TransactionParser {
 
   def parseTail(bytes: Array[Byte]): Try[LeaseTransaction] = Try {
     (for {

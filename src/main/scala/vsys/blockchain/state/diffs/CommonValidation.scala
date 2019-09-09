@@ -24,9 +24,9 @@ object CommonValidation {
         for {
           proof <- ptx.proofs.firstCurveProof
           sender = proof.publicKey
-          _ <- if(s.accountPortfolio(sender).balance < (ptx.amount + ptx.fee))
+          _ <- if(s.accountPortfolio(sender).balance < (ptx.amount + ptx.transactionFee))
             Left(GenericError(s"Attempt to pay unavailable funds: balance " +
-              s"${s.accountPortfolio(sender).balance} is less than ${ptx.amount + ptx.fee}"))
+              s"${s.accountPortfolio(sender).balance} is less than ${ptx.amount + ptx.transactionFee}"))
             else Right(())
         } yield tx
       case _ => Right(tx)
@@ -71,8 +71,8 @@ object CommonValidation {
     }
 
   def disallowInvalidFeeScale[T <: Transaction](tx: T): Either[ValidationError, T] = {
-    if (tx.assetFee._3 != 100){
-      Left(ValidationError.WrongFeeScale(tx.assetFee._3))
+    if (tx.feeScale != 100){
+      Left(ValidationError.WrongFeeScale(tx.feeScale))
     } else Right(tx)
   }
 

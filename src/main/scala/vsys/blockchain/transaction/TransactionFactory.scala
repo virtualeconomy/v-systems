@@ -1,24 +1,20 @@
 package vsys.blockchain.transaction
 
-import com.google.common.base.Charsets
-import vsys.blockchain.state.ByteStr
+import scorex.crypto.encode.Base58
 import vsys.account._
-import vsys.api.http.assets._
 import vsys.api.http.contract.{ExecuteContractFunctionRequest, RegisterContractRequest}
 import vsys.api.http.database.DbPutRequest
 import vsys.api.http.leasing.{LeaseCancelRequest, LeaseRequest}
 import vsys.api.http.payment.PaymentRequest
 import vsys.api.http.spos.{ContendSlotsRequest, ReleaseSlotsRequest}
 import vsys.blockchain.contract.{Contract, DataEntry}
-import scorex.crypto.encode.Base58
-import vsys.utils.serialization.Deser
-import vsys.blockchain.transaction.assets._
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.utils.Time
-import vsys.account.ContractAccount
+import vsys.utils.serialization.Deser
 import vsys.wallet.Wallet
 
 object TransactionFactory {

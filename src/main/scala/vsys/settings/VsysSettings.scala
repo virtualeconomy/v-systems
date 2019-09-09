@@ -14,17 +14,17 @@ object LogLevel extends Enumeration {
 }
 
 case class VsysSettings(directory: String,
-                         dataDirectory: String,
-                         loggingLevel: LogLevel.Value,
-                         networkSettings: NetworkSettings,
-                         walletSettings: WalletSettings,
-                         blockchainSettings: BlockchainSettings,
-                         checkpointsSettings: CheckpointsSettings,
-                         feesSettings: FeesSettings,
-                         minerSettings: MinerSettings,
-                         restAPISettings: RestAPISettings,
-                         synchronizationSettings: SynchronizationSettings,
-                         utxSettings: UtxSettings)
+                        dataDirectory: String,
+                        loggingLevel: LogLevel.Value,
+                        networkSettings: NetworkSettings,
+                        walletSettings: WalletSettings,
+                        blockchainSettings: BlockchainSettings,
+                        checkpointsSettings: CheckpointsSettings,
+                        feesSettings: FeesSettings,
+                        minerSettings: MinerSettings,
+                        restAPISettings: RestAPISettings,
+                        synchronizationSettings: SynchronizationSettings,
+                        utxSettings: UtxSettings)
 
 object VsysSettings {
   import NetworkSettings.networkSettingsValueReader

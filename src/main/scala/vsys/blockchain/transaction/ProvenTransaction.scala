@@ -17,7 +17,8 @@ trait ProvenTransaction extends Transaction with Signed {
     Json.obj(
       "type" -> transactionType.id,
       "id" -> id.base58,
-      "fee" -> assetFee._2,
+      "fee" -> transactionFee,
+      "feeScale" -> feeScale,
       "timestamp" -> timestamp,
       "proofs" -> proofs.json
     )
