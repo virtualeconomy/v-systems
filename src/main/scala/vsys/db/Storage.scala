@@ -3,75 +3,78 @@ package vsys.db
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.google.common.primitives.{Bytes, Ints, UnsignedBytes}
-import vsys.utils.forceStopApplication
 import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
-import vsys.utils.ScorexLogging
+import vsys.utils.{forceStopApplication, ScorexLogging}
 
 import scala.collection.AbstractIterator
-import scala.util.control.NonFatal
+import scala.util.{Try, Success, Failure}
+import scala.util.control.Exception.ultimately
 
 abstract class Storage(private val db: DB) extends ScorexLogging {
   protected val Charset: Charset = StandardCharsets.UTF_8
 
   protected val Separator: Array[Byte] = Array[Byte](':')
 
-  def get(key: Array[Byte]): Option[Array[Byte]] = {
-    try {
-      Option(db.get(key))
-    } catch {
-      case NonFatal(t) =>
+  def get(key: Array[Byte]): Option[Array[Byte]] =
+    Try { Option(db.get(key)) } match {
+      case Success(v) => v
+      case Failure(t: Throwable) => {
         log.error("LevelDB get error", t)
         None
-    }
+      }
   }
 
-  def createBatch(): Option[WriteBatch] = {
-    try {
-      Some(db.createWriteBatch())
-    } catch {
-      case NonFatal(t) =>
+  def createBatch(): Option[WriteBatch] =
+    Try { Some(db.createWriteBatch()) } match {
+      case Success(v) => v
+      case Failure(t: Throwable) => {
         log.error("LevelDB create batch error", t)
         forceStopApplication()
         throw t
+      }
     }
-  }
 
-  def put(key: Array[Byte], value: Array[Byte], batch: Option[WriteBatch]): Unit = {
-    try {
+  def put(key: Array[Byte], value: Array[Byte], batch: Option[WriteBatch]): Unit =
+    Try {
       if (batch.isDefined) batch.get.put(key, value) else db.put(key, value)
-    } catch {
-      case NonFatal(t) =>
+    } match {
+      case Success(_) => None
+      case Failure(t: Throwable) => {
         log.error("LevelDB batch put error", t)
         forceStopApplication()
         throw t
+      }
     }
-  }
 
-  def delete(key: Array[Byte], batch: Option[WriteBatch]): Unit = {
-    try {
+  def delete(key: Array[Byte], batch: Option[WriteBatch]): Unit =
+    Try {
       if (batch.isDefined) batch.get.delete(key) else db.delete(key)
-    } catch {
-      case NonFatal(t) =>
+    } match {
+      case Success(_) => None
+      case Failure(t: Throwable) => {
         log.error("LevelDB delete error", t)
         forceStopApplication()
         throw t
+      }
     }
-  }
 
-  def commit(batch: Option[WriteBatch]): Unit = {
+  def commit(batch: Option[WriteBatch]): Unit =
     batch.foreach { b =>
-      try {
-        db.write(b)
-      } catch {
-        case NonFatal(t) =>
+      Try {
+        ultimately {
+          b.close()
+        } {
+          db.write(b)
+        }
+      } match {
+        case Success(_) => None
+        case Failure(t: Throwable) => {
           log.error("LevelDB write batch error", t)
           forceStopApplication()
           throw t
-      } finally {
-        b.close()
+        }
       }
     }
-  }
 
   class DBPrefixIterator(val it: DBIterator, val prefix: Option[Array[Byte]]) extends AbstractIterator[(Array[Byte], Array[Byte])] {
 

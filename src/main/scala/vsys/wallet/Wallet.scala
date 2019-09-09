@@ -6,16 +6,15 @@ import vsys.utils.crypto.hash.SecureCryptographicHash
 import vsys.settings.WalletSettings
 import vsys.blockchain.state.ByteStr
 import vsys.Version
-import vsys.utils.JsonFileStorage
 import play.api.libs.json._
 import vsys.account.{Address, PrivateKeyAccount, AddressScheme}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.MissingSenderPrivateKey
-import vsys.utils.{ScorexLogging, randomBytes}
+import vsys.utils.{JsonFileStorage, ScorexLogging, randomBytes}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.LinkedHashSet
-import scala.util.control.NonFatal
+import scala.util.{Try, Success, Failure}
 
 trait Wallet {
 
@@ -70,10 +69,14 @@ object Wallet extends ScorexLogging {
     private val key = JsonFileStorage.prepareKey(password)
 
     private def loadOrImport(f: File): Option[WalletData] =
-      try {
+      Try {
         Some(JsonFileStorage.load[WalletData](f.getCanonicalPath, Some(key)))
-      } catch {
-        case NonFatal(_) => None
+      } match {
+        case Success(w) => w
+        case Failure(t: Throwable) => {
+          log.error("Invalid Wallet error", t)
+          None
+        }
       }
 
     private lazy val actualSeed = maybeSeedFromConfig.getOrElse {
