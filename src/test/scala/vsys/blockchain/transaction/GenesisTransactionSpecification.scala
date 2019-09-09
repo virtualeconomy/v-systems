@@ -5,6 +5,7 @@ import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import scorex.crypto.encode.Base58
 import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
+import vsys.blockchain.state.EitherExt2
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 import scala.util.{Failure, Try}
@@ -42,7 +43,7 @@ class GenesisTransactionSpecification extends PropSpec with PropertyChecks with 
 
     val balance = 12345L
     val timestamp = 1234567890L
-    val expectedTransaction = GenesisTransaction.create(defaultRecipient, balance, -1, timestamp).right.get
+    val expectedTransaction = GenesisTransaction.create(defaultRecipient, balance, -1, timestamp).explicitGet()
 
     actualTransaction should equal(expectedTransaction)
   }

@@ -36,7 +36,7 @@ class ExchangeTransactionSpecification extends PropSpec with PropertyChecks with
 
 
         def create(matcher: PrivateKeyAccount = sender1, buyOrder: Order = buy, sellOrder: Order = sell, price: Long = sellPrice, amount: Long = buyAmount,
-                   buyMatcherFee: Long = mf1, sellMatcherFee: Long = 1, fee: Long = 1, timestamp: Long = expirationTimestamp - Order.MaxLiveTime) = {
+                   buyMatcherFee: Long = mf1, sellMatcherFee: Long = 1, fee: Long = 1, timestamp: Long = expirationTimestamp - Order.MaxLiveTime): Either[ValidationError, ExchangeTransaction] = {
           ExchangeTransaction.create(matcher = sender1,
             buyOrder = buyOrder,
             sellOrder = sellOrder,

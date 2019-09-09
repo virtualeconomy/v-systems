@@ -10,11 +10,11 @@ import org.scalatest.prop.PropertyChecks
 import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{AssetInfo, ByteStr, LeaseInfo, Portfolio}
+import vsys.blockchain.state.EitherExt2
 import vsys.blockchain.transaction.assets.IssueTransaction
 import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order}
-import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.UtxPool
-import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus, ValidationError}
 import vsys.wallet.Wallet
 
 class OrderValidatorSpecification extends WordSpec
@@ -32,14 +32,14 @@ class OrderValidatorSpecification extends WordSpec
 
   val ss: StateReader = stub[StateReader]
   (ss.assetInfo _).when(*).returns(Some(AssetInfo(true, 10000000000L)))
-  val i1: IssueTransaction = IssueTransaction.create(PrivateKeyAccount(Array.empty), "WBTC".getBytes(), Array.empty, 10000000000L, 8.toByte, true, 100000L, 10000L).right.get
+  val i1: IssueTransaction = IssueTransaction.create(PrivateKeyAccount(Array.empty), "WBTC".getBytes(), Array.empty, 10000000000L, 8.toByte, true, 100000L, 10000L).explicitGet()
   (ss.transactionInfo _).when(*).returns(Some((1, ProcessedTransaction(TransactionStatus.Success, i1.fee, i1))))
 
   val s: MatcherSettings = matcherSettings.copy(account = MatcherAccount.address)
   val w = Wallet(WalletSettings(None, "matcher", Some(WalletSeed)))
   val acc: Option[PrivateKeyAccount] = w.generateNewAccount()
 
-  val matcherPubKey: PublicKeyAccount = w.findPrivateKey(s.account).right.get
+  val matcherPubKey: PublicKeyAccount = w.findPrivateKey(s.account).explicitGet()
 
   private var ov = new OrderValidator {
     override val orderHistory: OrderHistory = oh
