@@ -1,13 +1,12 @@
 package vsys.blockchain.state.diffs
 
 import cats.Monoid
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction}
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, TransactionGen}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -18,7 +17,7 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
     master <- accountGen
     recipient <- otherAccountGen(candidate = master)
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     transfer: PaymentTransaction <- paymentGeneratorP(master, recipient)
   } yield (genesis, transfer, transfer.fee)
 

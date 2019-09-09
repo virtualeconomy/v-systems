@@ -23,7 +23,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     ts <- positiveIntGen
     slotid <- slotidGen
     slotid2 <- slotidGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(master, slotid)
     contendMultiSlots: ContendSlotsTransaction <- contendGeneratorP(master, slotid2)
     contendInvalidId1: ContendSlotsTransaction <- contendGeneratorP(master, -1)
@@ -67,8 +67,8 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     master <- accountGen
     master1 <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    genesis1: GenesisTransaction = GenesisTransaction.create(master1, 2 * ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, 2 * ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(ts + 1, master, 0)
     contend1: ContendSlotsTransaction <- contendGeneratorP(ts + 2, master1, 0)
     contend2: ContendSlotsTransaction <- contendGeneratorP(ts + 3, master, 1)
@@ -104,17 +104,17 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     master10 <- accountGen
 
     ts1 <- positiveIntGen
-    genesis0: GenesisTransaction = GenesisTransaction.create(master0, ENOUGH_AMT, 0, ts1).right.get
-    genesis1: GenesisTransaction = GenesisTransaction.create(master1, ENOUGH_AMT, 4, ts1).right.get
-    genesis2: GenesisTransaction = GenesisTransaction.create(master2, ENOUGH_AMT, 8, ts1).right.get
-    genesis3: GenesisTransaction = GenesisTransaction.create(master3, ENOUGH_AMT, 12, ts1).right.get
-    genesis4: GenesisTransaction = GenesisTransaction.create(master4, ENOUGH_AMT, 16, ts1).right.get
-    genesis5: GenesisTransaction = GenesisTransaction.create(master5, ENOUGH_AMT, 20, ts1).right.get
-    genesis6: GenesisTransaction = GenesisTransaction.create(master6, ENOUGH_AMT, 24, ts1).right.get
-    genesis7: GenesisTransaction = GenesisTransaction.create(master7, ENOUGH_AMT, 28, ts1).right.get
-    genesis8: GenesisTransaction = GenesisTransaction.create(master8, ENOUGH_AMT, 32, ts1).right.get
-    genesis9: GenesisTransaction = GenesisTransaction.create(master9, ENOUGH_AMT, 36, ts1).right.get
-    genesis10: GenesisTransaction = GenesisTransaction.create(master10, ENOUGH_AMT, 40, ts1).right.get
+    genesis0: GenesisTransaction = GenesisTransaction.create(master0, ENOUGH_AMT, 0, ts1).explicitGet()
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, ENOUGH_AMT, 4, ts1).explicitGet()
+    genesis2: GenesisTransaction = GenesisTransaction.create(master2, ENOUGH_AMT, 8, ts1).explicitGet()
+    genesis3: GenesisTransaction = GenesisTransaction.create(master3, ENOUGH_AMT, 12, ts1).explicitGet()
+    genesis4: GenesisTransaction = GenesisTransaction.create(master4, ENOUGH_AMT, 16, ts1).explicitGet()
+    genesis5: GenesisTransaction = GenesisTransaction.create(master5, ENOUGH_AMT, 20, ts1).explicitGet()
+    genesis6: GenesisTransaction = GenesisTransaction.create(master6, ENOUGH_AMT, 24, ts1).explicitGet()
+    genesis7: GenesisTransaction = GenesisTransaction.create(master7, ENOUGH_AMT, 28, ts1).explicitGet()
+    genesis8: GenesisTransaction = GenesisTransaction.create(master8, ENOUGH_AMT, 32, ts1).explicitGet()
+    genesis9: GenesisTransaction = GenesisTransaction.create(master9, ENOUGH_AMT, 36, ts1).explicitGet()
+    genesis10: GenesisTransaction = GenesisTransaction.create(master10, ENOUGH_AMT, 40, ts1).explicitGet()
 
     release1: ReleaseSlotsTransaction <- releaseGeneratorP(master0, 0)
     releaseInvalid1: ReleaseSlotsTransaction <- releaseGeneratorP(master0, 4)
@@ -177,7 +177,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     master <- accountGen
     ts <- positiveIntGen
     slotId <- slotidGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contendTmp: ContendSlotsTransaction <- contendGeneratorP(master, slotId)
     proof = contendTmp.proofs.proofs.head
     proofs = Proofs(List(proof, proof)) // two proofs case
@@ -195,7 +195,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
   val preconditionsAndRelease2: Gen[(GenesisTransaction, ContendSlotsTransaction, ReleaseSlotsTransaction)] = for {
     master <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(master, 0)
     releaseTmp: ReleaseSlotsTransaction <- releaseGeneratorP(master, 0)
     proof = releaseTmp.proofs.proofs.head

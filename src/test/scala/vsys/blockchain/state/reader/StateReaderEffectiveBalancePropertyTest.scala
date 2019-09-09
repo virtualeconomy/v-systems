@@ -1,12 +1,12 @@
 package vsys.blockchain.state.reader
 
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state.diffs.{ENOUGH_AMT, assertDiffAndState}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.state.EitherExt2
+import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 
 
 class StateReaderEffectiveBalancePropertyTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -15,7 +15,7 @@ class StateReaderEffectiveBalancePropertyTest extends PropSpec with PropertyChec
   val setup: Gen[(GenesisTransaction, Int, Int, Int)] = for {
     master <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     emptyBlocksAmt <- Gen.choose(1, 10)
     atHeight <- Gen.choose(0, 20)
     confirmations <- Gen.choose(1, 20)
