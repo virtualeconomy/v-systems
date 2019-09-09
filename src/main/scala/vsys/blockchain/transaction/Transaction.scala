@@ -25,7 +25,6 @@ trait Transaction extends BytesSerializable with JsonSerializable with Signed {
   }
 
   override def hashCode(): Int = id.hashCode()
-
 }
 
 trait Signed {
