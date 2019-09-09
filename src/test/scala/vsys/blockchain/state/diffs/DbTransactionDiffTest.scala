@@ -36,9 +36,9 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
     forAll(preconditionsAndDbPut) { case (genesis, dbPutTx: DbPutTransaction) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(dbPutTx))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe -dbPutTx.fee
-        totalPortfolioDiff.effectiveBalance shouldBe -dbPutTx.fee
-        totalPortfolioDiff.spendableBalance shouldBe -dbPutTx.fee
+        totalPortfolioDiff.balance shouldBe -dbPutTx.transactionFee
+        totalPortfolioDiff.effectiveBalance shouldBe -dbPutTx.transactionFee
+        totalPortfolioDiff.spendableBalance shouldBe -dbPutTx.transactionFee
         val sender = EllipticCurve25519Proof.fromBytes(dbPutTx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         newState.accountTransactionIds(sender, 2, 0)._2.size shouldBe 2 // genesis and dbPut transaction
       }

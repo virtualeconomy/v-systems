@@ -19,7 +19,6 @@ class VsysSettingsSpecification extends FlatSpec with Matchers {
     settings.blockchainSettings shouldBe a[BlockchainSettings]
     settings.checkpointsSettings shouldBe a[CheckpointsSettings]
     settings.feesSettings shouldBe a[FeesSettings]
-    settings.matcherSettings shouldBe a[MatcherSettings]
     settings.minerSettings shouldBe a[MinerSettings]
     settings.restAPISettings shouldBe a[RestAPISettings]
     settings.synchronizationSettings shouldBe a[SynchronizationSettings]
@@ -39,8 +38,5 @@ class VsysSettingsSpecification extends FlatSpec with Matchers {
     settings.networkSettings.file should be(Some(new File("/xxx/data/peers.dat")))
     settings.walletSettings.file should be(Some(new File("/xxx/wallet/wallet.dat")))
     settings.loggingLevel should be(LogLevel.TRACE)
-    settings.matcherSettings.journalDataDir should be ("/xxx/matcher/journal")
-    settings.matcherSettings.snapshotsDataDir should be ("/xxx/matcher/snapshots")
   }
-
 }

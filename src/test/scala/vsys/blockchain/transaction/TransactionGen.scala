@@ -12,7 +12,7 @@ import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vsys.settings.{Constants, TestFunctionalitySettings}
+import vsys.settings.TestFunctionalitySettings
 import vsys.utils.NTP
 
 trait TransactionGen {
@@ -250,15 +250,14 @@ trait TransactionGen {
   def releaseGeneratorP(timestamp: Long, sender: PrivateKeyAccount, slotId: Int): Gen[ReleaseSlotsTransaction] = for {
     fee: Long <- smallFeeGen
     feeScale: Short <- feeScaleGen
-  } yield ReleaseSlotsTransaction.create(sender, slotId, fee, feeScale, timestamp).rig
+  } yield ReleaseSlotsTransaction.create(sender, slotId, fee, feeScale, timestamp).right.get
 
   val randomProvenTransactionGen: Gen[ProvenTransaction] = (for {
     pm <- paymentGen
     ls <- leaseGen
+    lc <- leaseCancelGen
     ct <- contendSlotsGen
     rl <- releaseSlotsGen
-    lc <- leaseCancelGen
-    mt <- mintingGen
     tx <- Gen.oneOf(pm, ls, ct, rl, lc)
   } yield tx).label("random proven transaction")
 

@@ -25,7 +25,7 @@ class ReleaseSlotsTransactionSpecification extends PropSpec with PropertyChecks 
   private def assertTxs(first: ReleaseSlotsTransaction, second: ReleaseSlotsTransaction): Unit = {
     first.proofs.bytes shouldEqual second.proofs.bytes
     first.timestamp shouldEqual second.timestamp
-    first.fee shouldEqual second.fee
+    first.transactionFee shouldEqual second.transactionFee
     first.feeScale shouldEqual second.feeScale
     first.slotId shouldEqual second.slotId
     first.bytes shouldEqual second.bytes

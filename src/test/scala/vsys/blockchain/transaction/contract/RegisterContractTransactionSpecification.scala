@@ -25,7 +25,7 @@ class RegisterContractTransactionSpecification extends PropSpec with PropertyChe
   private def assertTxs(first: RegisterContractTransaction, second: RegisterContractTransaction): Unit = {
     first.proofs.bytes shouldEqual second.proofs.bytes
     first.timestamp shouldEqual second.timestamp
-    first.fee shouldEqual second.fee
+    first.transactionFee shouldEqual second.transactionFee
     first.feeScale shouldEqual second.feeScale
     first.contractId.bytes.arr shouldEqual second.contractId.bytes.arr
     first.contract.descriptor.toArray shouldEqual second.contract.descriptor.toArray

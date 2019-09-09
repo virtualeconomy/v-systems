@@ -76,7 +76,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     destroy: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.destroyIndex, destoryData, descEx, feeEx, feeScale, ts + 4).right.get
     send: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData, descEx, feeEx, feeScale, ts + 5).right.get
     selfSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(user, regContract.contractId, FunId.sendIndex, sendData2, descEx, feeEx, feeScale, ts + 5).right.get
-  } yield (genesis, genesis2, regContract, split, supersede, issue, destroy, send, selfSend, send.fee)
+  } yield (genesis, genesis2, regContract, split, supersede, issue, destroy, send, selfSend, send.transactionFee)
 
   property("execute contract function transactions doesn't break invariant") {
     forAll(preconditionsAndExecuteContractTest) { case (genesis, genesis2, reg, split, supersede, issue, destroy, send, selfSend, feeEx) =>
@@ -320,7 +320,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     executeContractSupersede: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale, ts2).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx1, data1, description2, fee1, feeScale, ts1).right.get
     invalidSupersed: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(newIssuer, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale, ts2).right.get
-  } yield(genesis, genesis1, regContract, executeContractIssue, executeContractSupersede, invalidSupersed, executeContractSupersede.fee)
+  } yield(genesis, genesis1, regContract, executeContractIssue, executeContractSupersede, invalidSupersed, executeContractSupersede.transactionFee)
 
   property("execute contract transaction supersede successfully") {
     forAll(preconditionsAndExecuteContractSupersede) { case (genesis, genesis1, regContract, executeContractIssue, executeContractSupersede, _, _) =>
@@ -367,7 +367,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description2, fee2, feeScale, ts2).right.get
     invalidSplit: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description2, fee2, feeScale, ts2).right.get
-  } yield(genesis, regContract, executeContractSplit, invalidSplit, executeContractSplit.fee)
+  } yield(genesis, regContract, executeContractSplit, invalidSplit, executeContractSplit.transactionFee)
 
   property("execute contract transaction split successfully") {
     forAll(preconditionsAndExecuteContractSplit) { case (genesis, regContract, executeContractSplit, _, _) =>
@@ -462,7 +462,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     // will change to valid when transfer opc open the Contract Account withdraw and deposit
     invalidData = Seq(DataEntry(PublicKeyAccount(master.publicKey).toAddress.bytes.arr, DataType.Address), DataEntry(regContract.contractId.bytes.arr, DataType.ContractAccount), DataEntry(Longs.toByteArray(1000L), DataType.Amount))
     invalidTransfer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractTransfer, invalidTransfer, executeContractTransfer.fee)
+  } yield (genesis, regContract, executeContractIssue, executeContractTransfer, invalidTransfer, executeContractTransfer.transactionFee)
 
   property("execute contract transaction transfer successfully"){
     forAll(preconditionsAndExecuteContractTransfer) { case (genesis, regContract, executeContractIssue, executeContractTransfer, _, _) =>
@@ -512,7 +512,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     // will change to valid when transfer opc open the Contract Account withdraw and deposit
     invalidData = Seq(DataEntry(PublicKeyAccount(master.publicKey).toAddress.bytes.arr, DataType.Address), DataEntry(regContract.contractId.bytes.arr, DataType.ContractAccount), DataEntry(Longs.toByteArray(1000L), DataType.Amount))
     unsupported: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, invalidData, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, invalidDeposit, unsupported, invalidDeposit.fee)
+  } yield (genesis, regContract, executeContractIssue, invalidDeposit, unsupported, invalidDeposit.transactionFee)
 
   property("execute contract transaction deposit unsupported"){
     forAll(preconditionsAndExecuteContractDeposit) { case (genesis, regContract, executeContractIssue, _, unsupported, _) =>
@@ -568,7 +568,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     // will change to valid when transfer opc open the Contract Account withdraw and deposit
     invalidData = Seq(DataEntry(regContract.contractId.bytes.arr, DataType.ContractAccount), DataEntry(PublicKeyAccount(master.publicKey).toAddress.bytes.arr, DataType.Address), DataEntry(Longs.toByteArray(1000L), DataType.Amount))
     unsupported: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx3, invalidData, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractTransfer, invalidWithdraw, unsupported, invalidWithdraw.fee)
+  } yield (genesis, regContract, executeContractIssue, executeContractTransfer, invalidWithdraw, unsupported, invalidWithdraw.transactionFee)
 
   property("execute contract transaction withdraw unsupported"){
     forAll(preconditionsAndExecuteContractWithdraw) { case (genesis, regContract, executeContractIssue, _, _, unsupported, _) =>
@@ -614,7 +614,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
     executeContractTotalSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractTotalSupply, executeContractTotalSupply.fee)
+  } yield (genesis, regContract, executeContractIssue, executeContractTotalSupply, executeContractTotalSupply.transactionFee)
 
   property("execute contract transaction totalSupply successfully"){
     forAll(preconditionsAndExecuteContractTotalSupply) { case (genesis, regContract, executeContractIssue, executeContractTotalSupply, feeCreate) =>
@@ -650,7 +650,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
     executeContractMaxSupply: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractMaxSupply, executeContractMaxSupply.fee)
+  } yield (genesis, regContract, executeContractIssue, executeContractMaxSupply, executeContractMaxSupply.transactionFee)
 
   property("execute contract transaction maxSupply unsupported"){
     forAll(preconditionsAndExecuteContractMaxSupply) { case (genesis, regContract, executeContractIssue, executeContractMaxSupply, feeCreate) =>
@@ -686,7 +686,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
     executeContractBalanceOf: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, data2, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractBalanceOf, executeContractBalanceOf.fee)
+  } yield (genesis, regContract, executeContractIssue, executeContractBalanceOf, executeContractBalanceOf.transactionFee)
 
   property("execute contract transaction balanceOf unsupported"){
     forAll(preconditionsAndExecuteContractBalanceOf) { case (genesis, regContract, executeContractIssue, executeContractBalanceOf, feeCreate) =>
@@ -722,7 +722,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
     executeContractIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx1, data1, description1, fee1, feeScale1, ts1).right.get
     executeContractGetIssuer: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, regContract.contractId, funcIdx2, Nil, description1, fee2, feeScale2, ts2).right.get
-  } yield (genesis, regContract, executeContractIssue, executeContractGetIssuer, executeContractGetIssuer.fee)
+  } yield (genesis, regContract, executeContractIssue, executeContractGetIssuer, executeContractGetIssuer.transactionFee)
 
   property("execute contract transaction getIssuer unsupported"){
     forAll(preconditionsAndExecuteContractGetIssuer) { case (genesis, regContract, executeContractIssue, executeContractGetIssuer, feeCreate) =>

@@ -35,7 +35,7 @@ class ExecuteContractFunctionTransactionSpecification extends PropSpec with Prop
     first.funcIdx shouldEqual second.funcIdx
     first.data.flatMap(_.bytes).toArray shouldEqual second.data.flatMap(_.bytes).toArray
     first.attachment shouldEqual second.attachment
-    first.fee shouldEqual second.fee
+    first.transactionFee shouldEqual second.transactionFee
     first.feeScale shouldEqual second.feeScale
     first.proofs.bytes shouldEqual second.proofs.bytes
     first.bytes shouldEqual second.bytes
