@@ -4,8 +4,8 @@ import org.scalacheck.Gen.{alphaNumChar, choose, listOfN, oneOf}
 import org.scalacheck.{Arbitrary, Gen => G}
 import scorex.crypto.encode.Base58
 import vsys.api.http.leasing.{SignedLeaseCancelRequest, SignedLeaseRequest}
+import vsys.blockchain.state._
 import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 trait RequestGen extends TransactionGen {
   val nonPositiveLong: G[Long] = choose(Long.MinValue, 0).label("non-positive value")
@@ -23,11 +23,13 @@ trait RequestGen extends TransactionGen {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
     _leaseTx <- leaseGen
-  } yield SignedLeaseRequest(_leaseTx.proofs.firstCurveProof.publicKey.toString, _leaseTx.amount, _leaseTx.transactionFee, _leaseTx.feeScale, _leaseTx.recipient.toString, _timestamp, _signature)
+    _senderProof = _leaseTx.proofs.firstCurveProof.explicitGet
+  } yield SignedLeaseRequest(_senderProof.publicKey.toString, _leaseTx.amount, _leaseTx.transactionFee, _leaseTx.feeScale, _leaseTx.recipient.toString, _timestamp, _signature)
 
   val leaseCancelReq: G[SignedLeaseCancelRequest] = for {
     _signature <- signatureGen
     _timestamp <- ntpTimestampGen
     _cancel <- leaseCancelGen
-  } yield SignedLeaseCancelRequest(_cancel.proofs.firstCurveProof.publicKey.toString, _cancel.leaseId.base58, _cancel.timestamp, _signature, _cancel.transactionFee, _cancel.feeScale)
+    _senderProof = _cancel.proofs.firstCurveProof.explicitGet
+  } yield SignedLeaseCancelRequest(_senderProof.publicKey.toString, _cancel.leaseId.base58, _cancel.timestamp, _signature, _cancel.transactionFee, _cancel.feeScale)
 }
