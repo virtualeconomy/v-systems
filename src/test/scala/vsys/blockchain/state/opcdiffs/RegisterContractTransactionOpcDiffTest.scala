@@ -1,11 +1,11 @@
 package vsys.blockchain.state.opcdiffs
 
-import vsys.blockchain.transaction.TransactionGen
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.{GenesisTransaction, ValidationError}
+import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, ValidationError}
+import vsys.blockchain.state.EitherExt2
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.ValidationError.ContractInvalidOPCData
 import vsys.blockchain.contract._
@@ -39,8 +39,8 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).explicitGet()
   } yield (genesis, create1, create1.transactionFee)
 
   property("register contract transaction cannot pass due to wrong list of parameters"){
@@ -60,8 +60,8 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).explicitGet()
   } yield (genesis, create1, create1.transactionFee)
 
   property("register contract transaction pass OpcFunDiff"){
@@ -84,8 +84,8 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).explicitGet()
   } yield (genesis, create1, create1.transactionFee)
 
   property("register contract transaction cannot pass due to wrong TDB opcode"){

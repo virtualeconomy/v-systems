@@ -1,13 +1,12 @@
 package vsys.blockchain.state.diffs
 
 import cats.Monoid
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
@@ -19,7 +18,7 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
     sender <- accountGen
     ts <- positiveIntGen
     fee: Long <- smallFeeGen
-    genesis: GenesisTransaction = GenesisTransaction.create(sender, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(sender, ENOUGH_AMT, -1, ts).explicitGet()
     tx: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
   } yield (genesis, tx)
 
@@ -27,7 +26,7 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
     sender <- accountGen
     ts <- positiveIntGen
     fee: Long <- smallFeeGen
-    genesis: GenesisTransaction = GenesisTransaction.create(sender, fee / 2, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(sender, fee / 2, -1, ts).explicitGet()
     tx: DbPutTransaction <- dbPutGeneratorP(ts, sender, fee)
   } yield (genesis, tx)
 

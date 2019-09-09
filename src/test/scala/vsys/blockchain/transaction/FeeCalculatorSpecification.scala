@@ -3,6 +3,12 @@ package vsys.blockchain.transaction
 import com.typesafe.config.ConfigFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Assertion, Matchers, PropSpec}
+<<<<<<< HEAD
+=======
+import vsys.account.{Address, PrivateKeyAccount}
+import vsys.blockchain.state.{ByteStr, EitherExt2}
+import vsys.blockchain.transaction.assets._
+>>>>>>> master
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}

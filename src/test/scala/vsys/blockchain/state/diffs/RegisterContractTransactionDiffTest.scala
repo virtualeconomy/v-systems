@@ -2,13 +2,12 @@ package vsys.blockchain.state.diffs
 
 import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
-import vsys.blockchain.transaction.TransactionGen
-import vsys.blockchain.state.{ByteStr, Portfolio}
+import vsys.blockchain.state.{ByteStr, EitherExt2, Portfolio}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 import vsys.utils.serialization.Deser
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract._
@@ -51,13 +50,13 @@ class RegisterContractTransactionDiffTest extends PropSpec
   val preconditionsAndRegContractTest: Gen[(GenesisTransaction, RegisterContractTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contract <- validContract
     data: Seq[DataEntry] <- initDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
     fee <- smallFeeGen
     feeScale <- feeScaleGen
-    create: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, data, description, fee, feeScale, ts + 1).right.get
+    create: RegisterContractTransaction = RegisterContractTransaction.create(master, contract, data, description, fee, feeScale, ts + 1).explicitGet()
   } yield (genesis, create)
 
   property("register contract transaction doesn't break invariant") {
@@ -68,7 +67,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
         totalPortfolioDiff.effectiveBalance shouldBe -reg.transactionFee
         val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         val contractId = reg.contractId.bytes
-        val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).right.get
+        val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
         val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
         val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
         val maxKey = ByteStr(Bytes.concat(tokenId.arr, Array(0.toByte)))
@@ -88,7 +87,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
         newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
         newState.tokenAccountBalance(totalKey) shouldBe 0L
         newState.tokenInfo(unityKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100L), DataType.Amount).bytes
-        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).right.get.bytes
+        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).explicitGet().bytes
         newState.tokenAccountBalance(masterBalanceKey) shouldBe 0L
       }
     }

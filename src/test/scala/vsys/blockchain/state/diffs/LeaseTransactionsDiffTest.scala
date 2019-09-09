@@ -2,7 +2,6 @@ package vsys.blockchain.state.diffs
 
 import cats._
 import com.google.common.primitives.{Bytes, Longs, Shorts}
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
@@ -11,9 +10,8 @@ import vsys.account.{Address, PrivateKeyAccount}
 import vsys.blockchain.block.TestBlock
 import vsys.settings.TestFunctionalitySettings
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction}
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, TransactionGen, TransactionParser, ValidationError}
 import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proof, Proofs}
-import vsys.blockchain.transaction._
 import vsys.blockchain.state.diffs.CommonValidation.MaxTimeTransactionOverBlockDiff
 
 class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -29,7 +27,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       fee <- smallFeeGen
       feeScale <- feeScaleGen
       ts <- timestampGen
-      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
 
       toSign = Bytes.concat(Array(TransactionParser.TransactionType.LeaseTransaction.id.toByte),
         master.toAddress.bytes.arr,
@@ -39,7 +37,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
         Longs.toByteArray(ts + 1))
 
       proof: Proof = EllipticCurve25519Proof.createProof(toSign, master)
-      proofs: Proofs =  Proofs.create(List(proof.bytes)).right.get
+      proofs: Proofs =  Proofs.create(List(proof.bytes)).explicitGet()
       lease: LeaseTransaction = LeaseTransaction(amount, fee, feeScale, ts + 1, master.toAddress, proofs)
 
     } yield (genesis, lease)
@@ -62,7 +60,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       master <- accountGen
       recipient <- accountGen suchThat (_ != master)
       ts <- positiveIntGen
-      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
       (lease, unlease) <- leaseAndCancelGeneratorP(master, recipient)
     } yield (genesis, lease, unlease, lease.transactionFee, unlease.transactionFee)
 
@@ -97,11 +95,11 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     recpient <- accountGen suchThat (_ != master)
     blockTime <- timestampGen
     ts <- Gen.choose(blockTime, blockTime + MaxTimeTransactionOverBlockDiff.toNanos - 1)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     (lease, unlease) <- leaseAndCancelGeneratorP(master, recpient)
     fee2 <- smallFeeGen
     //feeScale: Short <- positiveShortGen //set to 100 in this version
-    unlease2 = LeaseCancelTransaction.create(master, lease.id, fee2, 100, ts + 1).right.get
+    unlease2 = LeaseCancelTransaction.create(master, lease.id, fee2, 100, ts + 1).explicitGet()
     // ensure recipient has enough effective balance
     payment <- paymentGeneratorP(master, recpient) suchThat (_.amount > lease.amount)
   } yield (genesis, payment, lease, unlease, unlease2, blockTime)
@@ -121,7 +119,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       recipient <- accountGen suchThat (_ != master)
       forward <- accountGen suchThat (!Set(master, recipient).contains(_))
       ts <- positiveIntGen
-      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
       (lease, _) <- leaseAndCancelGeneratorP(master, recipient)
       (leaseForward, _) <- leaseAndCancelGeneratorP(recipient, forward)
     } yield (genesis, lease, leaseForward)
@@ -140,11 +138,11 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     unleaser = if (unleaseByRecipient) recipient else other
     blockTime <- timestampGen
     ts <- Gen.choose(blockTime, blockTime + MaxTimeTransactionOverBlockDiff.toNanos - 1)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    genesis2: GenesisTransaction = GenesisTransaction.create(unleaser, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    genesis2: GenesisTransaction = GenesisTransaction.create(unleaser, ENOUGH_AMT, -1, ts).explicitGet()
     (lease, _) <- leaseAndCancelGeneratorP(master, recipient)
     fee2 <- smallFeeGen
-    unleaseOtherOrRecipient = LeaseCancelTransaction.create(unleaser, lease.id, fee2, 100, ts + 1).right.get
+    unleaseOtherOrRecipient = LeaseCancelTransaction.create(unleaser, lease.id, fee2, 100, ts + 1).explicitGet()
   } yield (genesis, genesis2, lease, unleaseOtherOrRecipient, blockTime)
 
   property("cannot cancel lease of another sender") {
