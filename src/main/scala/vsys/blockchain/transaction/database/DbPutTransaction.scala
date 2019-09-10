@@ -1,52 +1,47 @@
 package vsys.blockchain.transaction.database
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
-import vsys.blockchain.state.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import vsys.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import vsys.blockchain.database.{DataType, Entry}
-import vsys.utils.serialization.{BytesSerializable, Deser}
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.transaction.ValidationError.DbDataTypeError
-import vsys.blockchain.transaction.{AssetId, ValidationError}
-import vsys.blockchain.transaction.ProvenTransaction
 import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
+import vsys.utils.serialization.{BytesSerializable, Deser}
 
 import scala.util.{Failure, Success, Try}
 
 case class DbPutTransaction private(dbKey: String,
                                     entry: Entry,
-                                    fee: Long,
+                                    transactionFee: Long,
                                     feeScale: Short,
                                     timestamp: Long,
-                                    proofs: Proofs)
-  extends ProvenTransaction {
+                                    proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.DbPutTransaction
+  val transactionType = TransactionType.DbPutTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     BytesSerializable.arrayWithSize(Deser.serilizeString(dbKey)),
     BytesSerializable.arrayWithSize(entry.bytes.arr),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "dbKey" -> dbKey,
     "entry" -> entry.json,
-    "fee" -> fee,
-    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
   lazy val publicKey: PublicKeyAccount = EllipticCurve25519Proof.fromBytes(proofs.proofs.head.bytes.arr).toOption.get.publicKey
   lazy val storageKey: ByteStr = DbPutTransaction.generateKey(publicKey.toAddress, dbKey)
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object DbPutTransaction {
+object DbPutTransaction extends TransactionParser {
 
   val MaxDbKeyLength = 30
   val MinDbKeyLength = 1

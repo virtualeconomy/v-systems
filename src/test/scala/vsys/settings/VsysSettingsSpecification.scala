@@ -14,16 +14,15 @@ class VsysSettingsSpecification extends FlatSpec with Matchers {
 
     settings.directory should be(home + "/.vsys")
     settings.loggingLevel should be(LogLevel.INFO)
-    settings.networkSettings should not be null
-    settings.walletSettings should not be null
-    settings.blockchainSettings should not be null
-    settings.checkpointsSettings should not be null
-    settings.feesSettings should not be null
-    settings.matcherSettings should not be null
-    settings.minerSettings should not be null
-    settings.restAPISettings should not be null
-    settings.synchronizationSettings should not be null
-    settings.utxSettings should not be null
+    settings.networkSettings shouldBe a[NetworkSettings]
+    settings.walletSettings shouldBe a[WalletSettings]
+    settings.blockchainSettings shouldBe a[BlockchainSettings]
+    settings.checkpointsSettings shouldBe a[CheckpointsSettings]
+    settings.feesSettings shouldBe a[FeesSettings]
+    settings.minerSettings shouldBe a[MinerSettings]
+    settings.restAPISettings shouldBe a[RestAPISettings]
+    settings.synchronizationSettings shouldBe a[SynchronizationSettings]
+    settings.utxSettings shouldBe a[UtxSettings]
   }
 
   "VsysSettings" should "resolver folders correctly" in {
@@ -39,8 +38,5 @@ class VsysSettingsSpecification extends FlatSpec with Matchers {
     settings.networkSettings.file should be(Some(new File("/xxx/data/peers.dat")))
     settings.walletSettings.file should be(Some(new File("/xxx/wallet/wallet.dat")))
     settings.loggingLevel should be(LogLevel.TRACE)
-    settings.matcherSettings.journalDataDir should be ("/xxx/matcher/journal")
-    settings.matcherSettings.snapshotsDataDir should be ("/xxx/matcher/snapshots")
   }
-
 }

@@ -20,9 +20,9 @@ object DbTransactionDiff {
     } yield Diff(
       height = height,
       tx = tx,
-      portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+      portfolios = Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
       dbEntries = Map(tx.storageKey -> tx.entry),
-      chargedFee = tx.fee
+      chargedFee = tx.transactionFee
     )
   }
 }

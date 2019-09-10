@@ -29,9 +29,9 @@ class UtxPoolSpecification extends FreeSpec
   private val db = openDB("./test/utx/data", true)
 
   private val calculator = new FeeCalculator(FeesSettings(Map(
-    1 -> List(FeeSettings("", 0)),
-    2 -> List(FeeSettings("", 0)),
-    4 -> List(FeeSettings("", 0))
+    1 -> List(FeeSettings("VSYS", 0)),
+    2 -> List(FeeSettings("VSYS", 0)),
+    4 -> List(FeeSettings("VSYS", 0))
   )))
 
   private def mkState(senderAccount: Address, senderBalance: Long) = {

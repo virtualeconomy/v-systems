@@ -1,50 +1,44 @@
 package vsys.blockchain.transaction.spos
 
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
-import vsys.blockchain.state.ByteStr
 import play.api.libs.json.{JsObject, Json}
 import vsys.account._
-import vsys.utils.crypto.hash.FastCryptographicHash
+import vsys.blockchain.consensus.SPoSCalc._
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.transaction.proof._
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.transaction._
-import vsys.blockchain.transaction._
-import vsys.blockchain.transaction.proof._
-import vsys.blockchain.consensus.SPoSCalc._
 
 import scala.util.{Failure, Success, Try}
 
 
 case class ContendSlotsTransaction private(slotId: Int,
-                                           fee: Long,
+                                           transactionFee: Long,
                                            feeScale: Short,
                                            timestamp: Long,
-                                           proofs: Proofs)
-  extends ProvenTransaction {
+                                           proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.ContendSlotsTransaction
+  val transactionType = TransactionType.ContendSlotsTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     Ints.toByteArray(slotId),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
-  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
-
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "slotId" -> slotId,
-    "fee" -> fee,
+    "fee" -> transactionFee,
     "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object ContendSlotsTransaction {
+object ContendSlotsTransaction extends TransactionParser {
 
   def parseTail(bytes: Array[Byte]): Try[ContendSlotsTransaction] = Try {
     val (slotBytes, slotIdEnd) = (bytes.slice(0, SlotIdLength), SlotIdLength)

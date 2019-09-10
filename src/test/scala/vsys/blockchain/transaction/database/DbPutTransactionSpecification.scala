@@ -25,7 +25,7 @@ class DbPutTransactionSpecification extends PropSpec with PropertyChecks with Ma
   private def assertTxs(first: DbPutTransaction, second: DbPutTransaction): Unit = {
     first.proofs.bytes shouldEqual second.proofs.bytes
     first.timestamp shouldEqual second.timestamp
-    first.fee shouldEqual second.fee
+    first.transactionFee shouldEqual second.transactionFee
     first.feeScale shouldEqual second.feeScale
     first.entry.data shouldEqual second.entry.data
     first.entry.dataType shouldEqual second.entry.dataType

@@ -29,12 +29,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
 
   lazy val uniqueId: ByteStr = signerData.signature
 
-  lazy val fee: Long =
-    transactionData.map(_.transaction.assetFee)
-      .map(a => AssetAcc(signerData.generator, a._1) -> a._2)
-      .groupBy(a => a._1)
-      .mapValues(_.map(_._2).sum)
-      .values.sum
+  lazy val fee: Long = transactionData.map(_.transaction.transactionFee).sum
 
   lazy val json: JsObject =
     versionField.json ++

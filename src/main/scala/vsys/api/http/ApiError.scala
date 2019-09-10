@@ -43,7 +43,6 @@ object ApiError {
     case ValidationError.GenericError(ge) => CustomValidationError(ge)
     case ValidationError.UnsupportedTransactionType => CustomValidationError("UnsupportedTransactionType")
     case ValidationError.AccountBalanceError(errs) => CustomValidationError(errs.values.mkString(", "))
-    case ValidationError.OrderValidationError(_, m) => CustomValidationError(m)
     case ValidationError.Mistiming(err) => Mistiming(err)
     case ValidationError.DbDataTypeError(err) => InvalidDbDataType(err)
     case ValidationError.WrongFeeScale(errFeeScale) => InvalidFeeScale(errFeeScale)

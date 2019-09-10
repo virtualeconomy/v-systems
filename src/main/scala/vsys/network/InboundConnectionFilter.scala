@@ -21,7 +21,7 @@ class InboundConnectionFilter(peerDatabase: PeerDatabase, maxInboundConnections:
     null.asInstanceOf[ChannelFuture]
   }
 
-  override def accept(ctx: ChannelHandlerContext, remoteAddress: InetSocketAddress) = {
+  override def accept(ctx: ChannelHandlerContext, remoteAddress: InetSocketAddress): Boolean = {
     val newTotal = inboundConnectionCount.incrementAndGet()
     val newCountPerHost = perHostConnectionCount.compute(remoteAddress.getAddress, (_, cnt) => Option(cnt).fold(1)(_ + 1))
     val isBlacklisted = peerDatabase.blacklistedHosts.contains(remoteAddress.getAddress)
@@ -34,9 +34,9 @@ class InboundConnectionFilter(peerDatabase: PeerDatabase, maxInboundConnections:
       !isBlacklisted
   }
 
-  override def channelAccepted(ctx: ChannelHandlerContext, remoteAddress: InetSocketAddress) =
+  override def channelAccepted(ctx: ChannelHandlerContext, remoteAddress: InetSocketAddress): Unit =
     ctx.channel().closeFuture().addListener((_: ChannelFuture) => dec(remoteAddress.getAddress))
 
-  override def channelRejected(ctx: ChannelHandlerContext, remoteAddress: InetSocketAddress) =
+  override def channelRejected(ctx: ChannelHandlerContext, remoteAddress: InetSocketAddress): ChannelFuture =
     dec(remoteAddress.getAddress)
 }

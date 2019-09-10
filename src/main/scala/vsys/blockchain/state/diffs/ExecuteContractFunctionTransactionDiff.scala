@@ -18,20 +18,20 @@ object ExecuteContractFunctionTransactionDiff {
       } yield Diff(
         height = height,
         tx = tx,
-        portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+        portfolios = Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
         tokenDB = diff.tokenDB,
         tokenAccountBalance = diff.tokenAccountBalance,
         contractDB = diff.contractDB,
         contractTokens = diff.contractTokens,
         relatedAddress = diff.relatedAddress,
-        chargedFee = tx.fee
+        chargedFee = tx.transactionFee
       ))
       .left.flatMap( e =>
         Right(Diff(
           height = height,
           tx = tx,
-          portfolios = Map(senderAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
-          chargedFee = tx.fee,
+          portfolios = Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
+          chargedFee = tx.transactionFee,
           txStatus = e match {
             case ce: ContractValidationError  => ce.transactionStatus
             case _ => TransactionStatus.Failed

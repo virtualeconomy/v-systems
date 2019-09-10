@@ -13,8 +13,8 @@ object TransactionsBlockField {
   }
 }
 
-case class TransactionsBlockFieldVersion1or2(override val value: Seq[ProcessedTransaction]) extends TransactionsBlockField {
-  override val name = "transactions"
+case class TransactionsBlockFieldVersion1or2(val value: Seq[ProcessedTransaction]) extends TransactionsBlockField {
+  val name = "transactions"
 
   override lazy val json: JsObject = Json.obj(name -> JsArray(value.map(_.json)))
 
@@ -27,8 +27,8 @@ case class TransactionsBlockFieldVersion1or2(override val value: Seq[ProcessedTr
   }
 }
 
-case class TransactionsBlockFieldVersion3(override val value: Seq[ProcessedTransaction]) extends TransactionsBlockField {
-  override val name = "transactions"
+case class TransactionsBlockFieldVersion3(val value: Seq[ProcessedTransaction]) extends TransactionsBlockField {
+  val name = "transactions"
 
   override lazy val json: JsObject = Json.obj(name -> JsArray(value.map(_.json)))
 

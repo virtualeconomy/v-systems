@@ -34,7 +34,7 @@ class LeaseTransactionSpecification extends PropSpec with PropertyChecks with Ma
   private def assertTxs(first: LeaseTransaction, second: LeaseTransaction): Unit = {
     first.recipient.stringRepr shouldEqual second.recipient.stringRepr
     first.amount shouldEqual second.amount
-    first.fee shouldEqual second.fee
+    first.transactionFee shouldEqual second.transactionFee
     first.feeScale shouldEqual second.feeScale
     first.proofs.bytes shouldEqual second.proofs.bytes
     first.bytes shouldEqual second.bytes
