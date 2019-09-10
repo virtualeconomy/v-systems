@@ -6,9 +6,13 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import vsys.blockchain.transaction.TransactionParser.TransactionType
+import vsys.utils.TransactionHelper
+import vsys.account.Address
+import vsys.blockchain.transaction.ProcessedTransaction
 
 trait WebhookEventRules extends Product with Serializable {
   val value: Any
+  def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean
 }
 
 trait RuleConfigReader {
@@ -24,8 +28,8 @@ trait RuleConfigReader {
 }
 
 case class AfterHeight(value: Long) extends WebhookEventRules {
-  def applyRule(valIn: Long): Boolean = {
-    if (valIn >= value) true else false
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    if (height >= value) true else false
   }
 }
 
@@ -38,8 +42,8 @@ object AfterHeight extends RuleConfigReader {
 }
 
 case class AfterTime(value: Long) extends WebhookEventRules {
-  def applyRule(valIn: Long): Boolean = {
-    if (valIn >= value) true else false
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    if (tx.transaction.timestamp >= value) true else false
   }
 }
 
@@ -52,7 +56,7 @@ object AfterTime extends RuleConfigReader {
 }
 
 case class WithTxs(value: Boolean) extends WebhookEventRules {
-  def applyRule(): Boolean = value
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = value
 }
 
 object WithTxs extends RuleConfigReader {
@@ -64,8 +68,8 @@ object WithTxs extends RuleConfigReader {
 }
 
 case class WithMintingTxs(value: Boolean) extends WebhookEventRules {
-  def applyRule(txsType: TransactionType.Value): Boolean = {
-    if (txsType == TransactionType.MintingTransaction) 
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    if (tx.transaction.transactionType == TransactionType.MintingTransaction) 
       if (value) true else false
     else true
   }
@@ -80,7 +84,10 @@ object WithMintingTxs extends RuleConfigReader {
 }
 
 case class RelatedAccs(value: Seq[String]) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    val addrInTx = TransactionHelper.extractAddresses(tx).filter(_.length > 0)
+    value.intersect(addrInTx).nonEmpty
+  }
 }
 
 object RelatedAccs extends RuleConfigReader {
@@ -92,7 +99,9 @@ object RelatedAccs extends RuleConfigReader {
 }
 
 case class IncludeTypes(value: Seq[Int]) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    value.contains(tx.transaction.transactionType.id)
+  }
 }
 
 object IncludeTypes extends RuleConfigReader {
@@ -104,7 +113,9 @@ object IncludeTypes extends RuleConfigReader {
 }
 
 case class ExcludeTypes(value: Seq[Int]) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    !value.contains(tx.transaction.transactionType.id)
+  }
 }
 
 object ExcludeTypes extends RuleConfigReader {
@@ -115,8 +126,26 @@ object ExcludeTypes extends RuleConfigReader {
   }
 }
 
+case class Amount(value: Seq[WebhookEventRules]) extends WebhookEventRules {
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    val ind = value.lastIndexOf(AmtWithFee)
+    val (amt, fee) = TransactionHelper.extractAmtFee(tx)
+    if (ind >= 0 && value(ind).applyRule(height, tx, accs)) {
+      // withFee
+      value.filter(_ != AmtWithFee).foldLeft(true)((accum, rule) =>
+        rule.applyRule(amt+fee, tx, accs)
+      )
+    } else {
+      // not withFee
+      value.filter(_ != AmtWithFee).foldLeft(true)((accum, rule) => rule.applyRule(amt, tx, accs))
+    }
+  }
+}
+
 case class AmtGT(value: Long) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(fee: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    true
+  } 
 }
 
 object AmtGT extends RuleConfigReader {
@@ -128,7 +157,7 @@ object AmtGT extends RuleConfigReader {
 }
 
 case class AmtLT(value: Long) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(fee: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object AmtLT extends RuleConfigReader {
@@ -140,7 +169,7 @@ object AmtLT extends RuleConfigReader {
 }
 
 case class AmtGTE(value: Long) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(fee: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object AmtGTE extends RuleConfigReader {
@@ -152,7 +181,7 @@ object AmtGTE extends RuleConfigReader {
 }
 
 case class AmtLTE(value: Long) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(fee: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object AmtLTE extends RuleConfigReader {
@@ -164,7 +193,7 @@ object AmtLTE extends RuleConfigReader {
 }
 
 case class AmtWithFee(value: Boolean) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object AmtWithFee extends RuleConfigReader {
@@ -176,7 +205,7 @@ object AmtWithFee extends RuleConfigReader {
 }
 
 case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object WithTxsOfTypes extends RuleConfigReader {
@@ -188,7 +217,7 @@ object WithTxsOfTypes extends RuleConfigReader {
 }
 
 case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object WithTxsOfAccs extends RuleConfigReader {
@@ -200,7 +229,7 @@ object WithTxsOfAccs extends RuleConfigReader {
 }
 
 case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules {
-  def applyRule() = ???
+  override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
 }
 
 object WithStateOfAccs extends RuleConfigReader {
