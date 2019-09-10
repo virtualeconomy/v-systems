@@ -3,15 +3,15 @@ package vsys.blockchain.block
 import org.scalacheck.Gen
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.state.ByteStr
-import vsys.blockchain.transaction.{ProcessedTransaction, SignedTransaction, Transaction, TransactionGen, TransactionStatus}
+import vsys.blockchain.transaction.{ProcessedTransaction, ProvenTransaction, Transaction, TransactionGen, TransactionStatus}
 
 trait BlockGen extends TransactionGen {
 
   import BlockGen._
 
-  val blockParamGen: Gen[(Seq[SignedTransaction], PrivateKeyAccount)] = for {
+  val blockParamGen: Gen[(Seq[ProvenTransaction], PrivateKeyAccount)] = for {
     count <- Gen.choose(minTransactionsInBlockCount, maxTransactionsInBlockCount)
-    transactions <- randomTransactionsGen(count)
+    transactions <- randomProvenTransactionsGen(count)
     signer <- accountGen
   } yield (transactions, signer)
 

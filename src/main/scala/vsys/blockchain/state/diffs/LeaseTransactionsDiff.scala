@@ -24,10 +24,10 @@ object LeaseTransactionsDiff {
           s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"
         ))
       } else Right(Map(
-        senderAddr -> Portfolio(-tx.fee, LeaseInfo(0, tx.amount), Map.empty),
+        senderAddr -> Portfolio(-tx.transactionFee, LeaseInfo(0, tx.amount), Map.empty),
         tx.recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
       ))
-    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.fee)
+    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.transactionFee)
   }
 
   def leaseCancel(s: StateReader, settings: FunctionalitySettings, time: Long, height: Int)
@@ -48,10 +48,10 @@ object LeaseTransactionsDiff {
       canceller = proof.publicKey
       portfolioDiff <- if (canceller == leaseSender) {
         Right(Monoid.combine(
-          Map(canceller.toAddress -> Portfolio(-tx.fee, LeaseInfo(0, -lease.amount), Map.empty)),
+          Map(canceller.toAddress -> Portfolio(-tx.transactionFee, LeaseInfo(0, -lease.amount), Map.empty)),
           Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty))))
       } else Left(GenericError(s"LeaseTransaction was leased by other sender"))
 
-    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false), chargedFee = tx.fee)
+    } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false), chargedFee = tx.transactionFee)
   }
 }

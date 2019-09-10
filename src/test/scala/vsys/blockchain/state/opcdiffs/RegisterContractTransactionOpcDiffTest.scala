@@ -41,7 +41,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).explicitGet()
-  } yield (genesis, create1, create1.fee)
+  } yield (genesis, create1, create1.transactionFee)
 
   property("register contract transaction cannot pass due to wrong list of parameters"){
     forAll(preconditionsAndRegContractWrongPara) { case (genesis, create, feeCreate) =>
@@ -62,7 +62,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).explicitGet()
-  } yield (genesis, create1, create1.fee)
+  } yield (genesis, create1, create1.transactionFee)
 
   property("register contract transaction pass OpcFunDiff"){
     forAll(preconditionsAndRegContract) { case (genesis, create, _) =>
@@ -86,7 +86,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
     feeScale <- feeScaleGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     create1: RegisterContractTransaction = RegisterContractTransaction.create(master, contract1, data, description, fee, feeScale, ts + 1).explicitGet()
-  } yield (genesis, create1, create1.fee)
+  } yield (genesis, create1, create1.transactionFee)
 
   property("register contract transaction cannot pass due to wrong TDB opcode"){
     forAll(preconditionsAndRegContractWrongFun) { case (genesis, create, feeCreate) =>

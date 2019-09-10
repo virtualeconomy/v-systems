@@ -11,7 +11,6 @@ import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import com.wavesplatform.matcher.Matcher
 import io.netty.channel.Channel
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.util.concurrent.GlobalEventExecutor
@@ -96,10 +95,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       PeersApiRoute(settings.restAPISettings, network.connect, peerDatabase, establishedConnections),
       AddressApiRoute(settings.restAPISettings, wallet, stateReader, settings.blockchainSettings.functionalitySettings),
       DebugApiRoute(settings.restAPISettings, wallet, stateReader, history, peerDatabase, establishedConnections, blockchainUpdater, allChannels, utxStorage),
-      //WavesApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
-      //AssetsApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       NodeApiRoute(settings.restAPISettings, stateReader, history, () => this.shutdown()),
-      //AssetsBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       LeaseApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       LeaseBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
@@ -119,10 +115,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       classOf[PeersApiRoute],
       classOf[AddressApiRoute],
       classOf[DebugApiRoute],
-      //classOf[WavesApiRoute],
-      //classOf[AssetsApiRoute],
       classOf[NodeApiRoute],
-      //classOf[AssetsBroadcastApiRoute],
       classOf[LeaseApiRoute],
       classOf[LeaseBroadcastApiRoute],
       classOf[SPOSApiRoute],
@@ -147,16 +140,12 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       log.info(s"REST API was bound on ${settings.restAPISettings.bindAddress}:${settings.restAPISettings.port}")
     }
 
-    //on unexpected shutdown
+    // on unexpected shutdown
     sys.addShutdownHook {
       network.shutdown()
       shutdown()
     }
 
-    if (settings.matcherSettings.enable) {
-      val matcher = new Matcher(actorSystem, wallet, utxStorage, allChannels, stateReader, history, settings.blockchainSettings, settings.restAPISettings, settings.matcherSettings)
-      matcher.runMatcher()
-    }
   }
 
   def checkGenesis(): Unit = if (history.isEmpty) {
@@ -227,8 +216,8 @@ object Application extends ScorexLogging {
         val cfg = ConfigFactory.parseFile(file)
         if (!cfg.hasPath("vsys")) {
           log.error("Malformed configuration file was provided! Aborting!")
-          log.error("Please, read following article about configuration file format:")
-          //log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file") // need to be replaced by vsys wiki
+          log.error("Please, read following article about configuration file:")
+          log.error("https://github.com/virtualeconomy/v-systems/wiki/V-Systems-Mainnet-Node-Configuration-File")
           forceStopApplication()
         }
         loadConfig(cfg)

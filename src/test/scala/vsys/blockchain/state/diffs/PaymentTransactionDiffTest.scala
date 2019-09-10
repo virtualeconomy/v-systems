@@ -19,7 +19,7 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
     ts <- positiveIntGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     transfer: PaymentTransaction <- paymentGeneratorP(master, recipient)
-  } yield (genesis, transfer, transfer.fee)
+  } yield (genesis, transfer, transfer.transactionFee)
 
 
   property("Diff doesn't break invariant") {

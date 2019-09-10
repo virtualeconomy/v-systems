@@ -49,7 +49,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
     }
 
     forAll(selfLease) { case (_, lease: LeaseTransaction) =>
-      LeaseTransaction.createWithProof(lease.amount, lease.fee, lease.feeScale, lease.timestamp, lease.recipient, lease.proofs) shouldBe Left(ValidationError.ToSelf)
+      LeaseTransaction.createWithProof(lease.amount, lease.transactionFee, lease.feeScale, lease.timestamp, lease.recipient, lease.proofs) shouldBe Left(ValidationError.ToSelf)
     }
 
   }
@@ -62,7 +62,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       ts <- positiveIntGen
       genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
       (lease, unlease) <- leaseAndCancelGeneratorP(master, recipient)
-    } yield (genesis, lease, unlease, lease.fee, unlease.fee)
+    } yield (genesis, lease, unlease, lease.transactionFee, unlease.transactionFee)
 
     forAll(sunnyDayLeaseLeaseCancel) { case ((genesis, lease, leaseCancel, feeLease, feeLeaseCancel)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(lease))) { case (totalDiff, newState) =>

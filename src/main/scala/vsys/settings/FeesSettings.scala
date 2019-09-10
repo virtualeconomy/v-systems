@@ -22,8 +22,8 @@ object FeesSettings {
   def fromConfig(config: Config): FeesSettings = {
     val feesEntries = config.entrySet().asScala.filter(_.getKey startsWith configPath)
     val fees = feesEntries.foldLeft(Map[Int, List[FeeSettings]]()) { (map, e) =>
-      val p = toFeeSettings(e)
-      map.updated(p._1, map.getOrElse(p._1, List()) :+ p._2)
+      val (transactionType, feeSettings) = toFeeSettings(e)
+      map.updated(transactionType, map.getOrElse(transactionType, List()) :+ feeSettings)
     }
 
     FeesSettings(fees)

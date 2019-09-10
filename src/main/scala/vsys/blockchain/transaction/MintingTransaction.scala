@@ -15,10 +15,12 @@ import scala.util.{Failure, Success, Try}
 case class MintingTransaction private(recipient: Address,
                                       amount: Long,
                                       timestamp: Long,
-                                      currentBlockHeight: Int) extends Transaction {
+                                      currentBlockHeight: Int) extends NonFeeTransaction {
+
+  val transactionType = TransactionType.MintingTransaction
+
+  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
   override lazy val signatureValid = true
-  override val transactionType = TransactionType.MintingTransaction
-  override val assetFee: (Option[AssetId], Long, Short) = (None, 0, 100) // no fee charged here
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
@@ -27,21 +29,20 @@ case class MintingTransaction private(recipient: Address,
     Bytes.concat(Array(transactionType.id.toByte), timestampBytes, recipient.bytes.arr, amountBytes, currentBlockHeightBytes)
   }
 
-  override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
-
   override lazy val json: JsObject = Json.obj(
     "type" -> transactionType.id,
-      "id" -> id.base58,
-      "recipient" -> recipient.address,
-      "timestamp" -> timestamp,
-      "amount" -> amount,
-      "currentBlockHeight" -> currentBlockHeight)
+    "id" -> id.base58,
+    "recipient" -> recipient.address,
+    "timestamp" -> timestamp,
+    "amount" -> amount,
+    "currentBlockHeight" -> currentBlockHeight
+  )
 
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign)
-
+  
 }
 
-object MintingTransaction {
+object MintingTransaction extends TransactionParser {
 
   private val recipientLength = Address.AddressLength
   private val currentBlockHeightLength = 4

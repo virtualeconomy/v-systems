@@ -1,42 +1,33 @@
 package vsys.blockchain.transaction
 
-import vsys.settings.FeesSettings
-import vsys.blockchain.state.ByteStr
+import com.typesafe.config.ConfigException.BadValue
 import vsys.blockchain.transaction.ValidationError.GenericError
+import vsys.settings.{FeesSettings, FeeSettings}
 
 /**
   * Class to check, that transaction contains enough fee to put it to UTX pool
   */
 class FeeCalculator(settings: FeesSettings) {
-
-  private val map: Map[String, Long] = {
-    settings.fees.flatMap { fs =>
-      val transactionType = fs._1
-      fs._2.map { v =>
-        val maybeAsset = if (v.asset.toUpperCase == "VSYS") None else ByteStr.decodeBase58(v.asset).toOption
-        val fee = v.fee
-
-        TransactionAssetFee(transactionType, maybeAsset).key -> fee
+  // txType -> txMinFee
+  private val map: Map[Int, Long] = {
+    settings.fees.flatMap { case (transactionType: Int, feeSettingsList: List[FeeSettings]) =>
+      feeSettingsList.map { v =>
+        if (v.asset.toUpperCase != "VSYS") throw new BadValue(v.asset, s"Unsupported fee type", new UnsupportedOperationException())
+        transactionType -> v.fee
       }
     }
   }
 
   def enoughFee[T <: Transaction](tx: T): Either[ValidationError, T] = {
-    map.get(TransactionAssetFee(tx.transactionType.id, tx.assetFee._1).key) match {
+    map.get(tx.transactionType.id) match {
       case Some(minimumFee) =>
-        if (minimumFee <= tx.assetFee._2) {
+        if (minimumFee <= tx.transactionFee) {
           Right(tx)
         } else {
-          Left(GenericError(s"Fee in ${tx.assetFee._1.fold("VSYS")(_.toString)} for ${tx.transactionType} transaction does not exceed minimal value of $minimumFee"))
+          Left(GenericError(s"Fee for ${tx.transactionType} transaction does not exceed minimal value of $minimumFee"))
         }
       case None =>
-        Left(GenericError(s"Minimum fee is not defined for ${TransactionAssetFee(tx.transactionType.id, tx.assetFee._1).key}"))
+        Left(GenericError(s"Minimum fee is not defined"))
     }
   }
-}
-
-case class TransactionAssetFee(txType: Int, assetId: Option[AssetId]) {
-
-  val key = s"TransactionAssetFee($txType, ${assetId.map(_.base58)})"
-
 }

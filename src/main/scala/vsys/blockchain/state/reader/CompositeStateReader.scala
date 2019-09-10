@@ -26,11 +26,6 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   override def accountPortfolio(a: Address): Portfolio =
     inner.accountPortfolio(a).combine(txDiff.portfolios.get(a).orEmpty)
 
-  override def assetInfo(id: ByteStr): Option[AssetInfo] = (inner.assetInfo(id), txDiff.issuedAssets.get(id)) match {
-    case (None, None) => None
-    case (existing, upd) => Some(existing.orEmpty.combine(upd.orEmpty))
-  }
-
   override def height: Int = inner.height + blockDiff.heightDiff
 
   // TODO: return Option[Address] instead of Option[String]
@@ -118,9 +113,6 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
   override def lastUpdateWeightedBalance(acc: Address): Option[Long] = blockDiff.snapshots.get(acc).map(_.last._2.weightedBalance).orElse(inner.lastUpdateWeightedBalance(acc))
 
   override def containsTransaction(id: ByteStr): Boolean = blockDiff.txsDiff.transactions.contains(id) || inner.containsTransaction(id)
-
-  override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo =
-    blockDiff.txsDiff.orderFills.get(orderId).orEmpty.combine(inner.filledVolumeAndFee(orderId))
 }
 
 object CompositeStateReader {
@@ -168,9 +160,6 @@ object CompositeStateReader {
     override def dbGet(key: ByteStr): Option[ByteStr] =
       new CompositeStateReader(inner, blockDiff()).dbGet(key)
 
-    override def assetInfo(id: ByteStr): Option[AssetInfo] =
-      new CompositeStateReader(inner, blockDiff()).assetInfo(id)
-
     override def height: Int =
       new CompositeStateReader(inner, blockDiff()).height
 
@@ -200,9 +189,6 @@ object CompositeStateReader {
 
     override def containsTransaction(id: ByteStr): Boolean =
       new CompositeStateReader(inner, blockDiff()).containsTransaction(id)
-
-    override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo =
-      new CompositeStateReader(inner, blockDiff()).filledVolumeAndFee(orderId)
   }
 
   def composite(inner: StateReader, blockDiff: () => BlockDiff): Proxy = new Proxy(inner, blockDiff)

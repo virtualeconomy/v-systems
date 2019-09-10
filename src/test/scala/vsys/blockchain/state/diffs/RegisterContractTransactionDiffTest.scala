@@ -63,8 +63,8 @@ class RegisterContractTransactionDiffTest extends PropSpec
     forAll(preconditionsAndRegContractTest) { case (genesis, reg) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(reg))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe -reg.fee
-        totalPortfolioDiff.effectiveBalance shouldBe -reg.fee
+        totalPortfolioDiff.balance shouldBe -reg.transactionFee
+        totalPortfolioDiff.effectiveBalance shouldBe -reg.transactionFee
         val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
         val contractId = reg.contractId.bytes
         val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()

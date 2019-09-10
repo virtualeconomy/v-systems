@@ -7,7 +7,6 @@ import vsys.account.{Address, PublicKeyAccount}
 import vsys.api.http.BroadcastRequest
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.{PaymentTransaction, ValidationError}
-import vsys.blockchain.transaction.assets.TransferTransaction
 
 @ApiModel(value = "Signed Payment transaction")
 case class SignedPaymentRequest( @ApiModelProperty(required = true)
@@ -31,7 +30,7 @@ case class SignedPaymentRequest( @ApiModelProperty(required = true)
       _signature <- ByteStr.decodeBase58(signature).toOption.toRight(ValidationError.InvalidRequestSignature)
       _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
       _recipient <- Address.fromString(recipient)
-      _attachment <- parseBase58(attachment.filter(_.length > 0), "invalid.attachment", TransferTransaction.MaxAttachmentStringSize)
+      _attachment <- parseBase58(attachment.filter(_.length > 0), "invalid.attachment", PaymentTransaction.MaxAttachmentStringSize)
       t <- PaymentTransaction.create(_sender, _recipient, amount, fee, feeScale, timestamp, _attachment.arr, _signature)
     } yield t
 }

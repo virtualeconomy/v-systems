@@ -1,18 +1,16 @@
 package vsys.blockchain.transaction.contract
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
-import vsys.blockchain.state.ByteStr
-import vsys.utils.base58Length
 import play.api.libs.json.{JsObject, Json}
-import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
-import vsys.blockchain.contract.DataEntry
-import vsys.utils.serialization.{BytesSerializable, Deser}
-import vsys.blockchain.transaction.TransactionParser._
-import vsys.blockchain.transaction.{AssetId, ValidationError}
 import scorex.crypto.encode.Base58
-import vsys.account.ContractAccount
+import vsys.account.{ContractAccount, PrivateKeyAccount, PublicKeyAccount}
+import vsys.blockchain.contract.DataEntry
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.transaction.TransactionParser._
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.proof._
-import vsys.blockchain.transaction.ProvenTransaction
+import vsys.utils.base58Length
+import vsys.utils.serialization.{BytesSerializable, Deser}
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,13 +18,12 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
                                                       funcIdx: Short,
                                                       data: Seq[DataEntry],
                                                       attachment: Array[Byte],
-                                                      fee: Long,
+                                                      transactionFee: Long,
                                                       feeScale: Short,
                                                       timestamp: Long,
-                                                      proofs: Proofs)
-  extends ProvenTransaction {
+                                                      proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.ExecuteContractFunctionTransaction
+  val transactionType = TransactionType.ExecuteContractFunctionTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
@@ -34,7 +31,7 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
     Shorts.toByteArray(funcIdx),
     Deser.serializeArray(DataEntry.serializeArrays(data)),
     BytesSerializable.arrayWithSize(attachment),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp)
   )
@@ -44,17 +41,14 @@ case class ExecuteContractFunctionTransaction private(contractId: ContractAccoun
     "functionIndex" -> funcIdx,
     "functionData" -> Base58.encode(DataEntry.serializeArrays(data)),
     "attachment" -> Base58.encode(attachment),
-    "fee" -> fee,
-    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object ExecuteContractFunctionTransaction {
+object ExecuteContractFunctionTransaction extends TransactionParser {
 
   val MaxDescriptionSize = 140
   val maxDescriptionStringSize: Int = base58Length(MaxDescriptionSize)

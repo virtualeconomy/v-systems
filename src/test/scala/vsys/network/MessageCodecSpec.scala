@@ -9,7 +9,6 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 import vsys.blockchain.transaction.{Transaction, TransactionGen}
-import vsys.blockchain.transaction.assets.IssueTransaction
 
 class MessageCodecSpec extends FreeSpec
   with Matchers
@@ -23,12 +22,12 @@ class MessageCodecSpec extends FreeSpec
     val ch = new EmbeddedChannel(codec)
 
     ch.writeInbound(RawBytes(TransactionMessageSpec.messageCode, "foo".getBytes(StandardCharsets.UTF_8)))
-    ch.readInbound[IssueTransaction]()
+    ch.readInbound[Transaction]()
 
     codec.blockCalls shouldBe 1
   }
 
-  "should not block a sender of valid messages" in forAll(randomTransactionGen) { origTx =>
+  "should not block a sender of valid messages" in forAll(randomProvenTransactionGen) { origTx =>
     val codec = new SpiedMessageCodec
     val ch = new EmbeddedChannel(codec)
 

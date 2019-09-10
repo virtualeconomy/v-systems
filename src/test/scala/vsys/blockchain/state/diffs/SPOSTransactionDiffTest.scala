@@ -28,7 +28,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     contendMultiSlots: ContendSlotsTransaction <- contendGeneratorP(master, slotid2)
     contendInvalidId1: ContendSlotsTransaction <- contendGeneratorP(master, -1)
     contendInvalidId2: ContendSlotsTransaction <- contendGeneratorP(master, TestFunctionalitySettings.Enabled.numOfSlots)
-  } yield (genesis, contend, contendMultiSlots, contendInvalidId1, contendInvalidId2, contend.fee)
+  } yield (genesis, contend, contendMultiSlots, contendInvalidId1, contendInvalidId2, contend.transactionFee)
 
   property("contend transaction doesn't break invariant") {
     forAll(preconditionsAndContend) { case (genesis, contend, _, _, _, feeContend) =>
@@ -72,7 +72,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     contend: ContendSlotsTransaction <- contendGeneratorP(ts + 1, master, 0)
     contend1: ContendSlotsTransaction <- contendGeneratorP(ts + 2, master1, 0)
     contend2: ContendSlotsTransaction <- contendGeneratorP(ts + 3, master, 1)
-  } yield (genesis, genesis1, contend, contend1, contend2, contend.fee)
+  } yield (genesis, genesis1, contend, contend1, contend2, contend.transactionFee)
 
 
   property("node contended by others can not contend a new slot") {
@@ -122,7 +122,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     releaseInvalid3: ReleaseSlotsTransaction <- releaseGeneratorP(master0, TestFunctionalitySettings.Enabled.numOfSlots)
 
   } yield (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6, genesis7, genesis8, genesis9, genesis10,
-    release1, releaseInvalid1, releaseInvalid2, releaseInvalid3, release1.fee)
+    release1, releaseInvalid1, releaseInvalid2, releaseInvalid3, release1.transactionFee)
 
   property("release transaction doesn't break invariant") {
     forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,

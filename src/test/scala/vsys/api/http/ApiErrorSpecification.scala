@@ -1,16 +1,13 @@
 package vsys.api.http
-import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Matchers, PropSpec}
-import vsys.blockchain.transaction.{ValidationError, TransactionGen}
-import vsys.blockchain.transaction.assets.exchange.Order
-import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
-import vsys.blockchain.database.Entry
 
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
-
-import vsys.account.Address
-
+import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
+import org.scalatest.{Matchers, PropSpec}
 import play.api.libs.json.JsError
+import vsys.account.Address
+import vsys.blockchain.transaction.{ValidationError, TransactionGen}
+import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
+import vsys.blockchain.database.Entry
 
 class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -32,17 +29,6 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
       result.id should be(CustomValidationError(result.message).id)
       result.code should be(StatusCodes.BadRequest)
       result.message should be("No enough money for output, Account is locked")
-    }
-  }
-
-  property("OrderValidationError should cause CustomValidationError which specified msg") {
-    forAll(orderGen) { order =>
-      val testOrder = Order.parseBytes(order.bytes).get
-      val err = ValidationError.OrderValidationError(testOrder, "order validation throw error")
-      val result = ApiError.fromValidationError(err)
-      result.id should be(CustomValidationError(result.message).id)
-      result.code should be(StatusCodes.BadRequest)
-      result.message should be("order validation throw error")
     }
   }
 
@@ -116,7 +102,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
   }
 
   property("TransactionValidationError should return error according to error type TransactionValidationError contains") {
-    forAll (randomTransactionGen) { transaction =>
+    forAll (randomProvenTransactionGen) { transaction =>
       val err = ValidationError.Mistiming("Mistiming error")
       val invalidTransacErr = TransactionValidationError(err, transaction)
       val result = ApiError.fromValidationError(invalidTransacErr)
@@ -204,7 +190,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
   }
 
   property("StateCheckFailed shouldBe error id, code and message with specific type") {
-    forAll (randomTransactionGen) { (transaction) => 
+    forAll (randomProvenTransactionGen) { (transaction) => 
       val err = ValidationError.InvalidProofType 
       val invalidTransacErr = TransactionValidationError(err, transaction)
       val result = ApiError.fromValidationError(invalidTransacErr)

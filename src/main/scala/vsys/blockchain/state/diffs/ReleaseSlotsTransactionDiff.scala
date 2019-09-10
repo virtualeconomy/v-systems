@@ -39,11 +39,11 @@ object ReleaseSlotsTransactionDiff {
     } yield Diff(
       height = height,
       tx = tx,
-      portfolios = Map(senderAddr -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)),
+      portfolios = Map(senderAddr -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
       slotids = Map(tx.slotId -> None),
       addToSlot = Map(senderAddr.address -> None),
       slotNum = -1,
-      chargedFee = tx.fee
+      chargedFee = tx.transactionFee
     )
   }
 }
