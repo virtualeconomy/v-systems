@@ -15,8 +15,6 @@ import scala.util.{Failure, Success, Try}
 
 object OpcFuncDiffer extends ScorexLogging {
 
-  def right(structure: (OpcDiff, Seq[DataEntry])): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = Right(structure)
-
   def apply(executionContext: ExecutionContext)
            (data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
     val opcFunc = executionContext.opcFunc
@@ -25,22 +23,26 @@ object OpcFuncDiffer extends ScorexLogging {
     val s = executionContext.state
     fromBytes(opcFunc) match {
       case Success((_, _, _, listParaTypes, listOpcLines)) =>
-        if (!checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray)) {
-          Left(ContractDataTypeMismatch)
-        } else if (listOpcLines.forall(_.length < 2)) {
-          Left(ContractInvalidOPCData)
-        } else {
-          listOpcLines.foldLeft(right((OpcDiff.empty, data))) { case (ei, opc) => ei.flatMap(st =>
-            OpcDiffer(executionContext.copy(state = new CompositeStateReader(s,
-              st._1.asBlockDiff(height, tx))))(opc, st._2) match {
-              case Right((opcDiff, d)) => Right((st._1.combine(opcDiff), d))
-              case Left(l) => Left(l)
-            }
-          )} match {
-            case Right((opcDiff, _)) => Right(opcDiff)
-            case Left(l) => Left(l)
-          }
-        }
+        for {
+          _ <- Either.cond(
+                 checkTypes(listParaTypes, data.map(_.dataType.id.toByte).toArray),
+                 (), ContractDataTypeMismatch
+               )
+          _ <- Either.cond(
+                 listOpcLines.forall(_.length >= 2),
+                 (), ContractInvalidOPCData
+               )
+          diff <- 
+            listOpcLines.foldLeft(Right((OpcDiff.empty, data))) {
+              case (ei, opc) =>
+                ei.flatMap((processedDiff, oldData) => {
+                  val processedState = new CompositeStateReader(s, processedDiff.asBlockDiff(height, tx))
+                  OpcDiffer(executionContext.copy(state = processedState))(opc, oldData) map {
+                    (opcDiff, newData) => (processedDiff.combine(opcDiff), newData)
+                  }
+                })
+            } map { (functionDiff, _) => functionDiff }
+        } yield diff
       case Failure(_) => Left(ContractInvalidFunction)
     }
   }
@@ -54,5 +56,4 @@ object OpcFuncDiffer extends ScorexLogging {
     val listOpcLines = Deser.parseArrays(listOpcLinesBytes)
     (funcIdx, funcType,listReturnTypes, listParaTypes, listOpcLines)
   }
-
 }
