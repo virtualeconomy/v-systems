@@ -132,25 +132,26 @@ object TDBROpcDiff extends OpcDiffer{
     val TotalTDBR = Value(2)
     val UnityTDBR = Value(3)
     val DescTDBR = Value(4)
+    def fromByte(implicit b: Byte): Option[TDBRType.Value] = Try(TDBRType(b)).toOption
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
-    bytes.head match {
-      case opcType: Byte if opcType == TDBRType.MaxTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+    bytes.headOption.flatMap(TDBRType.fromByte(_)) match {
+      case Some(TDBRType.MaxTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         maxWithoutTokenIndex(context)(data, bytes(1))
-      case opcType: Byte if opcType == TDBRType.MaxTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.MaxTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         max(context)(data(bytes(1)), data, bytes(2))
-      case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.TotalTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         totalWithoutTokenIndex(context)(data, bytes(1))
-      case opcType: Byte if opcType == TDBRType.TotalTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.TotalTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         total(context)(data(bytes(1)), data, bytes(2))
-      case opcType: Byte if opcType == TDBRType.UnityTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.UnityTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         unityWithoutTokenIndex(context)(data, bytes(1))
-      case opcType: Byte if opcType == TDBRType.UnityTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.UnityTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         unity(context)(data(bytes(1)), data, bytes(2))
-      case opcType: Byte if opcType == TDBRType.DescTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.DescTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         descWithoutTokenIndex(context)(data, bytes(1))
-      case opcType: Byte if opcType == TDBRType.DescTDBR.id && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.DescTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         desc(context)(data(bytes(1)), data, bytes(2))
       case _ => Left(ContractInvalidOPCData)
     }

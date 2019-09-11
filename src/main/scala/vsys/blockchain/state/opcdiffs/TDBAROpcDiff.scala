@@ -44,14 +44,14 @@ object TDBAROpcDiff extends OpcDiffer{
     val BalanceTBDAR= Value(1)
   }
 
-  override def parseBytesDt(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 2, context.stateVar.length, data.length, 1) =>
-      balanceWithoutTokenIndex(context)(data(bytes(1)), data, bytes(2))
-    case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 1) =>
-      balance(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
-    case _ => Left(ContractInvalidOPCData)
-  }
+  override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    bytes.headOption match {
+      case Some(opcType: Byte) if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 2, context.stateVar.length, data.length, 1) =>
+        balanceWithoutTokenIndex(context)(data(bytes(1)), data, bytes(2))
+      case Some(opcType: Byte) if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 3, context.stateVar.length, data.length, 1) =>
+        balance(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
+      case _ => Left(ContractInvalidOPCData)
+    }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, stateVarLength: Int, dataLength: Int, sep: Int): Boolean = {
     bytes.length == bLength && bytes.slice(1, sep).forall(_ < stateVarLength) && bytes.slice(sep, bLength).forall(_ < dataLength) && bytes.tail.min >= 0

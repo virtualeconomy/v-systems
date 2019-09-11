@@ -15,10 +15,10 @@ object ReturnOpcDiff extends OpcDiffer{
     val ValueReturn = Value(1)
   }
 
-  override def parseBytesDt(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == ReturnType.ValueReturn.id && bytes.length == 2 => value(context)(data, bytes.last)
-    case _ => Left(ContractInvalidOPCData)
-  }
+  override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    bytes.headOption match {
+      case Some(opcType: Byte) if opcType == ReturnType.ValueReturn.id && bytes.length == 2 => value(context)(data, bytes.last)
+      case _ => Left(ContractInvalidOPCData)
+    }
 
 }
