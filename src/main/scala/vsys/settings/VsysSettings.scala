@@ -24,7 +24,8 @@ case class VsysSettings(directory: String,
                         minerSettings: MinerSettings,
                         restAPISettings: RestAPISettings,
                         synchronizationSettings: SynchronizationSettings,
-                        utxSettings: UtxSettings)
+                        utxSettings: UtxSettings,
+                        eventSettings: EventSettings)
 
 object VsysSettings {
   import NetworkSettings.networkSettingsValueReader
@@ -47,6 +48,6 @@ object VsysSettings {
     val eventSettings = EventSettings.fromConfig(config)
 
     VsysSettings(directory, dataDirectory, loggingLevel, networkSettings, walletSettings, blockchainSettings, checkpointsSettings,
-      feesSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings)
+      feesSettings, minerSettings, restAPISettings, synchronizationSettings, utxSettings, eventSettings)
   }
 }
