@@ -46,7 +46,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
   private val db = openDB(settings.dataDirectory)
 
   private val checkpointService = new CheckpointServiceImpl(db, settings.checkpointsSettings)
-  private val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings, settings.eventSettings)
+  private val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings, settings.eventSettings, actorSystem)
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
   private val wallet: Wallet = try {
