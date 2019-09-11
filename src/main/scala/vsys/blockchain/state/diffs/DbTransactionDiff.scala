@@ -9,7 +9,7 @@ import vsys.blockchain.transaction.database.DbPutTransaction
 import scala.util.{Left, Right}
 
 object DbTransactionDiff {
-  def put(s: StateReader, height: Int)(tx: DbPutTransaction): Either[ValidationError, Diff] = {
+  def apply(s: StateReader, height: Int)(tx: DbPutTransaction): Either[ValidationError, Diff] = {
     for {
       proof <- tx.proofs.firstCurveProof
       senderAddress: Address = proof.publicKey.toAddress

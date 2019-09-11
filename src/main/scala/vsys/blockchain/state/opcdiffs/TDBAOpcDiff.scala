@@ -12,7 +12,7 @@ import vsys.blockchain.contract.ExecutionContext
 
 import scala.util.{Left, Right, Try}
 
-object TDBAOpcDiff {
+object TDBAOpcDiff extends OpcDiffer{
 
   def deposit(context: ExecutionContext)
              (issuer: DataEntry, amount: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
@@ -148,7 +148,7 @@ object TDBAOpcDiff {
     val TransferTDBA = Value(3)
   }
 
-  def parseBytes(context: ExecutionContext)
+  override def parseBytesDf(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
     case opcType: Byte if opcType == TDBAType.DepositTDBA.id && checkInput(bytes,3, data.length) =>
       depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))

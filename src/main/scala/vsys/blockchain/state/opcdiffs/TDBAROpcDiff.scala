@@ -10,7 +10,7 @@ import vsys.blockchain.contract.ExecutionContext
 
 import scala.util.{Left, Right}
 
-object TDBAROpcDiff {
+object TDBAROpcDiff extends OpcDiffer{
 
   def balance(context: ExecutionContext)(address: DataEntry, tokenIndex: DataEntry,
                                          dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
@@ -44,7 +44,7 @@ object TDBAROpcDiff {
     val BalanceTBDAR= Value(1)
   }
 
-  def parseBytes(context: ExecutionContext)
+  override def parseBytesDt(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
     case opcType: Byte if opcType == TDBARType.BalanceTBDAR.id && checkInput(bytes.slice(0, bytes.length - 1), 2, context.stateVar.length, data.length, 1) =>
       balanceWithoutTokenIndex(context)(data(bytes(1)), data, bytes(2))

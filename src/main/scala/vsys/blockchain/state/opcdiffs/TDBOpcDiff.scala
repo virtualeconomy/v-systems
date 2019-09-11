@@ -10,7 +10,7 @@ import vsys.blockchain.contract.ExecutionContext
 
 import scala.util.{Left, Right}
 
-object TDBOpcDiff {
+object TDBOpcDiff extends OpcDiffer{
 
   def newToken(context: ExecutionContext)
               (max: DataEntry, unity: DataEntry, desc: DataEntry):Either[ValidationError, OpcDiff] = {
@@ -72,16 +72,16 @@ object TDBOpcDiff {
     val SplitTDB = Value(2)
   }
 
-  def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes,4, data.length) =>
-      newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,2, data.length) =>
-      splitWithoutTokenIndex(context)(data(bytes(1)))
-    case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
-      split(context)(data(bytes(1)), data(bytes(2)))
-    case _ => Left(ContractInvalidOPCData)
-  }
+  override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]):Either[ValidationError, OpcDiff] =
+    bytes.head match {
+      case opcType: Byte if opcType == TDBType.NewTokenTDB.id && checkInput(bytes,4, data.length) =>
+        newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
+      case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,2, data.length) =>
+        splitWithoutTokenIndex(context)(data(bytes(1)))
+      case opcType: Byte if opcType == TDBType.SplitTDB.id && checkInput(bytes,3, data.length) =>
+        split(context)(data(bytes(1)), data(bytes(2)))
+      case _ => Left(ContractInvalidOPCData)
+    }
 
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
     bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
