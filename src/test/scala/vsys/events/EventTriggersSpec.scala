@@ -1,10 +1,10 @@
 package vsys.events
 
-import vsys.settings._
+import akka.actor.{ActorSystem, Props}
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
 import net.ceedubs.ficus.Ficus._
-import org.scalatest.{FlatSpec, Matchers, PrivateMethodTester}
+import org.scalatest.{FlatSpec, Matchers}
 import com.typesafe.config.{ConfigFactory, Config}
 import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction, MintingTransaction, PaymentTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
@@ -13,18 +13,21 @@ import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.Diff
 import vsys.blockchain.state._
 import vsys.account.Address
-import vsys.settings.WebhookEventSettings
+import vsys.settings._
+import vsys.settings.EventSettings
 
 
-class EventTriggersSpec extends FlatSpec with Matchers with PrivateMethodTester with MockitoSugar {
+class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
+  val system = ActorSystem()
+  val trigger = EventTrigger(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty))
 
   "Private Method checkRules" should "filter AfterHeight correctly" in {
     val eventRules = Seq(AfterHeight(12))
     val blockDiff_1 = createBlockDiff(0)
     val blockDiff_2 = createBlockDiff(15)
 
-    EventTrigger.checkRules(eventRules, blockDiff_1) shouldBe(List.empty)
-    EventTrigger.checkRules(eventRules, blockDiff_2).size shouldBe(6)
+    trigger.checkRules(eventRules, blockDiff_1) shouldBe(List.empty)
+    trigger.checkRules(eventRules, blockDiff_2).size shouldBe(6)
   }
 
   it should "filter AfterTime correctly" in {
@@ -32,8 +35,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with PrivateMethodTester 
     val custTime = Seq(AfterTime(100))
     val blockDiff = createBlockDiff(0)
 
-    EventTrigger.checkRules(defaultTime, blockDiff).size shouldBe(6)
-    EventTrigger.checkRules(custTime, blockDiff)(0)._2.transaction.timestamp shouldBe(100)
+    trigger.checkRules(defaultTime, blockDiff).size shouldBe(6)
+    trigger.checkRules(custTime, blockDiff)(0)._2.transaction.timestamp shouldBe(100)
   }
 
   it should "filter WithTxs correctly" in {
@@ -41,10 +44,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with PrivateMethodTester 
     val custRule = Seq(WithTxs(true))
     val blockDiff = createBlockDiff(0)
 
-    EventTrigger.checkRules(defaultRule, blockDiff) shouldBe(List.empty)
-    EventTrigger.checkRules(custRule, blockDiff).size shouldBe(6)
-    // EventTrigger.checkRules(defaultRule, mintTxs, 0) shouldBe(Seq.empty)
-    // EventTrigger.checkRules(custRule, mintTxs, 0) shouldBe(mintTxs)
+    trigger.checkRules(defaultRule, blockDiff) shouldBe(List.empty)
+    trigger.checkRules(custRule, blockDiff).size shouldBe(6)
   }
 
   it should "filter WithMintingTxs correctly" in {
@@ -52,37 +53,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with PrivateMethodTester 
     val custRule = Seq(WithMintingTxs(true))
     val blockDiff = createBlockDiff(0)
 
-    EventTrigger.checkRules(defaultRule, blockDiff).size shouldBe(1)
-    EventTrigger.checkRules(custRule, blockDiff).size shouldBe(6)
-  }
-
-  "EventTrigger" should "return transaction correctly in evoke" in {
-    val config = loadConfig(ConfigFactory.parseString(
-      """vsys {
-         | Event {
-         |   webHooks: [
-         |     {
-         |       events: [
-         |         {
-         |           type: 1,
-         |           rules: {
-         |             afterHeight: 10,
-         |             afterTime: 15,
-         |             withTxs: true,
-         |             withMintingTxs: false
-         |           }
-         |         }
-         |       ]
-         |     }
-         |   ]
-         | }
-         |}""".stripMargin))
-    val hookConf = config.as[Seq[Config]]("vsys.Event.webHooks")
-    val webhookEventConf = hookConf(0).as[Seq[Config]]("events").map(conf => WebhookEventSettings(conf, "1"))
-    val blockDiff = createBlockDiff(12)
-    
-    EventTrigger.evoke(webhookEventConf(0).explicitGet(), blockDiff)
-
+    trigger.checkRules(defaultRule, blockDiff).size shouldBe(1)
+    trigger.checkRules(custRule, blockDiff).size shouldBe(6)
   }
 
   private def createTxs(i: Int): ProcessedTransaction = {
