@@ -3,9 +3,7 @@ package vsys.events
 import akka.actor.{ActorSystem, Props}
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
-import net.ceedubs.ficus.Ficus._
 import org.scalatest.{FlatSpec, Matchers}
-import com.typesafe.config.{ConfigFactory, Config}
 import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction, MintingTransaction, PaymentTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.state.BlockDiff
@@ -15,7 +13,6 @@ import vsys.blockchain.state._
 import vsys.account.Address
 import vsys.settings._
 import vsys.settings.EventSettings
-
 
 class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
   val system = ActorSystem()
