@@ -33,15 +33,18 @@ object OpcFuncDiffer extends ScorexLogging {
                  (), ContractInvalidOPCData
                )
           diff <- 
-            listOpcLines.foldLeft(Right((OpcDiff.empty, data))) {
+            listOpcLines.foldLeft(Right((OpcDiff.empty, data)):
+                                  Either[ValidationError, (OpcDiff, Seq[DataEntry])]) {
               case (ei, opc) =>
-                ei.flatMap((processedDiff, oldData) => {
-                  val processedState = new CompositeStateReader(s, processedDiff.asBlockDiff(height, tx))
-                  OpcDiffer(executionContext.copy(state = processedState))(opc, oldData) map {
-                    (opcDiff, newData) => (processedDiff.combine(opcDiff), newData)
+                ei.flatMap {
+                  case (processedDiff: OpcDiff, oldData: Seq[DataEntry]) => {
+                    val processedState = new CompositeStateReader(s, processedDiff.asBlockDiff(height, tx))
+                    OpcDiffer(executionContext.copy(state = processedState))(opc, oldData) map {
+                      case (opcDiff, newData) => (processedDiff.combine(opcDiff), newData)
+                    }
                   }
-                })
-            } map { (functionDiff, _) => functionDiff }
+                }
+            } map { case (functionDiff, _) => functionDiff }
         } yield diff
       case Failure(_) => Left(ContractInvalidFunction)
     }

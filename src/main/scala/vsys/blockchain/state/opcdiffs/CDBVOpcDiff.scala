@@ -17,10 +17,9 @@ object CDBVOpcDiff extends OpcDiffer{
       _ <- Either.cond(checkStateVar(stateVar, value.dataType), (), ContractInvalidStateVariable)
       addrOpt <- if (value.dataType == DataType.Address) Address.fromBytes(value.data).map(Some(_))
               else Right(None)
-      contractDB = Map(ByteStr(context.contractId.bytes.arr ++ Array(stateVar(0))) -> value.bytes)))
+      contractDB = Map(ByteStr(context.contractId.bytes.arr ++ Array(stateVar(0))) -> value.bytes)
       diff = addrOpt match {
-        case Some(addr) => OpcDiff(relatedAddress = Map(addr -> true),
-                                   contractDB = contractDB)
+        case Some(addr) => OpcDiff(relatedAddress = Map(addr -> true), contractDB = contractDB)
         case None => OpcDiff(contractDB = contractDB)
       }
     } yield diff

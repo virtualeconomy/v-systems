@@ -6,7 +6,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidCaller, ContractInvalidOPCData, ContractInvalidSigner, GenericError}
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object AssertOpcDiff extends OpcDiffer{
 
@@ -39,7 +39,7 @@ object AssertOpcDiff extends OpcDiffer{
       Left(GenericError(s"Invalid Assert (gt0): Value $v is non-positive"))
   }
 
-  def eq(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
+  def equql(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
     if (add1.dataType == DataType.Address && add2.dataType == DataType.Address
       && Address.fromBytes(add1.data) == Address.fromBytes(add2.data))
       Right(OpcDiff.empty)
@@ -73,21 +73,21 @@ object AssertOpcDiff extends OpcDiffer{
   object AssertType extends Enumeration {
     sealed case class AssertTypeVal(assertType: Int, operandCount: Int,
                                     differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) =>
-                                      Either[ValidationError, OpcDiff]) extends Val(opcType) {
-      def *(n: Int): Int = n * opcType
+                                      Either[ValidationError, OpcDiff]) extends Val(assertType) {
+      def *(n: Int): Int = n * assertType
     }
     val GteqZeroAssert       = AssertTypeVal(1, 1, (c, b, d) => gtEq0(d(b(1))))
     val LteqAssert           = AssertTypeVal(2, 2, (c, b, d) => ltEq(d(b(1)), d(b(2))))
     val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d) => ltInt64(d(b(1))))
     val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d) => gt0(d(b(1))))
-    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => eq(d(b(1)), d(b(2))))
-    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => sCallerOrigin(c)(d(b(1))))
+    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equql(d(b(1)), d(b(2))))
+    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => isCallerOrigin(c)(d(b(1))))
     val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d) => isSignerOrigin(c)(d(b(1))))
 
     def fromByte(implicit b: Byte): Option[AssertTypeVal] =
       Try(AssertType(b).asInstanceOf[AssertTypeVal]).toOption
   }
-  // be care of index out of bound exception if custom function with this opc in `data(byte(i))`
+  // index out of bound exception if custom function with this opc in `data(byte(i))`
   override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
     bytes.headOption.flatMap(AssertType.fromByte(_)) match {
       case Some(assertType: AssertType.AssertTypeVal) if bytes.length == assertType.operandCount + 1

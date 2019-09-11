@@ -151,17 +151,17 @@ object TDBAOpcDiff extends OpcDiffer{
 
   override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
     bytes.headOption.flatMap(TDBAType.fromByte(_)) match {
-      case Some(TDBAType.DepositTDBA) && checkInput(bytes,3, data.length) =>
+      case Some(TDBAType.DepositTDBA) if checkInput(bytes,3, data.length) =>
         depositWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-      case Some(TDBAType.DepositTDBA) && checkInput(bytes,4, data.length) =>
+      case Some(TDBAType.DepositTDBA) if checkInput(bytes,4, data.length) =>
         deposit(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-      case Some(TDBAType.WithdrawTDBA) && checkInput(bytes,3, data.length) =>
+      case Some(TDBAType.WithdrawTDBA) if checkInput(bytes,3, data.length) =>
         withdrawWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)))
-      case Some(TDBAType.WithdrawTDBA) && checkInput(bytes,4, data.length) =>
+      case Some(TDBAType.WithdrawTDBA) if checkInput(bytes,4, data.length) =>
         withdraw(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-      case Some(TDBAType.TransferTDBA) && checkInput(bytes,4, data.length) =>
+      case Some(TDBAType.TransferTDBA) if checkInput(bytes,4, data.length) =>
         transferWithoutTokenIndex(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-      case Some(TDBAType.TransferTDBA) && checkInput(bytes,5, data.length) =>
+      case Some(TDBAType.TransferTDBA) if checkInput(bytes,5, data.length) =>
         transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)), data(bytes(4)))
       case _ => Left(ContractInvalidOPCData)
     }

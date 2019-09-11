@@ -4,7 +4,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractLocalVariableIndexOutOfRange}
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object LoadOpcDiff extends OpcDiffer{
 

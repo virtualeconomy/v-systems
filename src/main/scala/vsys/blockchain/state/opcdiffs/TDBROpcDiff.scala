@@ -8,7 +8,7 @@ import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.ExecutionContext
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object TDBROpcDiff extends OpcDiffer{
 
@@ -137,21 +137,21 @@ object TDBROpcDiff extends OpcDiffer{
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(TDBRType.fromByte(_)) match {
-      case Some(TDBRType.MaxTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.MaxTDBR) if checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         maxWithoutTokenIndex(context)(data, bytes(1))
-      case Some(TDBRType.MaxTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.MaxTDBR) if checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         max(context)(data(bytes(1)), data, bytes(2))
-      case Some(TDBRType.TotalTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.TotalTDBR) if checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         totalWithoutTokenIndex(context)(data, bytes(1))
-      case Some(TDBRType.TotalTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.TotalTDBR) if checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         total(context)(data(bytes(1)), data, bytes(2))
-      case Some(TDBRType.UnityTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.UnityTDBR) if checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         unityWithoutTokenIndex(context)(data, bytes(1))
-      case Some(TDBRType.UnityTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.UnityTDBR) if checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         unity(context)(data(bytes(1)), data, bytes(2))
-      case Some(TDBRType.DescTDBR) && checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
+      case Some(TDBRType.DescTDBR) if checkInput(bytes.slice(0, bytes.length - 1),1, data.length) =>
         descWithoutTokenIndex(context)(data, bytes(1))
-      case Some(TDBRType.DescTDBR) && checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
+      case Some(TDBRType.DescTDBR) if checkInput(bytes.slice(0, bytes.length - 1),2, data.length) =>
         desc(context)(data(bytes(1)), data, bytes(2))
       case _ => Left(ContractInvalidOPCData)
     }
