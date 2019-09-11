@@ -1,30 +1,27 @@
 package vsys.blockchain.transaction.contract
 
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
-import vsys.blockchain.state.ByteStr
 import play.api.libs.json.{JsObject, Json}
-import vsys.account._
 import scorex.crypto.encode.Base58
-import vsys.utils.serialization.{BytesSerializable, Deser}
-import vsys.blockchain.transaction.TransactionParser._
-import vsys.blockchain.transaction.{AssetId, ValidationError}
-import vsys.account.ContractAccount
+import vsys.account._
 import vsys.blockchain.contract.{Contract, DataEntry}
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.transaction.TransactionParser._
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.proof._
-import vsys.blockchain.transaction.ProvenTransaction
+import vsys.utils.serialization.{BytesSerializable, Deser}
 
 import scala.util.{Failure, Success, Try}
 
 case class RegisterContractTransaction private(contract: Contract,
                                                data: Seq[DataEntry],
                                                description: String,
-                                               fee: Long,
+                                               transactionFee: Long,
                                                feeScale: Short,
                                                timestamp: Long,
-                                               proofs: Proofs)
-  extends ProvenTransaction {
+                                               proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.RegisterContractTransaction
+  val transactionType = TransactionType.RegisterContractTransaction
 
   lazy val contractId: ContractAccount = ContractAccount.fromId(id)
 
@@ -33,7 +30,7 @@ case class RegisterContractTransaction private(contract: Contract,
     BytesSerializable.arrayWithSize(contract.bytes.arr),
     Deser.serializeArray(DataEntry.serializeArrays(data)),
     Deser.serializeArray(Deser.serilizeString(description)),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
@@ -49,17 +46,14 @@ case class RegisterContractTransaction private(contract: Contract,
         "stateVariables" -> Base58.encode(contract.textual.last))),
     "initData" -> Base58.encode(DataEntry.serializeArrays(data)),
     "description" -> description,
-    "fee" -> fee,
-    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, 100)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object RegisterContractTransaction {
+object RegisterContractTransaction extends TransactionParser {
 
   val MaxDescriptionSize = 140
   val MinDescriptionSize = 0

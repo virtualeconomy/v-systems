@@ -46,8 +46,6 @@ class StateStorage private(db: DB) extends Storage(db){
 
   val portfolios: StateMap[ByteStr, (Long, (Long, Long), Map[Array[Byte], Long])] = new StateMap(db, "portfolios", DataTypes.byteStr, DataTypes.portfolios)
 
-  val assets: StateMap[ByteStr, (Boolean, Long)] = new StateMap(db, "assets", DataTypes.byteStr, DataTypes.assets)
-
   val accountTransactionIds: StateMap[AccountIdxKey, ByteStr] = new StateMap(db, "accountTransactionIds", valueType=DataTypes.byteStr)
 
   val accountTransactionsLengths: StateMap[ByteStr, Int] = new StateMap(db, "accountTransactionsLengths", keyType=DataTypes.byteStr)
@@ -57,10 +55,6 @@ class StateStorage private(db: DB) extends Storage(db){
   val txTypeAccTxLengths: StateMap[txTypeAccKey, Int] = new StateMap(db, "txTypeAccTxLengths")
 
   val balanceSnapshots: StateMap[AccountIdxKey, (Int, Long, Long, Long)] = new StateMap(db, "balanceSnapshots", valueType=DataTypes.balanceSnapshots)
-
-  val aliasToAddress: StateMap[String, ByteStr] = new StateMap(db, "aliasToAddress", valueType=DataTypes.byteStr)
-
-  val orderFills: StateMap[ByteStr, (Long, Long)] = new StateMap(db, "orderFills", keyType=DataTypes.byteStr, valueType=DataTypes.orderFills)
 
   val leaseState: StateMap[ByteStr, Boolean] = new StateMap(db, "leaseState", keyType=DataTypes.byteStr)
 
@@ -102,11 +96,11 @@ object StateStorage {
   private val heightKey = "height"
   private val stateVersion = "stateVersion"
 
-  private def validateVersion(ss: StateStorage): Boolean =  
-    ss.persistedVersion match { 
-      case None =>  
+  private def validateVersion(ss: StateStorage): Boolean =
+    ss.persistedVersion match {
+      case None =>
         ss.setPersistedVersion(Version)
-        true  
+        true
       case Some(v) => v == Version
     }
 

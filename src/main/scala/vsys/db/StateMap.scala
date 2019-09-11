@@ -3,8 +3,7 @@ package vsys.db
 import java.nio.ByteBuffer
 import scala.collection.immutable.Stream
 
-import org.h2.mvstore.`type`.DataType
-import org.h2.mvstore.`type`.ObjectDataType
+import org.h2.mvstore.`type`.{DataType, ObjectDataType}
 import org.h2.mvstore.WriteBuffer
 import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
 

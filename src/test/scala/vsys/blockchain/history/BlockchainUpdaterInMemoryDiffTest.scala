@@ -31,7 +31,7 @@ class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks wit
 
       blocksWithoutCompactification.foreach(b => domain.blockchainUpdater.processBlock(b).explicitGet())
       val mastersBalanceAfterPayment1 = domain.stateReader.accountPortfolio(genesis.recipient).balance
-      mastersBalanceAfterPayment1 shouldBe (ENOUGH_AMT - payment1.amount - payment1.fee)
+      mastersBalanceAfterPayment1 shouldBe (ENOUGH_AMT - payment1.amount - payment1.transactionFee)
 
       domain.history.height() shouldBe MinInMemoryDiffSize * 2 + 1
       domain.stateReader.height shouldBe MinInMemoryDiffSize * 2 + 1
@@ -42,7 +42,7 @@ class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks wit
       domain.stateReader.height shouldBe MinInMemoryDiffSize * 2 + 2
 
       val mastersBalanceAfterPayment1AndPayment2 = domain.stateReader.accountPortfolio(genesis.recipient).balance
-      mastersBalanceAfterPayment1AndPayment2 shouldBe (ENOUGH_AMT - payment1.amount - payment1.fee - payment2.amount - payment2.fee)
+      mastersBalanceAfterPayment1AndPayment2 shouldBe (ENOUGH_AMT - payment1.amount - payment1.transactionFee - payment2.amount - payment2.transactionFee)
     }
   }
   property("compactification after rollback test") {
@@ -56,7 +56,7 @@ class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks wit
       domain.blockchainUpdater.processBlock(payment1Block).explicitGet()
       domain.blockchainUpdater.processBlock(emptyBlock).explicitGet()
       val mastersBalanceAfterPayment1 = domain.stateReader.accountPortfolio(genesis.recipient).balance
-      mastersBalanceAfterPayment1 shouldBe (ENOUGH_AMT - payment1.amount - payment1.fee)
+      mastersBalanceAfterPayment1 shouldBe (ENOUGH_AMT - payment1.amount - payment1.transactionFee)
 
       // discard liquid block
       domain.blockchainUpdater.removeAfter(payment1Block.uniqueId)
@@ -66,7 +66,7 @@ class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks wit
       domain.stateReader.height shouldBe MinInMemoryDiffSize * 2 + 1
 
       val mastersBalanceAfterPayment1AndPayment2 = domain.stateReader.accountPortfolio(genesis.recipient).balance
-      mastersBalanceAfterPayment1AndPayment2 shouldBe (ENOUGH_AMT - payment1.amount - payment1.fee - payment2.amount - payment2.fee)
+      mastersBalanceAfterPayment1AndPayment2 shouldBe (ENOUGH_AMT - payment1.amount - payment1.transactionFee - payment2.amount - payment2.transactionFee)
     }
   }
 }

@@ -1,18 +1,18 @@
-# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems)
+# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master)
 
 The code in master branch is under development. The latest release for each network can be found in the [Releases section](https://github.com/virtualeconomy/vsys/releases). You can switch to the corresponding tag and build the application.
 
-# Installation
+## Installation
 
 [How to configure V SYSTEMS Testnet node](https://github.com/virtualeconomy/v-systems/wiki/How-to-Install-V-Systems-Testnet-Node)
 
 [How to configure V SYSTEMS Mainnet node](https://github.com/virtualeconomy/v-systems/wiki/How-to-install-V-Systems-mainnet-Node)
 
-## Compiling Packages from source
+### Compiling Packages from source
 
 It is only possible to create deb and fat jar packages.
 
-### Install SBT (Scala Build Tool)
+#### Install SBT (Scala Build Tool)
 
 For Ubuntu/Debian:
 
@@ -25,7 +25,7 @@ sudo apt-get install sbt
 
 You can install sbt on Mac OS X using Homebrew.
 
-### Create Package
+#### Create Package
 
 Clone this repo and execute
 
@@ -39,7 +39,7 @@ sbt packageAll
 sbt -Dnetwork=testnet packageAll
 ```
 
-# Running Tests
+## Running Tests
 
 Execute 
 

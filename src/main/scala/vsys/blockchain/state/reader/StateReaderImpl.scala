@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.implicits._
 import vsys.blockchain.state._
-import vsys.account.{Address, Alias}
+import vsys.account.Address
 import vsys.blockchain.transaction.lease.LeaseTransaction
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.contract.{Contract, DataEntry}
@@ -23,13 +23,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   override def accountPortfolio(a: Address): Portfolio = read { implicit l =>
     sp().portfolios.get(a.bytes).map { case (b, (i, o), as) => Portfolio(b, LeaseInfo(i, o), as.map { case (k, v) => ByteStr(k) -> v }) }.orEmpty
   }
-
-  override def assetInfo(id: ByteStr): Option[AssetInfo] = read { implicit l =>
-    Option(sp().assets.get(id).get).map {
-      case (is, amt) => AssetInfo(is, amt)
-    }
-  }
-
+  
   override def height: Int = read { implicit l => sp().getHeight }
 
   override def slotAddress(id: Int): Option[String] = read { implicit l => sp().getSlotAddress(id) }
@@ -60,18 +54,6 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int = read { implicit l =>
     sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
-  }
-
-  override def aliasesOfAddress(a: Address): Seq[Alias] = read { implicit l =>
-    sp().aliasToAddress.asScala
-      .collect { case (aliasName, addressBytes) if addressBytes == a.bytes =>
-        Alias.buildWithCurrentNetworkByte(aliasName).explicitGet()
-      }.toSeq
-  }
-
-  override def resolveAlias(a: Alias): Option[Address] = read { implicit l =>
-    sp().aliasToAddress.get(a.name)
-      .map(b => Address.fromBytes(b.arr).explicitGet())
   }
 
   override def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)] = read { implicit l =>
@@ -134,9 +116,5 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def containsTransaction(id: ByteStr): Boolean = read { implicit l =>
     sp().transactions.containsKey(id)
-  }
-
-  override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo = read { _ =>
-    p.orderFills.get(orderId).map(oi => OrderFillInfo(oi._1, oi._2)).orEmpty
   }
 }

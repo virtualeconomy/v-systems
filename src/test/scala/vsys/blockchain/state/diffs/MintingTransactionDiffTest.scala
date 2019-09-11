@@ -16,7 +16,7 @@ class MintingTransactionDiffTest extends PropSpec with PropertyChecks with Gener
     master <- accountGen
     recipient <- mintingAddressGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     minting: MintingTransaction <- mintingGeneratorP(recipient, 2)
   } yield (genesis, minting, minting.amount)
 

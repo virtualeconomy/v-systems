@@ -3,49 +3,44 @@ package vsys.blockchain.transaction.lease
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import vsys.blockchain.state.ByteStr
 import play.api.libs.json.{JsObject, Json}
-import vsys.account.{Address, AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
+import vsys.account.{Address, PrivateKeyAccount, PublicKeyAccount}
+import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.transaction._
-import vsys.blockchain.transaction.ProvenTransaction
-import vsys.blockchain.transaction.proof.{EllipticCurve25519Proof, Proofs}
 
 import scala.util.{Failure, Success, Try}
 
 case class LeaseTransaction private(amount: Long,
-                                    fee: Long,
+                                    transactionFee: Long,
                                     feeScale: Short,
                                     timestamp: Long,
-                                    recipient: AddressOrAlias,
-                                    proofs: Proofs)
-  extends ProvenTransaction {
+                                    recipient: Address,
+                                    proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.LeaseTransaction
+  val transactionType = TransactionType.LeaseTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(Array(transactionType.id.toByte),
     recipient.bytes.arr,
     Longs.toByteArray(amount),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "amount" -> amount,
     "recipient" -> recipient.stringRepr,
-    "fee" -> fee,
-    "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object LeaseTransaction {
+object LeaseTransaction extends TransactionParser {
 
   def parseTail(bytes: Array[Byte]): Try[LeaseTransaction] = Try {
     (for {
-      recRes <- AddressOrAlias.fromBytes(bytes, 0)
+      recRes <- Address.fromBytes(bytes, 0)
       (recipient, recipientEnd) = recRes
       quantityStart = recipientEnd
       quantity = Longs.fromByteArray(bytes.slice(quantityStart, quantityStart + 8))
@@ -62,7 +57,7 @@ object LeaseTransaction {
              fee: Long,
              feeScale: Short,
              timestamp: Long,
-             recipient: AddressOrAlias,
+             recipient: Address,
              proofs: Proofs): Either[ValidationError, LeaseTransaction] = {
 
     if (amount <= 0) {
@@ -87,7 +82,7 @@ object LeaseTransaction {
              fee: Long,
              feeScale: Short,
              timestamp: Long,
-             recipient: AddressOrAlias): Either[ValidationError, LeaseTransaction] = for {
+             recipient: Address): Either[ValidationError, LeaseTransaction] = for {
     unsigned <- createWithProof(amount, fee, feeScale, timestamp, recipient, Proofs.empty)
     proofs <- Proofs.create(List(EllipticCurve25519Proof.createProof(unsigned.toSign, sender).bytes))
     tx <- createWithProof(amount, fee, feeScale, timestamp, recipient, proofs)
@@ -98,7 +93,7 @@ object LeaseTransaction {
              fee: Long,
              feeScale: Short,
              timeStamp: Long,
-             recipient: AddressOrAlias,
+             recipient: Address,
              signature: ByteStr): Either[ValidationError, LeaseTransaction] = for {
     proofs <- Proofs.create(List(EllipticCurve25519Proof.buildProof(sender, signature).bytes))
     tx <- createWithProof(amount, fee, feeScale, timeStamp,recipient, proofs)

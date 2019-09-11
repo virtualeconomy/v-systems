@@ -16,7 +16,7 @@ import scala.util.control.NonFatal
 class LegacyFrameCodec(peerDatabase: PeerDatabase) extends ByteToMessageCodec[RawBytes] with ScorexLogging {
   import LegacyFrameCodec._
 
-  override def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: util.List[AnyRef]) = try {
+  override def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: util.List[AnyRef]): Unit = try {
     require(in.readInt() == Magic, "invalid magic number")
 
     val code = in.readByte()
@@ -44,7 +44,7 @@ class LegacyFrameCodec(peerDatabase: PeerDatabase) extends ByteToMessageCodec[Ra
       peerDatabase.blacklistAndClose(ctx.channel(), "Malformed network message")
   }
 
-  override def encode(ctx: ChannelHandlerContext, msg: RawBytes, out: ByteBuf) = {
+  override def encode(ctx: ChannelHandlerContext, msg: RawBytes, out: ByteBuf): Unit = {
     out.writeInt(Magic)
     out.writeByte(msg.code)
     if (msg.data.length > 0) {

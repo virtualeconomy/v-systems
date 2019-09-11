@@ -56,7 +56,6 @@ class TestFourNodesSuite extends FreeSpec with BeforeAndAfterAll with ScorexLogg
     new PaymentTransactionSpecification(allNodes, notMiner),
     new ReissueTransactionSpecification(allNodes, notMiner),
     new TransferTransactionSpecification(allNodes, notMiner),
-    new AliasTransactionSpecification(allNodes, notMiner),
     new DebugPortfoliosSpecification(allNodes, notMiner)
   )
 

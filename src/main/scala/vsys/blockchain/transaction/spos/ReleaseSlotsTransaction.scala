@@ -7,7 +7,6 @@ import vsys.account._
 import vsys.utils.crypto.hash.FastCryptographicHash
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.transaction._
-import vsys.blockchain.transaction.ProvenTransaction
 import vsys.blockchain.transaction.proof._
 import vsys.blockchain.consensus.SPoSCalc._
 
@@ -15,18 +14,17 @@ import scala.util.{Failure, Success, Try}
 
 
 case class ReleaseSlotsTransaction private(slotId: Int,
-                                           fee: Long,
+                                           transactionFee: Long,
                                            feeScale: Short,
                                            timestamp: Long,
-                                           proofs: Proofs)
-  extends ProvenTransaction {
+                                           proofs: Proofs) extends ProvenTransaction {
 
-  override val transactionType: TransactionType.Value = TransactionType.ReleaseSlotsTransaction
+  val transactionType = TransactionType.ReleaseSlotsTransaction
 
   lazy val toSign: Array[Byte] = Bytes.concat(
     Array(transactionType.id.toByte),
     Ints.toByteArray(slotId),
-    Longs.toByteArray(fee),
+    Longs.toByteArray(transactionFee),
     Shorts.toByteArray(feeScale),
     Longs.toByteArray(timestamp))
 
@@ -34,17 +32,16 @@ case class ReleaseSlotsTransaction private(slotId: Int,
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "slotId" -> slotId,
-    "fee" -> fee,
+    "fee" -> transactionFee,
     "feeScale" -> feeScale,
     "timestamp" -> timestamp
   )
 
-  override val assetFee: (Option[AssetId], Long, Short) = (None, fee, feeScale)
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign, proofs.bytes)
 
 }
 
-object ReleaseSlotsTransaction {
+object ReleaseSlotsTransaction extends TransactionParser {
 
   def parseTail(bytes: Array[Byte]): Try[ReleaseSlotsTransaction] = Try {
     val (slotBytes, slotIdEnd) = (bytes.slice(0, SlotIdLength), SlotIdLength)
