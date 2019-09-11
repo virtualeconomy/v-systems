@@ -1,8 +1,7 @@
 package vsys.events
 
 import vsys.utils.ScorexLogging
-import vsys.settings.{EventSettings, BlockAppendedEventSettings}
-import vsys.settings.WebhookEventRules
+import vsys.settings.{EventSettings, BlockAppendedEventSettings, WebhookEventRules}
 import vsys.blockchain.transaction.ProcessedTransaction
 import vsys.blockchain.state.BlockDiff
 import vsys.account.Address
@@ -33,8 +32,8 @@ class EventTrigger(eventWriter: ActorRef, eventSetting: EventSettings) extends S
 
   private[events] def checkRules(rules: Seq[WebhookEventRules], blockDiff: BlockDiff): List[(Int, ProcessedTransaction, Set[Address])] = {
     rules.foldLeft(blockDiff.txsDiff.transactions.toList)((accum, rule) =>
-      accum.filter(aList => rule.applyRule(aList._2._1.toLong, aList._2._2, aList._2._3)))
-    .collect {case (id, (h, tx, accs)) => (h, tx, accs)}
+      accum.filter(aList => aList match {case (id, (h, tx, accs)) => rule.applyRule(h.toLong, tx, accs)}
+      )).collect {case (id, (h, tx, accs)) => (h, tx, accs)}
   }
 }
 

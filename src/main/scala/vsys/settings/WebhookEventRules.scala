@@ -29,7 +29,7 @@ trait RuleConfigReader {
 
 case class AfterHeight(value: Long) extends WebhookEventRules {
   override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    if (height >= value) true else false
+    height >= value
   }
 }
 
@@ -43,7 +43,7 @@ object AfterHeight extends RuleConfigReader {
 
 case class AfterTime(value: Long) extends WebhookEventRules {
   override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    if (tx.transaction.timestamp >= value) true else false
+    tx.transaction.timestamp >= value
   }
 }
 
@@ -70,7 +70,7 @@ object WithTxs extends RuleConfigReader {
 case class WithMintingTxs(value: Boolean) extends WebhookEventRules {
   override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
     if (tx.transaction.transactionType == TransactionType.MintingTransaction)
-      if (value) true else false
+      value
     else true
   }
 }

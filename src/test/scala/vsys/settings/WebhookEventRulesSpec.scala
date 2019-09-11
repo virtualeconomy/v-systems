@@ -57,69 +57,69 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
   }
 
   it should "get expected value from applyRule" in {
-    val mockTx_1 = mock[ProcessedTransaction]
-    val mockTx_2 = mock[ProcessedTransaction]
+    val mockTx1 = mock[ProcessedTransaction]
+    val mockTx2 = mock[ProcessedTransaction]
 
     val tx = mock[MintingTransaction]
     when(tx.timestamp).thenReturn(10)
     when(tx.amount).thenReturn(200)
     when(tx.transactionType).thenReturn(TransactionType.MintingTransaction)
-    when(mockTx_1.transaction).thenReturn(tx)
+    when(mockTx1.transaction).thenReturn(tx)
 
     val tx_2 = mock[PaymentTransaction]
     when(tx_2.timestamp).thenReturn(5)
     when(tx_2.transactionFee).thenReturn(100)
     when(tx_2.amount).thenReturn(150)
     when(tx_2.transactionType).thenReturn(TransactionType.PaymentTransaction)
-    when(mockTx_2.transaction).thenReturn(tx_2)
+    when(mockTx2.transaction).thenReturn(tx_2)
 
-    AfterHeight(10).applyRule(10, mockTx_1, Set.empty) shouldBe(true)
-    AfterHeight(10).applyRule(3, mockTx_1, Set.empty) shouldBe(false)
+    AfterHeight(10).applyRule(10, mockTx1, Set.empty) shouldBe(true)
+    AfterHeight(10).applyRule(3, mockTx1, Set.empty) shouldBe(false)
 
-    AfterTime(10).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
-    AfterTime(10).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
+    AfterTime(10).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    AfterTime(10).applyRule(0, mockTx2, Set.empty) shouldBe(false)
 
-    WithTxs(true).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
+    WithTxs(true).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    WithMintingTxs(true).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
-    WithMintingTxs(true).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    WithMintingTxs(false).applyRule(0, mockTx_1, Set.empty) shouldBe(false)
+    WithMintingTxs(true).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    WithMintingTxs(true).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    WithMintingTxs(false).applyRule(0, mockTx1, Set.empty) shouldBe(false)
 
     val addr1 = mock[Address]
     val addr2 = mock[Address]
     when(addr1.toString).thenReturn("addr1")
     when(addr2.toString).thenReturn("addr2")
-    RelatedAccs(Seq("addr1")).applyRule(0, mockTx_1, Set(addr1, addr2)) shouldBe(true)
-    RelatedAccs(Seq("addr1")).applyRule(0, mockTx_1, Set(addr2)) shouldBe(false)
-    RelatedAccs(Seq("addr1")).applyRule(0, mockTx_1, Set.empty) shouldBe(false)
-    RelatedAccs(Seq.empty).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
+    RelatedAccs(Seq("addr1")).applyRule(0, mockTx1, Set(addr1, addr2)) shouldBe(true)
+    RelatedAccs(Seq("addr1")).applyRule(0, mockTx1, Set(addr2)) shouldBe(false)
+    RelatedAccs(Seq("addr1")).applyRule(0, mockTx1, Set.empty) shouldBe(false)
+    RelatedAccs(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    IncludeTypes(Seq(1)).applyRule(0, mockTx_1, Set.empty) shouldBe(false)
-    IncludeTypes(Seq(1, 2)).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    IncludeTypes(Seq.empty).applyRule(0, mockTx_1, Set.empty) shouldBe(false)
+    IncludeTypes(Seq(1)).applyRule(0, mockTx1, Set.empty) shouldBe(false)
+    IncludeTypes(Seq(1, 2)).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    IncludeTypes(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(false)
 
-    ExcludeTypes(Seq(1)).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
-    ExcludeTypes(Seq(1, 2)).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
-    ExcludeTypes(Seq.empty).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
+    ExcludeTypes(Seq(1)).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    ExcludeTypes(Seq(1, 2)).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    ExcludeTypes(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Seq(AmtWithFee(true))).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
-    Amount(Seq(AmtWithFee(false))).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
-    Amount(Seq.empty).applyRule(0, mockTx_1, Set.empty) shouldBe(true)
+    Amount(Seq(AmtWithFee(true))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    Amount(Seq(AmtWithFee(false))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    Amount(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Seq(AmtWithFee(false), AmtGT(200))).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
-    Amount(Seq(AmtWithFee(true), AmtGT(200))).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtGT(250))).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtWithFee(false), AmtGT(200))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtWithFee(true), AmtGT(200))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Seq(AmtGT(250))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Seq(AmtGTE(150))).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtGTE(151))).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
-    Amount(Seq(AmtWithFee(true), AmtGTE(250))).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtWithFee(true), AmtGTE(251))).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtGTE(150))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Seq(AmtGTE(151))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtWithFee(true), AmtGTE(250))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Seq(AmtWithFee(true), AmtGTE(251))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Seq(AmtLT(151))).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtLT(150))).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtLT(151))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Seq(AmtLT(150))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Seq(AmtLTE(150))).applyRule(0, mockTx_2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtLTE(149))).applyRule(0, mockTx_2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtLTE(150))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Seq(AmtLTE(149))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
   }
 
   it should "get default value" in {

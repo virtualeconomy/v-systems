@@ -6,12 +6,10 @@ import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, Matchers}
 import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction, MintingTransaction, PaymentTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.state.BlockDiff
-import vsys.blockchain.state.ByteStr
-import vsys.blockchain.state.Diff
+import vsys.blockchain.state.{BlockDiff, Diff, ByteStr}
 import vsys.blockchain.state._
 import vsys.account.Address
-import vsys.settings._
+import vsys.settings.{AfterHeight, AfterTime, WithTxs, WithMintingTxs}
 import vsys.settings.EventSettings
 
 class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
@@ -20,11 +18,11 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
 
   "Private Method checkRules" should "filter AfterHeight correctly" in {
     val eventRules = Seq(AfterHeight(12))
-    val blockDiff_1 = createBlockDiff(0)
-    val blockDiff_2 = createBlockDiff(15)
+    val blockDiff1 = createBlockDiff(0)
+    val blockDiff2 = createBlockDiff(15)
 
-    trigger.checkRules(eventRules, blockDiff_1) shouldBe(List.empty)
-    trigger.checkRules(eventRules, blockDiff_2).size shouldBe(6)
+    trigger.checkRules(eventRules, blockDiff1) shouldBe(List.empty)
+    trigger.checkRules(eventRules, blockDiff2).size shouldBe(6)
   }
 
   it should "filter AfterTime correctly" in {
@@ -33,7 +31,9 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
     val blockDiff = createBlockDiff(0)
 
     trigger.checkRules(defaultTime, blockDiff).size shouldBe(6)
-    trigger.checkRules(custTime, blockDiff)(0)._2.transaction.timestamp shouldBe(100)
+    trigger.checkRules(custTime, blockDiff).collectFirst {case (_, p: ProcessedTransaction, _) =>
+      p.transaction.timestamp shouldBe(100)
+    }
   }
 
   it should "filter WithTxs correctly" in {
