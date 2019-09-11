@@ -1,5 +1,6 @@
 package vsys.blockchain
 
+import akka.actor.ActorSystem
 import vsys.settings.{BlockchainSettings, EventSettings}
 import vsys.blockchain.state._
 import vsys.account.PrivateKeyAccount
@@ -22,9 +23,10 @@ package object history {
     stateSettings = TestStateSettings.AllOn)
 
   val DefaultEventSetting = EventSettings(Seq.empty)
+  val DefaultActorSys = ActorSystem.create("Default")
   val db = openDB("./test/data", true)
   def domain(): Domain = {
-    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, DefaultEventSetting, true)
+    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, DefaultEventSetting, DefaultActorSys, true)
     Domain(history, stateReader, blockchainUpdater)
   }
 
