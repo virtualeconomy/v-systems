@@ -10,9 +10,7 @@ case class OpcDiff(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
                    contractTokens: Map[ByteStr, Int] = Map.empty,
                    tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
                    tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
-                   relatedAddress: Map[Address, Boolean] = Map.empty) {
-
-}
+                   relatedAddress: Map[Address, Boolean] = Map.empty)
 
 object OpcDiff {
 
@@ -39,11 +37,11 @@ object OpcDiff {
 
     override def combine(older: OpcDiff, newer: OpcDiff): OpcDiff =
       OpcDiff(
-        contractDB          = older.contractDB ++ newer.contractDB,
-        contractTokens      = Monoid.combine(older.contractTokens, newer.contractTokens),
-        tokenDB             = older.tokenDB ++ newer.tokenDB,
-        tokenAccountBalance = Monoid.combine(older.tokenAccountBalance,newer.tokenAccountBalance),
-        relatedAddress      = older.relatedAddress ++ newer.relatedAddress
+        older.contractDB ++ newer.contractDB,
+        Monoid.combine(older.contractTokens,newer.contractTokens),
+        older.tokenDB ++ newer.tokenDB,
+        Monoid.combine(older.tokenAccountBalance,newer.tokenAccountBalance),
+        older.relatedAddress ++ newer.relatedAddress
       )
   }
 }
