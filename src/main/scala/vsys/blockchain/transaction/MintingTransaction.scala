@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 case class MintingTransaction private(recipient: Address,
                                       amount: Long,
                                       timestamp: Long,
-                                      currentBlockHeight: Int) extends NonFeeTransaction {
+                                      currentBlockHeight: Int) extends NonFeeTransaction with AmountInvolved {
 
   val transactionType = TransactionType.MintingTransaction
 
