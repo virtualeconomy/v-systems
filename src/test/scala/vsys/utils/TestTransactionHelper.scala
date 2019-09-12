@@ -46,9 +46,8 @@ class TestTransactionHelper extends FlatSpec with Matchers with MockitoSugar {
     TransactionHelper.extractAmtFee(tx) shouldBe((0, 2))
 
     when(lt.transactionFee).thenReturn(2)
-    when(lt.amount).thenReturn(1)
     when(tx.transaction).thenReturn(lt)
-    TransactionHelper.extractAmtFee(tx) shouldBe((1, 2))
+    TransactionHelper.extractAmtFee(tx) shouldBe((0, 2))
 
     when(gt.amount).thenReturn(1)
     when(tx.transaction).thenReturn(gt)
