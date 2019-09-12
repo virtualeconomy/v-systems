@@ -21,7 +21,7 @@ class EventTrigger(eventWriter: ActorRef, eventSetting: EventSettings) extends S
       webhookSetting.events.map {webhookEventSetting =>
         webhookEventSetting match {
           case e: BlockAppendedEventSettings =>
-            val re = checkRules(e.eventRules, blockDiff);
+            val re = checkRules(e.eventRules, blockDiff)
             eventWriter ! BlockAppendedEvent(url, scKey, enKey, maxSize, re)
 
           case _ => log.error("Using Wrong Evoke For The Trigger")

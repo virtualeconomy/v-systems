@@ -69,9 +69,7 @@ object WithTxs extends RuleConfigReader {
 
 case class WithMintingTxs(value: Boolean) extends WebhookEventRules {
   override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    if (tx.transaction.transactionType == TransactionType.MintingTransaction)
-      value
-    else true
+    tx.transaction.transactionType != TransactionType.MintingTransaction | value
   }
 }
 
@@ -149,7 +147,7 @@ case class Amount(value: Seq[WebhookEventRules]) extends WebhookEventRules {
 
 case class AmtGT(value: Long) extends WebhookEventRules {
   override def applyRule(valueIn: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    valueIn >= value
+    valueIn > value
   }
 }
 
