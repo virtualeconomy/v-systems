@@ -106,9 +106,10 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     Amount(Seq(AmtWithFee(false))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
     Amount(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Seq(AmtWithFee(false), AmtGT(200))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Seq(AmtWithFee(true), AmtGT(200))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtGT(250))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtWithFee(true), AmtGT(250))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtWithFee(true), AmtGT(249))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Seq(AmtGT(150))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Seq(AmtGT(149))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
 
     Amount(Seq(AmtGTE(150))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
     Amount(Seq(AmtGTE(151))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
