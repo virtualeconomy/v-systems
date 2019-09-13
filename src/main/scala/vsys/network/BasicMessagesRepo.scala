@@ -202,8 +202,7 @@ object TransactionMessageSpec extends MessageSpec[Transaction] {
 
   override val messageName: String = "Transaction message"
 
-  // IssueTransaction is the biggest https://github.com/wavesplatform/Waves/wiki/Data-Structures#issue-transaction
-  override val maxLength = 120 + 16 + 1000 + 8
+  override val maxLength = 4096
 
   override def deserializeData(bytes: Array[Byte]): Try[Transaction] =
     TransactionParser.parseBytes(bytes)
