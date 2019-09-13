@@ -41,7 +41,7 @@ object GenesisBlockGenerator {
       var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + miner_index.toString).getDouble("balance_distribution")).toLong
       last_sequence = last_sequence.updated(0, last_sequence(0) - miner_balance)
       last_sequence :+= miner_balance
-      distributions += miner_index + 1 -> last_sequence
+      distributions += miner_index + 5 -> last_sequence
     }
   }
 

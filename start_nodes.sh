@@ -29,7 +29,7 @@ cp -a target/docker/. minter_target/docker
 
 if [[ -n $2 && $2 != "" ]]; then
 	IP_PORT=$2:19923
-else 
+else
 	IP_PORT=172.17.0.2:9923
 fi
 echo $IP_PORT
