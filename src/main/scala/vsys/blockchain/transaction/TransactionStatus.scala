@@ -25,4 +25,5 @@ object TransactionStatus extends Enumeration {
   val ContractUnsupportedDeposit = Value(22)
   val ContractInvalidSigner = Value(23)
   val ContractInvalidCaller = Value(24)
+  val ContractInvalidHash = Value(25)
 }

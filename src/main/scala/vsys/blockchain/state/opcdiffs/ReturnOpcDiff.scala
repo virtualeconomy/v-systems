@@ -4,7 +4,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractUnsupportedOPC}
 import vsys.blockchain.contract.{DataEntry, ExecutionContext}
 
-import scala.util.Left
+import scala.util.{Left, Try}
 
 object ReturnOpcDiff {
 
@@ -17,8 +17,8 @@ object ReturnOpcDiff {
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == ReturnType.ValueReturn.id && bytes.length == 2 => value(context)(data, bytes.last)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.headOption.flatMap(f => Try(ReturnType(f)).toOption) match {
+    case Some(ReturnType.ValueReturn) if bytes.length == 2 => value(context)(data, bytes.last)
     case _ => Left(ContractInvalidOPCData)
   }
 
