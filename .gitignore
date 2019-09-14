@@ -6,7 +6,6 @@
 # scala build folders and files
 target
 *.tgz
-*.jar
 
 # vim
 *.*~

@@ -44,7 +44,7 @@ do
                 transactions+=",{recipient = $address, amount = $amount, slot-id = $slot}"
             fi
             slot=$(( $slot + 1 ))
-        else.
+        else
             transactionMode=false
         fi
     fi
