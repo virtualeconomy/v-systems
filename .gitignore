@@ -21,7 +21,6 @@ target
 localsettings.json
 
 # Text files
-*.txt
 *.ods
 *.csv
 *.dat
