@@ -7,7 +7,6 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
-import akka.actor.ActorSystem
 import vsys.account.{Address, PrivateKeyAccount, PublicKeyAccount}
 import vsys.blockchain.block.Block
 import vsys.blockchain.consensus.SPoSCalc._
@@ -16,6 +15,8 @@ import vsys.blockchain.history.{HistoryWriterImpl, StorageFactory}
 import vsys.settings._
 import vsys.blockchain.transaction.{FeeCalculator, MintingTransaction, PaymentTransaction, Transaction, TransactionGen}
 import vsys.utils.{Time, TestTime, TestHelpers}
+import vsys.events.{EventTriggers, EventWriterActor}
+import akka.actor.{ActorSystem, Props}
 
 import scala.concurrent.duration._
 
@@ -37,9 +38,9 @@ class UtxPoolSpecification extends FreeSpec
 
   private def mkState(senderAccount: Address, senderBalance: Long) = {
     val genesisSettings = TestHelpers.genesisSettings(Map(senderAccount -> senderBalance))
-    val defaultSys = ActorSystem.create("Testing")
+    val trigger = EventTriggers(ActorSystem().actorOf(Props[EventWriterActor]), EventSettings(Seq.empty))
     val (history, _, state, bcu) =
-      StorageFactory(db, BlockchainSettings('T', 5, FunctionalitySettings.TESTNET, genesisSettings, TestStateSettings.AllOn), EventSettings(Seq.empty), defaultSys, true)
+      StorageFactory(db, BlockchainSettings('T', 5, FunctionalitySettings.TESTNET, genesisSettings, TestStateSettings.AllOn), trigger, true)
 
     bcu.processBlock(Block.genesis(genesisSettings).right.get)
 

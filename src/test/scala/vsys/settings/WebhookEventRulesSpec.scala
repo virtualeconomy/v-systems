@@ -66,12 +66,12 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     when(tx.transactionType).thenReturn(TransactionType.MintingTransaction)
     when(mockTx1.transaction).thenReturn(tx)
 
-    val tx_2 = mock[PaymentTransaction]
-    when(tx_2.timestamp).thenReturn(5)
-    when(tx_2.transactionFee).thenReturn(100)
-    when(tx_2.amount).thenReturn(150)
-    when(tx_2.transactionType).thenReturn(TransactionType.PaymentTransaction)
-    when(mockTx2.transaction).thenReturn(tx_2)
+    val tx2 = mock[PaymentTransaction]
+    when(tx2.timestamp).thenReturn(5)
+    when(tx2.transactionFee).thenReturn(100)
+    when(tx2.amount).thenReturn(150)
+    when(tx2.transactionType).thenReturn(TransactionType.PaymentTransaction)
+    when(mockTx2.transaction).thenReturn(tx2)
 
     AfterHeight(10).applyRule(10, mockTx1, Set.empty) shouldBe(true)
     AfterHeight(10).applyRule(3, mockTx1, Set.empty) shouldBe(false)

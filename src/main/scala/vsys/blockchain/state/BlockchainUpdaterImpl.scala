@@ -15,13 +15,13 @@ import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction._
 import vsys.settings.FunctionalitySettings
 import vsys.utils.ScorexLogging
-import vsys.events.EventTrigger
+import vsys.events.EventTriggers
 
 class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
                                     settings: FunctionalitySettings,
                                     minimumInMemoryDiffSize: Int,
                                     historyWriter: HistoryWriter,
-                                    eventTrigger: EventTrigger,
+                                    eventTrigger: EventTriggers,
                                     val synchronizationToken: ReentrantReadWriteLock) extends BlockchainUpdater with ScorexLogging {
 
   private val topMemoryDiff = Synchronized(Monoid[BlockDiff].empty)
@@ -118,7 +118,7 @@ object BlockchainUpdaterImpl {
                history: HistoryWriter,
                functionalitySettings: FunctionalitySettings,
                minimumInMemoryDiffSize: Int,
-               eventTrigger: EventTrigger,
+               eventTrigger: EventTriggers,
                synchronizationToken: ReentrantReadWriteLock): BlockchainUpdaterImpl = {
     val blockchainUpdater =
       new BlockchainUpdaterImpl(persistedState, functionalitySettings, minimumInMemoryDiffSize, history, eventTrigger, synchronizationToken)

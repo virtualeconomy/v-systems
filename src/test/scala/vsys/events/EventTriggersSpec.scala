@@ -6,15 +6,13 @@ import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, Matchers}
 import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction, MintingTransaction, PaymentTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.state.{BlockDiff, Diff, ByteStr}
 import vsys.blockchain.state._
 import vsys.account.Address
-import vsys.settings.{AfterHeight, AfterTime, WithTxs, WithMintingTxs}
-import vsys.settings.EventSettings
+import vsys.settings.{EventSettings, AfterHeight, AfterTime, WithTxs, WithMintingTxs}
 
 class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
   val system = ActorSystem()
-  val trigger = EventTrigger(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty))
+  val trigger = EventTriggers(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty))
 
   "Private Method checkRules" should "filter AfterHeight correctly" in {
     val eventRules = Seq(AfterHeight(12))

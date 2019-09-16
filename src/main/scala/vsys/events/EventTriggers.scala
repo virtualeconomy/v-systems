@@ -7,7 +7,7 @@ import vsys.blockchain.state.BlockDiff
 import vsys.account.Address
 import akka.actor.ActorRef
 
-class EventTrigger(eventWriter: ActorRef, eventSetting: EventSettings) extends ScorexLogging {
+class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends ScorexLogging {
 
   // TO DO: Should handle more webhook event settings
   def evokeWebhook(blockDiff: BlockDiff): Unit = {
@@ -37,8 +37,8 @@ class EventTrigger(eventWriter: ActorRef, eventSetting: EventSettings) extends S
   }
 }
 
-object EventTrigger {
-  def apply(eventWriter: ActorRef, eventSetting: EventSettings): EventTrigger = {
-    new EventTrigger(eventWriter, eventSetting)
+object EventTriggers {
+  def apply(eventWriter: ActorRef, eventSetting: EventSettings): EventTriggers = {
+    new EventTriggers(eventWriter, eventSetting)
   }
 }
