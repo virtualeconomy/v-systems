@@ -1,7 +1,7 @@
 package vsys.blockchain.contract
 
 import com.google.common.primitives.{Bytes, Ints, Shorts}
-import vsys.blockchain.state.opcdiffs.{AssertOpcDiff, LoadOpcDiff, OpcDiffer}
+import vsys.blockchain.state.opcdiffs.{AssertOpcDiff, LoadOpcDiff, OpcDiffer, SystemTransferDiff}
 import vsys.utils.serialization.Deser
 
 object ContractSystem {
@@ -35,8 +35,8 @@ object ContractSystem {
 
   object OpcId {
     val sysLoadSigner: Array[Byte] = Array(OpcDiffer.OpcType.LoadOpc.id.toByte, LoadOpcDiff.LoadType.SignerLoad.id.toByte)
-    val sysAssertIsSignerOrigin: Array[Byte] = Array(OpcDiffer.OpcType.AssertOpc.id.toByte, AssertOpcDiff.AssertType.IsSignerOriginAssert.id.toByte)
-    val sysTransfer: Array[Byte] = Array(OpcDiffer.OpcType.SystemOpc.id.toByte)
+    val sysAssertIsCallerOrigin: Array[Byte] = Array(OpcDiffer.OpcType.AssertOpc.id.toByte, AssertOpcDiff.AssertType.IsCallerOriginAssert.id.toByte)
+    val sysTransfer: Array[Byte] = Array(OpcDiffer.OpcType.SystemOpc.id.toByte, SystemTransferDiff.TransferType.Transfer.id.toByte)
   }
 
   object DataStack {
@@ -67,9 +67,9 @@ object ContractSystem {
 
   object ListOpc {
     val sysLoadSignerIndex: Array[Byte] = Array(DataStack.sendInput.signerLoadIndex)
-    val sysAssertIsSignerOriginTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex)
-    val sysAssertIsSignerOriginDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex)
-    val sysAssertIsSignerOriginWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.recipientIndex)
+    val sysAssertIsCallerOriginTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex)
+    val sysAssertIsCallerOriginDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex)
+    val sysAssertIsCallerOriginWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.recipientIndex)
     val sysTransferSendIndex: Array[Byte] = Array(DataStack.sendInput.signerLoadIndex, DataStack.sendInput.recipientIndex, DataStack.sendInput.amountIndex)
     val sysTransferTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex, DataStack.transferInput.recipientIndex, DataStack.transferInput.amountIndex)
     val sysTransferDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex, DataStack.depositInput.smartIndex, DataStack.depositInput.amountIndex)
@@ -79,14 +79,14 @@ object ContractSystem {
     val sysSend: List[Array[Byte]] = List(OpcId.sysLoadSigner, OpcId.sysTransfer)
     val sysSendIndex: List[Array[Byte]] = List(sysLoadSignerIndex, sysTransferSendIndex)
     // transfer
-    val sysTransfer: List[Array[Byte]] = List(OpcId.sysAssertIsSignerOrigin, OpcId.sysTransfer)
-    val sysTransferIndex: List[Array[Byte]] = List(sysAssertIsSignerOriginTransferIndex, sysTransferTransferIndex)
+    val sysTransfer: List[Array[Byte]] = List(OpcId.sysAssertIsCallerOrigin, OpcId.sysTransfer)
+    val sysTransferIndex: List[Array[Byte]] = List(sysAssertIsCallerOriginTransferIndex, sysTransferTransferIndex)
     // deposit
-    val sysDeposit: List[Array[Byte]] = List(OpcId.sysAssertIsSignerOrigin, OpcId.sysTransfer)
-    val sysDepositIndex: List[Array[Byte]] = List(sysAssertIsSignerOriginDepositIndex, sysTransferDepositIndex)
+    val sysDeposit: List[Array[Byte]] = List(OpcId.sysAssertIsCallerOrigin, OpcId.sysTransfer)
+    val sysDepositIndex: List[Array[Byte]] = List(sysAssertIsCallerOriginDepositIndex, sysTransferDepositIndex)
     // withdraw
-    val sysWithdraw: List[Array[Byte]] = List(OpcId.sysAssertIsSignerOrigin, OpcId.sysTransfer)
-    val sysWithdrawIndex: List[Array[Byte]] = List(sysAssertIsSignerOriginWithdrawIndex, sysTransferWithdrawIndex)
+    val sysWithdraw: List[Array[Byte]] = List(OpcId.sysAssertIsCallerOrigin, OpcId.sysTransfer)
+    val sysWithdrawIndex: List[Array[Byte]] = List(sysAssertIsCallerOriginWithdrawIndex, sysTransferWithdrawIndex)
   }
 
   object OpcLine {

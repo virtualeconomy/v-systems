@@ -3,10 +3,10 @@ package vsys.blockchain.state.opcdiffs
 import cats._
 import cats.implicits._
 import com.google.common.primitives.Longs
-import vsys.account.{Account, Address, ContractAccount}
+import vsys.account.{Account, ContractAccount}
 import vsys.blockchain.contract.{CallType, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.{LeaseInfo, Portfolio}
-import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
+import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData}
 
 import scala.util.Left
