@@ -2,11 +2,13 @@ package vsys.blockchain.state.opcdiffs
 
 import com.google.common.primitives.Longs
 import vsys.account.Address
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidCaller, ContractInvalidOPCData, ContractInvalidSigner, GenericError}
+import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.utils.crypto.hash.FastCryptographicHash
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
 object AssertOpcDiff {
 
@@ -70,34 +72,39 @@ object AssertOpcDiff {
       Right(OpcDiff.empty)
   }
 
-  object AssertType extends Enumeration {
-    val GteqZeroAssert = Value(1)
-    val LteqAssert = Value(2)
-    val LtInt64Assert = Value(3)
-    val GtZeroAssert = Value(4)
-    val EqAssert = Value(5)
-    val IsCallerOriginAssert = Value(6)
-    val IsSignerOriginAssert = Value(7)
+  def checkHash(hashValue: DataEntry, hashKey: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (hashValue.dataType != DataType.ShortText || hashKey.dataType != DataType.ShortText)
+      Left(ContractDataTypeMismatch)
+    else {
+      val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
+      Either.cond(hashResult.equals(ByteStr(hashValue.data)), OpcDiff.empty, ContractInvalidHash)
+    }
+  }
+
+  object AssertType extends Enumeration(1) {
+    val GteqZeroAssert, LteqAssert, LtInt64Assert, GtZeroAssert, EqAssert, IsCallerOriginAssert, IsSignerOriginAssert = Value
   }
 
   def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
-    case opcType: Byte if opcType == AssertType.GteqZeroAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gtEq0(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.LteqAssert.id && bytes.length == 3
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltEq(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == AssertType.LtInt64Assert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => ltInt64(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.GtZeroAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => gt0(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.EqAssert.id && bytes.length == 3
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => eq(data(bytes(1)), data(bytes(2)))
-    case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isCallerOrigin(context)(data(bytes(1)))
-    case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id && bytes.length == 2
-      && bytes.tail.max < data.length && bytes.tail.min >= 0 => isSignerOrigin(context)(data(bytes(1)))
-    case _ => Left(ContractInvalidOPCData)
+                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
+    if (checkAssertDataIndex(bytes, data.length)) {
+      (bytes.headOption.flatMap(f => Try(AssertType(f)).toOption), bytes.length) match {
+        case (Some(AssertType.GteqZeroAssert), 2) => gtEq0(data(bytes(1)))
+        case (Some(AssertType.LteqAssert), 3) => ltEq(data(bytes(1)), data(bytes(2)))
+        case (Some(AssertType.LtInt64Assert), 2) => ltInt64(data(bytes(1)))
+        case (Some(AssertType.GtZeroAssert), 2) => gt0(data(bytes(1)))
+        case (Some(AssertType.EqAssert), 3) => eq(data(bytes(1)), data(bytes(2)))
+        case (Some(AssertType.IsCallerOriginAssert), 2) => isCallerOrigin(context)(data(bytes(1)))
+        case (Some(AssertType.IsSignerOriginAssert), 2) => isSignerOrigin(context)(data(bytes(1)))
+        case _ => Left(ContractInvalidOPCData)
+      }
+    }
+    else
+      Left(ContractInvalidOPCData)
   }
+
+  private def checkAssertDataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
+    bytes.tail.max < dataLength && bytes.tail.min >= 0
 
 }
 

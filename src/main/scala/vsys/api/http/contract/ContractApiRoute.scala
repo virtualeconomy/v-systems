@@ -153,11 +153,13 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     ByteStr.decodeBase58(tokenIdStr) match {
       case Success(tokenId) =>
         val unityKey = ByteStr(tokenId.arr ++ Array(2.toByte))
+        val height = state.height
         state.tokenInfo(unityKey) match {
           case Some(x) => (for {
             acc <- Address.fromString(address)
           } yield Json.obj(
             "address" -> acc.address,
+            "height" -> height,
             "tokenId" -> tokenIdStr,
             "balance" -> state.tokenAccountBalance(ByteStr(tokenId.arr ++ acc.bytes.arr)),
             "unity" -> x.json.value("data"))

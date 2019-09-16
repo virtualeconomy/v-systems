@@ -1,7 +1,7 @@
 package vsys.blockchain.state
 
 import com.google.common.primitives.Ints
-import vsys.account.Address
+import vsys.account.Account
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import org.iq80.leveldb.{DB, WriteBatch}
 
@@ -100,11 +100,11 @@ object StateStorage {
   private val heightKey = "height"
   private val stateVersion = "stateVersion"
 
-  private def validateVersion(ss: StateStorage): Boolean =  
-    ss.persistedVersion match { 
-      case None =>  
+  private def validateVersion(ss: StateStorage): Boolean =
+    ss.persistedVersion match {
+      case None =>
         ss.setPersistedVersion(Version)
-        true  
+        true
       case Some(v) => v == Version
     }
 
@@ -121,8 +121,8 @@ object StateStorage {
   type txTypeAccKey = Array[Byte]
   type txTypeAccIdxKey = Array[Byte]
 
-  def accountIndexKey(acc: Address, index: Int): AccountIdxKey = acc.bytes.arr ++ Ints.toByteArray(index)
-  def txTypeAccKey(txType: TransactionType.Value, acc: Address): txTypeAccKey = Ints.toByteArray(txType.id) ++ acc.bytes.arr
-  def txTypeAccIndexKey(txType: TransactionType.Value, acc: Address, index: Int): txTypeAccKey =
+  def accountIndexKey(acc: Account, index: Int): AccountIdxKey = acc.bytes.arr ++ Ints.toByteArray(index)
+  def txTypeAccKey(txType: TransactionType.Value, acc: Account): txTypeAccKey = Ints.toByteArray(txType.id) ++ acc.bytes.arr
+  def txTypeAccIndexKey(txType: TransactionType.Value, acc: Account, index: Int): txTypeAccKey =
     Ints.toByteArray(txType.id) ++ acc.bytes.arr ++ Ints.toByteArray(index)
 }
