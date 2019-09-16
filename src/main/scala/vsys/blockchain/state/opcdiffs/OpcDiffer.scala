@@ -6,17 +6,17 @@ import vsys.blockchain.contract.{DataEntry, ExecutionContext}
 
 import scala.util.Try
 
-
 object OpcDiffer {
 
-  object OpcType extends Enumeration(1) {
-    val AssertOpc, LoadOpc, CDBVOpc, CDBVROpc, TDBOpc, TDBROpc, TDBAOpc, TDBAROpc, ReturnOpc = Value
+  object OpcType extends Enumeration {
+    val SystemOpc, AssertOpc, LoadOpc, CDBVOpc, CDBVROpc, TDBOpc, TDBROpc, TDBAOpc, TDBAROpc, ReturnOpc = Value
   }
 
   def apply(context: ExecutionContext)
            (opc: Array[Byte],
             data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = {
     opc.headOption.flatMap(f => Try(OpcType(f)).toOption) match {
+      case Some(OpcType.SystemOpc) => opcDiffReturn(SystemTransferDiff.parseBytes(context)(opc.tail, data), data)
       case Some(OpcType.AssertOpc) => opcDiffReturn(AssertOpcDiff.parseBytes(context)(opc.tail, data), data)
       case Some(OpcType.LoadOpc) => seqDataEntryReturn(LoadOpcDiff.parseBytes(context)(opc.tail, data))
       case Some(OpcType.CDBVOpc) => opcDiffReturn(CDBVOpcDiff.parseBytes(context)(opc.tail, data), data)

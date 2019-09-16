@@ -1,7 +1,7 @@
 package vsys.blockchain.contract
 
 import com.google.common.primitives.{Bytes, Ints, Shorts}
-import vsys.blockchain.state.systemdiffs.{SystemAssertDiff, SystemDiffer, SystemLoadDiff}
+import vsys.blockchain.state.opcdiffs.{AssertOpcDiff, LoadOpcDiff, OpcDiffer}
 import vsys.utils.serialization.Deser
 
 object ContractSystem {
@@ -34,9 +34,9 @@ object ContractSystem {
   }
 
   object OpcId {
-    val sysLoadSigner: Array[Byte] = Array(SystemDiffer.SystemType.SysLoad.id.toByte, SystemLoadDiff.LoadType.SignerLoad.id.toByte)
-    val sysAssertIsSignerOrigin: Array[Byte] = Array(SystemDiffer.SystemType.SysAssert.id.toByte, SystemAssertDiff.AssertType.IsSignerOriginAssert.id.toByte)
-    val sysTransfer: Array[Byte] = Array(SystemDiffer.SystemType.SysTransfer.id.toByte)
+    val sysLoadSigner: Array[Byte] = Array(OpcDiffer.OpcType.LoadOpc.id.toByte, LoadOpcDiff.LoadType.SignerLoad.id.toByte)
+    val sysAssertIsSignerOrigin: Array[Byte] = Array(OpcDiffer.OpcType.AssertOpc.id.toByte, AssertOpcDiff.AssertType.IsSignerOriginAssert.id.toByte)
+    val sysTransfer: Array[Byte] = Array(OpcDiffer.OpcType.SystemOpc.id.toByte)
   }
 
   object DataStack {
