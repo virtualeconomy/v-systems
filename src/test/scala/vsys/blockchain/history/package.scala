@@ -1,7 +1,7 @@
 package vsys.blockchain
 
 import akka.actor.{ActorSystem, Props}
-import vsys.settings.{BlockchainSettings, EventSettings, TestFunctionalitySettings}
+import vsys.settings.{BlockchainSettings, EventSettings, TestFunctionalitySettings, TestStateSettings}
 import vsys.blockchain.state._
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.block.Block
@@ -10,7 +10,6 @@ import vsys.blockchain.block.TestBlock
 import vsys.blockchain.transaction.{Transaction, TransactionParser}
 import vsys.db.openDB
 import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
-import vsys.settings.TestStateSettings
 import vsys.events.{EventTriggers, EventWriterActor}
 
 package object history {
