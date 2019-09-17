@@ -21,7 +21,7 @@ object GenesisBlockGenerator {
   val genesisSigner = PrivateKeyAccount(Array.empty)
   val reference = ByteStr(Array.fill(SignatureLength)(-1: Byte))
 
-  val file = new File("testnet_easy_start.conf")
+  val file = new File("testnet_quick_start.conf")
   var cfg: Config = ConfigFactory.parseFile(file)
   loadConfig(cfg)
 
@@ -41,7 +41,7 @@ object GenesisBlockGenerator {
       var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + miner_index.toString).getDouble("balance_distribution")).toLong
       last_sequence = last_sequence.updated(0, last_sequence(0) - miner_balance)
       last_sequence :+= miner_balance
-      distributions += miner_index + 1 -> last_sequence
+      distributions += miner_index + 5 -> last_sequence
     }
   }
 

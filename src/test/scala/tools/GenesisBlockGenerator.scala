@@ -21,7 +21,7 @@ object GenesisBlockGenerator {
   val genesisSigner = PrivateKeyAccount(Array.empty)
   val reference = ByteStr(Array.fill(SignatureLength)(-1: Byte))
 
-  val file = new File("testnet_easy_start.conf")
+  val file = new File("testnet_quick_start.conf")
   var cfg: Config = ConfigFactory.parseFile(file)
   loadConfig(cfg)
 

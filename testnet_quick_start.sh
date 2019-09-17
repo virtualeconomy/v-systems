@@ -136,7 +136,7 @@ echo "[-----INFO-----] transactions =$transactions"
 sed -i -c "s/\(allow-contract-transaction-after-height *=*\).*/\11/" "src/it/resources/template.conf"
 echo "[-----INFO-----] allow-contract-transaction-after-height =1"
 
-# Get seed, miner quorum and peer quorum from testnet_easy_start.conf, put known-peers in src/it/resources/template.conf
+# Get seed, miner quorum and peer quorum from testnet_quick_start.conf, put known-peers in src/it/resources/template.conf
 seed_index=0
 while read line
 do
@@ -161,7 +161,7 @@ do
 #        peer_quorum=$(echo $line| cut -d '=' -f 2)
          peer_quorum=0
     fi
-done < testnet_easy_start.conf
+done < testnet_quick_start.conf
 
 mv src/it/resources/template.conf src/it/resources/template-new.conf
 

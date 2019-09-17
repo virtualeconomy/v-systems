@@ -58,7 +58,7 @@ object GenesisSettings {
     1543286357000000000L, 60.seconds)
 
 
-  val file = new File("testnet_easy_start.conf")
+  val file = new File("testnet_quick_start.conf")
   var cfg: Config = ConfigFactory.parseFile(file)
   loadConfig(cfg)
 
