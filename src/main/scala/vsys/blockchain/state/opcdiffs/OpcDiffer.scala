@@ -12,8 +12,7 @@ trait OpcDiffer {
   protected val defaultTokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
 
   protected def checkData(bytes: Array[Byte], dataLength: Int, operandCount: Int, withTokenIndex: Boolean = true): Boolean =
-    (bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0)) &&
-    (dataLength == operandCount + 1 || (withTokenIndex && dataLength == operandCount))
+    (bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0)) && (bytes.length == operandCount + 1 || (withTokenIndex && bytes.length == operandCount))
 
   protected def tokenIndex(bytes: Array[Byte], data: Seq[DataEntry], pos: Int) =
     Try(data(bytes(pos))).toOption.getOrElse(defaultTokenIndex)
