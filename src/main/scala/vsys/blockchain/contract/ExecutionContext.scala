@@ -40,24 +40,18 @@ object ExecutionContext {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
     val description = tx.attachment
-    s.contractContent(tx.contractId.bytes) match {
-      case Some(c) if tx.funcIdx >=0 && tx.funcIdx < c._3.descriptor.length => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description, 0))
-      case Some(_) => Left(InvalidFunctionIndex)
-      case _ => Left(InvalidContractAddress)
-    }
-  }
-
-  def fromExeSysTx(s: StateReader,
-                   height: Int,
-                   tx: ExecuteContractFunctionTransaction,
-                   ): Either[ValidationError, ExecutionContext] = {
-    val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
-    val contractId = tx.contractId
-    val description = tx.attachment
-    if (tx.funcIdx >= 0 && tx.funcIdx < ContractSystem.contract.descriptor.length) {
-      Right(ExecutionContext(signers, s, height, tx, contractId, ContractSystem.contract.descriptor(tx.funcIdx), ContractSystem.contract.stateVar, description, 0))
+    if (contractId.bytes.arr sameElements ContractSystem.contract.bytes.arr) {
+      if (tx.funcIdx >= 0 && tx.funcIdx < ContractSystem.contract.descriptor.length) {
+        Right(ExecutionContext(signers, s, height, tx, contractId, ContractSystem.contract.descriptor(tx.funcIdx), ContractSystem.contract.stateVar, description, 0))
+      } else {
+        Left(InvalidFunctionIndex)
+      }
     } else {
-      Left(InvalidFunctionIndex)
+      s.contractContent(tx.contractId.bytes) match {
+        case Some(c) if tx.funcIdx >=0 && tx.funcIdx < c._3.descriptor.length => Right(ExecutionContext(signers, s, height, tx, contractId, c._3.descriptor(tx.funcIdx), c._3.stateVar, description, 0))
+        case Some(_) => Left(InvalidFunctionIndex)
+        case _ => Left(InvalidContractAddress)
+      }
     }
   }
 

@@ -5,7 +5,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.account.PublicKeyAccount
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
-import vsys.blockchain.contract.{ContractSystem, ExecutionContext}
+import vsys.blockchain.contract.ExecutionContext
 import vsys.blockchain.state.opcdiffs.OpcFuncDiffer
 import vsys.blockchain.transaction.TransactionStatus
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
@@ -18,17 +18,10 @@ object ExecuteContractFunctionTransactionDiff {
     if (tx.proofs.proofs.length > Proofs.MaxProofs) {
       Left(GenericError(s"Too many proofs, max ${Proofs.MaxProofs} proofs"))
     } else {
-      if (tx.contractId.bytes.arr sameElements ContractSystem.contract.bytes.arr) {
-        (for {
-          exContext <- ExecutionContext.fromExeSysTx(s, height, tx)
-          diff <- OpcFuncDiffer(exContext)(tx.data)
-        } yield diff)
-      } else {
-        (for {
-          exContext <- ExecutionContext.fromExeConTx(s, height, tx)
-          diff <- OpcFuncDiffer(exContext)(tx.data)
-        } yield diff)
-      }
+      (for {
+        exContext <- ExecutionContext.fromExeConTx(s, height, tx)
+        diff <- OpcFuncDiffer(exContext)(tx.data)
+      } yield diff)
     } match {
       case Right(df) => Right(Diff(height = height, tx = tx,
         portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)), tokenDB = df.tokenDB,
