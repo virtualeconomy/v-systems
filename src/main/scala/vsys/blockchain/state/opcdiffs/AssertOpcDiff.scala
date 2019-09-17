@@ -102,7 +102,7 @@ object AssertOpcDiff extends OpcDiffer {
   // index out of bound exception if custom function with this opc in `data(byte(i))`
   override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
     bytes.headOption.flatMap(AssertType.fromByte(_)) match {
-      case Some(t: AssertType.AssertTypeVal) if bytes.length == t.operandCount + 1 =>
+      case Some(t: AssertType.AssertTypeVal) if checkData(bytes, data, t.operandCount, false) =>
         t.differ(context, bytes, data)
       case _ => Left(ContractInvalidOPCData)
     }
