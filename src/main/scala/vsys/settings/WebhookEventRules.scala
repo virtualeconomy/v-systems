@@ -145,17 +145,31 @@ case class Amount(value: Seq[WebhookEventRules]) extends WebhookEventRules {
   }
 }
 
-case class AmtGT(value: Long) extends WebhookEventRules {
-  override def applyRule(valueIn: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    valueIn > value
+object Amount extends RuleConfigReader {
+  val compareRule = Seq("gt", "gte", "lt", "lte", "withFee")
+  override val field = "amount"
+
+  override def fromConfig(config: Config): Option[Amount] = {
+    val amtRule = compareRule.map {r => r match {
+        case "gt" => getVal[Long](config, r).map(AmtGT(_))
+        case "gte" => getVal[Long](config, r).map(AmtGTE(_))
+        case "lte" => getVal[Long](config, r).map(AmtLTE(_))
+        case "lt" => getVal[Long](config, r).map(AmtLT(_))
+        case "withFee" => getVal[Boolean](config, r).map(AmtWithFee(_))
+        case _ => None
+      }
+    }.flatten
+    if (amtRule.nonEmpty) Some(Amount(amtRule)) else None
+  }
+
+  private def getVal[T: ValueReader](config: Config, r: String): Option[T] = {
+    Try(config.as[T]("rules." + field + "." + r)).toOption
   }
 }
 
-object AmtGT extends RuleConfigReader {
-  override val field = "amount.gt"
-
-  override def fromConfig(config: Config): Option[AmtGT] = {
-    read[Long](config).map(AmtGT(_))
+case class AmtGT(value: Long) extends WebhookEventRules {
+  override def applyRule(valueIn: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    valueIn > value
   }
 }
 
@@ -165,25 +179,9 @@ case class AmtLT(value: Long) extends WebhookEventRules {
   }
 }
 
-object AmtLT extends RuleConfigReader {
-  override val field = "amount.lt"
-
-  override def fromConfig(config: Config): Option[AmtLT] = {
-    read[Long](config).map(AmtLT(_))
-  }
-}
-
 case class AmtGTE(value: Long) extends WebhookEventRules {
   override def applyRule(valueIn: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
     valueIn >= value
-  }
-}
-
-object AmtGTE extends RuleConfigReader {
-  override val field = "amount.gte"
-
-  override def fromConfig(config: Config): Option[AmtGTE] = {
-    read[Long](config).map(AmtGTE(_))
   }
 }
 
@@ -193,25 +191,9 @@ case class AmtLTE(value: Long) extends WebhookEventRules {
   }
 }
 
-object AmtLTE extends RuleConfigReader {
-  override val field = "amount.lte"
-
-  override def fromConfig(config: Config): Option[AmtLTE] = {
-    read[Long](config).map(AmtLTE(_))
-  }
-}
-
 case class AmtWithFee(value: Boolean) extends WebhookEventRules {
   override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
     value
-  }
-}
-
-object AmtWithFee extends RuleConfigReader {
-  override val field = "amount.withFee"
-
-  override def fromConfig(config: Config): Option[AmtWithFee] = {
-    read[Boolean](config).map(AmtWithFee(_))
   }
 }
 

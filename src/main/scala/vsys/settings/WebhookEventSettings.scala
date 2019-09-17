@@ -45,8 +45,7 @@ case class TxConfirmedEventSettings(override val eventRules: Seq[WebhookEventRul
 }
 
 object TxConfirmedEventSettings extends EventConfigReader {
-  override val rules = Seq[RuleConfigReader](IncludeTypes, ExcludeTypes, RelatedAccs, AfterHeight, AfterTime,
-    AmtGTE, AmtGT, AmtLTE, AmtLT, AmtWithFee)
+  override val rules = Seq[RuleConfigReader](IncludeTypes, ExcludeTypes, RelatedAccs, AfterHeight, AfterTime, Amount)
 
   def fromConfig(config: Config): WebhookEventSettings = {
     TxConfirmedEventSettings(getRules(config))

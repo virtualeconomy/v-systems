@@ -95,7 +95,7 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
       eventList(0) shouldBe(Right(TxConfirmedEventSettings(
         Seq(IncludeTypes(Seq(1, 2)), ExcludeTypes(Seq(3, 4)), RelatedAccs(Seq("addr2", "addr3")),  AfterHeight(50), AfterTime(15),
-         AmtGTE(10), AmtGT(0), AmtLTE(100), AmtLT(1000), AmtWithFee(true))
+         Amount(Seq(AmtGT(0), AmtGTE(10), AmtLT(1000), AmtLTE(100), AmtWithFee(true))))
       )))
     }
 

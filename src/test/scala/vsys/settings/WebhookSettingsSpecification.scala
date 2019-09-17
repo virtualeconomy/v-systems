@@ -127,7 +127,7 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
         e.typeId shouldBe(2)
         e.typeDescription shouldBe("Tx Confirmed")
 
-        e.eventRules.length shouldBe(10)
+        e.eventRules.length shouldBe(6)
         e.eventRules.map(aRule =>
           aRule match {
             case r: AfterHeight => r.value shouldBe(3L)
@@ -135,11 +135,8 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
             case r: RelatedAccs => r.value shouldBe(Seq("addr1"))
             case r: IncludeTypes => r.value shouldBe(Seq(1, 2))
             case r: ExcludeTypes => r.value shouldBe(Seq(3, 4))
-            case r: AmtGTE => r.value shouldBe(0)
-            case r: AmtGT => r.value shouldBe(200)
-            case r: AmtLTE => r.value shouldBe(600000000000000000L)
-            case r: AmtLT => r.value shouldBe(600000000000000000L)
-            case r: AmtWithFee => r.value shouldBe(true)
+            case r: Amount => r.value shouldBe(Seq(AmtGT(200), AmtGTE(0),
+              AmtLT(600000000000000000L), AmtLTE(600000000000000000L), AmtWithFee(true)))
             case _ => fail("Tx Confirmed Event should not contain other rules")
           }
         )
