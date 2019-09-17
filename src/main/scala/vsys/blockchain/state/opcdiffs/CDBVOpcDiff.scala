@@ -7,9 +7,9 @@ import vsys.account.Address
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.Contract.checkStateVar
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
-object CDBVOpcDiff extends OpcDiffer{
+object CDBVOpcDiff extends OpcDiffer {
 
   def set(context: ExecutionContext)(stateVar: Array[Byte],
                                      value: DataEntry): Either[ValidationError, OpcDiff] = {
@@ -30,10 +30,9 @@ object CDBVOpcDiff extends OpcDiffer{
   }
 
   override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
-    bytes.headOption match {
-      case Some(opcType: Byte) if opcType == CDBVType.SetCDBV.id && bytes.length == 3 && bytes(1) < context.stateVar.length
+    bytes.headOption.flatMap(f => Try(CDBVType(f)).toOption) match {
+      case Some(CDBVType.SetCDBV) if bytes.length == 3 && bytes(1) < context.stateVar.length
         && bytes.last < data.length && bytes.tail.min >= 0 => set(context)(context.stateVar(bytes(1)), data(bytes(2)))
       case _ => Left(ContractInvalidOPCData)
     }
-
 }

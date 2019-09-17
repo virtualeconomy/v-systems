@@ -1,24 +1,30 @@
 package vsys.blockchain.state.opcdiffs
 
+import com.google.common.primitives.Ints
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.ContractUnsupportedOPC
-import vsys.blockchain.contract.{DataEntry, ExecutionContext}
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.Try
 
 trait OpcDiffer {
-  def parseBytesDf(context: ExecutionContext)
-                  (bytes: Array[Byte], data: Seq[DataEntry]):
-                  Either[ValidationError, OpcDiff] = Right(OpcDiff.empty)
 
-  def parseBytesDt(context: ExecutionContext)
-                  (bytes: Array[Byte],
-                   data: Seq[DataEntry]):
-                  Either[ValidationError, Seq[DataEntry]] = Right(data)
+  protected val defaultTokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
 
-  def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]):
-                Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
+  protected def checkData(bytes: Array[Byte], dataLength: Int, operandCount: Int, withTokenIndex: Boolean = true): Boolean =
+    (bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0)) &&
+    (dataLength == operandCount + 1 || (withTokenIndex && dataLength == operandCount))
+
+  protected def tokenIndex(bytes: Array[Byte], data: Seq[DataEntry], pos: Int) =
+    Try(data(bytes(pos))).toOption.getOrElse(defaultTokenIndex)
+
+  def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
+    Right(OpcDiff.empty)
+
+  def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    Right(data)
+
+  def parseBytes(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
     for {
       diff <- parseBytesDf(context)(bytes, data)
       data <- parseBytesDt(context)(bytes, data)
@@ -26,7 +32,6 @@ trait OpcDiffer {
 }
 
 object OpcDiffer {
-
   object OpcType extends Enumeration {
     sealed case class OpcTypeVal(opcType: Int,
                                  opcDiffer: OpcDiffer) extends Val(opcType) {
@@ -46,11 +51,7 @@ object OpcDiffer {
       Try(OpcType(b).asInstanceOf[OpcTypeVal]).toOption
   }
 
-  def apply(context: ExecutionContext)
-           (opc: Array[Byte], data: Seq[DataEntry])
-           : Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
-      opc.headOption
-         .flatMap(OpcType.fromByte(_))
-         .toRight(ContractUnsupportedOPC)
-         .flatMap(_.opcDiffer.parseBytes(context)(opc.tail, data))
+  def apply(context: ExecutionContext)(opc: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
+    opc.headOption.flatMap(OpcType.fromByte(_)).toRight(ContractUnsupportedOPC).flatMap(_.opcDiffer.parseBytes(context)(opc.tail, data))
+
 }
