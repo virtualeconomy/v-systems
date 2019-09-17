@@ -135,8 +135,8 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
             case r: RelatedAccs => r.value shouldBe(Seq("addr1"))
             case r: IncludeTypes => r.value shouldBe(Seq(1, 2))
             case r: ExcludeTypes => r.value shouldBe(Seq(3, 4))
-            case r: Amount => r.value shouldBe(Seq(AmtGT(200), AmtGTE(0),
-              AmtLT(600000000000000000L), AmtLTE(600000000000000000L), AmtWithFee(true)))
+            case r: Amount => r.value shouldBe(Map(("gt", 200), ("gte", 0),
+              ("lt", 600000000000000000L), ("lte", 600000000000000000L), ("withFee", true)))
             case _ => fail("Tx Confirmed Event should not contain other rules")
           }
         )

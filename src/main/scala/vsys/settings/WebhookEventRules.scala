@@ -9,8 +9,9 @@ import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.utils.TransactionHelper
 import vsys.account.Address
 import vsys.blockchain.transaction.ProcessedTransaction
+import vsys.utils.ScorexLogging
 
-trait WebhookEventRules extends Product with Serializable {
+trait WebhookEventRules extends Product with Serializable with ScorexLogging {
   val value: Any
   def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean
 }
@@ -128,19 +129,32 @@ object ExcludeTypes extends RuleConfigReader {
   }
 }
 
-case class Amount(value: Seq[WebhookEventRules]) extends WebhookEventRules {
+case class Amount(value: Map[String, AnyVal]) extends WebhookEventRules {
   override def applyRule(height: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
     val (amt, fee) = TransactionHelper.extractAmtFee(tx)
-    val feeRule = value.filter(_.isInstanceOf[AmtWithFee])
 
-    if (feeRule.nonEmpty && feeRule(0).applyRule(height, tx, accs)) {
+    if (value.contains("withFee") && value("withFee").asInstanceOf[Boolean]) {
       // withFee
-      value.filterNot(_.isInstanceOf[AmtWithFee]).foldLeft(true)((accum, rule) =>
-        rule.applyRule(amt+fee, tx, accs) && accum)
+      value.toList.foldLeft(true) {
+        case (accum, (k, v: Long)) => validateVal(k, v, amt + fee) && accum
+        case (accum, _) => accum
+      }
     } else {
       // not withFee
-      value.filterNot(_.isInstanceOf[AmtWithFee]).foldLeft(true)((accum, rule) =>
-        rule.applyRule(amt, tx, accs) && accum)
+      value.foldLeft(true) {
+        case (accum, (k, v: Long)) => validateVal(k , v, amt) && accum
+        case (accum, _) => accum
+      }
+    }
+  }
+
+  private def validateVal(rule: String, target: Long, value: Long): Boolean = {
+    rule match {
+      case "gt" => value > target
+      case "gte" => value >= target
+      case "lt" => value < target
+      case "lte" => value <= target
+      case _ => false
     }
   }
 }
@@ -150,15 +164,18 @@ object Amount extends RuleConfigReader {
   override val field = "amount"
 
   override def fromConfig(config: Config): Option[Amount] = {
-    val amtRule = compareRule.map {r => r match {
-        case "gt" => getVal[Long](config, r).map(AmtGT(_))
-        case "gte" => getVal[Long](config, r).map(AmtGTE(_))
-        case "lte" => getVal[Long](config, r).map(AmtLTE(_))
-        case "lt" => getVal[Long](config, r).map(AmtLT(_))
-        case "withFee" => getVal[Boolean](config, r).map(AmtWithFee(_))
-        case _ => None
+    val amtRule = compareRule.foldLeft(Map[String, AnyVal]()) {case (accum, r) =>
+      val newR = r match {
+        case "gt" => getVal[Long](config, r).map(v => Map("gt" -> v)).getOrElse(Map[String, AnyVal]())
+        case "gte" => getVal[Long](config, r).map(v => Map("gte" -> v)).getOrElse(Map[String, AnyVal]())
+        case "lte" => getVal[Long](config, r).map(v => Map("lte" -> v)).getOrElse(Map[String, AnyVal]())
+        case "lt" => getVal[Long](config, r).map(v => Map("lt" -> v)).getOrElse(Map[String, AnyVal]())
+        case "withFee" => getVal[Boolean](config, r).map(v => Map("withFee" -> v)).getOrElse(Map[String, AnyVal]())
+        case _ => Map[String, AnyVal]()
       }
-    }.flatten
+      accum ++ newR
+    }
+
     if (amtRule.nonEmpty) Some(Amount(amtRule)) else None
   }
 

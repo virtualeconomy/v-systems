@@ -46,7 +46,7 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     RelatedAccs.fromConfig(config) shouldBe(Some(RelatedAccs(Seq("addr3", "addr4"))))
     IncludeTypes.fromConfig(config) shouldBe(Some(IncludeTypes(Seq(1, 2))))
     ExcludeTypes.fromConfig(config) shouldBe(Some(ExcludeTypes(Seq(3, 4))))
-    Amount.fromConfig(config) shouldBe(Some(Amount(Seq(AmtGT(10), AmtGTE(20), AmtLT(30), AmtLTE(40), AmtWithFee(false)))))
+    Amount.fromConfig(config) shouldBe(Some(Amount(Map(("gt", 10), ("gte", 20), ("lt", 30), ("lte", 40), ("withFee", false)))))
     WithTxsOfTypes.fromConfig(config) shouldBe(Some(WithTxsOfTypes(Seq(1, 2))))
     WithTxsOfAccs.fromConfig(config) shouldBe(Some(WithTxsOfAccs(Seq("addr3", "addr4"))))
     WithStateOfAccs.fromConfig(config) shouldBe(Some(WithStateOfAccs(Seq("addr5", "addr6"))))
@@ -98,25 +98,25 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     ExcludeTypes(Seq(1, 2)).applyRule(0, mockTx2, Set.empty) shouldBe(false)
     ExcludeTypes(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Seq(AmtWithFee(true))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    Amount(Seq(AmtWithFee(false))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    Amount(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", true))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", false))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    Amount(Map[String, AnyVal]()).applyRule(0, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Seq(AmtWithFee(true), AmtGT(250))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Seq(AmtWithFee(true), AmtGT(249))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtGT(150))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Seq(AmtGT(149))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", true), ("gt", 250L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("withFee", true), ("gt", 249L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("gt", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("gt", 149L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
 
-    Amount(Seq(AmtGTE(150))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtGTE(151))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Seq(AmtWithFee(true), AmtGTE(250))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtWithFee(true), AmtGTE(251))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("gte", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("gte", 151L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("withFee", true), ("gte", 250L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", true), ("gte", 251L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Seq(AmtLT(151))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtLT(150))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("lt", 151L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("lt", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Seq(AmtLTE(150))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Seq(AmtLTE(149))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("lte", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("lte", 149L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
   }
 
   it should "get default value" in {
