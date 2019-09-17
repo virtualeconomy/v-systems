@@ -36,12 +36,12 @@ object GenesisBlockGenerator {
   var test_wallet_addresses: Array[String] = Array.empty[String]
   var last_sequence = Seq(initial_balance)
   for (miner_index <- 0 until miner_num + peer_num) {
-    test_wallet_addresses :+= addresses.getConfig("slot" + miner_index.toString).getString("address")
+    test_wallet_addresses :+= addresses.getConfig("slot" + (miner_index*5).toString).getString("address")
     if (miner_index > 0) {
-      var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + miner_index.toString).getDouble("balance_distribution")).toLong
+      var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + (miner_index*5).toString).getDouble("balance_distribution")).toLong
       last_sequence = last_sequence.updated(0, last_sequence(0) - miner_balance)
       last_sequence :+= miner_balance
-      distributions += miner_index + 5 -> last_sequence
+      distributions += miner_index * 5 -> last_sequence
     }
   }
 
