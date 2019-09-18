@@ -31,7 +31,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
-  val preconditionsAndExecuteContractSystemTransfer: Gen[(GenesisTransaction, ExecuteContractFunctionTransaction, Long, PublicKeyAccount, Address)] = for {
+  val preconditionsAndExecuteContractSystemSend: Gen[(GenesisTransaction, ExecuteContractFunctionTransaction, Long, PublicKeyAccount, Address)] = for {
     master <- accountGen
     ts <- positiveIntGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
@@ -45,8 +45,8 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     executeContractSystemSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, ContractAccount.systemContractId, funcIdx, data, description, fee, feeScale, ts1).right.get
   } yield (genesis, executeContractSystemSend, fee, master, recipient)
 
-  property("execute contract transaction sysSend successfully"){
-    forAll(preconditionsAndExecuteContractSystemTransfer) { case (genesis, executeContractSystemSend, fee, master, recipient) =>
+  property("execute contract transaction systemSend successfully") {
+    forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend, fee, master, recipient) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(executeContractSystemSend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         val sender = EllipticCurve25519Proof.fromBytes(executeContractSystemSend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
