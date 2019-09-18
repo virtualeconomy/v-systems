@@ -1,68 +1,77 @@
 package vsys.blockchain.state.opcdiffs
 
-import cats._
 import cats.implicits._
 import com.google.common.primitives.Longs
-import vsys.account.{Account, ContractAccount}
+import vsys.account._
 import vsys.blockchain.contract.{CallType, DataEntry, DataType, ExecutionContext}
-import vsys.blockchain.state.{LeaseInfo, Portfolio}
+import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData}
+import vsys.blockchain.transaction.ValidationError._
 
-import scala.util.Left
+import scala.util.{Left, Right, Try}
 
 object SystemTransferDiff {
 
+  def getTriggerCallOpcDiff(context: ExecutionContext, diff: OpcDiff,
+                            sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+                            callType: CallType.Value, callIndex: Int): Either[ValidationError, OpcDiff] = {
+    if (callType == CallType.Trigger){
+      callIndex match {
+        case 1 =>
+          if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
+          else {
+            val senderContractId = ContractAccount.fromBytes(sender.data).explicitGet()
+            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
+          }
+        case 2 =>
+          if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
+          else {
+            val recipientContractId = ContractAccount.fromBytes(recipient.data).explicitGet()
+            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
+          }
+        case _ => Left(GenericError("Invalid Call Index"))
+      }
+    } else {
+      Left(GenericError("Invalid Call Type"))
+    }
+  }
+
   def transfer(context: ExecutionContext)
               (sender: DataEntry, recipient: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
-    lazy val feePortDiff: Map[Account, Portfolio] = toPortDiff(context.signers.head.toAddress, 0)
-    lazy val fromAccountPortDiff: Map[Account, Portfolio] = toPortDiff(Account.fromBytes(sender.data, 0).right.get._1, -Longs.fromByteArray(amount.data))
-    lazy val toAccountPortDiff: Map[Account, Portfolio] = toPortDiff(Account.fromBytes(recipient.data, 0).right.get._1, Longs.fromByteArray(amount.data))
-    lazy val portDiff = Monoid.combineAll(Seq(feePortDiff, fromAccountPortDiff, toAccountPortDiff))
+    val dType = Array(amount.dataType.id.toByte, sender.dataType.id.toByte, recipient.dataType.id.toByte)
+    val rType = Array(DataType.Amount.id.toByte, DataType.Account.id.toByte, DataType.Account.id.toByte)
 
-    def fromOpcFuncDiffer(df: OpcDiff, contractId: ContractAccount, callType: CallType.Value, callIndex: Int)
-                         (data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = (for {
-      exContext <- ExecutionContext.fromCallOpc(context, df, contractId, callType, callIndex)
-      diff <- OpcFuncDiffer(exContext)(data)
-    } yield diff) match {
-      case Right(cdf) => Right(cdf.combine(OpcDiff(portfolios = portDiff)))
-      case Left(vd) => Left(vd)}
-
-    def fromOpcFuncDiffer2(df: OpcDiff, contractId: ContractAccount, callType: CallType.Value, callIndex: Int)
-                          (contractId2: ContractAccount, callType2: CallType.Value, callIndex2: Int)
-                          (data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = (for {
-      exContext <- ExecutionContext.fromCallOpc(context, df, contractId, callType, callIndex)
-      diff <- OpcFuncDiffer(exContext)(data)
-    } yield diff) match {
-      case Right(cd) =>
-        val combineDiff = cd.combine(df)
-        (for {
-          exContext <- ExecutionContext.fromCallOpc(context, combineDiff, contractId2, callType2, callIndex2)
-          diff <- OpcFuncDiffer(exContext)(data)
-        } yield diff) match {
-          case Right(cdf) => Right(cdf.combine(cd).combine(OpcDiff(portfolios = portDiff)))
-          case Left(vd) => Left(vd)
-        }
-      case Left(vd) => Left(vd)}
-
-    if (!checkDataType(sender, recipient)) {
-      Left(ContractDataTypeMismatch)
-    } else {
-      sender.dataType match {
-        case DataType.Address if context.signers.head.bytes.arr sameElements sender.data =>
-          recipient.dataType match {
-            case DataType.Address => Right(OpcDiff(portfolios = portDiff))
-            case _ => fromOpcFuncDiffer(OpcDiff(portfolios = feePortDiff.combine(fromAccountPortDiff)),
-              ContractAccount.fromBytes(recipient.data).right.get, CallType.Trigger, 1)(Seq(sender, recipient, amount))
-          }
-        case _ => recipient.dataType match {
-          case DataType.Address => fromOpcFuncDiffer(OpcDiff(portfolios = feePortDiff),
-            ContractAccount.fromBytes(sender.data).right.get, CallType.Trigger, 2)(Seq(sender, recipient, amount))
-          case _ => fromOpcFuncDiffer2(OpcDiff(portfolios = feePortDiff), ContractAccount.fromBytes(sender.data).right.get,
-            CallType.Trigger, 2)(ContractAccount.fromBytes(recipient.data).right.get, CallType.Trigger, 1)(Seq(sender, recipient, amount))
-        }
-      }
-    }
+    for {
+      _ <- Either.cond(DataType.checkTypes(dType, rType), (), ContractDataTypeMismatch)
+      transferAmount = Longs.fromByteArray(amount.data)
+      senderAddr <- Account.fromBytes(sender.data, 0)
+      recipientAddr <- Account.fromBytes(recipient.data, 0)
+      senderBalance = context.state.balance(senderAddr._1)
+      recipientBalance = context.state.balance(recipientAddr._1)
+      _ <- Either.cond(senderBalance >= transferAmount, (), ContractTokenBalanceInsufficient)
+      _ <- Either.cond(Try(Math.addExact(transferAmount, recipientBalance)).isSuccess, (), OverflowError)
+      _ <- Either.cond(transferAmount >= 0, (), ContractInvalidAmount)
+      senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, CallType.Trigger, 1)
+      senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).explicitGet() -> true) else Map[Address, Boolean]()
+      senderPortDiff: Map[Account, Portfolio] = Map(
+        senderAddr._1 -> Portfolio(
+          balance = -transferAmount,
+          LeaseInfo.empty,
+          assets = Map.empty))
+      senderDiff = OpcDiff(relatedAddress = senderRelatedAddress, portfolios = senderPortDiff)
+      senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
+      recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, CallType.Trigger, 2)
+      recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
+      recipientPortDiff: Map[Account, Portfolio] = Map(
+        recipientAddr._1 -> Portfolio(
+          balance = transferAmount,
+          LeaseInfo.empty,
+          assets = Map.empty))
+      recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress, portfolios = recipientPortDiff)
+      returnDiff = OpcDiff.opcDiffMonoid.combine(
+        OpcDiff.opcDiffMonoid.combine(senderTotalDiff, recipientCallDiff),
+        recipientDiff)
+    } yield returnDiff
   }
 
   object TransferType extends Enumeration {
@@ -79,17 +88,5 @@ object SystemTransferDiff {
   private def checkInput(bytes: Array[Byte], bLength: Int, dataLength: Int): Boolean = {
     bytes.length == bLength && bytes.tail.max < dataLength && bytes.tail.min >= 0
   }
-
-  private def checkDataType(sender: DataEntry, recipient: DataEntry): Boolean = {
-    (sender.dataType == DataType.Address || sender.dataType == DataType.ContractAccount) &&
-      (recipient.dataType == DataType.Address || recipient.dataType == DataType.ContractAccount)
-  }
-
-  private def toPortDiff(account: Account,
-                         amount: Long): Map[Account, Portfolio] = Map(
-    account -> Portfolio(
-      balance = amount,
-      LeaseInfo.empty,
-      assets = Map.empty))
 
 }
