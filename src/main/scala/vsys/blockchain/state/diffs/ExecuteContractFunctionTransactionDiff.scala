@@ -1,5 +1,6 @@
 package vsys.blockchain.state.diffs
 
+import cats.implicits._
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.state.reader.StateReader
 import vsys.account.PublicKeyAccount
@@ -24,7 +25,7 @@ object ExecuteContractFunctionTransactionDiff {
       } yield diff)
     } match {
       case Right(df) => Right(Diff(height = height, tx = tx,
-        portfolios = Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty)), tokenDB = df.tokenDB,
+        portfolios = df.portfolios.combine(Map(sender.toAddress -> Portfolio(-tx.fee, LeaseInfo.empty, Map.empty))), tokenDB = df.tokenDB,
         tokenAccountBalance = df.tokenAccountBalance, contractDB = df.contractDB, contractTokens = df.contractTokens,
         relatedAddress = df.relatedAddress, chargedFee = tx.fee))
       case Left(InvalidContract) => Right(toDiff(height, tx, sender)(fromValidationError(InvalidContract)))
