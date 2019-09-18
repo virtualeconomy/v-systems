@@ -1,16 +1,17 @@
 package vsys.events
 
 import vsys.utils.ScorexLogging
-import vsys.settings.{EventSettings, BlockAppendedEventSettings, WebhookEventRules}
+import vsys.settings.{EventSettings, BlockAppendedEventSettings, TxConfirmedEventSettings, WebhookEventRules}
 import vsys.blockchain.transaction.ProcessedTransaction
 import vsys.blockchain.state.BlockDiff
+import vsys.blockchain.block.Block
 import vsys.account.Address
 import akka.actor.ActorRef
 
 class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends ScorexLogging {
 
   // TO DO: Should handle more webhook event settings
-  def evokeWebhook(blockDiff: BlockDiff): Unit = {
+  def evokeWebhook(block: Block, blockDiff: BlockDiff): Unit = {
     val webhookSettings = eventSetting.webhookSettings
     webhookSettings.map {webhookSetting =>
       val url = webhookSetting.url
@@ -21,8 +22,14 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
       webhookSetting.events.map {webhookEventSetting =>
         webhookEventSetting match {
           case e: BlockAppendedEventSettings =>
-            val re = checkRules(e.eventRules, blockDiff)
-            eventWriter ! BlockAppendedEvent(url, scKey, enKey, maxSize, re)
+            val re = checkRules(e.eventRules, block.timestamp, blockDiff)
+            if (re.nonEmpty) {
+              eventWriter ! BlockAppendedEvent(url, scKey, enKey, maxSize, re)
+            }
+            
+          case e: TxConfirmedEventSettings =>
+            val re = checkRules(e.eventRules, block.timestamp, blockDiff)
+            eventWriter ! TxConfirmedEvent(url, scKey, enKey, maxSize, re)
 
           case _ => log.error("Using Wrong Evoke For The Trigger")
         }
@@ -30,9 +37,9 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
     }
   }
 
-  private[events] def checkRules(rules: Seq[WebhookEventRules], blockDiff: BlockDiff): List[(Int, ProcessedTransaction, Set[Address])] = {
+  private[events] def checkRules(rules: Seq[WebhookEventRules], blockTime: Long, blockDiff: BlockDiff): List[(Int, ProcessedTransaction, Set[Address])] = {
     rules.foldLeft(blockDiff.txsDiff.transactions.toList)((accum, rule) =>
-      accum.filter(aList => aList match {case (id, (h, tx, accs)) => rule.applyRule(h.toLong, tx, accs)}
+      accum.filter(aList => aList match {case (id, (h, tx, accs)) => rule.applyRule(h.toLong, blockTime, tx, accs)}
       )).collect {case (id, (h, tx, accs)) => (h, tx, accs)}
   }
 }

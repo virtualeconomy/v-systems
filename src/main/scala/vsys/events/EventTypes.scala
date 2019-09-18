@@ -9,6 +9,12 @@ case class BlockAppendedEvent(
   url: String,
   secretKey: Option[String],
   encryptKey: Option[String],
-  maxSize: Option[Int],
-  eventData: List[(Int, ProcessedTransaction, Set[Address])]
-) extends Event
+  maxSizeIn: Option[Int],
+  eventDataIn: List[(Int, ProcessedTransaction, Set[Address])]) extends Event
+
+case class TxConfirmedEvent(
+  urlIn: String,
+  scKey: Option[String],
+  enKey: Option[String],
+  maxSizeIn: Option[Int],
+  eventDataIn: List[(Int, ProcessedTransaction, Set[Address])]) extends Event

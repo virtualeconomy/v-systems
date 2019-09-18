@@ -67,7 +67,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       topMemoryDiff.set(BlockDiff.empty)
     }
     historyWriter.appendBlock(block)(BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)).map { newBlockDiff =>
-      eventTrigger.evokeWebhook(newBlockDiff)
+      eventTrigger.evokeWebhook(block, newBlockDiff)
       topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
     }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${historyWriter.height()}, new score: ${historyWriter.score()}"))
   }

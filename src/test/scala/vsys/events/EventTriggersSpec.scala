@@ -12,6 +12,7 @@ import vsys.settings.{EventSettings, AfterHeight, AfterTime, WithTxs, WithMintin
 
 class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
   val system = ActorSystem()
+  val blockTime = 10
   val trigger = EventTriggers(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty))
 
   "Private Method checkRules" should "filter AfterHeight correctly" in {
@@ -19,8 +20,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
     val blockDiff1 = createBlockDiff(0)
     val blockDiff2 = createBlockDiff(15)
 
-    trigger.checkRules(eventRules, blockDiff1) shouldBe(List.empty)
-    trigger.checkRules(eventRules, blockDiff2).size shouldBe(6)
+    trigger.checkRules(eventRules, blockTime, blockDiff1) shouldBe(List.empty)
+    trigger.checkRules(eventRules, blockTime, blockDiff2).size shouldBe(6)
   }
 
   it should "filter AfterTime correctly" in {
@@ -28,10 +29,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
     val custTime = Seq(AfterTime(100))
     val blockDiff = createBlockDiff(0)
 
-    trigger.checkRules(defaultTime, blockDiff).size shouldBe(6)
-    trigger.checkRules(custTime, blockDiff).collectFirst {case (_, p: ProcessedTransaction, _) =>
-      p.transaction.timestamp shouldBe(100)
-    }
+    trigger.checkRules(defaultTime, blockTime, blockDiff).size shouldBe(6)
+    trigger.checkRules(custTime, blockTime, blockDiff).size shouldBe(0)
   }
 
   it should "filter WithTxs correctly" in {
@@ -39,8 +38,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
     val custRule = Seq(WithTxs(true))
     val blockDiff = createBlockDiff(0)
 
-    trigger.checkRules(defaultRule, blockDiff) shouldBe(List.empty)
-    trigger.checkRules(custRule, blockDiff).size shouldBe(6)
+    trigger.checkRules(defaultRule, blockTime, blockDiff) shouldBe(List.empty)
+    trigger.checkRules(custRule, blockTime, blockDiff).size shouldBe(6)
   }
 
   it should "filter WithMintingTxs correctly" in {
@@ -48,8 +47,8 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
     val custRule = Seq(WithMintingTxs(true))
     val blockDiff = createBlockDiff(0)
 
-    trigger.checkRules(defaultRule, blockDiff).size shouldBe(1)
-    trigger.checkRules(custRule, blockDiff).size shouldBe(6)
+    trigger.checkRules(defaultRule, blockTime, blockDiff).size shouldBe(1)
+    trigger.checkRules(custRule, blockTime, blockDiff).size shouldBe(6)
   }
 
   private def createTxs(i: Int): ProcessedTransaction = {
@@ -57,7 +56,6 @@ class EventTriggersSpec extends FlatSpec with Matchers with MockitoSugar {
     val ptx = mock[ProcessedTransaction]
 
     when(tx.amount).thenReturn(i * 1000)
-    when(tx.timestamp).thenReturn(i * 10)
     when(tx.transactionType).thenReturn(TransactionType.MintingTransaction)
     when(ptx.status).thenReturn(TransactionStatus.Success)
     when(ptx.feeCharged).thenReturn(1)

@@ -57,66 +57,66 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     val mockTx2 = mock[ProcessedTransaction]
 
     val tx = mock[MintingTransaction]
-    when(tx.timestamp).thenReturn(10)
+    val blockTime1 = 10
     when(tx.amount).thenReturn(200)
     when(tx.transactionType).thenReturn(TransactionType.MintingTransaction)
     when(mockTx1.transaction).thenReturn(tx)
 
     val tx2 = mock[PaymentTransaction]
-    when(tx2.timestamp).thenReturn(5)
+    val blockTime2 = 5
     when(tx2.transactionFee).thenReturn(100)
     when(tx2.amount).thenReturn(150)
     when(tx2.transactionType).thenReturn(TransactionType.PaymentTransaction)
     when(mockTx2.transaction).thenReturn(tx2)
 
-    AfterHeight(10).applyRule(10, mockTx1, Set.empty) shouldBe(true)
-    AfterHeight(10).applyRule(3, mockTx1, Set.empty) shouldBe(false)
+    AfterHeight(10).applyRule(10, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    AfterHeight(10).applyRule(3, blockTime1, mockTx1, Set.empty) shouldBe(false)
 
-    AfterTime(10).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    AfterTime(10).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    AfterTime(10).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    AfterTime(10).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
 
-    WithTxs(true).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    WithTxs(true).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
-    WithMintingTxs(true).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    WithMintingTxs(true).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    WithMintingTxs(false).applyRule(0, mockTx1, Set.empty) shouldBe(false)
+    WithMintingTxs(true).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    WithMintingTxs(true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    WithMintingTxs(false).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
 
     val addr1 = mock[Address]
     val addr2 = mock[Address]
     when(addr1.toString).thenReturn("addr1")
     when(addr2.toString).thenReturn("addr2")
-    RelatedAccs(Seq("addr1")).applyRule(0, mockTx1, Set(addr1, addr2)) shouldBe(true)
-    RelatedAccs(Seq("addr1")).applyRule(0, mockTx1, Set(addr2)) shouldBe(false)
-    RelatedAccs(Seq("addr1")).applyRule(0, mockTx1, Set.empty) shouldBe(false)
-    RelatedAccs(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set(addr1, addr2)) shouldBe(true)
+    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set(addr2)) shouldBe(false)
+    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
+    RelatedAccs(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
-    IncludeTypes(Seq(1)).applyRule(0, mockTx1, Set.empty) shouldBe(false)
-    IncludeTypes(Seq(1, 2)).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    IncludeTypes(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(false)
+    IncludeTypes(Seq(1)).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
+    IncludeTypes(Seq(1, 2)).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    IncludeTypes(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
 
-    ExcludeTypes(Seq(1)).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    ExcludeTypes(Seq(1, 2)).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    ExcludeTypes(Seq.empty).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    ExcludeTypes(Seq(1)).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    ExcludeTypes(Seq(1, 2)).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    ExcludeTypes(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Map(("withFee", true))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    Amount(Map(("withFee", false))).applyRule(0, mockTx1, Set.empty) shouldBe(true)
-    Amount(Map[String, AnyVal]()).applyRule(0, mockTx1, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", true))).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", false))).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    Amount(Map[String, AnyVal]()).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
-    Amount(Map(("withFee", true), ("gt", 250L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Map(("withFee", true), ("gt", 249L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Map(("gt", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Map(("gt", 149L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", true), ("gt", 250L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("withFee", true), ("gt", 249L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("gt", 150L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("gt", 149L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
 
-    Amount(Map(("gte", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Map(("gte", 151L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
-    Amount(Map(("withFee", true), ("gte", 250L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Map(("withFee", true), ("gte", 251L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("gte", 150L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("gte", 151L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("withFee", true), ("gte", 250L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("withFee", true), ("gte", 251L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Map(("lt", 151L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Map(("lt", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("lt", 151L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("lt", 150L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
 
-    Amount(Map(("lte", 150L))).applyRule(0, mockTx2, Set.empty) shouldBe(true)
-    Amount(Map(("lte", 149L))).applyRule(0, mockTx2, Set.empty) shouldBe(false)
+    Amount(Map(("lte", 150L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(Map(("lte", 149L))).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
   }
 
   it should "get default value" in {
