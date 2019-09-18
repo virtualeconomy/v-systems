@@ -77,8 +77,8 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
          |             amount: {
          |               gt: 0,
          |               gte: 10,
-         |               lte: 100,
-         |               lt: 1000,
+         |               lte: 1000,
+         |               lt: 100,
          |               withFee: true
          |             }
          |           }
@@ -95,7 +95,7 @@ class WebhookEventSettingsSpec extends FlatSpec with Matchers {
 
       eventList(0) shouldBe(Right(TxConfirmedEventSettings(
         Seq(IncludeTypes(Seq(1, 2)), ExcludeTypes(Seq(3, 4)), RelatedAccs(Seq("addr2", "addr3")),  AfterHeight(50), AfterTime(15),
-         Amount(Map(("gt", 0), ("gte", 10), ("lt", 1000), ("lte", 100), ("withFee", true))))
+         Amount(0, 10, 100, 1000, true))
       )))
     }
 

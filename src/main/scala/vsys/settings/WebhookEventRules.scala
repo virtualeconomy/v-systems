@@ -29,9 +29,7 @@ trait RuleConfigReader {
 }
 
 case class AfterHeight(value: Long) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    height >= value
-  }
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = height >= value
 }
 
 object AfterHeight extends RuleConfigReader {
@@ -43,9 +41,7 @@ object AfterHeight extends RuleConfigReader {
 }
 
 case class AfterTime(value: Long) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    blockTime >= value
-  }
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = blockTime >= value
 }
 
 object AfterTime extends RuleConfigReader {
@@ -129,54 +125,33 @@ object ExcludeTypes extends RuleConfigReader {
   }
 }
 
-case class Amount(value: Map[String, AnyVal]) extends WebhookEventRules {
+case class Amount(value: Long, gteVal: Long, ltVal: Long, lteVal: Long, withFeeVal: Boolean) extends WebhookEventRules {
   override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
     val (amt, fee) = TransactionHelper.extractAmtFee(tx)
 
-    if (value.contains("withFee") && value("withFee").asInstanceOf[Boolean]) {
-      // withFee
-      value.toList.foldLeft(true) {
-        case (accum, (k, v: Long)) => validateVal(k, v, amt + fee) && accum
-        case (accum, _) => accum
-      }
+    if (withFeeVal) {
+      validateVal(amt + fee, value, gteVal, ltVal, lteVal)
     } else {
-      // not withFee
-      value.foldLeft(true) {
-        case (accum, (k, v: Long)) => validateVal(k , v, amt) && accum
-        case (accum, _) => accum
-      }
+      validateVal(amt, value, gteVal, ltVal, lteVal)
     }
   }
 
-  private def validateVal(rule: String, target: Long, value: Long): Boolean = {
-    rule match {
-      case "gt" => value > target
-      case "gte" => value >= target
-      case "lt" => value < target
-      case "lte" => value <= target
-      case _ => false
-    }
+  private def validateVal(amt: Long, gtVal: Long, gteVal: Long, ltVal: Long, lteVal: Long): Boolean = {
+    amt > gtVal && amt >= gteVal && amt < ltVal && amt <= lteVal
   }
 }
 
 object Amount extends RuleConfigReader {
-  val compareRule = Seq("gt", "gte", "lt", "lte", "withFee")
   override val field = "amount"
 
   override def fromConfig(config: Config): Option[Amount] = {
-    val amtRule = compareRule.foldLeft(Map[String, AnyVal]()) {case (accum, r) =>
-      val newR = r match {
-        case "gt" => getVal[Long](config, r).map(v => Map("gt" -> v)).getOrElse(Map[String, AnyVal]())
-        case "gte" => getVal[Long](config, r).map(v => Map("gte" -> v)).getOrElse(Map[String, AnyVal]())
-        case "lte" => getVal[Long](config, r).map(v => Map("lte" -> v)).getOrElse(Map[String, AnyVal]())
-        case "lt" => getVal[Long](config, r).map(v => Map("lt" -> v)).getOrElse(Map[String, AnyVal]())
-        case "withFee" => getVal[Boolean](config, r).map(v => Map("withFee" -> v)).getOrElse(Map[String, AnyVal]())
-        case _ => Map[String, AnyVal]()
-      }
-      accum ++ newR
-    }
+    val gtVal = getVal[Long](config, "gt").getOrElse(0L)
+    val gteVal = getVal[Long](config, "gte").getOrElse(0L)
+    val ltVal = getVal[Long](config, "lt").getOrElse(6*10^9*10^8L)
+    val lteVal = getVal[Long](config, "lte").getOrElse(6*10^9*10^8L)
+    val withFeeVal = getVal[Boolean](config, "withFee").getOrElse(false)
 
-    if (amtRule.nonEmpty) Some(Amount(amtRule)) else None
+    if (config.hasPath("rules.amount")) Some(Amount(gtVal, gteVal, ltVal, lteVal, withFeeVal)) else None
   }
 
   private def getVal[T: ValueReader](config: Config, r: String): Option[T] = {
@@ -186,7 +161,9 @@ object Amount extends RuleConfigReader {
 
 case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules {
   // TO DO
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    value.contains(tx.transaction.transactionType.txType)
+  }
 }
 
 object WithTxsOfTypes extends RuleConfigReader {
@@ -199,7 +176,9 @@ object WithTxsOfTypes extends RuleConfigReader {
 
 case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules {
   // TO DO
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+    accs.foldLeft(false) {case (accum, acc) => value.contains(acc.toString) || accum}
+  }
 }
 
 object WithTxsOfAccs extends RuleConfigReader {
@@ -212,7 +191,7 @@ object WithTxsOfAccs extends RuleConfigReader {
 
 case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules {
   // TO DO
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]) = ???
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = ???
 }
 
 object WithStateOfAccs extends RuleConfigReader {
