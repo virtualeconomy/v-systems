@@ -40,7 +40,7 @@ object ExecutionContext {
     val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
     val contractId = tx.contractId
     val description = tx.attachment
-    if (contractId.bytes.arr sameElements ContractSystem.contract.bytes.arr) {
+    if (contractId.bytes.arr sameElements ContractAccount.systemContractId.bytes.arr) {
       if (tx.funcIdx >= 0 && tx.funcIdx < ContractSystem.contract.descriptor.length) {
         Right(ExecutionContext(signers, s, height, tx, contractId, ContractSystem.contract.descriptor(tx.funcIdx), ContractSystem.contract.stateVar, description, 0))
       } else {
