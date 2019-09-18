@@ -49,7 +49,7 @@ object SystemTransferDiff {
       Left(ContractDataTypeMismatch)
     } else {
       sender.dataType match {
-        case DataType.Address if context.signers.head.toAddress.bytes.arr sameElements sender.bytes =>
+        case DataType.Address if context.signers.head.bytes.arr sameElements sender.data =>
           recipient.dataType match {
             case DataType.Address => Right(OpcDiff(portfolios = portDiff))
             case _ => fromOpcFuncDiffer(OpcDiff(portfolios = feePortDiff.combine(fromAccountPortDiff)),
@@ -82,7 +82,7 @@ object SystemTransferDiff {
 
   private def checkDataType(sender: DataEntry, recipient: DataEntry): Boolean = {
     (sender.dataType == DataType.Address || sender.dataType == DataType.ContractAccount) &&
-      (recipient.dataType == DataType.Address && recipient.dataType == DataType.ContractAccount)
+      (recipient.dataType == DataType.Address || recipient.dataType == DataType.ContractAccount)
   }
 
   private def toPortDiff(account: Account,
