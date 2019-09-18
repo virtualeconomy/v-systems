@@ -32,7 +32,7 @@ object OpcFuncDiffer extends ScorexLogging {
                  listOpcLines.forall(_.length >= 2),
                  (), ContractInvalidOPCData
                )
-          diff <- 
+          diff <-
             listOpcLines.foldLeft(Right((OpcDiff.empty, data)):
                                   Either[ValidationError, (OpcDiff, Seq[DataEntry])]) {
               case (ei, opc) =>

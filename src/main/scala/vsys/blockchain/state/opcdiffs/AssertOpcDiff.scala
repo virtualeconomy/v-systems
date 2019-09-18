@@ -41,7 +41,7 @@ object AssertOpcDiff extends OpcDiffer {
       Left(GenericError(s"Invalid Assert (gt0): Value $v is non-positive"))
   }
 
-  def equql(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
+  def equal(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
     if (add1.dataType == DataType.Address && add2.dataType == DataType.Address
       && Address.fromBytes(add1.data) == Address.fromBytes(add2.data))
       Right(OpcDiff.empty)
@@ -92,7 +92,7 @@ object AssertOpcDiff extends OpcDiffer {
     val LteqAssert           = AssertTypeVal(2, 2, (c, b, d) => ltEq(d(b(1)), d(b(2))))
     val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d) => ltInt64(d(b(1))))
     val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d) => gt0(d(b(1))))
-    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equql(d(b(1)), d(b(2))))
+    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equal(d(b(1)), d(b(2))))
     val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => isCallerOrigin(c)(d(b(1))))
     val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d) => isSignerOrigin(c)(d(b(1))))
 
