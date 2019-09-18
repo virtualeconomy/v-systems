@@ -8,6 +8,7 @@ import vsys.Version
 import vsys.settings.RestAPISettings
 import io.swagger.util.{Json, Yaml}
 import io.swagger.models.{Swagger, Scheme, Path}
+import io.swagger.models.auth.{ApiKeyAuthDefinition, In}
 import vsys.utils.ScorexLogging
 import scala.collection.immutable.Map
 
@@ -25,7 +26,7 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
     None,
     Some(License("MIT License", "https://github.com/virtualeconomy/vsys/blob/master/LICENSE"))
   )
-
+  override val securitySchemeDefinitions = Map()
   override def generateSwaggerJson: String = {
     try {
       Json.pretty().writeValueAsString(customizedSwagger)
@@ -56,8 +57,8 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
   private def customizedSwagger: Swagger = {
     val swagger: Swagger = reader.read(apiClasses.asJava)
     val filteredPaths: Map[String, Path] = swagger.getPaths().asScala.toMap.filterKeys(cumstomPathsConfig.getOrElse(_, true))
+    swagger.addSecurityDefinition("api_key", new ApiKeyAuthDefinition("api_key", In.HEADER))
     swagger.paths(collection.mutable.Map(filteredPaths.toSeq: _*).asJava)
-    swagger
   }
 
   //Let swagger-ui determine the host and port
