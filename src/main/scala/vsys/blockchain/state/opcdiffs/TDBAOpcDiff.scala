@@ -95,13 +95,13 @@ object TDBAOpcDiff {
     if (callType == CallType.Trigger){
       callIndex match {
         case 1 =>
-          if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
+          if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val senderContractId = ContractAccount.fromBytes(sender.data).explicitGet()
             CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
           }
         case 2 =>
-          if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
+          if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val recipientContractId = ContractAccount.fromBytes(recipient.data).explicitGet()
             CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
