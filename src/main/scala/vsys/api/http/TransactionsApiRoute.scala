@@ -164,7 +164,8 @@ case class TransactionsApiRoute(
   }
 
   @Path("/activeLeaseList/{address}")
-  @ApiOperation(value = "Address", notes = "Get list of active lease transactions", httpMethod = "GET")
+  @ApiOperation(value = "Address", notes = "Get list of active lease transactions", httpMethod = "GET",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
   ))

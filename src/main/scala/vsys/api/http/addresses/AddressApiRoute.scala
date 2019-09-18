@@ -32,7 +32,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
     } ~ root ~ create
 
   @Path("/{address}")
-  @ApiOperation(value = "Delete", notes = "Remove the account with address {address} from the wallet", httpMethod = "DELETE")
+  @ApiOperation(value = "Delete", notes = "Remove the account with address {address} from the wallet", httpMethod = "DELETE",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -49,7 +50,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/sign/{address}")
-  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with {address}", httpMethod = "POST")
+  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with {address}", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "message", value = "Message to sign as a plain string", required = true, paramType = "body", dataType = "string"),
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
@@ -64,7 +66,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/signText/{address}")
-  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with {address}", httpMethod = "POST")
+  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with {address}", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "message", value = "Message to sign as a plain string", required = true, paramType = "body", dataType = "string"),
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
@@ -79,7 +82,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/verify/{address}")
-  @ApiOperation(value = "Verify", notes = "Check a signature of a message signed by an account", httpMethod = "POST")
+  @ApiOperation(value = "Verify", notes = "Check a signature of a message signed by an account", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(
@@ -98,7 +102,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/verifyText/{address}")
-  @ApiOperation(value = "Verify text", notes = "Check a signature of a message signed by an account", httpMethod = "POST")
+  @ApiOperation(value = "Verify text", notes = "Check a signature of a message signed by an account", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(
@@ -173,7 +178,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/seed/{address}")
-  @ApiOperation(value = "Seed", notes = "Export seed value for the {address}", httpMethod = "GET")
+  @ApiOperation(value = "Seed", notes = "Export seed value for the {address}", httpMethod = "GET",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -223,7 +229,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/")
-  @ApiOperation(value = "Create", notes = "Create a new account in the wallet(if it exists)", httpMethod = "POST")
+  @ApiOperation(value = "Create", notes = "Create a new account in the wallet(if it exists)", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   def create: Route = (path("addresses") & post) {
     withAuth {
       wallet.generateNewAccount() match {

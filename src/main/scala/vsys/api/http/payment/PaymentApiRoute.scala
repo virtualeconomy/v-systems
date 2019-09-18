@@ -26,7 +26,8 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
     notes = "Send payment from wallet to another wallet. Each call sends new payment.",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -49,7 +50,8 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
   @Path("/broadcast/payment")
   @ApiOperation(value = "Broadcast signed payment.",
     notes = "Publish signed payment to the Blockchain.",
-    httpMethod = "POST", produces = "application/json", consumes = "application/json")
+    httpMethod = "POST", produces = "application/json", consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",

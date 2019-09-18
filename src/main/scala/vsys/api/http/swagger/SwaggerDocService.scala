@@ -26,7 +26,7 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
     None,
     Some(License("MIT License", "https://github.com/virtualeconomy/vsys/blob/master/LICENSE"))
   )
-  override val securitySchemeDefinitions = Map()
+
   override def generateSwaggerJson: String = {
     try {
       Json.pretty().writeValueAsString(customizedSwagger)
