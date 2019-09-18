@@ -36,18 +36,19 @@ object GenesisBlockGenerator {
   var test_wallet_addresses: Array[String] = Array.empty[String]
   var last_sequence = Seq(initial_balance)
   for (miner_index <- 0 until miner_num + peer_num) {
-    test_wallet_addresses :+= addresses.getConfig("slot" + (miner_index*5).toString).getString("address")
+    test_wallet_addresses :+= addresses.getConfig("slot" + (miner_index*12).toString).getString("address")
     if (miner_index > 0) {
-      var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + (miner_index*5).toString).getDouble("balance_distribution")).toLong
+      var miner_balance: Long = (initial_balance * addresses.getConfig("slot" + (miner_index*12).toString).getDouble("balance_distribution")).toLong
       last_sequence = last_sequence.updated(0, last_sequence(0) - miner_balance)
       last_sequence :+= miner_balance
-      distributions += miner_index * 5 -> last_sequence
+      distributions += miner_index +1 -> last_sequence
     }
   }
 
 
   def generateFullAddressInfo(n: Int) = {
-    println("n=" + n + ", address = " + test_wallet_addresses(n))
+
+    println("n=" + n + ", address = " + test_wallet_addresses(n/12))
 
     val seed = ByteStr(Array.fill(32)((scala.util.Random.nextInt(256)).toByte)).toString
     val acc = Wallet.generateNewAccount(seed, 0)
@@ -55,7 +56,7 @@ object GenesisBlockGenerator {
     val publicKey = ByteStr(acc.publicKey)
     // change address value for testnetwow
     //    val address = acc.toAddress
-    val address = Address.fromString(test_wallet_addresses(n)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
+    val address = Address.fromString(test_wallet_addresses(n/12)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
 
     (seed, ByteStr(acc.seed), privateKey, publicKey, address)
   }
@@ -70,8 +71,9 @@ object GenesisBlockGenerator {
 
     val mt = if (mintTime < 0) timestamp / 10000000000L * 10000000000L else mintTime
 
-    val accounts = Range(0, accountsTotal).map(n => n -> generateFullAddressInfo(n))
-    val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), n, timestamp, ByteStr.empty) }
+    val interval = 60 / accountsTotal
+    val accounts = Range(0, 60, interval).map(n => n -> generateFullAddressInfo(n))
+    val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n/12), n, timestamp, ByteStr.empty) }
 
     println(ByteStr(genesisTxs.head.bytes).base58)
     // set the genesisblock's minting Balance to 0
