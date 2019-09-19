@@ -1,47 +1,56 @@
 package vsys.blockchain.state.opcdiffs
 
+import com.google.common.primitives.Ints
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.ContractUnsupportedOPC
-import vsys.blockchain.contract.{DataEntry, ExecutionContext}
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.Try
 
+trait OpcDiffer {
+
+  protected val defaultTokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
+
+  protected def checkData(bytes: Array[Byte], dataLength: Int, operandCount: Int, withTokenIndex: Boolean = true): Boolean =
+    (bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0)) && (bytes.length == operandCount + 1 || (withTokenIndex && bytes.length == operandCount))
+
+  protected def tokenIndex(bytes: Array[Byte], data: Seq[DataEntry], pos: Int) =
+    Try(data(bytes(pos))).toOption.getOrElse(defaultTokenIndex)
+
+  def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
+    Right(OpcDiff.empty)
+
+  def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    Right(data)
+
+  def parseBytes(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
+    for {
+      diff <- parseBytesDf(context)(bytes, data)
+      data <- parseBytesDt(context)(bytes, data)
+    } yield (diff, data)
+}
 
 object OpcDiffer {
-
-  object OpcType extends Enumeration(1) {
-    val AssertOpc, LoadOpc, CDBVOpc, CDBVROpc, TDBOpc, TDBROpc, TDBAOpc, TDBAROpc, ReturnOpc = Value
-  }
-
-  def apply(context: ExecutionContext)
-           (opc: Array[Byte],
-            data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = {
-    opc.headOption.flatMap(f => Try(OpcType(f)).toOption) match {
-      case Some(OpcType.AssertOpc) => opcDiffReturn(AssertOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(OpcType.LoadOpc) => seqDataEntryReturn(LoadOpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(OpcType.CDBVOpc) => opcDiffReturn(CDBVOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(OpcType.CDBVROpc) => seqDataEntryReturn(CDBVROpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(OpcType.TDBOpc) => opcDiffReturn(TDBOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(OpcType.TDBROpc) => seqDataEntryReturn(TDBROpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(OpcType.TDBAOpc) => opcDiffReturn(TDBAOpcDiff.parseBytes(context)(opc.tail, data), data)
-      case Some(OpcType.TDBAROpc) => seqDataEntryReturn(TDBAROpcDiff.parseBytes(context)(opc.tail, data))
-      case Some(OpcType.ReturnOpc) => seqDataEntryReturn(ReturnOpcDiff.parseBytes(context)(opc.tail, data))
-      case _ => Left(ContractUnsupportedOPC)
+  object OpcType extends Enumeration {
+    sealed case class OpcTypeVal(opcType: Int,
+                                 opcDiffer: OpcDiffer) extends Val(opcType) {
+      def *(n: Int): Int = n * opcType
     }
+    val AssertOpc = OpcTypeVal(1, AssertOpcDiff)
+    val LoadOpc   = OpcTypeVal(2, LoadOpcDiff)
+    val CDBVOpc   = OpcTypeVal(3, CDBVOpcDiff)
+    val CDBVROpc  = OpcTypeVal(4, CDBVROpcDiff)
+    val TDBOpc    = OpcTypeVal(5, TDBOpcDiff)
+    val TDBROpc   = OpcTypeVal(6, TDBROpcDiff)
+    val TDBAOpc   = OpcTypeVal(7, TDBAOpcDiff)
+    val TDBAROpc  = OpcTypeVal(8, TDBAROpcDiff)
+    val ReturnOpc = OpcTypeVal(9, ReturnOpcDiff)
+
+    def fromByte(implicit b: Byte): Option[OpcTypeVal] =
+      Try(OpcType(b).asInstanceOf[OpcTypeVal]).toOption
   }
 
-  private def seqDataEntryReturn(res: Either[ValidationError, Seq[DataEntry]]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = {
-    res match {
-      case Right(d: Seq[DataEntry]) => Right((OpcDiff.empty, d))
-      case Left(validationError: ValidationError) => Left(validationError)
-    }
-  }
-
-  private def opcDiffReturn(res: Either[ValidationError, OpcDiff], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = {
-    res match {
-      case Right(opcDiff: OpcDiff) => Right((opcDiff, data))
-      case Left(validationError: ValidationError) => Left(validationError)
-    }
-  }
+  def apply(context: ExecutionContext)(opc: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
+    opc.headOption.flatMap(OpcType.fromByte(_)).toRight(ContractUnsupportedOPC).flatMap(_.opcDiffer.parseBytes(context)(opc.tail, data))
 
 }

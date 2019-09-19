@@ -38,7 +38,7 @@ object TransactionDiffer {
         case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings,currentBlockHeight)(rstx)
         case rctx: RegisterContractTransaction => RegisterContractTransactionDiff(s, currentBlockHeight)(rctx)
         case ectx: ExecuteContractFunctionTransaction => ExecuteContractFunctionTransactionDiff(s, currentBlockHeight)(ectx)
-        case dptx: DbPutTransaction => DbTransactionDiff.put(s, currentBlockHeight)(dptx)
+        case dptx: DbPutTransaction => DbTransactionDiff(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }
       positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp)(diff)

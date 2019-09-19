@@ -16,16 +16,16 @@ object TransactionParser {
       def *(n: Int): Int = n * txType
     }
 
-    val GenesisTransaction = TxTypeVal(1, vsys.blockchain.transaction.GenesisTransaction)
-    val PaymentTransaction = TxTypeVal(2, vsys.blockchain.transaction.PaymentTransaction)
-    val LeaseTransaction = TxTypeVal(3, vsys.blockchain.transaction.lease.LeaseTransaction)
-    val LeaseCancelTransaction = TxTypeVal(4, vsys.blockchain.transaction.lease.LeaseCancelTransaction)
-    val MintingTransaction = TxTypeVal(5, vsys.blockchain.transaction.MintingTransaction)
-    val ContendSlotsTransaction = TxTypeVal(6, vsys.blockchain.transaction.spos.ContendSlotsTransaction)
-    val ReleaseSlotsTransaction = TxTypeVal(7, vsys.blockchain.transaction.spos.ReleaseSlotsTransaction)
-    val RegisterContractTransaction = TxTypeVal(8, vsys.blockchain.transaction.contract.RegisterContractTransaction)
+    val GenesisTransaction                 = TxTypeVal(1, vsys.blockchain.transaction.GenesisTransaction)
+    val PaymentTransaction                 = TxTypeVal(2, vsys.blockchain.transaction.PaymentTransaction)
+    val LeaseTransaction                   = TxTypeVal(3, vsys.blockchain.transaction.lease.LeaseTransaction)
+    val LeaseCancelTransaction             = TxTypeVal(4, vsys.blockchain.transaction.lease.LeaseCancelTransaction)
+    val MintingTransaction                 = TxTypeVal(5, vsys.blockchain.transaction.MintingTransaction)
+    val ContendSlotsTransaction            = TxTypeVal(6, vsys.blockchain.transaction.spos.ContendSlotsTransaction)
+    val ReleaseSlotsTransaction            = TxTypeVal(7, vsys.blockchain.transaction.spos.ReleaseSlotsTransaction)
+    val RegisterContractTransaction        = TxTypeVal(8, vsys.blockchain.transaction.contract.RegisterContractTransaction)
     val ExecuteContractFunctionTransaction = TxTypeVal(9, vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction)
-    val DbPutTransaction = TxTypeVal(10, vsys.blockchain.transaction.database.DbPutTransaction)
+    val DbPutTransaction                   = TxTypeVal(10, vsys.blockchain.transaction.database.DbPutTransaction)
 
     def fromByte(implicit b: Byte): Option[TxTypeVal] = Try(TransactionType(b).asInstanceOf[TxTypeVal]).toOption
   }
