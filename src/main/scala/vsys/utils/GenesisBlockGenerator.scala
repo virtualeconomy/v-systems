@@ -31,7 +31,7 @@ object GenesisBlockGenerator {
   )
   val miner_num: Int = cfg.getInt("vsys.miner.quorum")
   val peer_num: Int = cfg.getInt("vsys.peer.quorum")
-  val interval: Double = Math.floor(60.0 / (peer_num+miner_num))
+  val interval = Math.floor(60.0 / (peer_num+miner_num)).toInt
   val addresses: Config = cfg.getConfig("vsys.wallet.slots")
   // add test use wallet address
   var test_wallet_addresses: Array[String] = Array.empty[String]
