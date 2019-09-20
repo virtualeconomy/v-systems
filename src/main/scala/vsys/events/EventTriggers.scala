@@ -26,7 +26,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
             if (re.nonEmpty) {
               eventWriter ! BlockAppendedEvent(url, scKey, enKey, maxSize, re)
             }
-            
+
           case e: TxConfirmedEventSettings =>
             val re = checkRules(e.eventRules, block.timestamp, blockDiff)
             eventWriter ! TxConfirmedEvent(url, scKey, enKey, maxSize, re)

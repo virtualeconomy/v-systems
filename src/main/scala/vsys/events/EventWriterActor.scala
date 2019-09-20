@@ -11,9 +11,9 @@ class EventWriterActor() extends Actor with ScorexLogging {
   override def receive = {
     case BlockAppendedEvent(url, scKey, enKey, maxSize, eventData) => Unit
       eventData.foreach {case (_, _, accs: Set[Address]) =>
-      	accs.foreach(acc => log.info(acc.toString))
+        accs.foreach(acc => log.info(acc.toString))
       }
-   		
+
     case TxConfirmedEvent(url, scKey, enKey, maxSize, eventData) =>
       if(eventData.nonEmpty) {
         eventData.foreach {case (_, tx, accs: Set[Address]) =>

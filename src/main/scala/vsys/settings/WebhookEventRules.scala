@@ -1,12 +1,11 @@
 package vsys.settings
 
 import com.typesafe.config.Config
-import scala.util.Try
+import scala.util.{Try, TransactionHelper}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.utils.TransactionHelper
 import vsys.account.Address
 import vsys.blockchain.transaction.ProcessedTransaction
 import vsys.utils.ScorexLogging
