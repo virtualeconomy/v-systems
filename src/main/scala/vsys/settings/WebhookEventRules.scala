@@ -1,14 +1,14 @@
 package vsys.settings
 
 import com.typesafe.config.Config
-import scala.util.{Try, TransactionHelper}
+import scala.util.Try
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.account.Address
 import vsys.blockchain.transaction.ProcessedTransaction
-import vsys.utils.ScorexLogging
+import vsys.utils.{ScorexLogging, TransactionHelper}
 
 trait WebhookEventRules extends Product with Serializable with ScorexLogging {
   val value: Any
