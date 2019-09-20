@@ -72,7 +72,7 @@ object GenesisBlockGenerator {
 
     val mt = if (mintTime < 0) timestamp / 10000000000L * 10000000000L else mintTime
 
-    val accounts = Range(0, 60, interval).map(n => n -> generateFullAddressInfo(n))
+    val accounts = Range(0, (miner_num + peer_num)*interval, interval).map(n => n -> generateFullAddressInfo(n))
     val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n / interval), n, timestamp, ByteStr.empty) }
 
     println(ByteStr(genesisTxs.head.bytes).base58)
