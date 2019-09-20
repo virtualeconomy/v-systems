@@ -33,7 +33,7 @@ import DebugApiRoute._
 
 
 @Path("/debug")
-@Api(value = "/debug")
+@Api(value = "/debug", authorizations = Array(new Authorization("api_key")))
 case class DebugApiRoute(settings: RestAPISettings,
                          wallet: Wallet,
                          stateReader: StateReader,
@@ -49,7 +49,8 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/blocks/{howMany}")
-  @ApiOperation(value = "Blocks", notes = "Get sizes and full hashes for last blocks", httpMethod = "GET")
+  @ApiOperation(value = "Blocks", notes = "Get sizes and full hashes for last blocks", httpMethod = "GET",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "howMany",
@@ -68,7 +69,8 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/state")
-  @ApiOperation(value = "State", notes = "Get current state", httpMethod = "GET")
+  @ApiOperation(value = "State", notes = "Get current state", httpMethod = "GET",
+    authorizations = Array(new Authorization("api_key")))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json state")))
   def state: Route = (path("state") & get & withAuth) {
     complete(stateReader.accountPortfolios
@@ -82,7 +84,8 @@ case class DebugApiRoute(settings: RestAPISettings,
   @ApiOperation(
     value = "Portfolio",
     notes = "Get current portfolio considering pessimistic transactions in the UTX pool",
-    httpMethod = "GET"
+    httpMethod = "GET",
+    authorizations = Array(new Authorization("api_key"))
   )
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
@@ -114,7 +117,8 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/stateVsys/{height}")
-  @ApiOperation(value = "State at block", notes = "Get state at specified height", httpMethod = "GET")
+  @ApiOperation(value = "State at block", notes = "Get state at specified height", httpMethod = "GET",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "height", value = "height", required = true, dataType = "integer", paramType = "path")
   ))
@@ -139,7 +143,8 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/rollback")
-  @ApiOperation(value = "Rollback to height", notes = "Removes all blocks after given height", httpMethod = "POST")
+  @ApiOperation(value = "Rollback to height", notes = "Removes all blocks after given height", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -180,7 +185,8 @@ case class DebugApiRoute(settings: RestAPISettings,
 
 
   @Path("/rollback-to/{signature}")
-  @ApiOperation(value = "Block signature", notes = "Rollback the state to the block with a given signature", httpMethod = "DELETE")
+  @ApiOperation(value = "Block signature", notes = "Rollback the state to the block with a given signature", httpMethod = "DELETE",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "signature", value = "Base58-encoded block signature", required = true, dataType = "string", paramType = "path")
   ))
@@ -196,7 +202,8 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/blacklist")
-  @ApiOperation(value = "Blacklist given peer", notes = "Moving peer to blacklist", httpMethod = "POST")
+  @ApiOperation(value = "Blacklist given peer", notes = "Moving peer to blacklist", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "IP address of node", required = true, dataType = "string", paramType = "body")
   ))

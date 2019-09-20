@@ -28,7 +28,8 @@ case class LeaseApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   @ApiOperation(value = "Creates a lease",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -46,7 +47,8 @@ case class LeaseApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   @ApiOperation(value = "Interrupt a lease",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
