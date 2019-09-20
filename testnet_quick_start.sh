@@ -6,7 +6,7 @@ MINER_IMG_REPO="julianip/minter_node"
 
 ## Configured Parameters in Customized Mode
 PEER_NUM=1
-MINER_NUM=5
+MINER_NUM=1
 INITIAL_BALANCE=1000000000000000000
 
 ## Choose default/customized mode to create testnet
