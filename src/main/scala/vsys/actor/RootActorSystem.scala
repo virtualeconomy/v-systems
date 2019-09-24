@@ -6,14 +6,15 @@ import vsys.utils.ScorexLogging
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.DynamicVariable
 
 object RootActorSystem extends ScorexLogging {
-  @volatile private var failed = false
+  private val failed = new DynamicVariable(false)
 
   final class EscalatingStrategy extends SupervisorStrategyConfigurator {
     override def create(): SupervisorStrategy = AllForOneStrategy(loggingEnabled = false) {
       case t: Throwable =>
-        failed = true
+        failed value_= true
         log.error("Root actor got exception, escalate", t)
         SupervisorStrategy.Escalate
     }
@@ -30,7 +31,7 @@ object RootActorSystem extends ScorexLogging {
     }
 
     Await.result(system.whenTerminated, Duration.Inf)
-    if (failed) {
+    if (failed.value) {
       sys.exit(1)
     } else {
       sys.exit(0)

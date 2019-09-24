@@ -244,7 +244,7 @@ object Application extends ScorexLogging {
       configureLogging(settings)
 
       // Initialize global var with actual address scheme
-      AddressScheme.current = new AddressScheme {
+      AddressScheme.current value_= new AddressScheme {
         override val chainId: Byte = settings.blockchainSettings.addressSchemeCharacter.toByte
       }
 

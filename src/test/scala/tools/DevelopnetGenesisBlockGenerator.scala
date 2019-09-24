@@ -48,7 +48,7 @@ object DevelopnetGenesisBlockGenerator extends App {
   )
 
   def generate(networkByte: Char, averageBlockDelay: FiniteDuration) :(IndexedSeq[(Int, Address)], GenesisSettings) = {
-    vsys.account.AddressScheme.current = new AddressScheme {
+    vsys.account.AddressScheme.current value_= new AddressScheme {
       override val chainId: Byte = networkByte.toByte
     }
 

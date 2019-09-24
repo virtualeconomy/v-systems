@@ -46,7 +46,7 @@ object Wallet extends ScorexLogging {
     def exportAccountSeed(account: Address): Either[ValidationError, Array[Byte]] = w.privateKeyAccount(account).map(_.seed)
   }
 
-  private val chainName = if(AddressScheme.current.chainId == 'T') "testnet" else "mainnet"
+  private val chainName = if(AddressScheme.current.value.chainId == 'T') "testnet" else "mainnet"
   private val agentString = s"V Systems Wallet Specification:1.0/V Core:${Version.VersionString}/${chainName}"
 
   private case class WalletData(seed: String, accountSeeds: LinkedHashSet[ByteStr] = LinkedHashSet.empty, nonce: Long = 0, agent: String = agentString)

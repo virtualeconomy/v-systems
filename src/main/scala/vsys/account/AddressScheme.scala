@@ -1,11 +1,13 @@
 package vsys.account
 
+import scala.util.DynamicVariable
+
 abstract class AddressScheme {
   val chainId: Byte
 }
 
 object AddressScheme {
-  @volatile var current : AddressScheme = DefaultAddressScheme
+  val current: DynamicVariable[AddressScheme] = new DynamicVariable(DefaultAddressScheme)
 }
 
 object DefaultAddressScheme extends AddressScheme {
