@@ -8,13 +8,12 @@ import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
 import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
-import vsys.utils.NTP
+import vsys.utils.{NTP, Random}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.Random
 
 class MatcherTestSuite extends FreeSpec with Matchers with BeforeAndAfterAll {
 

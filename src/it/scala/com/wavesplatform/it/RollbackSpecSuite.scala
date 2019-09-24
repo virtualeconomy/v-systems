@@ -2,17 +2,17 @@ package com.wavesplatform.it
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.wavesplatform.it.RollbackSpecSuite._
-import com.wavesplatform.it.util._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{FreeSpec, Matchers}
+
+import vsys.utils.Random
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await.result
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future.traverse
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-import scala.util.Random
+import scala.concurrent.Future
 
 class RollbackSpecSuite extends FreeSpec with ScalaFutures with IntegrationPatience
   with Matchers with TransferSending with IntegrationNodesInitializationAndStopping {

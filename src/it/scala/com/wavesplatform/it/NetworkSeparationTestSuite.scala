@@ -3,13 +3,14 @@ package com.wavesplatform.it
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
 
+import vsys.utils.Random
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.Await.result
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future.traverse
 import scala.concurrent.duration._
-import scala.util.Random
 
 class NetworkSeparationTestSuite extends FreeSpec with Matchers with BeforeAndAfterAll with IntegrationNodesInitializationAndStopping {
 
