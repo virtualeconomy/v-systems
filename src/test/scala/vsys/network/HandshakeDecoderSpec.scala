@@ -12,6 +12,8 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
 
+import scala.util.DynamicVariable
+
 class HandshakeDecoderSpec extends FreeSpec
   with Matchers
   with MockFactory
@@ -21,13 +23,13 @@ class HandshakeDecoderSpec extends FreeSpec
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   "should read a handshake and remove itself from the pipeline" in {
-    var mayBeDecodedHandshake: Option[Handshake] = None
+    val mayBeDecodedHandshake: DynamicVariable[Option[Handshake]] = new DynamicVariable(None)
 
     val channel = new EmbeddedChannel(
       new HandshakeDecoder(PeerDatabase.NoOp),
       new ChannelInboundHandlerAdapter {
         override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = msg match {
-          case x: Handshake => mayBeDecodedHandshake = Some(x)
+          case x: Handshake => mayBeDecodedHandshake value_= Some(x)
           case _ =>
         }
       }
@@ -47,7 +49,7 @@ class HandshakeDecoderSpec extends FreeSpec
 
     channel.writeInbound(buff)
 
-    mayBeDecodedHandshake should contain(origHandshake)
+    mayBeDecodedHandshake.value should contain(origHandshake)
   }
 
   private val invalidHandshakeBytes: Gen[Array[Byte]] = {
@@ -91,14 +93,14 @@ class HandshakeDecoderSpec extends FreeSpec
     buff.writeBytes(bytes)
 
     channel.writeInbound(buff)
-    decoder.blockCalls shouldBe >(0)
+    decoder.blockCalls.value shouldBe >(0)
   }
 
   private class SpiedHandshakeDecoder extends HandshakeDecoder(PeerDatabase.NoOp) {
-    var blockCalls = 0
+    val blockCalls = new DynamicVariable(0)
 
     override protected def block(ctx: ChannelHandlerContext, e: Throwable): Unit = {
-      blockCalls += 1
+      blockCalls value_= blockCalls.value + 1
     }
   }
 
