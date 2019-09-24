@@ -1,12 +1,13 @@
 package vsys.db
 
 import java.nio.ByteBuffer
-import scala.collection.immutable.Stream
 
 import org.h2.mvstore.`type`.{DataType, ObjectDataType}
 import org.h2.mvstore.WriteBuffer
 import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
 
+import scala.collection.immutable.Stream
+import scala.util.DynamicVariable
 
 class StateMap[K, V](
   db: DB,
@@ -33,13 +34,11 @@ class StateMap[K, V](
   }
 
   def put(key: K, value: V, batchOpt: Option[WriteBatch] = None): V = {
-    var batch: Option[WriteBatch] = batchOpt
-    if (batchOpt.isEmpty) batch = createBatch()
-    if (!containsKey(key)) setSize(sizeAsLong() + 1, batch)
-    put(bytesOfKey(key), bytesOfValue(value), batch)
-    if (batchOpt.isEmpty) commit(batch)
+    invokeBatch(batchOpt, batch => {
+      if (!containsKey(key)) setSize(sizeAsLong() + 1, batch)
+      put(bytesOfKey(key), bytesOfValue(value), batch)
+    })
     value
-
   }
 
   def get(key: K): Option[V] = {
@@ -57,11 +56,10 @@ class StateMap[K, V](
   def remove(key: K, batchOpt: Option[WriteBatch] = None): Option[V] = {
     val rtn: Option[V] = get(key)
     if (rtn.isDefined) {
-      var batch: Option[WriteBatch] = batchOpt
-      if (batchOpt.isEmpty) batch = createBatch()
-      delete(bytesOfKey(key), batch)
-      setSize(sizeAsLong() - 1, batch)
-      if (batchOpt.isEmpty) commit(batch)
+      invokeBatch(batchOpt, batch => {
+        delete(bytesOfKey(key), batch)
+        setSize(sizeAsLong() - 1, batch)
+      })
     }
     rtn
   }
@@ -81,17 +79,13 @@ class StateMap[K, V](
 
 
   def sizeAsLong(): Long = {
-
     val sizeBytes: Option[Array[Byte]] = get(SizeKey)
     if (sizeBytes.isEmpty) 0
     else ByteBuffer.wrap(sizeBytes.get).getLong
-
   }
 
   private def setSize(size: Long, batch: Option[WriteBatch]): Unit = {
-
     put(SizeKey, ByteBuffer.allocate(8).putLong(size).array(), batch)
-      
   }
 
   private def deserializeKey(keyBytes: Array[Byte]): K = {
@@ -102,20 +96,25 @@ class StateMap[K, V](
     valueType.read(ByteBuffer.wrap(valBytes)).asInstanceOf[V]
   }
 
+  private def invokeBatch(batchOpt: Option[WriteBatch] = None, op: Option[WriteBatch] => Unit): Unit = {
+    val batch = new DynamicVariable(batchOpt)
+    if (batchOpt.isEmpty) batch.value_=(createBatch())
+    op(batch.value)
+    if (batchOpt.isEmpty) commit(batch.value)
+  }
+
   def isEmpty(): Boolean = size() == 0
 
   def clear(batchOpt: Option[WriteBatch] = None): Unit = {
-    var batch: Option[WriteBatch] = batchOpt
-    if (batchOpt.isEmpty) batch = createBatch()
-    val it = allKeys
-    while(it.hasNext) {
-      val key = it.nextKey()
-      if (key.startsWith(Prefix)) delete(key, batch)
-    }
-    it.close()
-    setSize(0, batch)
-    if (batchOpt.isEmpty) commit(batch)
-
+    invokeBatch(batchOpt, batch => {
+      val it = allKeys
+      while(it.hasNext) {
+        val key = it.nextKey()
+        if (key.startsWith(Prefix)) delete(key, batch)
+      }
+      it.close()
+      setSize(0, batch)
+    })
   }
 
   def asScala(): Stream[(K, V)] = {

@@ -80,7 +80,7 @@ class StateStorage private(db: DB) extends Storage(db){
   val dbEntries: StateMap[ByteStr, ByteStr] = new StateMap(db, "dbEntries", keyType=DataTypes.byteStr, valueType=DataTypes.byteStr)
 
   override def removeEverything(batchOpt: Option[WriteBatch] = None): Unit = {
-    val batch: Option[WriteBatch] = batchOpt
+    var batch: Option[WriteBatch] = batchOpt
     if (batchOpt.isEmpty) batch = createBatch()
     new SubStorage(db, "states").removeEverything(batch)
     setHeight(0, batch)

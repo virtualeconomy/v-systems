@@ -21,7 +21,7 @@ import vsys.blockchain.transaction._
 import vsys.utils.{ScorexLogging, Synchronized, Time}
 
 import scala.concurrent.duration._
-import scala.util.{Left, Right}
+import scala.util.{DynamicVariable, Left, Right}
 
 class UtxPool(time: Time,
               stateReader: StateReader,
@@ -141,8 +141,8 @@ object UtxPool {
   private class PessimisticPortfolios {
     private type Portfolios = Map[Address, Portfolio]
 
-    private var transactionPortfolios = Map.empty[ByteStr, Portfolios]
-    private var transactions = Map.empty[Address, Set[ByteStr]]
+    private val transactionPortfolios = new DynamicVariable(Map.empty[ByteStr, Portfolios])
+    private val transactions = new DynamicVariable(Map.empty[Address, Set[ByteStr]])
 
     def add(txId: ByteStr, txDiff: Diff): Unit = {
       val nonEmptyPessimisticPortfolios = txDiff.portfolios
@@ -152,18 +152,18 @@ object UtxPool {
         }
 
       if (nonEmptyPessimisticPortfolios.nonEmpty) {
-        transactionPortfolios += txId -> nonEmptyPessimisticPortfolios
+        transactionPortfolios.value_=(transactionPortfolios.value + (txId -> nonEmptyPessimisticPortfolios))
         nonEmptyPessimisticPortfolios.keys.foreach { address =>
-          transactions += address -> (transactions.getOrElse(address, Set.empty) + txId)
+          transactions.value_=(transactions.value + (address -> (transactions.value.getOrElse(address, Set.empty) + txId)))
         }
       }
     }
 
     def getAggregated(accountAddr: Address): Portfolio = {
       val portfolios = for {
-        txIds <- transactions.get(accountAddr).toSeq
+        txIds <- transactions.value.get(accountAddr).toSeq
         txId <- txIds
-        txPortfolios <- transactionPortfolios.get(txId)
+        txPortfolios <- transactionPortfolios.value.get(txId)
         txAccountPortfolio <- txPortfolios.get(accountAddr)
       } yield txAccountPortfolio
 
@@ -171,8 +171,8 @@ object UtxPool {
     }
 
     def remove(txId: ByteStr): Unit = {
-      transactionPortfolios -= txId
-      transactions = transactions.map { case (k, v) => k -> (v - txId) }
+      transactionPortfolios.value_=(transactionPortfolios.value - txId)
+      transactions value_= transactions.value.map { case (k, v) => k -> (v - txId) }
     }
   }
 
