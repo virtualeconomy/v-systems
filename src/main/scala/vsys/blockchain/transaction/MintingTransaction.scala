@@ -10,7 +10,7 @@ import vsys.utils.crypto.hash.FastCryptographicHash
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.consensus.SPoSCalc._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{DynamicVariable, Failure, Success, Try}
 
 case class MintingTransaction private(recipient: Address,
                                       amount: Long,
@@ -64,27 +64,28 @@ object MintingTransaction extends TransactionParser {
   def parseTail(data: Array[Byte]): Try[MintingTransaction] = Try {
     require(data.length >= BaseLength, "Data does not match base length")
 
-    var position = 0
+    val positionVal = new DynamicVariable(0)
+    val position = positionVal.value
 
     //READ TIMESTAMP
     val timestampBytes = data.take(TimestampLength)
     val timestamp = Longs.fromByteArray(timestampBytes)
-    position += TimestampLength
+    positionVal.value_=(position + TimestampLength)
 
     //READ RECIPIENT
     val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + recipientLength)
     val recipient = Address.fromBytes(recipientBytes).right.get
-    position += recipientLength
+    positionVal.value_=(position + recipientLength)
 
     //READ AMOUNT
     val amountBytes = util.Arrays.copyOfRange(data, position, position + AmountLength)
     val amount = Longs.fromByteArray(amountBytes)
-    position += AmountLength
+    positionVal.value_=(position + AmountLength)
 
     //READ CURRENTBLOCKHEIGHT
     val currentBlockHeightBytes = util.Arrays.copyOfRange(data, position, position + currentBlockHeightLength)
     val currentBlockHeight = Ints.fromByteArray(currentBlockHeightBytes)
-    position += currentBlockHeightLength
+    positionVal.value_=(position + currentBlockHeightLength)
 
     //READ SIGNATURE
     MintingTransaction
