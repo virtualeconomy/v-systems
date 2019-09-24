@@ -8,18 +8,19 @@ import vsys.utils.ScorexLogging
 
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
+import scala.util.DynamicVariable
 
 class ExtensionBlocksLoader(
     blockSyncTimeout: FiniteDuration,
     peerDatabase: PeerDatabase) extends ChannelInboundHandlerAdapter with ScorexLogging {
-  private var pendingSignatures = Map.empty[ByteStr, Int]
-  private var targetExtensionIds = Option.empty[ExtensionIds]
-  private val blockBuffer = mutable.TreeMap.empty[Int, Block]
-  private var currentTimeout = Option.empty[ScheduledFuture[_]]
+  private val pendingSignatures = new DynamicVariable(Map.empty[ByteStr, Int])
+  private val targetExtensionIds = new DynamicVariable(Option.empty[ExtensionIds])
+  private val blockBuffer = new DynamicVariable(mutable.TreeMap.empty[Int, Block])
+  private val currentTimeout = new DynamicVariable(Option.empty[ScheduledFuture[_]])
 
   private def cancelTimeout(): Unit = {
-    currentTimeout.foreach(_.cancel(false))
-    currentTimeout = None
+    currentTimeout.value.foreach(_.cancel(false))
+    currentTimeout value_= None
   }
 
   override def channelInactive(ctx: ChannelHandlerContext): Unit = {
@@ -28,13 +29,13 @@ class ExtensionBlocksLoader(
   }
 
   override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
-    case xid@ExtensionIds(_, newIds) if pendingSignatures.isEmpty =>
+    case xid@ExtensionIds(_, newIds) if pendingSignatures.value.isEmpty =>
       if (newIds.nonEmpty) {
-        targetExtensionIds = Some(xid)
-        pendingSignatures = newIds.zipWithIndex.toMap
+        targetExtensionIds value_= Some(xid)
+        pendingSignatures value_= newIds.zipWithIndex.toMap
         cancelTimeout()
-        currentTimeout = Some(ctx.executor().schedule(blockSyncTimeout) {
-          if (targetExtensionIds.contains(xid)) {
+        currentTimeout value_= Some(ctx.executor().schedule(blockSyncTimeout) {
+          if (targetExtensionIds.value.contains(xid)) {
             peerDatabase.blacklistAndClose(ctx.channel(), "Timeout loading blocks")
           }
         })
@@ -45,16 +46,16 @@ class ExtensionBlocksLoader(
         ctx.fireChannelRead(ExtensionBlocks(Seq.empty))
       }
 
-    case b: Block if pendingSignatures.contains(b.uniqueId) =>
-      blockBuffer += pendingSignatures(b.uniqueId) -> b
-      pendingSignatures -= b.uniqueId
-      if (pendingSignatures.isEmpty) {
+    case b: Block if pendingSignatures.value.contains(b.uniqueId) =>
+      blockBuffer.value += pendingSignatures.value(b.uniqueId) -> b
+      pendingSignatures.value_=(pendingSignatures.value - b.uniqueId)
+      if (pendingSignatures.value.isEmpty) {
         cancelTimeout()
         log.trace(s"${id(ctx)} Loaded all blocks, doing a pre-check")
 
-        val newBlocks = blockBuffer.values.toSeq
+        val newBlocks = blockBuffer.value.values.toSeq
 
-        for (tids <- targetExtensionIds) {
+        for (tids <- targetExtensionIds.value) {
           if (tids.lastCommonId != newBlocks.head.reference) {
             peerDatabase.blacklistAndClose(ctx.channel(),s"Extension head reference ${newBlocks.head.reference} differs from last common block id ${tids.lastCommonId}")
           } else if (!newBlocks.sliding(2).forall {
@@ -73,8 +74,8 @@ class ExtensionBlocksLoader(
           }
         }
 
-        targetExtensionIds = None
-        blockBuffer.clear()
+        targetExtensionIds value_= None
+        blockBuffer.value.clear()
       }
 
     case _: ExtensionIds =>

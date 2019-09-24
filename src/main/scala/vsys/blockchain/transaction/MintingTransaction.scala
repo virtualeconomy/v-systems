@@ -65,7 +65,7 @@ object MintingTransaction extends TransactionParser {
     require(data.length >= BaseLength, "Data does not match base length")
 
     val positionVal = new DynamicVariable(0)
-    val position = positionVal.value
+    def position = positionVal.value
 
     //READ TIMESTAMP
     val timestampBytes = data.take(TimestampLength)

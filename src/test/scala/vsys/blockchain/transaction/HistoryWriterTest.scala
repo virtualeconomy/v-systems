@@ -10,6 +10,7 @@ import vsys.db.openDB
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.DynamicVariable
 
 class HistoryWriterTest extends FunSuite with Matchers with HistoryTest {
 
@@ -22,17 +23,17 @@ class HistoryWriterTest extends FunSuite with Matchers with HistoryTest {
       appendTestBlock(history)
     }
 
-    @volatile var failed = false
+    val failed = new DynamicVariable(false)
 
     def tryAppendTestBlock(history: HistoryWriterImpl): Either[ValidationError, BlockDiff] =
       history.appendBlock(TestBlock.withReference(history.lastBlock.get.uniqueId))(Right(BlockDiff.empty))
 
     (1 to 1000).foreach { _ =>
-      Future(tryAppendTestBlock(history)).recover[Any] { case e => e.printStackTrace(); failed = true }
-      Future(history.discardBlock()).recover[Any] { case e => e.printStackTrace(); failed = true }
+      Future(tryAppendTestBlock(history)).recover[Any] { case e => e.printStackTrace(); failed value_= true }
+      Future(history.discardBlock()).recover[Any] { case e => e.printStackTrace(); failed value_= true }
     }
     Thread.sleep(1000)
 
-    failed shouldBe false
+    failed.value shouldBe false
   }
 }

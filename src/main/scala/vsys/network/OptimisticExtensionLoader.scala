@@ -5,59 +5,61 @@ import io.netty.channel.{ChannelDuplexHandler, ChannelHandlerContext, ChannelPro
 import vsys.blockchain.block.Block
 import vsys.utils.ScorexLogging
 
+import scala.util.DynamicVariable
+
 class OptimisticExtensionLoader extends ChannelDuplexHandler with ScorexLogging {
 
-  private var hopefullyNextIds = Seq.empty[ByteStr]
-  private var nextExtensionBlocks = Seq.empty[Block]
-  private var discardNextBlocks = false
+  private val hopefullyNextIds = new DynamicVariable(Seq.empty[ByteStr])
+  private val nextExtensionBlocks = new DynamicVariable(Seq.empty[Block])
+  private val discardNextBlocks = new DynamicVariable(false)
 
   private def loadNextPart(ctx: ChannelHandlerContext, blocks: Seq[Block]): Unit = if (blocks.size > 1) {
     // Receiving just one block usually means we've reached the end of blockchain. Pre-Netty nodes
     // didn't handle GetSignatures(lastBlockId) message properly, hence the check.
     log.trace(s"${id(ctx)} loading next part")
-    hopefullyNextIds = blocks.view.map(_.uniqueId).reverseIterator.take(100).toSeq
-    ctx.writeAndFlush(LoadBlockchainExtension(hopefullyNextIds))
+    hopefullyNextIds value_= blocks.view.map(_.uniqueId).reverseIterator.take(100).toSeq
+    ctx.writeAndFlush(LoadBlockchainExtension(hopefullyNextIds.value))
   }
 
   override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
-    case ExtensionBlocks(extension) if discardNextBlocks =>
-      discardNextBlocks = false
+    case ExtensionBlocks(extension) if discardNextBlocks.value =>
+      discardNextBlocks value_= false
       log.debug(s"${id(ctx)} discarding just-loaded ${extension.length} blocks as requested")
     case ExtensionBlocks(extension) if extension.isEmpty =>
       log.debug(s"${id(ctx)} Blockchain is up to date")
-      hopefullyNextIds = Seq.empty
+      hopefullyNextIds value_= Seq.empty
       super.channelRead(ctx, msg)
-    case ExtensionBlocks(extension) if hopefullyNextIds.isEmpty =>
+    case ExtensionBlocks(extension) if hopefullyNextIds.value.isEmpty =>
       loadNextPart(ctx, extension)
       log.trace(s"${id(ctx)} Passing extension with ${extension.length} blocks upstream")
       super.channelRead(ctx, msg)
     case ExtensionBlocks(extension) =>
-      nextExtensionBlocks = extension
+      nextExtensionBlocks value_= extension
     case _ => super.channelRead(ctx, msg)
   }
 
   override def write(ctx: ChannelHandlerContext, msg: AnyRef, promise: ChannelPromise): Unit = msg match {
-    case LoadBlockchainExtension(localIds) if hopefullyNextIds == localIds =>
-      if (nextExtensionBlocks.isEmpty) {
+    case LoadBlockchainExtension(localIds) if hopefullyNextIds.value == localIds =>
+      if (nextExtensionBlocks.value.isEmpty) {
         log.debug(s"${id(ctx)} Still waiting for extension to load")
-        hopefullyNextIds = Seq.empty
+        hopefullyNextIds value_= Seq.empty
       } else {
         log.debug(s"${id(ctx)} Extension already loaded")
-        ctx.fireChannelRead(ExtensionBlocks(nextExtensionBlocks))
-        loadNextPart(ctx, nextExtensionBlocks)
-        nextExtensionBlocks = Seq.empty
+        ctx.fireChannelRead(ExtensionBlocks(nextExtensionBlocks.value))
+        loadNextPart(ctx, nextExtensionBlocks.value)
+        nextExtensionBlocks value_= Seq.empty
       }
-    case _: LoadBlockchainExtension if hopefullyNextIds.isEmpty =>
+    case _: LoadBlockchainExtension if hopefullyNextIds.value.isEmpty =>
       super.write(ctx, msg, promise)
     case LoadBlockchainExtension(localIds) =>
-      val notYetRequestedIds = hopefullyNextIds.dropWhile(_ != localIds.head)
-      if (notYetRequestedIds.isEmpty || !hopefullyNextIds.containsSlice(notYetRequestedIds)) {
+      val notYetRequestedIds = hopefullyNextIds.value.dropWhile(_ != localIds.head)
+      if (notYetRequestedIds.isEmpty || !hopefullyNextIds.value.containsSlice(notYetRequestedIds)) {
 //        log.debug(s"${fmt("LOCAL IDS", localIds)}${fmt("HOPEFULLY NEXT", hopefullyNextIds)}${fmt("DIFF", notYetRequestedIds)}")
-        discardNextBlocks = nextExtensionBlocks.isEmpty
-        log.debug(s"${id(ctx)} Got unexpected known block ids${if (discardNextBlocks) ", will discard extension once ready" else ""}")
+        discardNextBlocks value_= nextExtensionBlocks.value.isEmpty
+        log.debug(s"${id(ctx)} Got unexpected known block ids${if (discardNextBlocks.value) ", will discard extension once ready" else ""}")
       }
-      hopefullyNextIds = Seq.empty
-      nextExtensionBlocks = Seq.empty
+      hopefullyNextIds value_= Seq.empty
+      nextExtensionBlocks value_= Seq.empty
       super.write(ctx, msg, promise)
     case _ => super.write(ctx, msg, promise)
   }

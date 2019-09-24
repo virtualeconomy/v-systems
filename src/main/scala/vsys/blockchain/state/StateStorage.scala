@@ -1,12 +1,13 @@
 package vsys.blockchain.state
 
 import com.google.common.primitives.Ints
+import org.iq80.leveldb.{DB, WriteBatch}
 import vsys.account.Address
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import org.iq80.leveldb.{DB, WriteBatch}
-
 import vsys.db.{Storage, SubStorage}
 import vsys.db.StateMap
+
+import scala.util.DynamicVariable
 
 class StateStorage private(db: DB) extends Storage(db){
 
@@ -80,11 +81,11 @@ class StateStorage private(db: DB) extends Storage(db){
   val dbEntries: StateMap[ByteStr, ByteStr] = new StateMap(db, "dbEntries", keyType=DataTypes.byteStr, valueType=DataTypes.byteStr)
 
   override def removeEverything(batchOpt: Option[WriteBatch] = None): Unit = {
-    var batch: Option[WriteBatch] = batchOpt
-    if (batchOpt.isEmpty) batch = createBatch()
-    new SubStorage(db, "states").removeEverything(batch)
-    setHeight(0, batch)
-    if (batchOpt.isEmpty) commit(batch)
+    val batch = new DynamicVariable(batchOpt)
+    if (batchOpt.isEmpty) batch value_= createBatch()
+    new SubStorage(db, "states").removeEverything(batch.value)
+    setHeight(0, batch.value)
+    if (batchOpt.isEmpty) commit(batch.value)
   }
 
 }
