@@ -1,18 +1,18 @@
 package vsys.blockchain.block
 
+import java.security.SecureRandom
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSuite, Matchers}
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction._
 
-import scala.util.Random
-
 class BlockSpecification extends FunSuite with Matchers with MockFactory {
 
   test(" block with txs bytes/parse roundtrip") {
 
-    val reference = Array.fill(Block.BlockIdLength)(Random.nextInt(100).toByte)
+    val reference = Array.fill(Block.BlockIdLength)(new SecureRandom().nextInt(100).toByte)
     val gen = PrivateKeyAccount(reference)
 
     val mt = System.currentTimeMillis() / 10000 * 10000000000000L

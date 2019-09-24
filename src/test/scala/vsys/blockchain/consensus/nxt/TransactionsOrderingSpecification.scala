@@ -5,8 +5,7 @@ import vsys.account.{Address, PrivateKeyAccount}
 import vsys.blockchain.consensus.TransactionsOrdering
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.PaymentTransaction
-
-import scala.util.Random
+import vsys.utils.Random
 
 class TransactionsOrderingSpecification extends PropSpec with Assertions with Matchers {
 
