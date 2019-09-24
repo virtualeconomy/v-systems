@@ -7,10 +7,9 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.state.EitherExt2
-import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.transaction.{ProcessedTransaction, TransactionGen, TransactionStatus}
 
 class StateReaderTransactionQueryTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 

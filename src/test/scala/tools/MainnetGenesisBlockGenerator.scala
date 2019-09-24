@@ -3,10 +3,8 @@ package tools
 import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
 import vsys.blockchain.state.ByteStr
 import vsys.account.{Address, AddressScheme, PrivateKeyAccount}
-import vsys.blockchain.block.Block
-import vsys.blockchain.block.SposConsensusBlockData
-import vsys.blockchain.transaction.{GenesisTransaction, Transaction}
-import vsys.blockchain.transaction.{TransactionStatus, ProcessedTransaction}
+import vsys.blockchain.block.{Block, SposConsensusBlockData}
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.TransactionParser.SignatureLength
 import vsys.settings.Constants._
 
@@ -36,7 +34,7 @@ object MainnetGenesisBlockGenerator extends App {
   )
 
   // add wallet address
-  val wallet_addresses = Array (
+  val walletAddresses = Array (
     "ARKwwhnX2mk9V79kuvb3tEWVyri5Z2HFsPR",
     "AR2vo3jQjoyJLQysg99AYTR1SQ5mHqGhS1P",
     "AR8ejrETNWLaABp27fYEdh291MR1kDC92ue",
@@ -70,7 +68,7 @@ object MainnetGenesisBlockGenerator extends App {
     "ARPnxBFbMzQQn4SncJ2WdH61ynqcPcninV4"//minters
   )
 
-  val genesis_slots = Array (
+  val genesisSlots = Array (
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56
   )
@@ -85,10 +83,10 @@ object MainnetGenesisBlockGenerator extends App {
 
     val mt = timestamp/ 4L * 4L / 1000000000L * 1000000000L
 
-    val accounts = wallet_addresses.indices.map(n => n -> Address.fromString(wallet_addresses(n)).right.get)
-    val genesisTxs = accounts.map { case (n, address) => GenesisTransaction(address, balanceDistributions(n), genesis_slots(n), timestamp, ByteStr.empty) }
+    val accounts = walletAddresses.indices.map(n => n -> Address.fromString(walletAddresses(n)).right.get)
+    val genesisTxs = accounts.map { case (n, address) => GenesisTransaction(address, balanceDistributions(n), genesisSlots(n), timestamp, ByteStr.empty) }
 
-    // set the genesisblock's minting Balance to 0
+    // set the genesisBlock's minting Balance to 0
     val genesisBlock = Block.buildAndSign(1, timestamp, reference, SposConsensusBlockData(mt, 0L),
       genesisTxs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}, genesisSigner)
     val signature = genesisBlock.signerData.signature
