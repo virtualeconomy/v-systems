@@ -3,7 +3,7 @@ package com.wavesplatform.it
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
 
-import vsys.utils.Random
+import vsys.utils.VSYSSecureRandom.shuffle
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await.result
@@ -87,6 +87,6 @@ object BlacklistTestSuite {
 
   val NodesCount: Int = 4
 
-  val Configs: Seq[Config] = Seq(generatingNodeConfig.withFallback(dockerConfigs.last)) ++ Random.shuffle(dockerConfigs.init).take(NodesCount - 1)
+  val Configs: Seq[Config] = Seq(generatingNodeConfig.withFallback(dockerConfigs.last)) ++ shuffle(dockerConfigs.init).take(NodesCount - 1)
 
 }

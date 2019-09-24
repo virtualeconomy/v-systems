@@ -6,7 +6,7 @@ import java.security.SecureRandom
 import com.google.common.collect.EvictingQueue
 import vsys.settings.NetworkSettings
 import org.h2.mvstore.MVMap
-import vsys.utils.{createMVStore, LogMVMapBuilder, Random, ScorexLogging}
+import vsys.utils.{createMVStore, LogMVMapBuilder, ScorexLogging, VSYSSecureRandom}
 
 import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
@@ -93,7 +93,7 @@ class PeerDatabaseImpl(settings: NetworkSettings) extends PeerDatabase with Auto
     unverifiedPeers.removeIf(isa => excluded(isa))
     log.trace(s"Evicting queue: $unverifiedPeers")
     val unverified = Option(unverifiedPeers.peek()).filterNot(excludeAddress)
-    val verified = Random.shuffle(knownPeers.keySet.diff(excluded).toSeq).headOption.filterNot(excludeAddress)
+    val verified = VSYSSecureRandom.shuffle(knownPeers.keySet.diff(excluded).toSeq).headOption.filterNot(excludeAddress)
 
     log.trace(s"Unverified: $unverified; Verified: $verified")
     (unverified, verified) match {

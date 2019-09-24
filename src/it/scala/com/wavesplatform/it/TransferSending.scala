@@ -4,7 +4,7 @@ import java.security.SecureRandom
 
 import com.wavesplatform.it.TransferSending.Req
 import com.wavesplatform.it.api.NodeApi.Transaction
-import vsys.utils.Random
+import vsys.utils.VSYSSecureRandom
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,7 +20,7 @@ trait TransferSending {
     val fee = 100000
     val addresses = nodes.map(_.address)
     val sourceAndDest = (1 to n).map { _ =>
-      val Seq(src, dest) = Random.shuffle(addresses).take(2)
+      val Seq(src, dest) = VSYSSecureRandom.shuffle(addresses).take(2)
       (src, dest)
     }
     val requests = sourceAndDest.foldLeft(List.empty[Req]) {

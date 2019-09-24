@@ -9,7 +9,7 @@ import vsys.blockchain.transaction.assets.exchange.{AssetPair, ExchangeTransacti
 import vsys.blockchain.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction, TransferTransaction}
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.{CreateAliasTransaction, PaymentTransaction, Transaction, ValidationError}
-import vsys.utils.{LoggerFacade, Random}
+import vsys.utils.{LoggerFacade, VSYSSecureRandom}
 
 import scala.concurrent.duration._
 
@@ -29,7 +29,7 @@ object TransactionGenerator {
 
   private val aliasAlphabet = "-.0123456789@_abcdefghijklmnopqrstuvwxyz"
 
-  private def generateAlias(len: Int): String = Random.shuffle(aliasAlphabet).take(len)
+  private def generateAlias(len: Int): String = VSYSSecureRandom.shuffle(aliasAlphabet).take(len)
 
   def gen(probabilities: Map[TransactionType.Value, Float],
           accounts: Seq[PrivateKeyAccount],

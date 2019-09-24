@@ -5,7 +5,7 @@ import com.wavesplatform.it.RollbackSpecSuite._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{FreeSpec, Matchers}
 
-import vsys.utils.Random
+import vsys.utils.VSYSSecureRandom.shuffle
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await.result
@@ -92,5 +92,5 @@ object RollbackSpecSuite {
   )
 
   val Configs: Seq[Config] = Seq(dockerConfigs.last) :+
-    nonGeneratingNodesConfig.withFallback(Random.shuffle(dockerConfigs.init).head)
+    nonGeneratingNodesConfig.withFallback(shuffle(dockerConfigs.init).head)
 }
