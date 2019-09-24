@@ -96,7 +96,7 @@ class StateMap[K, V](
     valueType.read(ByteBuffer.wrap(valBytes)).asInstanceOf[V]
   }
 
-  private def invokeBatch(batchOpt: Option[WriteBatch] = None, op: Option[WriteBatch] => Unit): Unit = {
+  private def invokeBatch(batchOpt: Option[WriteBatch], op: Option[WriteBatch] => Unit): Unit = {
     val batch = new DynamicVariable(batchOpt)
     if (batchOpt.isEmpty) batch.value_=(createBatch())
     op(batch.value)
