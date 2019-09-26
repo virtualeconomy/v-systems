@@ -1,5 +1,7 @@
 package com.wavesplatform.generator
 
+import java.security.SecureRandom
+
 import org.slf4j.LoggerFactory
 import vsys.account.{Alias, PrivateKeyAccount}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
@@ -7,13 +9,12 @@ import vsys.blockchain.transaction.assets.exchange.{AssetPair, ExchangeTransacti
 import vsys.blockchain.transaction.assets.{BurnTransaction, IssueTransaction, ReissueTransaction, TransferTransaction}
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.{CreateAliasTransaction, PaymentTransaction, Transaction, ValidationError}
-import vsys.utils.LoggerFacade
+import vsys.utils.{LoggerFacade, VSYSSecureRandom}
 
 import scala.concurrent.duration._
-import scala.util.Random
 
 object TransactionGenerator {
-  private val r = new Random()
+  private val r = new SecureRandom()
   private val log = LoggerFacade(LoggerFactory.getLogger(getClass))
   private def randomFrom[T](c: Seq[T]): Option[T] = if (c.nonEmpty) Some(c(r.nextInt(c.size))) else None
 
@@ -28,7 +29,7 @@ object TransactionGenerator {
 
   private val aliasAlphabet = "-.0123456789@_abcdefghijklmnopqrstuvwxyz"
 
-  private def generateAlias(len: Int): String = Random.shuffle(aliasAlphabet).take(len)
+  private def generateAlias(len: Int): String = VSYSSecureRandom.shuffle(aliasAlphabet).take(len)
 
   def gen(probabilities: Map[TransactionType.Value, Float],
           accounts: Seq[PrivateKeyAccount],
@@ -63,7 +64,7 @@ object TransactionGenerator {
         val tx = txType match {
           case TransactionType.PaymentTransaction =>
             val sender = randomFrom(accounts).get
-            val recipient = accounts(new Random().nextInt(accounts.size))
+            val recipient = accounts(new SecureRandom().nextInt(accounts.size))
             Some(PaymentTransaction.create(sender, recipient, r.nextInt(500000), moreThatStandartFee, ts).right.get)
           case TransactionType.IssueTransaction =>
             val sender = randomFrom(accounts).get
@@ -72,8 +73,8 @@ object TransactionGenerator {
             r.nextBytes(name)
             r.nextBytes(description)
             val reissuable = r.nextBoolean()
-            val amount = 100000000L + Random.nextInt(Int.MaxValue)
-            logOption(IssueTransaction.create(sender, name, description, amount, Random.nextInt(9).toByte, reissuable, 100000000L + r.nextInt(100000000), ts))
+            val amount = 100000000L + new SecureRandom().nextInt(Int.MaxValue)
+            logOption(IssueTransaction.create(sender, name, description, amount, new SecureRandom().nextInt(9).toByte, reissuable, 100000000L + r.nextInt(100000000), ts))
           case TransactionType.TransferTransaction =>
             val useAlias = r.nextBoolean()
             val recipient = if (useAlias && aliases.nonEmpty) randomFrom(aliases).map(_.alias).get else randomFrom(accounts).get.toAddress
@@ -93,12 +94,12 @@ object TransactionGenerator {
             val reissuable = r.nextBoolean()
             randomFrom(reissuableIssueTxs).flatMap(assetTx => {
               val sender = accounts.find(_.address == assetTx.sender.address).get
-              logOption(ReissueTransaction.create(sender, assetTx.id, Random.nextInt(Int.MaxValue), reissuable, moreThatStandartFee, ts))
+              logOption(ReissueTransaction.create(sender, assetTx.id, new SecureRandom().nextInt(Int.MaxValue), reissuable, moreThatStandartFee, ts))
             })
           case TransactionType.BurnTransaction =>
             randomFrom(validIssueTxs).flatMap(assetTx => {
               val sender = accounts.find(_.address == assetTx.sender.address).get
-              logOption(BurnTransaction.create(sender, assetTx.id, Random.nextInt(1000), moreThatStandartFee, ts))
+              logOption(BurnTransaction.create(sender, assetTx.id, new SecureRandom().nextInt(1000), moreThatStandartFee, ts))
             })
           case TransactionType.ExchangeTransaction =>
             val matcher = randomFrom(accounts).get

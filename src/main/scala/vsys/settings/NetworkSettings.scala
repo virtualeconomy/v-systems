@@ -2,6 +2,7 @@ package vsys.settings
 
 import java.io.File
 import java.net.{InetSocketAddress, URI}
+import java.security.SecureRandom
 
 import com.google.common.base.Charsets
 import com.typesafe.config.Config
@@ -10,7 +11,6 @@ import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 
 import scala.concurrent.duration.FiniteDuration
-import scala.util.Random
 
 case class UPnPSettings(enable: Boolean, gatewayTimeout: FiniteDuration, discoverTimeout: FiniteDuration)
 
@@ -73,6 +73,6 @@ object NetworkSettings {
   private def randomNonce: Long = {
     val base = 1000
 
-    (Random.nextInt(base) + base) * Random.nextInt(base) + Random.nextInt(base)
+    (new SecureRandom().nextInt(base) + base) * new SecureRandom().nextInt(base) + new SecureRandom().nextInt(base)
   }
 }

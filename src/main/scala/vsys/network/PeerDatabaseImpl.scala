@@ -1,18 +1,17 @@
 package vsys.network
 
 import java.net.{InetAddress, InetSocketAddress}
+import java.security.SecureRandom
 
 import com.google.common.collect.EvictingQueue
 import vsys.settings.NetworkSettings
-import vsys.utils.createMVStore
 import org.h2.mvstore.MVMap
-import vsys.utils.{LogMVMapBuilder, ScorexLogging}
+import vsys.utils.{createMVStore, LogMVMapBuilder, ScorexLogging, VSYSSecureRandom}
 
 import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
 
 import scala.collection.JavaConverters._
-import scala.util.Random
 
 class PeerDatabaseImpl(settings: NetworkSettings) extends PeerDatabase with AutoCloseable with ScorexLogging {
 
@@ -94,11 +93,11 @@ class PeerDatabaseImpl(settings: NetworkSettings) extends PeerDatabase with Auto
     unverifiedPeers.removeIf(isa => excluded(isa))
     log.trace(s"Evicting queue: $unverifiedPeers")
     val unverified = Option(unverifiedPeers.peek()).filterNot(excludeAddress)
-    val verified = Random.shuffle(knownPeers.keySet.diff(excluded).toSeq).headOption.filterNot(excludeAddress)
+    val verified = VSYSSecureRandom.shuffle(knownPeers.keySet.diff(excluded).toSeq).headOption.filterNot(excludeAddress)
 
     log.trace(s"Unverified: $unverified; Verified: $verified")
     (unverified, verified) match {
-      case (Some(_), v@Some(_)) => if (Random.nextBoolean()) Some(unverifiedPeers.poll()) else v
+      case (Some(_), v@Some(_)) => if (new SecureRandom().nextBoolean()) Some(unverifiedPeers.poll()) else v
       case (Some(_), None) => Some(unverifiedPeers.poll())
       case (None, v@Some(_)) => v
       case _ => None

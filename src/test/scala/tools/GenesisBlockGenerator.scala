@@ -1,5 +1,7 @@
 package tools
 
+import java.security.SecureRandom
+
 import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
 import vsys.blockchain.state.ByteStr
 import vsys.account.{Address, AddressScheme, PrivateKeyAccount}
@@ -44,7 +46,7 @@ object GenesisBlockGenerator extends App {
   def generateFullAddressInfo(n: Int) = {
     println("n=" + n + ", address = " + testWalletAddresses(n))
 
-    val seed = ByteStr(Array.fill(32)((scala.util.Random.nextInt(256)).toByte)).toString
+    val seed = ByteStr(Array.fill(32)(new SecureRandom().nextInt(256).toByte)).toString
     val acc = Wallet.generateNewAccount(seed, 0)
     val privateKey = ByteStr(acc.privateKey)
     val publicKey = ByteStr(acc.publicKey)
