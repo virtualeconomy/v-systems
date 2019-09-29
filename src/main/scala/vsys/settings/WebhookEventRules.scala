@@ -146,8 +146,8 @@ object Amount extends RuleConfigReader {
   override def fromConfig(config: Config): Option[Amount] = {
     val gtVal = getVal[Long](config, "gt").getOrElse(0L)
     val gteVal = getVal[Long](config, "gte").getOrElse(0L)
-    val ltVal = getVal[Long](config, "lt").getOrElse(6*10^9*10^8L)
-    val lteVal = getVal[Long](config, "lte").getOrElse(6*10^9*10^8L)
+    val ltVal = getVal[Long](config, "lt").getOrElse(Long.MaxValue)
+    val lteVal = getVal[Long](config, "lte").getOrElse(Long.MaxValue)
     val withFeeVal = getVal[Boolean](config, "withFee").getOrElse(false)
 
     if (config.hasPath("rules.amount")) Some(Amount(gtVal, gteVal, ltVal, lteVal, withFeeVal)) else None
