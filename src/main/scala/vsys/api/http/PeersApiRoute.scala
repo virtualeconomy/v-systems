@@ -62,7 +62,8 @@ case class PeersApiRoute(
   }
 
   @Path("/connect")
-  @ApiOperation(value = "Connect to peer", notes = "Connect to peer", httpMethod = "POST")
+  @ApiOperation(value = "Connect to peer", notes = "Connect to peer", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -110,7 +111,8 @@ case class PeersApiRoute(
   }
 
   @Path("/clearblacklist")
-  @ApiOperation(value = "Remove all blacklisted peers", notes = "Clear blacklist", httpMethod = "POST")
+  @ApiOperation(value = "Remove all blacklisted peers", notes = "Clear blacklist", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   @ApiResponses(
     Array(
       new ApiResponse(code = 200, message = "200")

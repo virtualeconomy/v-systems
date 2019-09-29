@@ -68,6 +68,9 @@ object ValidationError {
   case object ContractInvalidTokenIndex extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidTokenIndex
   }
+  case object ContractInvalidHash extends ContractValidationError {
+    override val transactionStatus = TransactionStatus.ContractInvalidHash
+  }
   case object ContractInvalidAmount extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidAmount
   }

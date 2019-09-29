@@ -16,8 +16,6 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  val ENOUGH_AMT: Long = Long.MaxValue / 3
-
   val preconditionsAndContend: Gen[(GenesisTransaction, ContendSlotsTransaction, ContendSlotsTransaction, ContendSlotsTransaction, ContendSlotsTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
@@ -31,13 +29,15 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
   } yield (genesis, contend, contendMultiSlots, contendInvalidId1, contendInvalidId2, contend.transactionFee)
 
   property("contend transaction doesn't break invariant") {
-    forAll(preconditionsAndContend) { case (genesis, contend, _, _, _, feeContend) =>
+    forAll(preconditionsAndContend) { case (genesis, contend: ContendSlotsTransaction, _, _, _, feeContend) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(contend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -feeContend
         totalPortfolioDiff.effectiveBalance shouldBe -feeContend
-        val sender = EllipticCurve25519Proof.fromBytes(contend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 2, 0)._2.size shouldBe 2 // genesis and payment
+        val proof = contend.proofs.firstCurveProof.explicitGet()
+        val sender = EllipticCurve25519Proof.fromBytes(proof.bytes.arr).explicitGet.publicKey
+        val (_, txList) = newState.accountTransactionIds(sender, 2, 0)
+        txList.size shouldBe 2 // genesis and payment
       }
     }
   }
@@ -126,14 +126,16 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
 
   property("release transaction doesn't break invariant") {
     forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,
-    genesis7, genesis8, genesis9, genesis10, release1, _, _, _, f1) =>
+    genesis7, genesis8, genesis9, genesis10, release1: ReleaseSlotsTransaction, _, _, _, f1) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
         genesis5, genesis6, genesis7, genesis8, genesis9, genesis10))), TestBlock.create(Seq(release1))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe - f1
         totalPortfolioDiff.effectiveBalance shouldBe -f1
-        val sender = EllipticCurve25519Proof.fromBytes(release1.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 10, 0)._2.size shouldBe 2 // genesis and release
+        val proof = release1.proofs.firstCurveProof.explicitGet()
+        val sender = EllipticCurve25519Proof.fromBytes(proof.bytes.arr).explicitGet.publicKey
+        val (_, txList) = newState.accountTransactionIds(sender, 10, 0)
+        txList.size shouldBe 2 // genesis and release
       }
     }
   }
@@ -179,7 +181,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     slotId <- slotidGen
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contendTmp: ContendSlotsTransaction <- contendGeneratorP(master, slotId)
-    proof = contendTmp.proofs.proofs.head
+    proof = contendTmp.proofs.firstCurveProof.explicitGet
     proofs = Proofs(List(proof, proof)) // two proofs case
     contend = contendTmp.copy(proofs = proofs)
   } yield (genesis, contend)
@@ -198,7 +200,7 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(master, 0)
     releaseTmp: ReleaseSlotsTransaction <- releaseGeneratorP(master, 0)
-    proof = releaseTmp.proofs.proofs.head
+    proof = releaseTmp.proofs.firstCurveProof.explicitGet
     proofs = Proofs(List(proof, proof)) // two proofs case
     release = releaseTmp.copy(proofs = proofs)
   } yield (genesis, contend, release)

@@ -9,12 +9,12 @@ import vsys.account.{PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.assets.exchange.{AssetPair, Order, OrderType}
 import vsys.utils.NTP
+import vsys.utils.VSYSSecureRandom.shuffle
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.Random
 
 class MatcherTestSuite extends FreeSpec with Matchers with BeforeAndAfterAll {
 
@@ -385,5 +385,5 @@ object MatcherTestSuite {
   val Waves: Long = 100000000L
 
   val Configs: Seq[Config] = Seq(generatingMatcherConfig.withFallback(dockerConfigs.head)) ++
-    Random.shuffle(dockerConfigs.tail).take(2).map(nonGeneratingPeersConfig.withFallback(_))
+    shuffle(dockerConfigs.tail).take(2).map(nonGeneratingPeersConfig.withFallback(_))
 }

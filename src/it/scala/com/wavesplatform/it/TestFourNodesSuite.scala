@@ -4,14 +4,13 @@ import com.typesafe.config.ConfigFactory
 import com.wavesplatform.it.transactions._
 import com.wavesplatform.it.transactions.debug._
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers, Suite}
-import vsys.utils.ScorexLogging
+import vsys.utils.{ScorexLogging, VSYSSecureRandom}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.IndexedSeq
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.Random
 
 class TestFourNodesSuite extends FreeSpec with BeforeAndAfterAll with ScorexLogging with Matchers {
 
@@ -23,7 +22,7 @@ class TestFourNodesSuite extends FreeSpec with BeforeAndAfterAll with ScorexLogg
 
   private val docker = new Docker()
   private val nodesCount = 4
-  private val dockerConfigs = Random.shuffle(Docker.NodeConfigs.getConfigList("nodes").asScala).take(nodesCount)
+  private val dockerConfigs = VSYSSecureRandom.shuffle(Docker.NodeConfigs.getConfigList("nodes").asScala).take(nodesCount)
   private val nodeConfigs = Seq(nonGeneratingPeerConfig.withFallback(dockerConfigs.head)) ++ dockerConfigs.tail
 
 

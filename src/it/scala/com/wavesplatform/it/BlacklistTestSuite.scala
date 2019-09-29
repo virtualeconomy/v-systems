@@ -3,13 +3,14 @@ package com.wavesplatform.it
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
 
+import vsys.utils.VSYSSecureRandom.shuffle
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Await.result
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future.traverse
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.Random
 
 
 class BlacklistTestSuite extends FreeSpec with Matchers with BeforeAndAfterAll {
@@ -86,6 +87,6 @@ object BlacklistTestSuite {
 
   val NodesCount: Int = 4
 
-  val Configs: Seq[Config] = Seq(generatingNodeConfig.withFallback(dockerConfigs.last)) ++ Random.shuffle(dockerConfigs.init).take(NodesCount - 1)
+  val Configs: Seq[Config] = Seq(generatingNodeConfig.withFallback(dockerConfigs.last)) ++ shuffle(dockerConfigs.init).take(NodesCount - 1)
 
 }
