@@ -98,31 +98,42 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     ExcludeTypes(Seq(1, 2)).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
     ExcludeTypes(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
-    // test gt with fee
-    Amount(250L, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-    Amount(249L, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    (-2 to -1).map {x =>
+      Amount(250 + x, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+      Amount(0, 250 + x, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+      Amount(0, 0, 250 + x, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+      Amount(0, 0, 1000, 250 + x, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    }
 
-    // test gt without fee
-    Amount(150L, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-    Amount(149L, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    (1 to 2).map {x =>
+      Amount(250 + x, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+      Amount(0, 250 + x, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+      Amount(0, 0, 250 + x, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+      Amount(0, 0, 1000, 250 + x, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    }
 
-    //test gte without fee
-    Amount(0, 150L, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-    Amount(0, 151L, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    (-2 to -1).map {x =>
+      Amount(150 + x, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+      Amount(0, 150 + x, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+      Amount(0, 0, 150 + x, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+      Amount(0, 0, 1000, 150 + x, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    }
 
-    //test gte with fee
-    Amount(0, 250L, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-    Amount(0, 251L, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    (1 to 2).map {x =>
+      Amount(150 + x, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+      Amount(0, 150 + x, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+      Amount(0, 0, 150 + x, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+      Amount(0, 0, 1000, 150 + x, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    }
 
-    //test gt & gte without fee
-    Amount(150, 150, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-    Amount(149, 150, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-
-    Amount(0, 0, 151, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(150, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(0, 150, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
     Amount(0, 0, 150, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-
     Amount(0, 0, 1000, 150, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-    Amount(0, 0, 1000, 149, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(250, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(0, 250, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    Amount(0, 0, 250, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
+    Amount(0, 0, 1000, 250, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
   }
 
   it should "get default value" in {
