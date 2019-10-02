@@ -18,7 +18,7 @@ class LegacyFrameCodecSpec extends FreeSpec
   with GeneratorDrivenPropertyChecks
   with TransactionGen {
 
-  "should handle a message with the maximal size" in forAll(issueGen) { origTx =>
+  "should handle a message with the maximal size" in forAll(randomProvenTransactionGen) { origTx =>
     val codec = new LegacyFrameCodec(NopPeerDatabase)
 
     val buff = Unpooled.buffer

@@ -10,7 +10,7 @@ import vsys.blockchain.transaction.ValidationError._
 
 import scala.util.{Left, Right, Try}
 
-object SystemTransferDiff {
+object SystemTransferDiff extends OpcDiffer {
 
   def getTriggerCallOpcDiff(context: ExecutionContext, diff: OpcDiff,
                             sender: DataEntry, recipient: DataEntry, amount: DataEntry,
@@ -78,7 +78,7 @@ object SystemTransferDiff {
     val Transfer = Value(1)
   }
 
-  def parseBytes(context: ExecutionContext)
+  override def parseBytesDf(context: ExecutionContext)
                 (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = bytes.head match {
     case opcType: Byte if opcType == TransferType.Transfer.id && checkInput(bytes,4, data.length) =>
       transfer(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))

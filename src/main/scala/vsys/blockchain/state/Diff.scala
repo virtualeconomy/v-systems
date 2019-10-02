@@ -22,30 +22,8 @@ object LeaseInfo {
   }
 }
 
-case class OrderFillInfo(volume: Long, fee: Long)
-
-object OrderFillInfo {
-  implicit val orderFillInfoMonoid = new Monoid[OrderFillInfo] {
-    override def empty: OrderFillInfo = OrderFillInfo(0, 0)
-
-    override def combine(x: OrderFillInfo, y: OrderFillInfo): OrderFillInfo = OrderFillInfo(x.volume + y.volume, x.fee + y.fee)
-  }
-}
-
-case class AssetInfo(isReissuable: Boolean, volume: Long)
-
-object AssetInfo {
-  implicit val assetInfoMonoid = new Monoid[AssetInfo] {
-    override def empty: AssetInfo = AssetInfo(isReissuable = true, 0)
-
-    override def combine(x: AssetInfo, y: AssetInfo): AssetInfo
-    = AssetInfo(x.isReissuable && y.isReissuable, x.volume + y.volume)
-  }
-}
-
 case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Account])],
                 portfolios: Map[Account, Portfolio],
-                issuedAssets: Map[ByteStr, AssetInfo],
                 slotids: Map[Int, Option[String]],
                 addToSlot: Map[String, Option[Int]],
                 slotNum: Int,
@@ -57,7 +35,6 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Accou
                 tokenDB: Map[ByteStr, Array[Byte]],
                 tokenAccountBalance: Map[ByteStr, Long],
                 dbEntries: Map[ByteStr, Entry],
-                orderFills: Map[ByteStr, OrderFillInfo],
                 leaseState: Map[ByteStr, Boolean]) {
 
   lazy val accountTransactionIds: Map[Account, List[ByteStr]] = {
@@ -98,7 +75,6 @@ case class Diff(transactions: Map[ByteStr, (Int, ProcessedTransaction, Set[Accou
 object Diff {
   def apply(height: Int, tx: Transaction,
             portfolios: Map[Account, Portfolio] = Map.empty,
-            assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
             slotids: Map[Int, Option[String]] = Map.empty,
             addToSlot: Map[String, Option[Int]] = Map.empty,
             slotNum: Int = 0,
@@ -111,11 +87,9 @@ object Diff {
             tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
             relatedAddress: Map[Address, Boolean] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
-            orderFills: Map[ByteStr, OrderFillInfo] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
     transactions = Map((tx.id, (height, ProcessedTransaction(txStatus, chargedFee, tx), (portfolios.keys ++ relatedAddress.keys).toSet))),
     portfolios = portfolios,
-    issuedAssets = assetInfos,
     slotids = slotids,
     addToSlot = addToSlot,
     slotNum = slotNum,
@@ -127,12 +101,11 @@ object Diff {
     tokenDB = tokenDB,
     tokenAccountBalance = tokenAccountBalance,
     dbEntries = dbEntries,
-    orderFills = orderFills,
     leaseState = leaseState)
 
-  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, 0,
+  val empty = new Diff(Map.empty, Map.empty, Map.empty, Map.empty, 0,
     TransactionStatus.Unprocessed, 0L, Map.empty, Map.empty,
-    Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
+    Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class DiffExt(d: Diff) {
     def asBlockDiff: BlockDiff = BlockDiff(d, 0, Map.empty)
@@ -144,7 +117,6 @@ object Diff {
     override def combine(older: Diff, newer: Diff): Diff = Diff(
       transactions = older.transactions ++ newer.transactions,
       portfolios = older.portfolios.combine(newer.portfolios),
-      issuedAssets = older.issuedAssets.combine(newer.issuedAssets),
       slotids = older.slotids ++ newer.slotids,
       addToSlot = older.addToSlot ++ newer.addToSlot,
       slotNum = older.slotNum + newer.slotNum,
@@ -156,7 +128,6 @@ object Diff {
       tokenDB = older.tokenDB ++ newer.tokenDB,
       tokenAccountBalance = Monoid.combine(older.tokenAccountBalance, newer.tokenAccountBalance),
       dbEntries = older.dbEntries ++ newer.dbEntries,
-      orderFills = older.orderFills.combine(newer.orderFills),
       leaseState = older.leaseState ++ newer.leaseState)
   }
 }

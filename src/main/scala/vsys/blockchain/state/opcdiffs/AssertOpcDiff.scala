@@ -10,7 +10,7 @@ import vsys.utils.crypto.hash.FastCryptographicHash
 
 import scala.util.{Left, Right, Try}
 
-object AssertOpcDiff {
+object AssertOpcDiff extends OpcDiffer {
 
   def gtEq0(v: DataEntry): Either[ValidationError, OpcDiff] = {
     if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) >= 0)
@@ -41,7 +41,7 @@ object AssertOpcDiff {
       Left(GenericError(s"Invalid Assert (gt0): Value $v is non-positive"))
   }
 
-  def eq(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
+  def equal(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
     if (add1.dataType == DataType.Address && add2.dataType == DataType.Address
       && Address.fromBytes(add1.data) == Address.fromBytes(add2.data))
       Right(OpcDiff.empty)
@@ -81,30 +81,30 @@ object AssertOpcDiff {
     }
   }
 
-  object AssertType extends Enumeration(1) {
-    val GteqZeroAssert, LteqAssert, LtInt64Assert, GtZeroAssert, EqAssert, IsCallerOriginAssert, IsSignerOriginAssert = Value
+  object AssertType extends Enumeration {
+    sealed case class AssertTypeVal(
+      assertType: Int,
+      operandCount: Int,
+      differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, OpcDiff])
+    extends Val(assertType) { def *(n: Int): Int = n * assertType }
+
+    val GteqZeroAssert       = AssertTypeVal(1, 1, (c, b, d) => gtEq0(d(b(1))))
+    val LteqAssert           = AssertTypeVal(2, 2, (c, b, d) => ltEq(d(b(1)), d(b(2))))
+    val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d) => ltInt64(d(b(1))))
+    val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d) => gt0(d(b(1))))
+    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equal(d(b(1)), d(b(2))))
+    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => isCallerOrigin(c)(d(b(1))))
+    val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d) => isSignerOrigin(c)(d(b(1))))
+
+    def fromByte(b: Byte): Option[AssertTypeVal] = Try(AssertType(b).asInstanceOf[AssertTypeVal]).toOption
   }
 
-  def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
-    if (checkAssertDataIndex(bytes, data.length)) {
-      (bytes.headOption.flatMap(f => Try(AssertType(f)).toOption), bytes.length) match {
-        case (Some(AssertType.GteqZeroAssert), 2) => gtEq0(data(bytes(1)))
-        case (Some(AssertType.LteqAssert), 3) => ltEq(data(bytes(1)), data(bytes(2)))
-        case (Some(AssertType.LtInt64Assert), 2) => ltInt64(data(bytes(1)))
-        case (Some(AssertType.GtZeroAssert), 2) => gt0(data(bytes(1)))
-        case (Some(AssertType.EqAssert), 3) => eq(data(bytes(1)), data(bytes(2)))
-        case (Some(AssertType.IsCallerOriginAssert), 2) => isCallerOrigin(context)(data(bytes(1)))
-        case (Some(AssertType.IsSignerOriginAssert), 2) => isSignerOrigin(context)(data(bytes(1)))
-        case _ => Left(ContractInvalidOPCData)
-      }
+  // index out of bound exception if custom function with this opc in `data(byte(i))`
+  override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
+    bytes.headOption.flatMap(AssertType.fromByte(_)) match {
+      case Some(t: AssertType.AssertTypeVal) if checkData(bytes, data.length, t.operandCount, false) =>
+        t.differ(context, bytes, data)
+      case _ => Left(ContractInvalidOPCData)
     }
-    else
-      Left(ContractInvalidOPCData)
-  }
-
-  private def checkAssertDataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
-    bytes.tail.max < dataLength && bytes.tail.min >= 0
-
 }
 

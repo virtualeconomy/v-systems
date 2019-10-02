@@ -1,15 +1,13 @@
 package vsys.blockchain.state.reader
 
-import com.google.common.base.Charsets
-import vsys.blockchain.state._
-import vsys.account.Account
-import vsys.blockchain.transaction._
 
+import vsys.account.Account
+import vsys.blockchain.contract.{Contract, DataEntry}
+import vsys.blockchain.state._
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.transaction.assets.IssueTransaction
 import vsys.blockchain.transaction.lease.LeaseTransaction
 import vsys.utils.{ScorexLogging, Synchronized}
-import vsys.blockchain.contract.{Contract, DataEntry}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -23,8 +21,6 @@ trait StateReader extends Synchronized {
   def containsTransaction(id: ByteStr): Boolean
 
   def accountPortfolio(a: Account): Portfolio
-
-  def assetInfo(id: ByteStr): Option[AssetInfo]
 
   def height: Int
 
@@ -64,7 +60,6 @@ trait StateReader extends Synchronized {
 
   def snapshotAtHeight(acc: Account, h: Int): Option[Snapshot]
 
-  def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo
 }
 
 object StateReader {
@@ -101,55 +96,7 @@ object StateReader {
 
     def balance(account: Account): Long = s.accountPortfolio(account).balance
 
-    def assetBalance(account: AssetAcc): Long = {
-      val accountPortfolio = s.accountPortfolio(account.account)
-      account.assetId match {
-        case Some(assetId) => accountPortfolio.assets.getOrElse(assetId, 0)
-        case None => accountPortfolio.balance
-      }
-    }
-
-    def getAccountBalance(account: Account): Map[AssetId, (Long, Boolean, Long, IssueTransaction)] = s.read { _ =>
-      s.accountPortfolio(account).assets.map { case (id, amt) =>
-        val assetInfo = s.assetInfo(id).get
-        val issueTransaction = findTransaction[IssueTransaction](id).get
-        id -> ((amt, assetInfo.isReissuable, assetInfo.volume, issueTransaction))
-      }
-    }
-
-    def assetDistribution(assetId: Array[Byte]): Map[String, Long] =
-      s.assetDistribution(ByteStr(assetId))
-        .map { case (acc, amt) => (acc.bytes.base58, amt) }
-
     def effectiveBalance(account: Account): Long = s.accountPortfolio(account).effectiveBalance
-
-    def spendableBalance(account: AssetAcc): Long = {
-      val accountPortfolio = s.accountPortfolio(account.account)
-      account.assetId match {
-        case Some(assetId) => accountPortfolio.assets.getOrElse(assetId, 0)
-        case None => accountPortfolio.spendableBalance
-      }
-    }
-
-    def isReissuable(id: Array[Byte]): Boolean =
-      s.assetInfo(ByteStr(id)).get.isReissuable
-
-    def totalAssetQuantity(assetId: AssetId): Long =
-      s.assetInfo(assetId).get.volume
-
-    def assetExists(assetId: AssetId): Boolean = {
-      s.findTransaction[IssueTransaction](assetId).nonEmpty
-    }
-
-    def getAssetName(assetId: AssetId): String = {
-      s.findTransaction[IssueTransaction](assetId)
-        .map(tx => new String(tx.name, Charsets.UTF_8))
-        .getOrElse("Unknown")
-    }
-
-    def getIssueTransaction(assetId: AssetId): Option[IssueTransaction] = {
-      s.findTransaction[IssueTransaction](assetId)
-    }
 
     private def minBySnapshot(acc: Account, atHeight: Int, confirmations: Int)(extractor: Snapshot => Long): Long = s.read { _ =>
       val bottomNotIncluded = atHeight - confirmations
@@ -236,5 +183,4 @@ object StateReader {
       Hash.accountPortfolios(s.accountPortfolios)
     }
   }
-
 }

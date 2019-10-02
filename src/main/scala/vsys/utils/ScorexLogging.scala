@@ -7,52 +7,52 @@ import monix.reactive.Observable
 import org.slf4j.{Logger, LoggerFactory}
 
 case class LoggerFacade(logger: Logger) {
-  def trace(message: => String): Unit = {
+  def trace(implicit message: String): Unit = {
     if (logger.isTraceEnabled)
       logger.trace(message)
   }
 
-  def debug(message: => String, arg: Any): Unit = {
+  def debug(implicit message: String, arg: Any): Unit = {
     if (logger.isDebugEnabled)
       logger.debug(message, arg)
   }
 
-  def debug(message: => String): Unit = {
+  def debug(implicit message: String): Unit = {
     if (logger.isDebugEnabled)
       logger.debug(message)
   }
 
-  def info(message: => String): Unit = {
+  def info(implicit message: String): Unit = {
     if (logger.isInfoEnabled)
       logger.info(message)
   }
 
-  def info(message: => String, arg: Any): Unit = {
+  def info(implicit message: String, arg: Any): Unit = {
     if (logger.isInfoEnabled)
       logger.info(message, arg)
   }
 
-  def info(message: => String, throwable: Throwable): Unit = {
+  def info(implicit message: String, throwable: Throwable): Unit = {
     if (logger.isInfoEnabled)
       logger.info(message, throwable)
   }
 
-  def warn(message: => String): Unit = {
+  def warn(implicit message: String): Unit = {
     if (logger.isWarnEnabled)
       logger.warn(message)
   }
 
-  def warn(message: => String, throwable: Throwable): Unit = {
+  def warn(implicit message: String, throwable: Throwable): Unit = {
     if (logger.isWarnEnabled)
       logger.warn(message, throwable)
   }
 
-  def error(message: => String): Unit = {
+  def error(implicit message: String): Unit = {
     if (logger.isErrorEnabled)
       logger.error(message)
   }
 
-  def error(message: => String, throwable: Throwable): Unit = {
+  def error(implicit message: String, throwable: Throwable): Unit = {
     if (logger.isErrorEnabled)
       logger.error(message, throwable)
   }

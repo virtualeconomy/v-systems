@@ -26,7 +26,8 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
   @ApiOperation(value = "Contend a slot",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -44,7 +45,8 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
   @ApiOperation(value = "Release a slot",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",

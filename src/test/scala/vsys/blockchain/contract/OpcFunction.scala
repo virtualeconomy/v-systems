@@ -1,10 +1,10 @@
 package vsys.blockchain.contract
 
+import java.security.SecureRandom
+
 import com.google.common.primitives.Shorts
 import org.scalacheck.{Arbitrary, Gen}
 import vsys.utils.serialization.Deser
-
-import scala.util.Random
 
 trait OpcFunction extends FunId with ProtoType with ListOpc {
 
@@ -134,7 +134,7 @@ trait FunId {
 }
 
 object FunId {
-  val randomFunId: Short = Random.nextInt(1 << 15).toShort
+  val randomFunId: Short = new SecureRandom().nextInt(Short.MaxValue).toShort
   val init: Short = 0
   val supersede: Short = 0
   val issue: Short = 1

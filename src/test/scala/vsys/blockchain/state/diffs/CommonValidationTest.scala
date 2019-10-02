@@ -1,11 +1,11 @@
 package vsys.blockchain.state.diffs
 
-import vsys.blockchain.transaction.TransactionGen
 import org.scalacheck.Gen
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction}
+import vsys.blockchain.state.EitherExt2
+import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, TransactionGen}
 
 class CommonValidationTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -14,7 +14,7 @@ class CommonValidationTest extends PropSpec with PropertyChecks with GeneratorDr
       master <- accountGen
       recipient <- otherAccountGen(candidate = master)
       ts <- positiveIntGen
-      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+      genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
       transfer: PaymentTransaction <- paymentGeneratorP(master, recipient)
     } yield (genesis, transfer)
 

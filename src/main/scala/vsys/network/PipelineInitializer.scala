@@ -7,7 +7,7 @@ import io.netty.util.concurrent.EventExecutorGroup
 import scala.language.implicitConversions
 
 class PipelineInitializer[A <: Channel](handlers: => Seq[HandlerWrapper]) extends ChannelInitializer[A] {
-  override def initChannel(ch: A) = {
+  override def initChannel(ch: A): Unit = {
     handlers.foldLeft(ch.pipeline()) {
       case (p, HandlerWrapper(h, None)) => p.addLast(h)
       case (p, HandlerWrapper(h, Some(e))) => p.addLast(e, h)

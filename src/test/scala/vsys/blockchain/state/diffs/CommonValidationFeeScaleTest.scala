@@ -95,7 +95,7 @@ class CommonValidationFeeScaleTest extends PropSpec with PropertyChecks with Gen
       lease = LeaseTransaction.create(leaseSender, leaseAmount, leaseFee, leaseFeeScale, leaseTimestamp, leaseRecipient).right.get
       feeScale <- positiveShortGen
     } yield (lease, leaseSender, feeScale)) { case (lease, leaseSender, feeScale: Short) =>
-      LeaseCancelTransaction.create(leaseSender, lease.id, lease.fee, feeScale, lease.timestamp + 1) shouldBeRightIf validFeeScale(feeScale)
+      LeaseCancelTransaction.create(leaseSender, lease.id, lease.transactionFee, feeScale, lease.timestamp + 1) shouldBeRightIf validFeeScale(feeScale)
     }
   }
 

@@ -16,28 +16,28 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  val ENOUGH_AMT: Long = Long.MaxValue / 3
-
   val preconditionsAndContend: Gen[(GenesisTransaction, ContendSlotsTransaction, ContendSlotsTransaction, ContendSlotsTransaction, ContendSlotsTransaction, Long)] = for {
     master <- accountGen
     ts <- positiveIntGen
     slotid <- slotidGen
     slotid2 <- slotidGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(master, slotid)
     contendMultiSlots: ContendSlotsTransaction <- contendGeneratorP(master, slotid2)
     contendInvalidId1: ContendSlotsTransaction <- contendGeneratorP(master, -1)
     contendInvalidId2: ContendSlotsTransaction <- contendGeneratorP(master, TestFunctionalitySettings.Enabled.numOfSlots)
-  } yield (genesis, contend, contendMultiSlots, contendInvalidId1, contendInvalidId2, contend.fee)
+  } yield (genesis, contend, contendMultiSlots, contendInvalidId1, contendInvalidId2, contend.transactionFee)
 
   property("contend transaction doesn't break invariant") {
-    forAll(preconditionsAndContend) { case (genesis, contend, _, _, _, feeContend) =>
+    forAll(preconditionsAndContend) { case (genesis, contend: ContendSlotsTransaction, _, _, _, feeContend) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(contend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -feeContend
         totalPortfolioDiff.effectiveBalance shouldBe -feeContend
-        val sender = EllipticCurve25519Proof.fromBytes(contend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 2, 0)._2.size shouldBe 2 // genesis and payment
+        val proof = contend.proofs.firstCurveProof.explicitGet()
+        val sender = EllipticCurve25519Proof.fromBytes(proof.bytes.arr).explicitGet.publicKey
+        val (_, txList) = newState.accountTransactionIds(sender, 2, 0)
+        txList.size shouldBe 2 // genesis and payment
       }
     }
   }
@@ -67,12 +67,12 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     master <- accountGen
     master1 <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
-    genesis1: GenesisTransaction = GenesisTransaction.create(master1, 2 * ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, 2 * ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(ts + 1, master, 0)
     contend1: ContendSlotsTransaction <- contendGeneratorP(ts + 2, master1, 0)
     contend2: ContendSlotsTransaction <- contendGeneratorP(ts + 3, master, 1)
-  } yield (genesis, genesis1, contend, contend1, contend2, contend.fee)
+  } yield (genesis, genesis1, contend, contend1, contend2, contend.transactionFee)
 
 
   property("node contended by others can not contend a new slot") {
@@ -104,17 +104,17 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     master10 <- accountGen
 
     ts1 <- positiveIntGen
-    genesis0: GenesisTransaction = GenesisTransaction.create(master0, ENOUGH_AMT, 0, ts1).right.get
-    genesis1: GenesisTransaction = GenesisTransaction.create(master1, ENOUGH_AMT, 4, ts1).right.get
-    genesis2: GenesisTransaction = GenesisTransaction.create(master2, ENOUGH_AMT, 8, ts1).right.get
-    genesis3: GenesisTransaction = GenesisTransaction.create(master3, ENOUGH_AMT, 12, ts1).right.get
-    genesis4: GenesisTransaction = GenesisTransaction.create(master4, ENOUGH_AMT, 16, ts1).right.get
-    genesis5: GenesisTransaction = GenesisTransaction.create(master5, ENOUGH_AMT, 20, ts1).right.get
-    genesis6: GenesisTransaction = GenesisTransaction.create(master6, ENOUGH_AMT, 24, ts1).right.get
-    genesis7: GenesisTransaction = GenesisTransaction.create(master7, ENOUGH_AMT, 28, ts1).right.get
-    genesis8: GenesisTransaction = GenesisTransaction.create(master8, ENOUGH_AMT, 32, ts1).right.get
-    genesis9: GenesisTransaction = GenesisTransaction.create(master9, ENOUGH_AMT, 36, ts1).right.get
-    genesis10: GenesisTransaction = GenesisTransaction.create(master10, ENOUGH_AMT, 40, ts1).right.get
+    genesis0: GenesisTransaction = GenesisTransaction.create(master0, ENOUGH_AMT, 0, ts1).explicitGet()
+    genesis1: GenesisTransaction = GenesisTransaction.create(master1, ENOUGH_AMT, 4, ts1).explicitGet()
+    genesis2: GenesisTransaction = GenesisTransaction.create(master2, ENOUGH_AMT, 8, ts1).explicitGet()
+    genesis3: GenesisTransaction = GenesisTransaction.create(master3, ENOUGH_AMT, 12, ts1).explicitGet()
+    genesis4: GenesisTransaction = GenesisTransaction.create(master4, ENOUGH_AMT, 16, ts1).explicitGet()
+    genesis5: GenesisTransaction = GenesisTransaction.create(master5, ENOUGH_AMT, 20, ts1).explicitGet()
+    genesis6: GenesisTransaction = GenesisTransaction.create(master6, ENOUGH_AMT, 24, ts1).explicitGet()
+    genesis7: GenesisTransaction = GenesisTransaction.create(master7, ENOUGH_AMT, 28, ts1).explicitGet()
+    genesis8: GenesisTransaction = GenesisTransaction.create(master8, ENOUGH_AMT, 32, ts1).explicitGet()
+    genesis9: GenesisTransaction = GenesisTransaction.create(master9, ENOUGH_AMT, 36, ts1).explicitGet()
+    genesis10: GenesisTransaction = GenesisTransaction.create(master10, ENOUGH_AMT, 40, ts1).explicitGet()
 
     release1: ReleaseSlotsTransaction <- releaseGeneratorP(master0, 0)
     releaseInvalid1: ReleaseSlotsTransaction <- releaseGeneratorP(master0, 4)
@@ -122,18 +122,20 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     releaseInvalid3: ReleaseSlotsTransaction <- releaseGeneratorP(master0, TestFunctionalitySettings.Enabled.numOfSlots)
 
   } yield (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6, genesis7, genesis8, genesis9, genesis10,
-    release1, releaseInvalid1, releaseInvalid2, releaseInvalid3, release1.fee)
+    release1, releaseInvalid1, releaseInvalid2, releaseInvalid3, release1.transactionFee)
 
   property("release transaction doesn't break invariant") {
     forAll(preconditionsAndRelease) { case (genesis0, genesis1, genesis2, genesis3, genesis4, genesis5, genesis6,
-    genesis7, genesis8, genesis9, genesis10, release1, _, _, _, f1) =>
+    genesis7, genesis8, genesis9, genesis10, release1: ReleaseSlotsTransaction, _, _, _, f1) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis0, genesis1, genesis2, genesis3, genesis4,
         genesis5, genesis6, genesis7, genesis8, genesis9, genesis10))), TestBlock.create(Seq(release1))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe - f1
         totalPortfolioDiff.effectiveBalance shouldBe -f1
-        val sender = EllipticCurve25519Proof.fromBytes(release1.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 10, 0)._2.size shouldBe 2 // genesis and release
+        val proof = release1.proofs.firstCurveProof.explicitGet()
+        val sender = EllipticCurve25519Proof.fromBytes(proof.bytes.arr).explicitGet.publicKey
+        val (_, txList) = newState.accountTransactionIds(sender, 10, 0)
+        txList.size shouldBe 2 // genesis and release
       }
     }
   }
@@ -177,9 +179,9 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
     master <- accountGen
     ts <- positiveIntGen
     slotId <- slotidGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contendTmp: ContendSlotsTransaction <- contendGeneratorP(master, slotId)
-    proof = contendTmp.proofs.proofs.head
+    proof = contendTmp.proofs.firstCurveProof.explicitGet
     proofs = Proofs(List(proof, proof)) // two proofs case
     contend = contendTmp.copy(proofs = proofs)
   } yield (genesis, contend)
@@ -195,10 +197,10 @@ class SPOSTransactionDiffTest extends PropSpec with PropertyChecks with Generato
   val preconditionsAndRelease2: Gen[(GenesisTransaction, ContendSlotsTransaction, ReleaseSlotsTransaction)] = for {
     master <- accountGen
     ts <- positiveIntGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     contend: ContendSlotsTransaction <- contendGeneratorP(master, 0)
     releaseTmp: ReleaseSlotsTransaction <- releaseGeneratorP(master, 0)
-    proof = releaseTmp.proofs.proofs.head
+    proof = releaseTmp.proofs.firstCurveProof.explicitGet
     proofs = Proofs(List(proof, proof)) // two proofs case
     release = releaseTmp.copy(proofs = proofs)
   } yield (genesis, contend, release)

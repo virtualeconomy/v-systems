@@ -1,16 +1,15 @@
 package vsys.blockchain.state.reader
 
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state.diffs._
 import vsys.account.PrivateKeyAccount
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
-import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
+import vsys.blockchain.state.EitherExt2
+import vsys.blockchain.transaction._
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 
 class StateReaderTransactionQueryTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -23,7 +22,7 @@ class StateReaderTransactionQueryTest extends PropSpec with PropertyChecks with 
     recipient1 <- accountGen
     recipient2 <- accountGen
     ts <- timestampGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     prePayments1: Seq[PaymentTransaction] <- Gen.sequence[Seq[PaymentTransaction], PaymentTransaction]((1 to txTypeCount).map(i => paymentGeneratorP(ts + i, master, recipient1)))
     prePayments2: Seq[PaymentTransaction] <- Gen.sequence[Seq[PaymentTransaction], PaymentTransaction]((1 to txTypeCount).map(i => paymentGeneratorP(ts + 10 + i, master, recipient2)))
     (preLeasesAndCancel1: Seq[(LeaseTransaction, LeaseCancelTransaction)]) <- Gen.sequence[Seq[(LeaseTransaction, LeaseCancelTransaction)], (LeaseTransaction, LeaseCancelTransaction)]((1 to txTypeCount).map(i => leaseAndCancelGeneratorP(master, recipient1, ts + 19 + i * 2)))
