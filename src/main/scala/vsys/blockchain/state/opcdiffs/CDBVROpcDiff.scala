@@ -6,9 +6,9 @@ import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, Cont
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.Contract.checkStateVar
 
-import scala.util.{Left, Right}
+import scala.util.{Left, Right, Try}
 
-object CDBVROpcDiff {
+object CDBVROpcDiff extends OpcDiffer {
 
   def get(context: ExecutionContext)(stateVar: Array[Byte], dataStack: Seq[DataEntry],
                                      pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
@@ -28,11 +28,10 @@ object CDBVROpcDiff {
     val GetCDBVR = Value(1)
   }
 
-  def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = bytes.head match {
-    case opcType: Byte if opcType == CDBVRType.GetCDBVR.id && bytes.length == 3 && bytes(1) < context.stateVar.length &&
-      bytes(1) >= 0 => get(context)(context.stateVar(bytes(1)), data, bytes(2))
-    case _ => Left(ContractInvalidOPCData)
-  }
-
+  override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    bytes.headOption.flatMap(f => Try(CDBVRType(f)).toOption) match {
+      case Some(CDBVRType.GetCDBVR) if bytes.length == 3 && bytes(1) < context.stateVar.length &&
+        bytes(1) >= 0 => get(context)(context.stateVar(bytes(1)), data, bytes(2))
+      case _ => Left(ContractInvalidOPCData)
+    }
 }

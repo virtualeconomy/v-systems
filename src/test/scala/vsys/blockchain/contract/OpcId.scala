@@ -2,13 +2,14 @@ package vsys.blockchain.contract
 
 import org.scalacheck.Gen
 import vsys.blockchain.state.opcdiffs._
+import OpcId._
 
 trait OpcId {
-  import OpcId._
+
   def opcGen(id: Array[Byte]): Gen[Array[Byte]] = for {
     opc <- Gen.const(id)
   } yield opc
-
+  // unused setting/gen
   val assertGteqZeroGen: Gen[Array[Byte]] = opcGen(opcAssertGteqZero)
   val assertLteqGen: Gen[Array[Byte]] = opcGen(opcAssertLteq)
   val assertLtInt64Gen: Gen[Array[Byte]] = opcGen(opcAssertLtInt64)
@@ -20,21 +21,21 @@ trait OpcId {
   val loadSingerGen: Gen[Array[Byte]] = opcGen(opcLoadSigner)
   val loadCallerGen: Gen[Array[Byte]] = opcGen(opcLoadCaller)
 
-  val CDBVSetGen: Gen[Array[Byte]] = opcGen(opcCDBVSet)
+  val cdbvSetGen: Gen[Array[Byte]] = opcGen(opcCDBVSet)
 
-  val CDBVRGetGen: Gen[Array[Byte]] = opcGen(opcCDBVRGet)
+  val cdbvrGetGen: Gen[Array[Byte]] = opcGen(opcCDBVRGet)
 
-  val TDBNewTokenGen: Gen[Array[Byte]] = opcGen(opcTDBNewToken)
-  val TDBSplitGen: Gen[Array[Byte]] = opcGen(opcTDBSplit)
+  val tdbNewTokenGen: Gen[Array[Byte]] = opcGen(opcTDBNewToken)
+  val tdbSplitGen: Gen[Array[Byte]] = opcGen(opcTDBSplit)
 
-  val TDBROpcMaxGet: Gen[Array[Byte]] = opcGen(opcTDBROpcMax)
-  val TDBROpcTotalGen: Gen[Array[Byte]] = opcGen(opcTDBROpcTotal)
+  val tdbrOpcMaxGet: Gen[Array[Byte]] = opcGen(opcTDBROpcMax)
+  val tdbrOpcTotalGen: Gen[Array[Byte]] = opcGen(opcTDBROpcTotal)
 
-  val TDBADepositGen: Gen[Array[Byte]] = opcGen(opcTDBADeposit)
-  val TDBAWithdrawGen: Gen[Array[Byte]] = opcGen(opcTDBAWithdraw)
-  val TDBATransferGen: Gen[Array[Byte]] = opcGen(opcTDBATransfer)
+  val rdbaDepositGen: Gen[Array[Byte]] = opcGen(opcTDBADeposit)
+  val tdbaWithdrawGen: Gen[Array[Byte]] = opcGen(opcTDBAWithdraw)
+  val tbdaTransferGen: Gen[Array[Byte]] = opcGen(opcTDBATransfer)
 
-  val TDBARBalanceGen: Gen[Array[Byte]] = opcGen(opcTDBARBalance)
+  val tdbarBalanceGen: Gen[Array[Byte]] = opcGen(opcTDBARBalance)
 }
 
 object OpcId {

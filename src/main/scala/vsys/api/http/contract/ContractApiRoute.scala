@@ -37,7 +37,8 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   @ApiOperation(value = "Register a contract",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -172,7 +173,8 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   @ApiOperation(value = "Execute a contract function",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",

@@ -33,7 +33,8 @@ case class NodeApiRoute(settings: RestAPISettings,
   }
 
   @Path("/stop")
-  @ApiOperation(value = "Stop", notes = "Stop the node", httpMethod = "POST")
+  @ApiOperation(value = "Stop", notes = "Stop the node", httpMethod = "POST",
+    authorizations = Array(new Authorization("api_key")))
   def stop: Route = (post & path("stop") & withAuth) {
     log.info("Request to stop application")
     application.shutdown()

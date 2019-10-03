@@ -1,5 +1,7 @@
 package vsys.blockchain.transaction
 
+import java.security.SecureRandom
+
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 import vsys.account.PrivateKeyAccount
@@ -26,7 +28,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
 
         val sender = PrivateKeyAccount(senderSeed)
         val recipient = PrivateKeyAccount(recipientSeed)
-        val attachment = Array.fill(scala.util.Random.nextInt(PaymentTransaction.MaxAttachmentSize))((scala.util.Random.nextInt(256) - 128).toByte)
+        val attachment = Array.fill(new SecureRandom().nextInt(PaymentTransaction.MaxAttachmentSize))((new SecureRandom().nextInt(256) - 128).toByte)
 
         val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).explicitGet()
 
@@ -45,7 +47,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
 
         val sender = PrivateKeyAccount(senderSeed)
         val recipient = PrivateKeyAccount(recipientSeed)
-        val attachment = Array.fill(scala.util.Random.nextInt(PaymentTransaction.MaxAttachmentSize))((scala.util.Random.nextInt(256) - 128).toByte)
+        val attachment = Array.fill(new SecureRandom().nextInt(PaymentTransaction.MaxAttachmentSize))((new SecureRandom().nextInt(256) - 128).toByte)
 
         val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).explicitGet()
         val txAfter = parseBytes(tx.bytes).get
@@ -68,7 +70,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
 
         val sender = PrivateKeyAccount(senderSeed)
         val recipient = PrivateKeyAccount(recipientSeed)
-        val attachment = Array.fill(scala.util.Random.nextInt(PaymentTransaction.MaxAttachmentSize))((scala.util.Random.nextInt(256) - 128).toByte)
+        val attachment = Array.fill(new SecureRandom().nextInt(PaymentTransaction.MaxAttachmentSize))((new SecureRandom().nextInt(256) - 128).toByte)
         val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).explicitGet()
         val txAfter = TransactionParser.parseBytes(tx.bytes).get.asInstanceOf[PaymentTransaction]
 
