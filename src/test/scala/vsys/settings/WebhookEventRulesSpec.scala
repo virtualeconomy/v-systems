@@ -98,37 +98,15 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     ExcludeTypes(Seq(1, 2)).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
     ExcludeTypes(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
-    for(x <- -2 to 2) {
-      if (x > 0) {
-        Amount(150 + x, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 150 + x, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 0, 150 + x, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 0, 1000, 150 + x, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-
-        Amount(250 + x, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 250 + x, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 0, 250 + x, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 0, 1000, 250 + x, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-      } else if (x < 0) {
-        Amount(150 + x, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 150 + x, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 0, 150 + x, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 0, 1000, 150 + x, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-
-        Amount(250 + x, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 250 + x, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 0, 250 + x, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 0, 1000, 250 + x, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-      } else {
-        Amount(150, 0, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 150, 1000, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 0, 150, 1000, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 0, 1000, 150, false).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-
-        Amount(250, 0, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 250, 1000, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-        Amount(0, 0, 250, 1000, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-        Amount(0, 0, 1000, 250, true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
+    for(withFee <- Seq(false, true)) {
+      for(x <- -2 to 2) {
+        val X = x > 0
+        val Y = x == 0
+        val amt = if (withFee) 250 else 150
+        Amount(amt + x, 0, 1000, 1000, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(!X && !Y)
+        Amount(0, amt + x, 1000, 1000, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(!X)
+        Amount(0, 0, amt + x, 1000, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(X && !Y)
+        Amount(0, 0, 1000, amt + x, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(X || Y)
       }
     }
   }
