@@ -58,12 +58,11 @@ case class SignerDataBlockField(override val name: String, override val value: S
   override lazy val bytes: Array[Byte] = value.generator.publicKey ++ value.signature.arr
 }
 
-
 case class MerkleRootBlockField(override val name: String, override val value: Seq[ProcessedTransaction])
   extends BlockField[Seq[ProcessedTransaction]] {
 
   val trxMerkleRootHash = if (value.length == 0) {
-    Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
+    Array.fill(32) { 0: Byte }
   }
   else {
     MerkleTree(value.map(_.bytes))(vsys.utils.crypto.hash.FastCryptographicHash).rootHash
