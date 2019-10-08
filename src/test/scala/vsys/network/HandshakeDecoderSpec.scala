@@ -29,7 +29,7 @@ class HandshakeDecoderSpec extends FreeSpec
       new HandshakeDecoder(PeerDatabase.NoOp),
       new ChannelInboundHandlerAdapter {
         override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = msg match {
-          case x: Handshake => mayBeDecodedHandshake value_= Some(x)
+          case x: Handshake => mayBeDecodedHandshake.value = Some(x)
           case _ =>
         }
       }
@@ -100,7 +100,7 @@ class HandshakeDecoderSpec extends FreeSpec
     val blockCalls = new DynamicVariable(0)
 
     override protected def block(ctx: ChannelHandlerContext, e: Throwable): Unit = {
-      blockCalls value_= blockCalls.value + 1
+      blockCalls.value = blockCalls.value + 1
     }
   }
 

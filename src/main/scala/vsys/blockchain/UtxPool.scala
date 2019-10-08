@@ -152,9 +152,9 @@ object UtxPool {
         }
 
       if (nonEmptyPessimisticPortfolios.nonEmpty) {
-        transactionPortfolios.value_=(transactionPortfolios.value + (txId -> nonEmptyPessimisticPortfolios))
+        transactionPortfolios.value = transactionPortfolios.value + (txId -> nonEmptyPessimisticPortfolios)
         nonEmptyPessimisticPortfolios.keys.foreach { address =>
-          transactions.value_=(transactions.value + (address -> (transactions.value.getOrElse(address, Set.empty) + txId)))
+          transactions.value = transactions.value + (address -> (transactions.value.getOrElse(address, Set.empty) + txId))
         }
       }
     }
@@ -171,8 +171,8 @@ object UtxPool {
     }
 
     def remove(txId: ByteStr): Unit = {
-      transactionPortfolios.value_=(transactionPortfolios.value - txId)
-      transactions value_= transactions.value.map { case (k, v) => k -> (v - txId) }
+      transactionPortfolios.value = transactionPortfolios.value - txId
+      transactions.value = transactions.value.map { case (k, v) => k -> (v - txId) }
     }
   }
 

@@ -62,13 +62,13 @@ trait Synchronized {
     }
 
     def transform(newVal: T => T)(implicit readWriteLock: WriteLock): T = {
-      value value_= newVal(value.value)
+      value.value = newVal(value.value)
       value.value
     }
 
     def set(newVal: => T)(implicit readWriteLock: WriteLock): T = {
       val oldVal = value.value
-      value value_= newVal
+      value.value = newVal
       oldVal
     }
   }

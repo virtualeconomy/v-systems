@@ -89,15 +89,15 @@ object GenesisTransaction extends TransactionParser {
 
       val timestampBytes = java.util.Arrays.copyOfRange(data, position, position + TimestampLength)
       val timestamp = Longs.fromByteArray(timestampBytes)
-      positionVal.value_=(position + TimestampLength)
+      positionVal.value = position + TimestampLength
 
       val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + RECIPIENT_LENGTH)
       val recipient = Address.fromBytes(recipientBytes).right.get
-      positionVal.value_=(position + RECIPIENT_LENGTH)
+      positionVal.value = position + RECIPIENT_LENGTH
 
       val amountBytes = java.util.Arrays.copyOfRange(data, position, position + AmountLength)
       val amount = Longs.fromByteArray(amountBytes)
-      positionVal.value_=(position + AmountLength)
+      positionVal.value = position + AmountLength
 
       val slotIdBytes = java.util.Arrays.copyOfRange(data, position, position + SlotIdLength)
       val slotId = Ints.fromByteArray(slotIdBytes)

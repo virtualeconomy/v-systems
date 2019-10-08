@@ -118,7 +118,7 @@ object Wallet extends ScorexLogging {
       val address = account.address
       if (!accountsCache.contains(address)) {
         accountsCache += account.address -> account
-        walletData.value_=(walletData.value.copy(accountSeeds = walletData.value.accountSeeds + ByteStr(account.seed)))
+        walletData.value = walletData.value.copy(accountSeeds = walletData.value.accountSeeds + ByteStr(account.seed))
         log.info("Added account #" + privateKeyAccounts.size)
         Some(account)
       } else None
@@ -140,7 +140,7 @@ object Wallet extends ScorexLogging {
 
     override def deleteAccount(account: PrivateKeyAccount): Boolean = lock {
       val before = walletData.value.accountSeeds.size
-      walletData.value_=(walletData.value.copy(accountSeeds = walletData.value.accountSeeds - ByteStr(account.seed)))
+      walletData.value = walletData.value.copy(accountSeeds = walletData.value.accountSeeds - ByteStr(account.seed))
       accountsCache -= account.address
       save()
       before > walletData.value.accountSeeds.size
@@ -153,7 +153,7 @@ object Wallet extends ScorexLogging {
 
     private def getAndIncrementNonce(): Long = lock {
       val r = walletData.value.nonce
-      walletData.value_=(walletData.value.copy(nonce = walletData.value.nonce + 1))
+      walletData.value = walletData.value.copy(nonce = walletData.value.nonce + 1)
       r
     }
 

@@ -70,22 +70,22 @@ object MintingTransaction extends TransactionParser {
     //READ TIMESTAMP
     val timestampBytes = data.take(TimestampLength)
     val timestamp = Longs.fromByteArray(timestampBytes)
-    positionVal.value_=(position + TimestampLength)
+    positionVal.value = position + TimestampLength
 
     //READ RECIPIENT
     val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + recipientLength)
     val recipient = Address.fromBytes(recipientBytes).right.get
-    positionVal.value_=(position + recipientLength)
+    positionVal.value = position + recipientLength
 
     //READ AMOUNT
     val amountBytes = util.Arrays.copyOfRange(data, position, position + AmountLength)
     val amount = Longs.fromByteArray(amountBytes)
-    positionVal.value_=(position + AmountLength)
+    positionVal.value = position + AmountLength
 
     //READ CURRENTBLOCKHEIGHT
     val currentBlockHeightBytes = util.Arrays.copyOfRange(data, position, position + currentBlockHeightLength)
     val currentBlockHeight = Ints.fromByteArray(currentBlockHeightBytes)
-    positionVal.value_=(position + currentBlockHeightLength)
+    positionVal.value = position + currentBlockHeightLength
 
     //READ SIGNATURE
     MintingTransaction

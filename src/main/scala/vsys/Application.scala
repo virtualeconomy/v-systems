@@ -136,7 +136,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
     if (settings.restAPISettings.enable) {
       val combinedRoute: Route = CompositeHttpService(actorSystem, apiTypes, apiRoutes, settings.restAPISettings).compositeRoute
       val httpFuture = Http().bindAndHandle(combinedRoute, settings.restAPISettings.bindAddress, settings.restAPISettings.port)
-      serverBinding value_= Some(Await.result(httpFuture, 10.seconds))
+      serverBinding.value = Some(Await.result(httpFuture, 10.seconds))
       log.info(s"REST API was bound on ${settings.restAPISettings.bindAddress}:${settings.restAPISettings.port}")
     }
 
@@ -164,7 +164,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
   def shutdown(): Unit = {
     if (!shutdownInProgress.value) {
       log.info("Stopping network services")
-      shutdownInProgress value_= true
+      shutdownInProgress.value = true
       serverBinding.value.foreach(server =>
         Try(Await.ready(server.unbind(), 60.seconds)).failed.map(e => log.error("Failed to unbind REST API port: " + e.getMessage))
       )
@@ -244,7 +244,7 @@ object Application extends ScorexLogging {
       configureLogging(settings)
 
       // Initialize global dynamic val with actual address scheme
-      AddressScheme.current value_= new AddressScheme {
+      AddressScheme.current.value = new AddressScheme {
         override val chainId: Byte = settings.blockchainSettings.addressSchemeCharacter.toByte
       }
 

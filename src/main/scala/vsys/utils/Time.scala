@@ -29,7 +29,7 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
   def correctedTime(): Long = {
     //CALCULATE CORRECTED TIME
     val cnt = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L + offset.value
-    cntTime value_= { if (cnt <= cntTime.value && cntTime.value - cnt <= 1000000L) cnt + 1000000L else cnt }
+    cntTime.value = { if (cnt <= cntTime.value && cntTime.value - cnt <= 1000000L) cnt + 1000000L else cnt }
     cntTime.value
   }
 
@@ -37,7 +37,7 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
 
   def getTimestamp: Long = {
     //guarantee the cnt_SystemTime > last_Timestamp+1
-    txTime value_= Math.max(correctedTime(), txTime.value + 1)
+    txTime.value = Math.max(correctedTime(), txTime.value + 1)
     txTime.value
   }
 
@@ -69,7 +69,7 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
       case None if !scheduler.isShutdown => updateTask.delayExecution(RetryDelay)
       case Some((server, newOffset)) if !scheduler.isShutdown =>
         log.trace(s"Adjusting time with $newOffset nanoseconds, source: ${server.getHostAddress}.")
-        offset value_= newOffset
+        offset.value = newOffset
         val cntSysTime = correctedTime() / 1000000L
         val nextUpdateTime = (ExpirationTimeout - cntSysTime % ExpirationTimeout).toInt.milliseconds + 500.milliseconds
         // to avoid the miner mint time

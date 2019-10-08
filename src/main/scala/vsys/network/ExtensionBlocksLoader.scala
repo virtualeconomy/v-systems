@@ -20,7 +20,7 @@ class ExtensionBlocksLoader(
 
   private def cancelTimeout(): Unit = {
     currentTimeout.value.foreach(_.cancel(false))
-    currentTimeout value_= None
+    currentTimeout.value = None
   }
 
   override def channelInactive(ctx: ChannelHandlerContext): Unit = {
@@ -31,10 +31,10 @@ class ExtensionBlocksLoader(
   override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case xid@ExtensionIds(_, newIds) if pendingSignatures.value.isEmpty =>
       if (newIds.nonEmpty) {
-        targetExtensionIds value_= Some(xid)
-        pendingSignatures value_= newIds.zipWithIndex.toMap
+        targetExtensionIds.value = Some(xid)
+        pendingSignatures.value = newIds.zipWithIndex.toMap
         cancelTimeout()
-        currentTimeout value_= Some(ctx.executor().schedule(blockSyncTimeout) {
+        currentTimeout.value = Some(ctx.executor().schedule(blockSyncTimeout) {
           if (targetExtensionIds.value.contains(xid)) {
             peerDatabase.blacklistAndClose(ctx.channel(), "Timeout loading blocks")
           }
@@ -48,7 +48,7 @@ class ExtensionBlocksLoader(
 
     case b: Block if pendingSignatures.value.contains(b.uniqueId) =>
       blockBuffer.value += pendingSignatures.value(b.uniqueId) -> b
-      pendingSignatures.value_=(pendingSignatures.value - b.uniqueId)
+      pendingSignatures.value = pendingSignatures.value - b.uniqueId
       if (pendingSignatures.value.isEmpty) {
         cancelTimeout()
         log.trace(s"${id(ctx)} Loaded all blocks, doing a pre-check")
@@ -74,7 +74,7 @@ class ExtensionBlocksLoader(
           }
         }
 
-        targetExtensionIds value_= None
+        targetExtensionIds.value = None
         blockBuffer.value.clear()
       }
 

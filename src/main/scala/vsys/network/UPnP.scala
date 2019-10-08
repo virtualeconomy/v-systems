@@ -34,7 +34,7 @@ class UPnP(settings:UPnPSettings) extends ScorexLogging {
       Option(discover.getValidGateway) match {
         case None => log.debug("There is no connected UPnP gateway device")
         case Some(device) =>
-          gateway value_= Some(device)
+          gateway.value = Some(device)
           log.debug("Using UPnP gateway device on " + localAddress.map(_.getHostAddress).getOrElse("err"))
           log.info("External IP address is " + externalAddress.map(_.getHostAddress).getOrElse("err"))
       }

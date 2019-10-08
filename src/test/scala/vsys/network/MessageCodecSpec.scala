@@ -44,7 +44,7 @@ class MessageCodecSpec extends FreeSpec
     val blockCalls = new DynamicVariable(0)
 
     override def block(ctx: ChannelHandlerContext, e: Throwable): Unit = {
-      blockCalls.value_=(blockCalls.value + 1)
+      blockCalls.value = blockCalls.value + 1
     }
   }
 

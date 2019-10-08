@@ -121,33 +121,33 @@ object Block extends ScorexLogging {
     def position = positionVal.value
 
     val timestamp = Longs.fromByteArray(bytes.slice(position, position + 8))
-    positionVal.value_=(position + 8)
+    positionVal.value = position + 8
 
     val reference = ByteStr(bytes.slice(position, position + SignatureLength))
-    positionVal.value_=(position + SignatureLength)
+    positionVal.value = position + SignatureLength
 
     val cBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
-    positionVal.value_=(position + 4)
+    positionVal.value = position + 4
     val cBytes = bytes.slice(position, position + cBytesLength)
     val mintTimeBytes = cBytes.slice(0, Block.MintTimeLength)
     val mintBalanceBytes = cBytes.slice(Block.MintTimeLength, Block.MintTimeLength + Block.MintBalanceLength)
     val consData = SposConsensusBlockData(Longs.fromByteArray(mintTimeBytes), Longs.fromByteArray(mintBalanceBytes))
-    positionVal.value_=(position + cBytesLength)
+    positionVal.value = position + cBytesLength
 
     val fBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
-    positionVal.value_=(position + 4)
-    positionVal.value_=(position + fBytesLength)
+    positionVal.value = position + 4
+    positionVal.value = position + fBytesLength
 
-    positionVal.value_=(position + TransactionMerkleRootLength)
+    positionVal.value = position + TransactionMerkleRootLength
 
     val tBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
-    positionVal.value_=(position + 4)
+    positionVal.value = position + 4
     val tBytes = bytes.slice(position, position + tBytesLength)
     val txBlockField = transParseBytes(version.toInt, tBytes).get
-    positionVal.value_=(position + tBytesLength)
+    positionVal.value = position + tBytesLength
 
     val genPK = bytes.slice(position, position + KeyLength)
-    positionVal.value_=(position + KeyLength)
+    positionVal.value = position + KeyLength
 
     val signature = ByteStr(bytes.slice(position, position + SignatureLength))
 

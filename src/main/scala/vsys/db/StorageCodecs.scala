@@ -127,10 +127,10 @@ case class ColCodec[Col[BB] <: TraversableOnce[BB], A](valueCodec: Codec[A])(imp
         val r = valueCodec.decode(bytes.slice(i.value, bytes.length))
         if (r.isRight) {
           val rr = r.right.get
-          i.value_=(i.value + rr.length)
+          i.value = i.value + rr.length
           builder.+=(rr.value)
         } else {
-          error value_= true
+          error.value = true
         }
       }
       val result = builder.result()

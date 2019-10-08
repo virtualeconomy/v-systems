@@ -39,11 +39,11 @@ case class TransactionsApiRoute(
   val customRoute = new DynamicVariable(unconfirmed ~ addressLimit ~ info ~ activeLeaseList)
 
   if(settings.customApiSettings.transactionsApiSettings.addressTransactionCount) {
-    customRoute.value_=(customRoute.value ~ transactionCount)
+    customRoute.value = customRoute.value ~ transactionCount
   }
 
   if(settings.customApiSettings.transactionsApiSettings.addressTransactionList) {
-    customRoute.value_=(customRoute.value ~ transactionList)
+    customRoute.value = customRoute.value ~ transactionList
   }
 
   @Path("/count")

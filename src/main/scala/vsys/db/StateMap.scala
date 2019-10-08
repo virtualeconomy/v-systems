@@ -98,7 +98,7 @@ class StateMap[K, V](
 
   private def invokeBatch(batchOpt: Option[WriteBatch], op: Option[WriteBatch] => Unit): Unit = {
     val batch = new DynamicVariable(batchOpt)
-    if (batchOpt.isEmpty) batch.value_=(createBatch())
+    if (batchOpt.isEmpty) batch.value = createBatch()
     op(batch.value)
     if (batchOpt.isEmpty) commit(batch.value)
   }

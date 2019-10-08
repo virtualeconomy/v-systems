@@ -101,9 +101,9 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       extractHostPort(ports, matcherApiPort))
     val node = new Node(actualConfig, nodeInfo, http)
     if (seedAddress.value.isEmpty) {
-      seedAddress value_= Some(s"${nodeInfo.networkIpAddress}:${nodeInfo.containerNetworkPort}")
+      seedAddress.value = Some(s"${nodeInfo.networkIpAddress}:${nodeInfo.containerNetworkPort}")
     }
-    nodes.value_=(nodes.value + containerId -> node)
+    nodes.value = nodes.value + containerId -> node
     Await.result(node.lastBlock, Duration.Inf)
     node
   }

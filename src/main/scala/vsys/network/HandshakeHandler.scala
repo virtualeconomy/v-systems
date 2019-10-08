@@ -40,7 +40,7 @@ class HandshakeTimeoutHandler(handshakeTimeout: FiniteDuration) extends ChannelI
 
   override def channelActive(ctx: ChannelHandlerContext): Unit = {
     log.trace(s"${id(ctx)} Scheduling handshake timeout")
-    timeout value_= Some(ctx.channel().eventLoop().schedule((() => {
+    timeout.value = Some(ctx.channel().eventLoop().schedule((() => {
       ctx.fireChannelRead(HandshakeTimeoutExpired)
     }): Runnable, handshakeTimeout.toMillis, TimeUnit.MILLISECONDS))
 

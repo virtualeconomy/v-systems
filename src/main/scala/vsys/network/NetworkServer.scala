@@ -199,7 +199,7 @@ class NetworkServer(checkpointService: CheckpointService,
     })
 
   def shutdown(): Unit = try {
-    shutdownInitiated value_= true
+    shutdownInitiated.value = true
     connectTask.cancel(false)
     serverChannel.foreach(_.close().await())
     log.debug("Unbound server")

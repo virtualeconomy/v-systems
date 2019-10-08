@@ -82,7 +82,7 @@ class StateStorage private(db: DB) extends Storage(db){
 
   override def removeEverything(batchOpt: Option[WriteBatch] = None): Unit = {
     val batch = new DynamicVariable(batchOpt)
-    if (batchOpt.isEmpty) batch value_= createBatch()
+    if (batchOpt.isEmpty) batch.value = createBatch()
     new SubStorage(db, "states").removeEverything(batch.value)
     setHeight(0, batch.value)
     if (batchOpt.isEmpty) commit(batch.value)

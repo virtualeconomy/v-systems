@@ -56,7 +56,7 @@ class RemoteScoreObserver(scoreTtl: FiniteDuration, lastSignatures: => Seq[ByteS
         log.debug(s"${id(ctx)} ${pinnedChannelId}New local score: $newLocalScore")
       }
       // unconditionally update local score value and propagate this message downstream
-      localScore value_= newLocalScore
+      localScore.value = newLocalScore
       ctx.write(msg, promise)
 
       // if this is the channel with the highest score and its score is higher than local, request extension

@@ -16,7 +16,7 @@ class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDu
 
   def requestPeers(ctx: ChannelHandlerContext): Unit = if (ctx.channel().isActive) {
     log.trace(s"${id(ctx)} Requesting peers")
-    peersRequested value_= true
+    peersRequested.value = true
     ctx.writeAndFlush(GetPeers)
 
     ctx.executor().schedule(peerRequestInterval) {
@@ -32,7 +32,7 @@ class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDu
           if (rda.getAddress == ctx.remoteAddress.getAddress) {
             log.trace(s"${id(ctx)} Touching declared address")
             peerDatabase.touch(rda)
-            declaredAddress value_= Some(rda)
+            declaredAddress.value = Some(rda)
           } else {
             log.debug(s"${id(ctx)} Declared address $rda does not match actual remote address")
           }
@@ -43,7 +43,7 @@ class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDu
         log.debug(s"${id(ctx)} Sending known peers: ${peerDatabase.knownPeers.mkString("[", ", ", "]")}")
         ctx.writeAndFlush(KnownPeers(peerDatabase.knownPeers.keys.toSeq))
       case KnownPeers(peers) if peersRequested.value =>
-        peersRequested value_= false
+        peersRequested.value = false
         log.trace(s"${id(ctx)} Got known peers: ${peers.mkString("[", ", ", "]")}")
         peers.foreach(peerDatabase.addCandidate)
       case KnownPeers(peers) =>

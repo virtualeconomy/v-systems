@@ -29,8 +29,8 @@ class HistoryWriterTest extends FunSuite with Matchers with HistoryTest {
       history.appendBlock(TestBlock.withReference(history.lastBlock.get.uniqueId))(Right(BlockDiff.empty))
 
     (1 to 1000).foreach { _ =>
-      Future(tryAppendTestBlock(history)).recover[Any] { case e => e.printStackTrace(); failed value_= true }
-      Future(history.discardBlock()).recover[Any] { case e => e.printStackTrace(); failed value_= true }
+      Future(tryAppendTestBlock(history)).recover[Any] { case e => e.printStackTrace(); failed.value = true }
+      Future(history.discardBlock()).recover[Any] { case e => e.printStackTrace(); failed.value = true }
     }
     Thread.sleep(1000)
 
