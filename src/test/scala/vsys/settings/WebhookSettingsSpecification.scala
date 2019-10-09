@@ -126,7 +126,6 @@ class WebhookSettingsSpecification extends FlatSpec with Matchers {
       case e: TxConfirmedEventSettings =>
         e.typeId shouldBe(2)
         e.typeDescription shouldBe("Tx Confirmed")
-
         e.eventRules.length shouldBe(6)
         e.eventRules.map(aRule =>
           aRule match {
