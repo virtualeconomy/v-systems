@@ -11,7 +11,6 @@ import vsys.blockchain.history.History
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
 import vsys.blockchain.UtxPool
