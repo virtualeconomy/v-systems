@@ -12,6 +12,7 @@ import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 import vsys.settings.TestFunctionalitySettings
 import vsys.utils.NTP
 
@@ -80,6 +81,7 @@ trait TransactionGen {
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
   val attachmentGen: Gen[Array[Byte]] = genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
+  val txStatusGen: Gen[TransactionStatus.Value] = Gen.const(TransactionStatus.Success)
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DataType.ByteArray).explicitGet()
@@ -271,5 +273,20 @@ trait TransactionGen {
     amt <- positiveLongGen
     ts <- positiveIntGen
   } yield GenesisTransaction.create(recipient, amt, -1, ts).explicitGet()
+
+  def randomProcessedTransactionGen: Gen[ProcessedTransaction] = for {
+    status <- txStatusGen
+    feeCharged <- smallFeeGen
+    pm <- paymentGen
+    ls <- leaseGen
+    lc <- leaseCancelGen
+    ct <- contendSlotsGen
+    rl <- releaseSlotsGen
+    mt <- mintingGen
+    pt <- dbPutGen
+    ext <- executeContractGen
+    rgt <- registerContractGen
+    tx <- Gen.oneOf(pm, ls, ct, rl, lc, mt, pt, ext, rgt)
+  } yield ProcessedTransaction(status, feeCharged, tx)
 
 }
