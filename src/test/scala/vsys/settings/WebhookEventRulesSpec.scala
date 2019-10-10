@@ -1,17 +1,19 @@
 package vsys.settings
 
 import com.typesafe.config.{ConfigFactory, Config}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{PropSpec, Matchers}
+import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import net.ceedubs.ficus.Ficus._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import vsys.blockchain.transaction.{ProcessedTransaction, MintingTransaction, PaymentTransaction}
+import vsys.blockchain.transaction.{ProcessedTransaction, MintingTransaction, PaymentTransaction, TransactionGen}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.account.Address
+import org.scalacheck.Gen
 
-class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
+class WebhookEventRulesSpec extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with MockitoSugar with TransactionGen {
 
-  "WebhookEventRules" should "parse config value correctly" in {
+  property("WebhookEventRules should parse config value correctly") {
     val config = loadConfig(ConfigFactory.parseString(
       """vsys {
       |  Event {
@@ -52,9 +54,13 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     WithStateOfAccs.fromConfig(config) shouldBe(Some(WithStateOfAccs(Seq("addr5", "addr6"))))
   }
 
-  it should "get expected value from applyRule" in {
+  property("WebhookEventRules should get expected value from applyRule") {
     val mockTx1 = mock[ProcessedTransaction]
     val mockTx2 = mock[ProcessedTransaction]
+
+    forAll (timestampGen) { (x: Long)  =>
+      x > 0 shouldBe(true)
+    }
 
     val tx = mock[MintingTransaction]
     val blockTime1 = 10
@@ -69,17 +75,24 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     when(tx2.transactionType).thenReturn(TransactionType.PaymentTransaction)
     when(mockTx2.transaction).thenReturn(tx2)
 
-    AfterHeight(10).applyRule(10, blockTime1, mockTx1, Set.empty) shouldBe(true)
-    AfterHeight(10).applyRule(3, blockTime1, mockTx1, Set.empty) shouldBe(false)
+    val mockRuleFields: Gen[(Long, Long, ProcessedTransaction, Set[Address], Boolean, Int)] = for {
+      height <- Gen.choose(1, Long.MaxValue)
+      timestamp <- timestampGen
+      pTx <- randomProcessedTransactionGen
+      tfVal <- Gen.oneOf(true, false)
+      randTxType <- Gen.choose(1, 10)
+    } yield(height, timestamp, pTx, Set.empty, tfVal, randTxType)
 
-    AfterTime(10).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
-    AfterTime(10).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-
-    WithTxs(true).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
-
-    WithMintingTxs(true).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
-    WithMintingTxs(true).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-    WithMintingTxs(false).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
+    forAll (mockRuleFields) {case ((height, timestamp, pTx: ProcessedTransaction, aSet: Set[Address], tfVal, randTxType)) =>
+      AfterHeight(100).applyRule(height, timestamp, pTx, aSet) shouldBe(height >= 100)
+      AfterTime(100).applyRule(height, timestamp, pTx, aSet) shouldBe(timestamp >= 100)
+      WithTxs(tfVal).applyRule(height, timestamp, pTx, aSet) shouldBe(tfVal)
+      WithMintingTxs(tfVal).applyRule(height, timestamp, pTx, aSet) shouldBe(pTx.transaction.transactionType != TransactionType.MintingTransaction | tfVal)
+      IncludeTypes(Seq(randTxType)).applyRule(height, timestamp, pTx, aSet) shouldBe(pTx.transaction.transactionType.txType == randTxType)
+      IncludeTypes(Seq.empty).applyRule(height, timestamp, pTx, aSet) shouldBe(false)
+      ExcludeTypes(Seq(randTxType)).applyRule(height, timestamp, pTx, aSet) shouldBe(pTx.transaction.transactionType.txType != randTxType)
+      ExcludeTypes(Seq.empty).applyRule(height, timestamp, pTx, aSet) shouldBe(true)
+    }
 
     val addr1 = mock[Address]
     val addr2 = mock[Address]
@@ -89,14 +102,6 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set(addr2)) shouldBe(false)
     RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
     RelatedAccs(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
-
-    IncludeTypes(Seq(1)).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
-    IncludeTypes(Seq(1, 2)).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(true)
-    IncludeTypes(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
-
-    ExcludeTypes(Seq(1)).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
-    ExcludeTypes(Seq(1, 2)).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(false)
-    ExcludeTypes(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
 
     for(withFee <- Seq(false, true)) {
       for(x <- -2 to 2) {
@@ -109,7 +114,7 @@ class WebhookEventRulesSpec extends FlatSpec with Matchers with MockitoSugar {
     }
   }
 
-  it should "get default value" in {
+  property("Rules should get default value") {
     val config = loadConfig(ConfigFactory.parseString(
       """vsys {
         Event {
