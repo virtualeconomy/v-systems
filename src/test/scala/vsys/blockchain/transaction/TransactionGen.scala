@@ -12,7 +12,6 @@ import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
-import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
 import vsys.settings.TestFunctionalitySettings
 import vsys.utils.NTP
 
