@@ -11,7 +11,6 @@ import vsys.blockchain.history.History
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
 import vsys.blockchain.UtxPool
@@ -178,7 +177,8 @@ case class TransactionsApiRoute(
               .map(a => (a._1,a._2,a._2.transaction))
               .collect{
                 case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
-                  if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
+                  if lt.proofs.firstCurveProof.map(_.publicKey.address) == Right(address)
+                    || lt.recipient.address == address =>
                   processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
               }
           )))
