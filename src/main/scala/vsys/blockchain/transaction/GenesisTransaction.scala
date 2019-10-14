@@ -14,7 +14,7 @@ case class GenesisTransaction private(recipient: Address,
                                       amount: Long,
                                       slotId: Int,
                                       timestamp: Long,
-                                      signature: ByteStr) extends NonFeeTransaction {
+                                      signature: ByteStr) extends NonFeeTransaction with AmountInvolved {
 
   val transactionType = TransactionType.GenesisTransaction
 

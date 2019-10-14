@@ -49,7 +49,7 @@ trait NonFeeTransaction extends Transaction {
   val feeScale: Short = 100
 }
 
-trait AmountInvoved {
+trait AmountInvolved {
   val amount: Long
   val recipient: Address // TODO: could be `Account` ?
 }

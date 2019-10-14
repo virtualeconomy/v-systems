@@ -1,16 +1,16 @@
 package vsys.blockchain
 
-import vsys.settings.BlockchainSettings
+import akka.actor.{ActorSystem, Props}
+import vsys.settings.{BlockchainSettings, EventSettings, TestFunctionalitySettings, TestStateSettings}
 import vsys.blockchain.state._
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.block.Block
 import vsys.blockchain.block.SposConsensusBlockData
 import vsys.blockchain.block.TestBlock
-import vsys.settings.TestFunctionalitySettings
 import vsys.blockchain.transaction.{Transaction, TransactionParser}
 import vsys.db.openDB
 import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
-import vsys.settings.TestStateSettings
+import vsys.events.{EventTriggers, EventWriterActor}
 
 package object history {
   val MinInMemoryDiffSize = 5
@@ -21,9 +21,12 @@ package object history {
     genesisSettings = null,
     stateSettings = TestStateSettings.AllOn)
 
+  val DefaultEventSetting = EventSettings(Seq.empty)
+  val DefaultActorSys = ActorSystem().actorOf(Props[EventWriterActor])
+  val triggerService = EventTriggers(DefaultActorSys, DefaultEventSetting)
   val db = openDB("./test/data", true)
   def domain(): Domain = {
-    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, true)
+    val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, DefaultBlockchainSettings, triggerService, true)
     Domain(history, stateReader, blockchainUpdater)
   }
 

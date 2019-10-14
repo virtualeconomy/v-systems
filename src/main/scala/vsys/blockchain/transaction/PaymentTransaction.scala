@@ -18,7 +18,7 @@ case class PaymentTransaction private(recipient: Address,
                                       feeScale: Short,
                                       timestamp: Long,
                                       attachment: Array[Byte],
-                                      proofs: Proofs) extends ProvenTransaction with AmountInvoved {
+                                      proofs: Proofs) extends ProvenTransaction with AmountInvolved {
 
   val transactionType = TransactionType.PaymentTransaction
 

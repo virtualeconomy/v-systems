@@ -7,6 +7,7 @@ import vsys.blockchain.BlockchainUpdater
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{BlockchainUpdaterImpl, StateStorage, StateWriterImpl, StateWriter}
 import vsys.settings.BlockchainSettings
+import vsys.events.EventTriggers
 
 object StorageFactory {
 
@@ -16,12 +17,12 @@ object StorageFactory {
     else StateStorage(db, dropExisting = true)
   }
 
-  def apply(db: DB, settings: BlockchainSettings, renew: Boolean = false): (History, StateWriter, StateReader, BlockchainUpdater) = {
+  def apply(db: DB, settings: BlockchainSettings, trigger: EventTriggers, renew: Boolean = false): (History, StateWriter, StateReader, BlockchainUpdater) = {
     val lock = new RWL(true)
     val historyWriter = new HistoryWriterImpl(db, lock, renew)
     val ss = createStateStorage(historyWriter, db)
     val stateWriter = new StateWriterImpl(ss, lock, settings.stateSettings)
-    val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, lock)
+    val bcu = BlockchainUpdaterImpl(stateWriter, historyWriter, settings.functionalitySettings, settings.minimumInMemoryDiffSize, trigger, lock)
     (historyWriter, stateWriter, bcu.currentPersistedBlocksState, bcu)
   }
 }

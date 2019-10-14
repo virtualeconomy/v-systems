@@ -5,7 +5,7 @@ import java.security.Security
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Route
@@ -35,6 +35,7 @@ import vsys.network.{NetworkServer, PeerDatabaseImpl, PeerInfo, UPnP}
 import vsys.settings._
 import vsys.utils.{ScorexLogging, Time, TimeImpl, forceStopApplication}
 import vsys.wallet.Wallet
+import vsys.events.{EventTriggers, EventWriterActor}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -46,7 +47,8 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
   private val db = openDB(settings.dataDirectory)
 
   private val checkpointService = new CheckpointServiceImpl(db, settings.checkpointsSettings)
-  private val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings)
+  private val triggerService = EventTriggers(actorSystem.actorOf(Props[EventWriterActor]), settings.eventSettings)
+  private val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings, triggerService)
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
   private val wallet: Wallet = try {

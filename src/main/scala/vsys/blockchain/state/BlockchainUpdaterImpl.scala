@@ -15,11 +15,13 @@ import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction._
 import vsys.settings.FunctionalitySettings
 import vsys.utils.ScorexLogging
+import vsys.events.EventTriggers
 
 class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
                                     settings: FunctionalitySettings,
                                     minimumInMemoryDiffSize: Int,
                                     historyWriter: HistoryWriter,
+                                    eventTrigger: EventTriggers,
                                     val synchronizationToken: ReentrantReadWriteLock) extends BlockchainUpdater with ScorexLogging {
 
   private val topMemoryDiff = Synchronized(Monoid[BlockDiff].empty)
@@ -65,6 +67,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       topMemoryDiff.set(BlockDiff.empty)
     }
     historyWriter.appendBlock(block)(BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)).map { newBlockDiff =>
+      eventTrigger.evokeWebhook(block, newBlockDiff)
       topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
     }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${historyWriter.height()}, new score: ${historyWriter.score()}"))
   }
@@ -115,9 +118,10 @@ object BlockchainUpdaterImpl {
                history: HistoryWriter,
                functionalitySettings: FunctionalitySettings,
                minimumInMemoryDiffSize: Int,
+               eventTrigger: EventTriggers,
                synchronizationToken: ReentrantReadWriteLock): BlockchainUpdaterImpl = {
     val blockchainUpdater =
-      new BlockchainUpdaterImpl(persistedState, functionalitySettings, minimumInMemoryDiffSize, history, synchronizationToken)
+      new BlockchainUpdaterImpl(persistedState, functionalitySettings, minimumInMemoryDiffSize, history, eventTrigger, synchronizationToken)
     blockchainUpdater.logHeights("Constructing BlockchainUpdaterImpl")
     blockchainUpdater.updatePersistedAndInMemory()
     blockchainUpdater
