@@ -16,7 +16,7 @@ import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
 import vsys.blockchain.UtxPool
 import vsys.settings.{RestAPISettings, StateSettings}
 
-import scala.util.Success
+import scala.util.{DynamicVariable, Success}
 import scala.util.control.Exception
 
 @Path("/transactions")
@@ -32,17 +32,17 @@ case class TransactionsApiRoute(
 
   override lazy val route =
     pathPrefix("transactions") {
-      customRoute
+      customRoute.value
     }
 
-  var customRoute = unconfirmed ~ addressLimit ~ info ~ activeLeaseList
+  val customRoute = new DynamicVariable(unconfirmed ~ addressLimit ~ info ~ activeLeaseList)
 
   if(settings.customApiSettings.transactionsApiSettings.addressTransactionCount) {
-    customRoute = customRoute ~ transactionCount
+    customRoute.value = customRoute.value ~ transactionCount
   }
 
   if(settings.customApiSettings.transactionsApiSettings.addressTransactionList) {
-    customRoute = customRoute ~ transactionList
+    customRoute.value = customRoute.value ~ transactionList
   }
 
   @Path("/count")

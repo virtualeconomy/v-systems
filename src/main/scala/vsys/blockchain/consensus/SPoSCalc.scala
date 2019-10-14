@@ -11,7 +11,7 @@ object SPoSCalc extends ScorexLogging {
   val MinimalEffectiveBalanceForContender: Long = 100000000000000L
 
   // update plan: 4 -> 15 slots, 2 -> 30 slots, 1 -> 60 slots
-  val SlotGap = if (AddressScheme.current.chainId == 'M'.toByte) 4 else 1
+  val SlotGap = if (AddressScheme.current.value.chainId == 'M'.toByte) 4 else 1
 
   // update plan: 15 slots -> 36 vsys coins, 30 slots -> 18 vsys coins, 60 slots -> 9 vsys coins
   val BaseReward = 900000000L

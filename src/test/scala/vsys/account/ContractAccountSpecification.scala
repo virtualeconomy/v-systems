@@ -11,7 +11,7 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
   property("Contract address should be invalid for another address version") {
     forAll { (data: Array[Byte], AddressVersion2: Byte) =>
       val publicKeyHash = hash(data).take(ContractAccount.HashLength)
-      val withoutChecksum = AddressVersion2 +: AddressScheme.current.chainId +: publicKeyHash
+      val withoutChecksum = AddressVersion2 +: AddressScheme.current.value.chainId +: publicKeyHash
       val addressVersion2 = Base58.encode(withoutChecksum ++ hash(withoutChecksum).take(ContractAccount.ChecksumLength))
       ContractAccount.fromString(addressVersion2).isRight shouldBe (AddressVersion2 == ContractAccount.AddressVersion)
     }
@@ -21,14 +21,14 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
     forAll { (data: Array[Byte], network: Byte) =>
       val withoutChecksum = ContractAccount.AddressVersion +: network +: hash(data).take(ContractAccount.HashLength)
       val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(ContractAccount.ChecksumLength)
-      ContractAccount.fromBytes(addressBytes).isRight shouldBe (network == AddressScheme.current.chainId)
+      ContractAccount.fromBytes(addressBytes).isRight shouldBe (network == AddressScheme.current.value.chainId)
     }
   }
 
   property("Contract address should be invalid for incorrect addressByteLength") {
     forAll { (data: Array[Byte], random: Int) =>
       whenever(random > -5 && random < 5) {
-        val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.chainId +: hash(data).take(Address.HashLength + random)
+        val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.value.chainId +: hash(data).take(Address.HashLength + random)
         val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(Address.ChecksumLength)
         ContractAccount.fromBytes(addressBytes).isRight shouldBe (random == 0)
         ContractAccount.tokenIdFromBytes(addressBytes, Ints.toByteArray(0)).isRight shouldBe (random == 0)
@@ -38,7 +38,7 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
 
   property("Contract Id and Token Id should be consistent") {
     forAll { (data: Array[Byte], randomIdx: Int) =>
-      val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.chainId +: hash(data).take(ContractAccount.HashLength)
+      val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.value.chainId +: hash(data).take(ContractAccount.HashLength)
       val addressBytes = withoutChecksum ++ hash(withoutChecksum).take(ContractAccount.ChecksumLength)
       val idxBytes = Ints.toByteArray(randomIdx)
       val tokenId = ContractAccount.tokenIdFromBytes(addressBytes, idxBytes).right.get
@@ -49,7 +49,7 @@ class ContractAccountSpecification extends PropSpec with PropertyChecks with Gen
   property("From String with and without prefix should be consistent") {
     forAll { data: Array[Byte] =>
       val publicKeyHash = hash(data).take(ContractAccount.HashLength)
-      val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.chainId +: publicKeyHash
+      val withoutChecksum = ContractAccount.AddressVersion +: AddressScheme.current.value.chainId +: publicKeyHash
       val bytes = withoutChecksum ++ hash(withoutChecksum).take(ContractAccount.ChecksumLength)
       val addressStr1 = Base58.encode(bytes)
       val addressStr2 = "contractAccount:" + addressStr1
