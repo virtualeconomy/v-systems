@@ -58,10 +58,6 @@ class WebhookEventRulesSpec extends PropSpec with PropertyChecks with GeneratorD
     val mockTx1 = mock[ProcessedTransaction]
     val mockTx2 = mock[ProcessedTransaction]
 
-    forAll (timestampGen) { (x: Long)  =>
-      x > 0 shouldBe(true)
-    }
-
     val tx = mock[MintingTransaction]
     val blockTime1 = 10
     when(tx.amount).thenReturn(200)
