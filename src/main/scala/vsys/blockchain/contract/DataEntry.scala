@@ -39,6 +39,8 @@ case class DataEntry(data: Array[Byte],
 
 object DataEntry {
 
+  private def scheme = AddressScheme.current.value
+
   def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
     dataType match {
       case DataType.ShortText if checkDataType(Shorts.toByteArray(data.length.toShort) ++ data, dataType) => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
@@ -120,7 +122,7 @@ object DataEntry {
     val network = addressBytes.tail.head
     if (version != ContractAccount.TokenAddressVersion) {
       false
-    } else if (network != AddressScheme.current.chainId) {
+    } else if (network != scheme.chainId) {
       false
     } else {
       if (addressBytes.length != ContractAccount.TokenAddressLength)
