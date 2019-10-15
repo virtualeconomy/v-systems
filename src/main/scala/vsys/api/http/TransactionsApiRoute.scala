@@ -11,13 +11,12 @@ import vsys.blockchain.history.History
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
 import vsys.blockchain.UtxPool
 import vsys.settings.{RestAPISettings, StateSettings}
 
-import scala.util.Success
+import scala.util.{DynamicVariable, Success}
 import scala.util.control.Exception
 
 @Path("/transactions")
@@ -33,17 +32,17 @@ case class TransactionsApiRoute(
 
   override lazy val route =
     pathPrefix("transactions") {
-      customRoute
+      customRoute.value
     }
 
-  var customRoute = unconfirmed ~ addressLimit ~ info ~ activeLeaseList
+  val customRoute = new DynamicVariable(unconfirmed ~ addressLimit ~ info ~ activeLeaseList)
 
   if(settings.customApiSettings.transactionsApiSettings.addressTransactionCount) {
-    customRoute = customRoute ~ transactionCount
+    customRoute.value = customRoute.value ~ transactionCount
   }
 
   if(settings.customApiSettings.transactionsApiSettings.addressTransactionList) {
-    customRoute = customRoute ~ transactionList
+    customRoute.value = customRoute.value ~ transactionList
   }
 
   @Path("/count")
@@ -178,7 +177,8 @@ case class TransactionsApiRoute(
               .map(a => (a._1,a._2,a._2.transaction))
               .collect{
                 case (h:Int, tx:ProcessedTransaction, lt:LeaseTransaction)
-                  if EllipticCurve25519Proof.fromBytes(lt.proofs.proofs.head.bytes.arr).toOption.get.publicKey.address == address =>
+                  if lt.proofs.firstCurveProof.map(_.publicKey.address) == Right(address)
+                    || lt.recipient.address == address =>
                   processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
               }
           )))

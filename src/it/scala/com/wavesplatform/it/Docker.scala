@@ -16,6 +16,7 @@ import vsys.utils.ScorexLogging
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.DynamicVariable
 
 case class NodeInfo(
                      hostRestApiPort: Int,
@@ -38,15 +39,15 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
     .setRequestTimeout(5000))
 
   private val client = DefaultDockerClient.fromEnv().build()
-  private var nodes = Map.empty[String, Node]
-  private var seedAddress = Option.empty[String]
+  private val nodes = new DynamicVariable(Map.empty[String, Node])
+  private val seedAddress = new DynamicVariable(Option.empty[String])
   private val isStopped = new AtomicBoolean(false)
 
   sys.addShutdownHook {
     close()
   }
 
-  private def knownPeers = seedAddress.fold("")(sa => s"-Dvsys.network.known-peers.0=$sa")
+  private def knownPeers = seedAddress.value.fold("")(sa => s"-Dvsys.network.known-peers.0=$sa")
 
   private val networkName = "vsys-" + this.##.toLong.toHexString
 
@@ -99,10 +100,10 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
       containerId,
       extractHostPort(ports, matcherApiPort))
     val node = new Node(actualConfig, nodeInfo, http)
-    if (seedAddress.isEmpty) {
-      seedAddress = Some(s"${nodeInfo.networkIpAddress}:${nodeInfo.containerNetworkPort}")
+    if (seedAddress.value.isEmpty) {
+      seedAddress.value = Some(s"${nodeInfo.networkIpAddress}:${nodeInfo.containerNetworkPort}")
     }
-    nodes += containerId -> node
+    nodes.value = nodes.value + containerId -> node
     Await.result(node.lastBlock, Duration.Inf)
     node
   }
@@ -114,8 +115,8 @@ class Docker(suiteConfig: Config = ConfigFactory.empty) extends AutoCloseable wi
   override def close(): Unit = {
     if (isStopped.compareAndSet(false, true)) {
       log.info("Stopping containers")
-      nodes.values.foreach(n => n.close())
-      nodes.keys.foreach(id => client.removeContainer(id, RemoveContainerParam.forceKill()))
+      nodes.value.values.foreach(n => n.close())
+      nodes.value.keys.foreach(id => client.removeContainer(id, RemoveContainerParam.forceKill()))
       client.removeNetwork(vsysNetwork.id())
       client.close()
       http.close()
