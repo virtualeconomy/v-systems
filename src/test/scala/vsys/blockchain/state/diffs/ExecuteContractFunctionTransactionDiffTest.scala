@@ -2,14 +2,14 @@ package vsys.blockchain.state.diffs
 
 import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
-import vsys.blockchain.state.{ByteStr, Portfolio}
+import vsys.blockchain.state.{ByteStr, LeaseInfo, Portfolio}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.transaction.GenesisTransaction
 import vsys.utils.serialization.Deser
-import vsys.account.PublicKeyAccount
+import vsys.account.{Address, ContractAccount, PublicKeyAccount}
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract._
 import vsys.blockchain.transaction.{TransactionGen, TransactionStatus}
@@ -31,7 +31,37 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
-  val preconditionAndBuildExecuteContract: Gen[(Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
+  val preconditionsAndExecuteContractSystemSend: Gen[(GenesisTransaction, ExecuteContractFunctionTransaction, Long, PublicKeyAccount, Address)] = for {
+    master <- accountGen
+    ts <- positiveIntGen
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    feeScale <- feeScaleGen
+    recipient <- mintingAddressGen
+    fee: Long <- smallFeeGen
+    funcIdx: Short <- Gen.const(ContractSystem.FunId.sysSend)
+    data: Seq[DataEntry] <- sendDataStackGen(recipient, 100000L)
+    description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    ts1: Long <- positiveLongGen
+    executeContractSystemSend: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master, ContractAccount.systemContractId, funcIdx, data, description, fee, feeScale, ts1).right.get
+  } yield (genesis, executeContractSystemSend, fee, master, recipient)
+
+  property("execute contract transaction systemSend successfully") {
+    forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend, fee, master, recipient) =>
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(executeContractSystemSend))) { (blockDiff, newState) =>
+        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
+        val sender = EllipticCurve25519Proof.fromBytes(executeContractSystemSend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val recipientPortfolio = newState.accountPortfolio(recipient)
+        val senderPortfolio = newState.accountPortfolio(master)
+        totalPortfolioDiff.balance shouldBe -fee
+        totalPortfolioDiff.effectiveBalance shouldBe -fee
+        recipientPortfolio shouldBe Portfolio(100000, LeaseInfo.empty, Map.empty)
+        senderPortfolio shouldBe Portfolio(ENOUGH_AMT-100000-fee, LeaseInfo.empty, Map.empty)
+        newState.accountTransactionIds(sender.toAddress, 2, 0)._2.size shouldBe 2 // genesis and transfer
+      }
+    }
+  }
+
+  val preconditionsAndBuildExecuteContract: Gen[(Array[Byte], Array[Byte], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
     langCode <- languageCodeFromLengthGen("vdds")
     langVer <- languageVersionFromLengthGen(1)
     init <- triggerGen()
@@ -41,7 +71,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
   } yield (langCode, langVer, init, descriptor, stateVar, textual)
 
   property("execute contract build doesn't break invariant"){
-    forAll(preconditionAndBuildExecuteContract) { case (langCode, langVer, init, descriptor, stateVar, textual) =>
+    forAll(preconditionsAndBuildExecuteContract) { case (langCode, langVer, init, descriptor, stateVar, textual) =>
       Contract.buildContract(langCode, langVer, init, descriptor, stateVar, textual) shouldBe an[Right[_, _]]
     }
   }
