@@ -1,14 +1,14 @@
 package vsys.api.http.contract
 
 import javax.ws.rs.Path
-
+import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
-import play.api.libs.json.{JsArray, JsNumber, JsObject, Json}
-import vsys.account.Address
+import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
+import vsys.account.{Address, ContractAccount}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
@@ -24,13 +24,15 @@ import vsys.wallet.Wallet
 import scala.util.Success
 import scala.util.control.Exception
 
+import ContractApiRoute._
+
 @Path("/contract")
 @Api(value = "/contract")
 case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time, state: StateReader)
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance
   }
 
   @Path("/register")
@@ -52,6 +54,22 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def register: Route = processRequest("register", (t: RegisterContractRequest) => doBroadcast(TransactionFactory.registerContract(t, wallet, time)))
 
+  @Path("/vBalance/{contractId}")
+  @ApiOperation(value = "Contract balance", notes = "Get contract account v balance associated with contract id.", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "contractId", value = "Contract ID", required = true, dataType = "string", paramType = "path")
+  ))
+  def vBalance: Route = (path("vBalance" / Segment) & get) { contractId =>
+    complete(vBalanceJson(contractId))
+  }
+
+  private def vBalanceJson(contractId: String): ToResponseMarshallable = {
+    ContractAccount.fromString(contractId).right.map(acc => ToResponseMarshallable(Balance(
+      acc.address,
+      0,
+      state.balance(acc)
+    ))).getOrElse(InvalidContractAddress)
+  }
 
   @Path("/content/{contractId}")
   @ApiOperation(value = "Contract content", notes = "Get contract content associated with a contract id.", httpMethod = "GET")
@@ -220,5 +238,13 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       }
     }
   }
+
+}
+
+object ContractApiRoute {
+
+  case class Balance(address: String, confirmations: Int, balance: Long)
+
+  implicit val balanceFormat: Format[Balance] = Json.format
 
 }
