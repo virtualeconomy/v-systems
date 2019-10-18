@@ -9,7 +9,7 @@ import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right, Try}
 
-object TDBOpcDiff {
+object TDBOpcDiff extends OpcDiffer {
 
   def newToken(context: ExecutionContext)
               (max: DataEntry, unity: DataEntry, desc: DataEntry):Either[ValidationError, OpcDiff] = {
@@ -39,7 +39,7 @@ object TDBOpcDiff {
   }
 
   def split(context: ExecutionContext)
-           (newUnity: DataEntry, tokenIndex: DataEntry): Either[ValidationError, OpcDiff] = {
+           (newUnity: DataEntry, tokenIndex: DataEntry = defaultTokenIndex): Either[ValidationError, OpcDiff] = {
 
     if (newUnity.dataType != DataType.Amount || tokenIndex.dataType != DataType.Int32) {
       Left(ContractDataTypeMismatch)
@@ -59,33 +59,23 @@ object TDBOpcDiff {
     }
   }
 
-  def splitWithoutTokenIndex(context: ExecutionContext)
-           (newUnity: DataEntry): Either[ValidationError, OpcDiff] = {
-
-    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
-    split(context)(newUnity, tokenIndex)
-  }
-
   object TDBType extends Enumeration {
-    val NewTokenTDB = Value(1)
-    val SplitTDB = Value(2)
+    sealed case class TDBTypeVal(
+      tdbType: Int,
+      operandCount: Int,
+      withTokenIndex: Boolean,
+      differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, OpcDiff])
+    extends Val(tdbType) { def *(n: Int): Int = n * tdbType }
+
+    val NewTokenTDB = TDBTypeVal(1, 3, false, (c, b, d) => newToken(c)(d(b(1)), d(b(2)), d(b(3))))
+    val SplitTDB    = TDBTypeVal(2, 2, true,  (c, b, d) => split(c)(d(b(1)), tokenIndex(b, d, 2)))
+
+    def fromByte(b: Byte): Option[TDBType.TDBTypeVal] = Try(TDBType(b).asInstanceOf[TDBTypeVal]).toOption
   }
 
-  def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] = {
-    if (checkTDBDataIndex(bytes, data.length)) {
-      (bytes.headOption.flatMap(f => Try(TDBType(f)).toOption), bytes.length) match {
-        case (Some(TDBType.NewTokenTDB), 4) => newToken(context)(data(bytes(1)), data(bytes(2)), data(bytes(3)))
-        case (Some(TDBType.SplitTDB), 2) => splitWithoutTokenIndex(context)(data(bytes(1)))
-        case (Some(TDBType.SplitTDB), 3) => split(context)(data(bytes(1)), data(bytes(2)))
-        case _ => Left(ContractInvalidOPCData)
-      }
+  override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
+    bytes.headOption.flatMap(TDBType.fromByte(_)) match {
+      case Some(t: TDBType.TDBTypeVal) if checkData(bytes, data.length, t.operandCount, t.withTokenIndex) => t.differ(context, bytes, data)
+      case _ => Left(ContractInvalidOPCData)
     }
-    else
-      Left(ContractInvalidOPCData)
-  }
-
-  private def checkTDBDataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
-    bytes.tail.max < dataLength && bytes.tail.min >= 0
-
 }

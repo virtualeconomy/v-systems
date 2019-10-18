@@ -8,11 +8,18 @@ import vsys.utils.crypto.hash.FastCryptographicHash._
 import vsys.utils.crypto.hash.FastCryptographicHash
 import vsys.blockchain.transaction.TransactionParser._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{DynamicVariable, Failure, Success, Try}
 
-case class GenesisTransaction private(recipient: Address, amount: Long, slotId: Int, timestamp: Long, signature: ByteStr) extends Transaction {
+case class GenesisTransaction private(recipient: Address,
+                                      amount: Long,
+                                      slotId: Int,
+                                      timestamp: Long,
+                                      signature: ByteStr) extends NonFeeTransaction {
 
-  import GenesisTransaction._
+  val transactionType = TransactionType.GenesisTransaction
+
+  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
+  override lazy val signatureValid: Boolean = true
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
@@ -25,22 +32,20 @@ case class GenesisTransaction private(recipient: Address, amount: Long, slotId: 
       slotIdBytes,
       recipient.bytes.arr)
   }
-  override val assetFee: (Option[AssetId], Long, Short) = (None, 0, 100)
-  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
 
-  val transactionType = TransactionType.GenesisTransaction
 
   lazy val creator: Option[Address] = None
 
-  lazy val json: JsObject =
-    Json.obj("type" -> transactionType.id,
+  lazy val json: JsObject = Json.obj(
+      "type" -> transactionType.id,
       "id" -> id.base58,
       "fee" -> 0,
       "slotId" -> slotId,
       "timestamp" -> timestamp,
       "signature" -> this.signature.base58,
       "recipient" -> recipient.address,
-      "amount" -> amount)
+      "amount" -> amount
+    )
 
   lazy val bytes: Array[Byte] = {
     val typeBytes = Array(transactionType.id.toByte)
@@ -50,15 +55,13 @@ case class GenesisTransaction private(recipient: Address, amount: Long, slotId: 
     val rcpBytes = recipient.bytes.arr
     require(rcpBytes.length == Address.AddressLength)
     val res = Bytes.concat(typeBytes, timestampBytes, rcpBytes, amountBytes, slotIdBytes)
-    require(res.length == TypeLength + BASE_LENGTH)
+    require(res.length == TypeLength + GenesisTransaction.BASE_LENGTH)
     res
   }
-
-  override lazy val signatureValid: Boolean = true
 }
 
 
-object GenesisTransaction extends {
+object GenesisTransaction extends TransactionParser {
 
   private val RECIPIENT_LENGTH = Address.AddressLength
   private val BASE_LENGTH = TimestampLength + RECIPIENT_LENGTH + AmountLength + SlotIdLength
@@ -81,19 +84,20 @@ object GenesisTransaction extends {
     Try {
       require(data.length >= BASE_LENGTH, "Data does not match base length")
 
-      var position = 0
+      val positionVal = new DynamicVariable(0)
+      def position = positionVal.value
 
       val timestampBytes = java.util.Arrays.copyOfRange(data, position, position + TimestampLength)
       val timestamp = Longs.fromByteArray(timestampBytes)
-      position += TimestampLength
+      positionVal.value = position + TimestampLength
 
       val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + RECIPIENT_LENGTH)
       val recipient = Address.fromBytes(recipientBytes).right.get
-      position += RECIPIENT_LENGTH
+      positionVal.value = position + RECIPIENT_LENGTH
 
       val amountBytes = java.util.Arrays.copyOfRange(data, position, position + AmountLength)
       val amount = Longs.fromByteArray(amountBytes)
-      position += AmountLength
+      positionVal.value = position + AmountLength
 
       val slotIdBytes = java.util.Arrays.copyOfRange(data, position, position + SlotIdLength)
       val slotId = Ints.fromByteArray(slotIdBytes)

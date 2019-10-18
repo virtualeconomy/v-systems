@@ -30,7 +30,8 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
   @ApiOperation(value = "create/modify a db entry",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",

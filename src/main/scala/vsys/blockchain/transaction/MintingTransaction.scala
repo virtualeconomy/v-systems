@@ -10,15 +10,17 @@ import vsys.utils.crypto.hash.FastCryptographicHash
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.consensus.SPoSCalc._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{DynamicVariable, Failure, Success, Try}
 
 case class MintingTransaction private(recipient: Address,
                                       amount: Long,
                                       timestamp: Long,
-                                      currentBlockHeight: Int) extends Transaction {
+                                      currentBlockHeight: Int) extends NonFeeTransaction {
+
+  val transactionType = TransactionType.MintingTransaction
+
+  override lazy val id: ByteStr = ByteStr(FastCryptographicHash(toSign))
   override lazy val signatureValid = true
-  override val transactionType = TransactionType.MintingTransaction
-  override val assetFee: (Option[AssetId], Long, Short) = (None, 0, 100) // no fee charged here
 
   lazy val toSign: Array[Byte] = {
     val timestampBytes = Longs.toByteArray(timestamp)
@@ -27,21 +29,20 @@ case class MintingTransaction private(recipient: Address,
     Bytes.concat(Array(transactionType.id.toByte), timestampBytes, recipient.bytes.arr, amountBytes, currentBlockHeightBytes)
   }
 
-  override lazy val id: ByteStr= ByteStr(FastCryptographicHash(toSign))
-
   override lazy val json: JsObject = Json.obj(
     "type" -> transactionType.id,
-      "id" -> id.base58,
-      "recipient" -> recipient.address,
-      "timestamp" -> timestamp,
-      "amount" -> amount,
-      "currentBlockHeight" -> currentBlockHeight)
+    "id" -> id.base58,
+    "recipient" -> recipient.address,
+    "timestamp" -> timestamp,
+    "amount" -> amount,
+    "currentBlockHeight" -> currentBlockHeight
+  )
 
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign)
-
+  
 }
 
-object MintingTransaction {
+object MintingTransaction extends TransactionParser {
 
   private val recipientLength = Address.AddressLength
   private val currentBlockHeightLength = 4
@@ -63,27 +64,28 @@ object MintingTransaction {
   def parseTail(data: Array[Byte]): Try[MintingTransaction] = Try {
     require(data.length >= BaseLength, "Data does not match base length")
 
-    var position = 0
+    val positionVal = new DynamicVariable(0)
+    def position = positionVal.value
 
     //READ TIMESTAMP
     val timestampBytes = data.take(TimestampLength)
     val timestamp = Longs.fromByteArray(timestampBytes)
-    position += TimestampLength
+    positionVal.value = position + TimestampLength
 
     //READ RECIPIENT
     val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + recipientLength)
     val recipient = Address.fromBytes(recipientBytes).right.get
-    position += recipientLength
+    positionVal.value = position + recipientLength
 
     //READ AMOUNT
     val amountBytes = util.Arrays.copyOfRange(data, position, position + AmountLength)
     val amount = Longs.fromByteArray(amountBytes)
-    position += AmountLength
+    positionVal.value = position + AmountLength
 
     //READ CURRENTBLOCKHEIGHT
     val currentBlockHeightBytes = util.Arrays.copyOfRange(data, position, position + currentBlockHeightLength)
     val currentBlockHeight = Ints.fromByteArray(currentBlockHeightBytes)
-    position += currentBlockHeightLength
+    positionVal.value = position + currentBlockHeightLength
 
     //READ SIGNATURE
     MintingTransaction

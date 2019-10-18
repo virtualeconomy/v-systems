@@ -1,8 +1,11 @@
 package vsys.blockchain.transaction
 
+import java.security.SecureRandom
+
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 import vsys.account.PrivateKeyAccount
+import vsys.blockchain.state.EitherExt2
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 
 import scala.util.{Failure, Try}
@@ -25,13 +28,13 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
 
         val sender = PrivateKeyAccount(senderSeed)
         val recipient = PrivateKeyAccount(recipientSeed)
-        val attachment = Array.fill(scala.util.Random.nextInt(PaymentTransaction.MaxAttachmentSize))((scala.util.Random.nextInt(256) - 128).toByte)
+        val attachment = Array.fill(new SecureRandom().nextInt(PaymentTransaction.MaxAttachmentSize))((new SecureRandom().nextInt(256) - 128).toByte)
 
-        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).right.get
+        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).explicitGet()
 
         tx.timestamp shouldEqual time
         tx.amount shouldEqual amount
-        tx.fee shouldEqual fee
+        tx.transactionFee shouldEqual fee
         tx.feeScale shouldEqual feeScale
         tx.attachment shouldEqual attachment
         tx.recipient.address shouldEqual recipient.address
@@ -44,9 +47,9 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
 
         val sender = PrivateKeyAccount(senderSeed)
         val recipient = PrivateKeyAccount(recipientSeed)
-        val attachment = Array.fill(scala.util.Random.nextInt(PaymentTransaction.MaxAttachmentSize))((scala.util.Random.nextInt(256) - 128).toByte)
+        val attachment = Array.fill(new SecureRandom().nextInt(PaymentTransaction.MaxAttachmentSize))((new SecureRandom().nextInt(256) - 128).toByte)
 
-        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).right.get
+        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).explicitGet()
         val txAfter = parseBytes(tx.bytes).get
 
         txAfter.getClass.shouldBe(tx.getClass)
@@ -55,7 +58,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
         tx.timestamp shouldEqual txAfter.timestamp
         tx.attachment shouldEqual attachment
         tx.amount shouldEqual txAfter.amount
-        tx.fee shouldEqual txAfter.fee
+        tx.transactionFee shouldEqual txAfter.transactionFee
         tx.feeScale shouldEqual txAfter.feeScale
         tx.proofs shouldEqual txAfter.proofs
     }
@@ -67,8 +70,8 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
 
         val sender = PrivateKeyAccount(senderSeed)
         val recipient = PrivateKeyAccount(recipientSeed)
-        val attachment = Array.fill(scala.util.Random.nextInt(PaymentTransaction.MaxAttachmentSize))((scala.util.Random.nextInt(256) - 128).toByte)
-        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).right.get
+        val attachment = Array.fill(new SecureRandom().nextInt(PaymentTransaction.MaxAttachmentSize))((new SecureRandom().nextInt(256) - 128).toByte)
+        val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, time, attachment).explicitGet()
         val txAfter = TransactionParser.parseBytes(tx.bytes).get.asInstanceOf[PaymentTransaction]
 
         txAfter.getClass.shouldBe(tx.getClass)
@@ -77,7 +80,7 @@ class TransactionSpecification extends PropSpec with PropertyChecks with Matcher
         tx.timestamp shouldEqual txAfter.timestamp
         tx.attachment shouldEqual txAfter.attachment
         tx.amount shouldEqual txAfter.amount
-        tx.fee shouldEqual txAfter.fee
+        tx.transactionFee shouldEqual txAfter.transactionFee
         tx.feeScale shouldEqual txAfter.feeScale
         tx.proofs shouldEqual txAfter.proofs
     }

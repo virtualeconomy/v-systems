@@ -2,11 +2,12 @@ package vsys.blockchain.state
 
 import com.google.common.primitives.Ints
 import vsys.account.Account
-import vsys.blockchain.transaction.TransactionParser.TransactionType
 import org.iq80.leveldb.{DB, WriteBatch}
-
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.db.{Storage, SubStorage}
 import vsys.db.StateMap
+
+import scala.util.DynamicVariable
 
 class StateStorage private(db: DB) extends Storage(db){
 
@@ -46,8 +47,6 @@ class StateStorage private(db: DB) extends Storage(db){
 
   val portfolios: StateMap[ByteStr, (Long, (Long, Long), Map[Array[Byte], Long])] = new StateMap(db, "portfolios", DataTypes.byteStr, DataTypes.portfolios)
 
-  val assets: StateMap[ByteStr, (Boolean, Long)] = new StateMap(db, "assets", DataTypes.byteStr, DataTypes.assets)
-
   val accountTransactionIds: StateMap[AccountIdxKey, ByteStr] = new StateMap(db, "accountTransactionIds", valueType=DataTypes.byteStr)
 
   val accountTransactionsLengths: StateMap[ByteStr, Int] = new StateMap(db, "accountTransactionsLengths", keyType=DataTypes.byteStr)
@@ -57,8 +56,6 @@ class StateStorage private(db: DB) extends Storage(db){
   val txTypeAccTxLengths: StateMap[txTypeAccKey, Int] = new StateMap(db, "txTypeAccTxLengths")
 
   val balanceSnapshots: StateMap[AccountIdxKey, (Int, Long, Long, Long)] = new StateMap(db, "balanceSnapshots", valueType=DataTypes.balanceSnapshots)
-
-  val orderFills: StateMap[ByteStr, (Long, Long)] = new StateMap(db, "orderFills", keyType=DataTypes.byteStr, valueType=DataTypes.orderFills)
 
   val leaseState: StateMap[ByteStr, Boolean] = new StateMap(db, "leaseState", keyType=DataTypes.byteStr)
 
@@ -84,11 +81,11 @@ class StateStorage private(db: DB) extends Storage(db){
   val dbEntries: StateMap[ByteStr, ByteStr] = new StateMap(db, "dbEntries", keyType=DataTypes.byteStr, valueType=DataTypes.byteStr)
 
   override def removeEverything(batchOpt: Option[WriteBatch] = None): Unit = {
-    var batch: Option[WriteBatch] = batchOpt
-    if (batchOpt.isEmpty) batch = createBatch()
-    new SubStorage(db, "states").removeEverything(batch)
-    setHeight(0, batch)
-    if (batchOpt.isEmpty) commit(batch)
+    val batch = new DynamicVariable(batchOpt)
+    if (batchOpt.isEmpty) batch.value = createBatch()
+    new SubStorage(db, "states").removeEverything(batch.value)
+    setHeight(0, batch.value)
+    if (batchOpt.isEmpty) commit(batch.value)
   }
 
 }

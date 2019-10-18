@@ -10,7 +10,7 @@ import vsys.utils.forceStopApplication
 
 @Sharable
 class FatalErrorHandler extends ChannelInboundHandlerAdapter with ScorexLogging {
-  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) = cause match {
+  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = cause match {
     case NonFatal(_) => log.debug(s"${id(ctx)} Exception caught", cause)
     case _ =>
       log.error(s"${id(ctx)} Fatal error in channel, terminating application", cause)

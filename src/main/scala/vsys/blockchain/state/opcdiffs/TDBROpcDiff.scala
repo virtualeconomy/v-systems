@@ -9,7 +9,7 @@ import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.{Left, Right, Try}
 
-object TDBROpcDiff {
+object TDBROpcDiff extends OpcDiffer {
 
   def max(context: ExecutionContext)(tokenIndex: DataEntry,
                                      dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
@@ -34,12 +34,6 @@ object TDBROpcDiff {
     }
   }
 
-  def maxWithoutTokenIndex(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-
-    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
-    max(context)(tokenIndex, dataStack, pointer)
-  }
-
   // in current version only total store in tokenAccountBalance DB
   def total(context: ExecutionContext)(tokenIndex: DataEntry,
                                        dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
@@ -60,12 +54,6 @@ object TDBROpcDiff {
         Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(t), DataType.Amount)), 1))
       }
     }
-  }
-
-  def totalWithoutTokenIndex(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-
-    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
-    total(context)(tokenIndex, dataStack, pointer)
   }
 
   def unity(context: ExecutionContext)(tokenIndex: DataEntry,
@@ -91,12 +79,6 @@ object TDBROpcDiff {
     }
   }
 
-  def unityWithoutTokenIndex(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-
-    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
-    unity(context)(tokenIndex, dataStack, pointer)
-  }
-
   def desc(context: ExecutionContext)(tokenIndex: DataEntry,
                                       dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
 
@@ -120,40 +102,31 @@ object TDBROpcDiff {
     }
   }
 
-  def descWithoutTokenIndex(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  object TDBRType extends Enumeration {
+    sealed case class TDBRTypeVal(
+      tdbrType: Int,
+      operandCount: Int,
+      differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, Seq[DataEntry]])
+    extends Val(tdbrType) { def *(n: Int): Int = n * tdbrType }
 
-    val tokenIndex = DataEntry(Ints.toByteArray(0), DataType.Int32)
-    desc(context)(tokenIndex, dataStack, pointer)
+    private def makeParams(bytes: Array[Byte], data: Seq[DataEntry], operandCount: Int): (DataEntry, Seq[DataEntry], Byte) =
+      bytes.tail.length match {
+        case `operandCount` => (data(bytes(1)),    data, bytes(2))
+        case _            => (defaultTokenIndex, data, bytes(1))
+      }
+
+    val MaxTDBR   = TDBRTypeVal(1, 2, (c, b, d) => (max  (c) _).tupled(makeParams(b, d, 2)))
+    val TotalTDBR = TDBRTypeVal(2, 2, (c, b, d) => (total(c) _).tupled(makeParams(b, d, 2)))
+    val UnityTDBR = TDBRTypeVal(3, 2, (c, b, d) => (unity(c) _).tupled(makeParams(b, d, 2)))
+    val DescTDBR  = TDBRTypeVal(4, 2, (c, b, d) => (desc (c) _).tupled(makeParams(b, d, 2)))
+
+    def fromByte(b: Byte): Option[TDBRType.TDBRTypeVal] = Try(TDBRType(b).asInstanceOf[TDBRTypeVal]).toOption
   }
 
-  object TDBRType extends Enumeration(1) {
-    val MaxTDBR, TotalTDBR, UnityTDBR, DescTDBR = Value
-  }
-
-  def parseBytes(context: ExecutionContext)
-                (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    if (checkTDBRODataIndex(bytes.slice(0, bytes.length - 1), data.length)) {
-      getTDBRDiff(context)(bytes, data)
-    }
-    else
-      Left(ContractInvalidOPCData)
-  }
-
-  private def getTDBRDiff(context: ExecutionContext)
-                         (bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = {
-    (bytes.headOption.flatMap(f => Try(TDBRType(f)).toOption), bytes.length) match {
-      case (Some(TDBRType.MaxTDBR), 2) => maxWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(TDBRType.MaxTDBR), 3) => max(context)(data(bytes(1)), data, bytes(2))
-      case (Some(TDBRType.TotalTDBR), 2) => totalWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(TDBRType.TotalTDBR), 3) => total(context)(data(bytes(1)), data, bytes(2))
-      case (Some(TDBRType.UnityTDBR), 2) => unityWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(TDBRType.UnityTDBR), 3) => unity(context)(data(bytes(1)), data, bytes(2))
-      case (Some(TDBRType.DescTDBR), 2) => descWithoutTokenIndex(context)(data, bytes(1))
-      case (Some(TDBRType.DescTDBR), 3) => desc(context)(data(bytes(1)), data, bytes(2))
+  override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    bytes.headOption.flatMap(TDBRType.fromByte(_)) match {
+      case Some(t: TDBRType.TDBRTypeVal) if checkData(bytes.dropRight(1), data.length, t.operandCount - 1) => t.differ(context, bytes, data)
       case _ => Left(ContractInvalidOPCData)
     }
-  }
 
-  private def checkTDBRODataIndex(bytes: Array[Byte], dataLength: Int): Boolean =
-    bytes.length == 1 || (bytes.tail.max < dataLength && bytes.tail.min >= 0)
 }

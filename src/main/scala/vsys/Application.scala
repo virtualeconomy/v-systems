@@ -11,7 +11,6 @@ import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import com.wavesplatform.matcher.Matcher
 import io.netty.channel.Channel
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.util.concurrent.GlobalEventExecutor
@@ -40,7 +39,7 @@ import vsys.wallet.Wallet
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
-import scala.util.Try
+import scala.util.{DynamicVariable, Try}
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
 
@@ -96,10 +95,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       PeersApiRoute(settings.restAPISettings, network.connect, peerDatabase, establishedConnections),
       AddressApiRoute(settings.restAPISettings, wallet, stateReader, settings.blockchainSettings.functionalitySettings),
       DebugApiRoute(settings.restAPISettings, wallet, stateReader, history, peerDatabase, establishedConnections, blockchainUpdater, allChannels, utxStorage),
-      //WavesApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
-      //AssetsApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       NodeApiRoute(settings.restAPISettings, stateReader, history, () => this.shutdown()),
-      //AssetsBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       LeaseApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, stateReader, time),
       LeaseBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
@@ -119,10 +115,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       classOf[PeersApiRoute],
       classOf[AddressApiRoute],
       classOf[DebugApiRoute],
-      //classOf[WavesApiRoute],
-      //classOf[AssetsApiRoute],
       classOf[NodeApiRoute],
-      //classOf[AssetsBroadcastApiRoute],
       classOf[LeaseApiRoute],
       classOf[LeaseBroadcastApiRoute],
       classOf[SPOSApiRoute],
@@ -143,20 +136,16 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
     if (settings.restAPISettings.enable) {
       val combinedRoute: Route = CompositeHttpService(actorSystem, apiTypes, apiRoutes, settings.restAPISettings).compositeRoute
       val httpFuture = Http().bindAndHandle(combinedRoute, settings.restAPISettings.bindAddress, settings.restAPISettings.port)
-      serverBinding = Await.result(httpFuture, 10.seconds)
+      serverBinding.value = Some(Await.result(httpFuture, 10.seconds))
       log.info(s"REST API was bound on ${settings.restAPISettings.bindAddress}:${settings.restAPISettings.port}")
     }
 
-    //on unexpected shutdown
+    // on unexpected shutdown
     sys.addShutdownHook {
       network.shutdown()
       shutdown()
     }
 
-    if (settings.matcherSettings.enable) {
-      val matcher = new Matcher(actorSystem, wallet, utxStorage, allChannels, stateReader, history, settings.blockchainSettings, settings.restAPISettings, settings.matcherSettings)
-      matcher.runMatcher()
-    }
   }
 
   def checkGenesis(): Unit = if (history.isEmpty) {
@@ -169,16 +158,16 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
     log.info("Genesis block has been added to the state")
   }
 
-  @volatile var shutdownInProgress = false
-  @volatile var serverBinding: ServerBinding = _
+  val shutdownInProgress = new DynamicVariable(false)
+  val serverBinding: DynamicVariable[Option[ServerBinding]] = new DynamicVariable(None)
 
   def shutdown(): Unit = {
-    if (!shutdownInProgress) {
+    if (!shutdownInProgress.value) {
       log.info("Stopping network services")
-      shutdownInProgress = true
-      if (settings.restAPISettings.enable) {
-        Try(Await.ready(serverBinding.unbind(), 60.seconds)).failed.map(e => log.error("Failed to unbind REST API port: " + e.getMessage))
-      }
+      shutdownInProgress.value = true
+      serverBinding.value.foreach(server =>
+        Try(Await.ready(server.unbind(), 60.seconds)).failed.map(e => log.error("Failed to unbind REST API port: " + e.getMessage))
+      )
       for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {
         upnp.deletePort(addr.getPort)
       }
@@ -227,8 +216,8 @@ object Application extends ScorexLogging {
         val cfg = ConfigFactory.parseFile(file)
         if (!cfg.hasPath("vsys")) {
           log.error("Malformed configuration file was provided! Aborting!")
-          log.error("Please, read following article about configuration file format:")
-          //log.error("https://github.com/wavesplatform/Waves/wiki/Waves-Node-configuration-file") // need to be replaced by vsys wiki
+          log.error("Please, read following article about configuration file:")
+          log.error("https://github.com/virtualeconomy/v-systems/wiki/V-Systems-Mainnet-Node-Configuration-File")
           forceStopApplication()
         }
         loadConfig(cfg)
@@ -254,8 +243,8 @@ object Application extends ScorexLogging {
     RootActorSystem.start("vsys", config) { actorSystem =>
       configureLogging(settings)
 
-      // Initialize global var with actual address scheme
-      AddressScheme.current = new AddressScheme {
+      // Initialize global dynamic val with actual address scheme
+      AddressScheme.current.value = new AddressScheme {
         override val chainId: Byte = settings.blockchainSettings.addressSchemeCharacter.toByte
       }
 

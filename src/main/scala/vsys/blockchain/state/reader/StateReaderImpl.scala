@@ -23,13 +23,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
   override def accountPortfolio(a: Account): Portfolio = read { implicit l =>
     sp().portfolios.get(a.bytes).map { case (b, (i, o), as) => Portfolio(b, LeaseInfo(i, o), as.map { case (k, v) => ByteStr(k) -> v }) }.orEmpty
   }
-
-  override def assetInfo(id: ByteStr): Option[AssetInfo] = read { implicit l =>
-    Option(sp().assets.get(id).get).map {
-      case (is, amt) => AssetInfo(is, amt)
-    }
-  }
-
+  
   override def height: Int = read { implicit l => sp().getHeight }
 
   override def slotAddress(id: Int): Option[String] = read { implicit l => sp().getSlotAddress(id) }
@@ -122,9 +116,5 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def containsTransaction(id: ByteStr): Boolean = read { implicit l =>
     sp().transactions.containsKey(id)
-  }
-
-  override def filledVolumeAndFee(orderId: ByteStr): OrderFillInfo = read { _ =>
-    p.orderFills.get(orderId).map(oi => OrderFillInfo(oi._1, oi._2)).orEmpty
   }
 }

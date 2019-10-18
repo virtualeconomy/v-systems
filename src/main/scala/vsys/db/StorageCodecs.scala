@@ -2,13 +2,12 @@ package vsys.db
 
 import com.google.common.base.Charsets
 import com.google.common.primitives.{Ints, Longs, Shorts}
-import vsys.network.{BlockCheckpoint, Checkpoint}
 import vsys.blockchain.state.ByteStr
-import vsys.blockchain.transaction.AssetId
+import vsys.network.{BlockCheckpoint, Checkpoint}
 
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
-import scala.util.Try
+import scala.util.{DynamicVariable, Try}
 
 case class CodecFailure(reason: String) {
   override def toString: String = s"codec failure: $reason"
@@ -122,20 +121,20 @@ case class ColCodec[Col[BB] <: TraversableOnce[BB], A](valueCodec: Codec[A])(imp
     if (n.isRight) {
       val expectedLength = n.right.get
       val builder        = cbf()
-      var i              = Ints.BYTES
-      var error          = false
-      while (i < bytes.length && !error) {
-        val r = valueCodec.decode(bytes.slice(i, bytes.length))
+      val i              = new DynamicVariable(Ints.BYTES)
+      val error          = new DynamicVariable(false)
+      while (i.value < bytes.length && !error.value) {
+        val r = valueCodec.decode(bytes.slice(i.value, bytes.length))
         if (r.isRight) {
           val rr = r.right.get
-          i = i + rr.length
+          i.value = i.value + rr.length
           builder.+=(rr.value)
         } else {
-          error = true
+          error.value = true
         }
       }
       val result = builder.result()
-      Either.cond(!error && expectedLength == result.size, DecodeResult(i, result), CodecFailure(s"failed to deserialize $expectedLength items"))
+      Either.cond(!error.value && expectedLength == result.size, DecodeResult(i.value, result), CodecFailure(s"failed to deserialize $expectedLength items"))
     } else Left(n.left.get)
   }
 }
@@ -184,28 +183,6 @@ object StringSeqCodec extends Codec[Seq[String]] {
 
   override def decode(bytes: Array[Byte]): Either[CodecFailure, DecodeResult[Seq[String]]] = itemsCodec.decode(bytes)
 }
-
-object OrderToTxIdsCodec extends Codec[Set[String]] {
-  private val itemsCodec = SeqCodec(StringCodec)
-
-  override def encode(value: Set[String]): Array[Byte] = itemsCodec.encode(value.toSeq)
-
-  override def decode(bytes: Array[Byte]): Either[CodecFailure, DecodeResult[Set[String]]] =
-    itemsCodec.decode(bytes).right.map(r => DecodeResult(r.length, r.value.toSet))
-}
-
-object OrderIdsCodec extends Codec[Array[String]] {
-  private val itemsCodec = SeqCodec(StringCodec)
-
-  override def encode(value: Array[String]): Array[Byte] = itemsCodec.encode(value.toSeq)
-
-  override def decode(bytes: Array[Byte]): Either[CodecFailure, DecodeResult[Array[String]]] =
-    itemsCodec.decode(bytes).right.map(r => DecodeResult(r.length, r.value.toArray))
-}
-
-object AssetIdOrderIdCodec extends Tuple2Codec(OptionCodec[AssetId](ByteStrCodec), StringCodec)
-
-object AssetIdOrderIdSetCodec extends ColCodec[Set, (Option[AssetId], String)](AssetIdOrderIdCodec)
 
 object PortfolioItemCodec extends Codec[(String, Long)] {
   override def encode(value: (String, Long)): Array[Byte] = {

@@ -79,7 +79,7 @@ trait SignaturesSeqSpec[A <: AnyRef] extends MessageSpec[A] {
   def unwrap(v: A): Seq[Signature]
 
 
-  override def maxLength = DataLength + (200 * SignatureLength)
+  override def maxLength: Int = DataLength + (200 * SignatureLength)
 
   override def deserializeData(bytes: Array[Byte]): Try[A] = Try {
     val lengthBytes = bytes.take(DataLength)
@@ -124,7 +124,7 @@ object GetBlockSpec extends MessageSpec[GetBlock] {
   override val messageName: String = "GetBlock message"
 
 
-  override def maxLength = TransactionParser.SignatureLength
+  override def maxLength: Int = TransactionParser.SignatureLength
 
   override def serializeData(signature: GetBlock): Array[Byte] = signature.signature.arr
 
@@ -139,7 +139,7 @@ object BlockMessageSpec extends MessageSpec[Block] {
 
   override val messageName: String = "Block message"
 
-  override def maxLength = 271 + TransactionMessageSpec.maxLength * 255
+  override def maxLength: Int = 271 + TransactionMessageSpec.maxLength * 255
 
   override def serializeData(block: Block): Array[Byte] = block.bytes
 
@@ -151,7 +151,7 @@ object ScoreMessageSpec extends MessageSpec[History.BlockchainScore] {
 
   override val messageName: String = "Score message"
 
-  override def maxLength = 64 // allows representing scores as high as 6.6E153
+  override def maxLength: Int = 64 // allows representing scores as high as 6.6E153
 
   override def serializeData(score: History.BlockchainScore): Array[Byte] = {
     val scoreBytes = score.toByteArray
@@ -172,7 +172,7 @@ object CheckpointMessageSpec extends MessageSpec[Checkpoint] {
 
   private val HeightLength = Ints.BYTES
 
-  override def maxLength = 4 + Checkpoint.MaxCheckpoints * (HeightLength + SignatureLength)
+  override def maxLength: Int = 4 + Checkpoint.MaxCheckpoints * (HeightLength + SignatureLength)
 
   override def serializeData(checkpoint: Checkpoint): Array[Byte] =
     Bytes.concat(checkpoint.toSign, checkpoint.signature)
@@ -202,8 +202,7 @@ object TransactionMessageSpec extends MessageSpec[Transaction] {
 
   override val messageName: String = "Transaction message"
 
-  // IssueTransaction is the biggest https://github.com/wavesplatform/Waves/wiki/Data-Structures#issue-transaction
-  override val maxLength = 120 + 16 + 1000 + 8
+  override val maxLength = 4096
 
   override def deserializeData(bytes: Array[Byte]): Try[Transaction] =
     TransactionParser.parseBytes(bytes)

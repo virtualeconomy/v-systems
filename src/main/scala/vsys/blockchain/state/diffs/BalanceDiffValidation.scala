@@ -11,7 +11,6 @@ import scala.util.{Left, Right}
 
 object BalanceDiffValidation {
 
-
   def apply[T <: Transaction](s: StateReader, time: Long)(d: Diff): Either[AccountBalanceError, Diff] = {
 
     val changedAccounts = d.portfolios.keySet

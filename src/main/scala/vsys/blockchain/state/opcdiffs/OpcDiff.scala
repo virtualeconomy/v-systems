@@ -21,28 +21,33 @@ object OpcDiff {
   val empty = new OpcDiff(Map.empty, Map.empty, Map.empty, Map.empty, Map.empty, Map.empty)
 
   implicit class OpcDiffExt(d: OpcDiff) {
-    def asTransactionDiff(height: Int, tx: Transaction): Diff = Diff(height = height, tx = tx,
-                                                                     contractDB = d.contractDB,
-                                                                     contractTokens = d.contractTokens,
-                                                                     tokenDB = d.tokenDB,
-                                                                     tokenAccountBalance = d.tokenAccountBalance,
-                                                                     relatedAddress = d.relatedAddress,
-                                                                     portfolios = d.portfolios
-    )
-    def asBlockDiff(height: Int, tx: Transaction): BlockDiff = BlockDiff(d.asTransactionDiff(height, tx), 0, Map.empty)
+    def asTransactionDiff(height: Int, tx: Transaction): Diff =
+      Diff(height              = height,
+           tx                  = tx,
+           contractDB          = d.contractDB,
+           contractTokens      = d.contractTokens,
+           tokenDB             = d.tokenDB,
+           tokenAccountBalance = d.tokenAccountBalance,
+           relatedAddress      = d.relatedAddress,
+           portfolios = d.portfolios
+      )
+
+    def asBlockDiff(height: Int, tx: Transaction): BlockDiff =
+      BlockDiff(d.asTransactionDiff(height, tx), 0, Map.empty)
 
   }
 
   implicit val opcDiffMonoid = new Monoid[OpcDiff] {
     override def empty: OpcDiff = OpcDiff.empty
 
-    override def combine(older: OpcDiff, newer: OpcDiff): OpcDiff = OpcDiff(
-      contractDB = older.contractDB ++ newer.contractDB,
-      contractTokens = Monoid.combine(older.contractTokens, newer.contractTokens),
-      tokenDB = older.tokenDB ++ newer.tokenDB,
-      tokenAccountBalance = Monoid.combine(older.tokenAccountBalance, newer.tokenAccountBalance),
-      relatedAddress = older.relatedAddress ++ newer.relatedAddress,
-      portfolios = older.portfolios.combine(newer.portfolios)
-    )
+    override def combine(older: OpcDiff, newer: OpcDiff): OpcDiff =
+      OpcDiff(
+        older.contractDB ++ newer.contractDB,
+        Monoid.combine(older.contractTokens,newer.contractTokens),
+        older.tokenDB ++ newer.tokenDB,
+        Monoid.combine(older.tokenAccountBalance,newer.tokenAccountBalance),
+        older.relatedAddress ++ newer.relatedAddress,
+        older.portfolios.combine(newer.portfolios)
+      )
   }
 }

@@ -1,13 +1,13 @@
 package vsys.blockchain.state.reader
 
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state.diffs._
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
+import vsys.blockchain.state.EitherExt2
 import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
-import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
+import vsys.blockchain.transaction.{ProcessedTransaction, TransactionGen, TransactionStatus}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class StateReaderLastTransactionsTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
@@ -18,7 +18,7 @@ class StateReaderLastTransactionsTest extends PropSpec with PropertyChecks with 
     master <- accountGen
     recipient <- accountGen
     ts <- timestampGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     transfer1: PaymentTransaction <- paymentGeneratorP(ts + 1, master, recipient)
     transfer2: PaymentTransaction <- paymentGeneratorP(ts + 2, master, recipient)
     preconditions: Seq[Transaction] = Seq(genesis, transfer1, transfer2)
