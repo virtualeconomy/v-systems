@@ -35,13 +35,13 @@ object Address extends ScorexLogging {
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
   val AddressStringLength = base58Length(AddressLength)
 
-  private def scheme = AddressScheme.current.value
+  private def scheme = AddressScheme.current
 
   private class AddressImpl(val bytes: ByteStr) extends Address with Serializable
 
   def fromPublicKey(publicKey: Array[Byte]): Address = {
     val publicKeyHash = hash(publicKey).take(HashLength)
-    val withoutChecksum = AddressVersion +: scheme.chainId +: publicKeyHash
+    val withoutChecksum = AddressVersion +: scheme.value.chainId +: publicKeyHash
     val bytes = withoutChecksum ++ calcCheckSum(withoutChecksum)
     new AddressImpl(ByteStr(bytes))
   }
@@ -84,8 +84,8 @@ object Address extends ScorexLogging {
     if (version != AddressVersion) {
       log.warn(s"Unknown address version: $version")
       false
-    } else if (network != scheme.chainId) {
-      log.warn(s"~ Expected network: ${scheme.chainId}(${scheme.chainId.toChar}")
+    } else if (network != scheme.value.chainId) {
+      log.warn(s"~ Expected network: ${scheme.value.chainId}(${scheme.value.chainId.toChar}")
       log.warn(s"~ Actual network: $network(${network.toChar}")
       false
     } else {

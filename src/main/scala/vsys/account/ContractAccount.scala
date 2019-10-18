@@ -38,13 +38,13 @@ object ContractAccount extends ScorexLogging {
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
   val AddressStringLength = base58Length(AddressLength)
 
-  private def scheme = AddressScheme.current.value
+  private def scheme = AddressScheme.current
 
   private class ContractAddressImpl(val bytes: ByteStr) extends ContractAccount
 
   def fromId(id: ByteStr): ContractAccount = {
     val contractAccountHash = hash(id.arr).take(HashLength)
-    val withoutChecksum = AddressVersion +: scheme.chainId +: contractAccountHash
+    val withoutChecksum = AddressVersion +: scheme.value.chainId +: contractAccountHash
     val bytes = withoutChecksum ++ calcCheckSum(withoutChecksum)
     new ContractAddressImpl(ByteStr(bytes))
   }
@@ -77,8 +77,8 @@ object ContractAccount extends ScorexLogging {
     if (version != AddressVersion) {
       log.warn(s"Unknown contract address version: $version")
       false
-    } else if (network != scheme.chainId) {
-      log.warn(s"~ Expected network: ${scheme.chainId}(${scheme.chainId.toChar}")
+    } else if (network != scheme.value.chainId) {
+      log.warn(s"~ Expected network: ${scheme.value.chainId}(${scheme.value.chainId.toChar}")
       log.warn(s"~ Actual network: $network(${network.toChar}")
       false
     } else {
