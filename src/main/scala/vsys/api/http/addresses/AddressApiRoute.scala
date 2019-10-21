@@ -1,14 +1,14 @@
 package vsys.api.http.addresses
 
 import java.nio.charset.StandardCharsets
-import javax.ws.rs.Path
 
+import javax.ws.rs.Path
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.server.Route
 import io.swagger.annotations._
 import play.api.libs.json._
 import scorex.crypto.encode.Base58
-import vsys.account.{Address, PublicKeyAccount}
+import vsys.account.{Account, Address, PublicKeyAccount}
 import vsys.api.http._
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.consensus.SPoSCalc
@@ -249,8 +249,8 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   private def balanceJson(address: String): ToResponseMarshallable = {
-    Address.fromString(address).right.map(acc => ToResponseMarshallable(Balance(
-      acc.address,
+    Account.fromString(address).right.map(acc => ToResponseMarshallable(Balance(
+      acc.bytes.base58,
       0,
       state.balance(acc)
     ))).getOrElse(InvalidAddress)

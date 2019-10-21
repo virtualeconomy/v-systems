@@ -8,7 +8,7 @@ import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
-import vsys.account.{Address, ContractAccount}
+import vsys.account.{Account, Address, ContractAccount}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
@@ -23,7 +23,6 @@ import vsys.wallet.Wallet
 
 import scala.util.Success
 import scala.util.control.Exception
-
 import ContractApiRoute._
 
 @Path("/contract")
@@ -64,8 +63,8 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   }
 
   private def vBalanceJson(contractId: String): ToResponseMarshallable = {
-    ContractAccount.fromString(contractId).right.map(acc => ToResponseMarshallable(Balance(
-      acc.address,
+    Account.fromString(contractId).right.map(acc => ToResponseMarshallable(Balance(
+      acc.bytes.base58,
       0,
       state.balance(acc)
     ))).getOrElse(InvalidContractAddress)
