@@ -4,7 +4,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import vsys.utils.Synchronized.{ReadLock, _}
 
-import scala.util.DynamicVariable
 // http://vlkan.com/blog/post/2015/09/09/enforce-locking/
 
 object Synchronized {
@@ -49,26 +48,24 @@ trait Synchronized {
 
   private lazy val instanceReadWriteLock: WriteLock = new WriteLock(synchronizationToken)
 
-  protected case class Synchronized[T](private val initialValue: T) {
-
-    private val value = new DynamicVariable(initialValue)
+  protected case class Synchronized[T](private var value: T) {
 
     def apply()(implicit readLock: ReadLock): T = {
-      value.value
+      value
     }
 
     def mutate[R](f: T => R)(implicit readWriteLock: WriteLock): R = {
-      f(value.value)
+      f(value)
     }
 
     def transform(newVal: T => T)(implicit readWriteLock: WriteLock): T = {
-      value.value = newVal(value.value)
-      value.value
+      value = newVal(value)
+      value
     }
 
     def set(newVal: => T)(implicit readWriteLock: WriteLock): T = {
-      val oldVal = value.value
-      value.value = newVal
+      val oldVal = value
+      value = newVal
       oldVal
     }
   }
