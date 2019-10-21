@@ -8,7 +8,7 @@ import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
-import vsys.account.{Account, Address, ContractAccount}
+import vsys.account.{Account, Address}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
