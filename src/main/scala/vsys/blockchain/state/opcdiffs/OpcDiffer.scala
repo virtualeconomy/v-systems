@@ -36,6 +36,7 @@ object OpcDiffer {
                                  opcDiffer: OpcDiffer) extends Val(opcType) {
       def *(n: Int): Int = n * opcType
     }
+    val SystemOpc = OpcTypeVal(0, SystemTransferDiff)
     val AssertOpc = OpcTypeVal(1, AssertOpcDiff)
     val LoadOpc   = OpcTypeVal(2, LoadOpcDiff)
     val CDBVOpc   = OpcTypeVal(3, CDBVOpcDiff)

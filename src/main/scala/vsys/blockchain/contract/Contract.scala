@@ -96,7 +96,8 @@ object Contract extends ScorexLogging {
   private def isByteArrayValid(bytes: Array[Byte], textual: Seq[Array[Byte]]): Boolean = {
     val textualStr = textualFromBytes(textual)
     if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
-      !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr)) {
+      !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) &&
+      !(bytes sameElements ContractDepositWithdraw.contract.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||

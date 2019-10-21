@@ -1,5 +1,6 @@
 package vsys.blockchain.state.diffs
 
+import cats.implicits._
 import vsys.blockchain.contract.ExecutionContext
 import vsys.blockchain.state.opcdiffs.OpcFuncDiffer
 import vsys.blockchain.state.reader.StateReader
@@ -18,7 +19,7 @@ object ExecuteContractFunctionTransactionDiff {
       } yield Diff(
         height = height,
         tx = tx,
-        portfolios = Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
+        portfolios = diff.portfolios.combine(Map(senderAddress -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty))),
         tokenDB = diff.tokenDB,
         tokenAccountBalance = diff.tokenAccountBalance,
         contractDB = diff.contractDB,

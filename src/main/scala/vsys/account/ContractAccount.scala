@@ -9,7 +9,7 @@ import vsys.utils.{base58Length, ScorexLogging}
 
 import scala.util.Success
 
-sealed trait ContractAccount extends Serializable {
+sealed trait ContractAccount extends Account with Serializable {
 
   val bytes: ByteStr
   lazy val address: String = bytes.base58
@@ -36,7 +36,9 @@ object ContractAccount extends ScorexLogging {
   val ChecksumLength = 4
   val HashLength = 20
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
+  val TokenAddressLength = 1 + 1 + ChecksumLength + HashLength + TokenIndexLength
   val AddressStringLength = base58Length(AddressLength)
+  val systemContractId: ContractAccount = fromId(ByteStr(Array.emptyByteArray))
 
   private lazy val scheme = AddressScheme.current.value
 

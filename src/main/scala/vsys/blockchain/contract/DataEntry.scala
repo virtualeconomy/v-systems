@@ -3,11 +3,14 @@ package vsys.blockchain.contract
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import scorex.crypto.encode.Base58
-import vsys.account.{Address, PublicKeyAccount, ContractAccount}
+import vsys.account.{Address, AddressScheme, ContractAccount, PublicKeyAccount}
+import vsys.account.ContractAccount.ChecksumLength
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.contract.RegisterContractTransaction.MaxDescriptionSize
 import vsys.blockchain.transaction.TransactionParser.{AmountLength, KeyLength}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
+import vsys.utils.crypto.hash.SecureCryptographicHash._
 
 import scala.util.Success
 
@@ -29,11 +32,14 @@ case class DataEntry(data: Array[Byte],
       case DataType.Int32 => Json.toJson(Ints.fromByteArray(d))
       case DataType.ShortText => Json.toJson(Base58.encode(d))
       case DataType.ContractAccount => Json.toJson(ContractAccount.fromBytes(d).right.get.address)
+      case DataType.TokenId => Json.toJson(ByteStr(d).base58)
     }
   }
 }
 
 object DataEntry {
+
+  private lazy val scheme = AddressScheme.current.value
 
   def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
     dataType match {
@@ -74,6 +80,8 @@ object DataEntry {
         Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
       case Some(DataType.ContractAccount) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount) =>
         Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
+      case Some(DataType.TokenId) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId) =>
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId), position + 1 + ContractAccount.TokenAddressLength))
       case _ => Left(InvalidDataEntry)
     }
   }
@@ -105,7 +113,28 @@ object DataEntry {
       case DataType.Int32 => data.length == 4 && Ints.fromByteArray(data) >= 0
       case DataType.ShortText => Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length && data.length <= 2 + MaxDescriptionSize
       case DataType.ContractAccount => ContractAccount.fromBytes(data).isRight
+      case DataType.TokenId => isTokenIdValid(data)
       case _ => false
   }
+
+  private def isTokenIdValid(addressBytes: Array[Byte]): Boolean = {
+    val version = addressBytes.head
+    val network = addressBytes.tail.head
+    if (version != ContractAccount.TokenAddressVersion) {
+      false
+    } else if (network != scheme.chainId) {
+      false
+    } else {
+      if (addressBytes.length != ContractAccount.TokenAddressLength)
+        false
+      else {
+        val checkSum = addressBytes.takeRight(ChecksumLength)
+        val checkSumGenerated = calcCheckSum(addressBytes.dropRight(ChecksumLength))
+        checkSum.sameElements(checkSumGenerated)
+      }
+    }
+  }
+
+  private def calcCheckSum(withoutChecksum: Array[Byte]): Array[Byte] = hash(withoutChecksum).take(ChecksumLength)
 
 }

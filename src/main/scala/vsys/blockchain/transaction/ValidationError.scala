@@ -1,6 +1,6 @@
 package vsys.blockchain.transaction
 
-import vsys.account.Address
+import vsys.account.Account
 
 trait ValidationError
 
@@ -94,7 +94,7 @@ object ValidationError {
   }
   case object EmptyProofs extends ValidationError
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError
-  case class AccountBalanceError(errs: Map[Address, String]) extends ValidationError
+  case class AccountBalanceError(errs: Map[Account, String]) extends ValidationError
   case class GenericError(err: String) extends ValidationError
   case class DbDataTypeError(err: String) extends ValidationError
   case class Mistiming(err: String) extends ValidationError

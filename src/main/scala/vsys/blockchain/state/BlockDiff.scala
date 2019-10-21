@@ -2,13 +2,13 @@ package vsys.blockchain.state
 
 import cats.Monoid
 import cats.implicits._
-import vsys.account.Address
+import vsys.account.Account
 
 import scala.collection.SortedMap
 
 case class BlockDiff(txsDiff: Diff,
                      heightDiff: Int,
-                     snapshots: Map[Address, SortedMap[Int, Snapshot]])
+                     snapshots: Map[Account, SortedMap[Int, Snapshot]])
 
 object BlockDiff {
 

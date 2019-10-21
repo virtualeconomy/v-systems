@@ -10,13 +10,12 @@ import vsys.blockchain.state.diffs.TransactionDiffer
 import vsys.blockchain.state.reader.{CompositeStateReader, StateReader}
 import vsys.blockchain.state.{ByteStr, Diff, Portfolio}
 import kamon.Kamon
-import vsys.account.Address
+import vsys.account.{Account, Address}
 import vsys.blockchain.block.Block
 import vsys.blockchain.history.History
 import vsys.blockchain.consensus.TransactionsOrdering
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.transaction.ValidationError.GenericError
-import vsys.blockchain.transaction._
 import vsys.blockchain.transaction._
 import vsys.utils.{ScorexLogging, Synchronized, Time}
 
@@ -139,10 +138,10 @@ class UtxPool(time: Time,
 object UtxPool {
 
   private class PessimisticPortfolios {
-    private type Portfolios = Map[Address, Portfolio]
+    private type Portfolios = Map[Account, Portfolio]
 
     private val transactionPortfolios = new DynamicVariable(Map.empty[ByteStr, Portfolios])
-    private val transactions = new DynamicVariable(Map.empty[Address, Set[ByteStr]])
+    private val transactions = new DynamicVariable(Map.empty[Account, Set[ByteStr]])
 
     def add(txId: ByteStr, txDiff: Diff): Unit = {
       val nonEmptyPessimisticPortfolios = txDiff.portfolios
