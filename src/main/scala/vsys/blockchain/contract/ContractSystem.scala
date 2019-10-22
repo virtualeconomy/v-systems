@@ -9,7 +9,7 @@ object ContractSystem {
     Seq(),
     Seq(sysSendFunc, sysDepositFunc, sysWithdrawFunc, sysTransferFunc),
     Seq(),
-    Seq()
+    Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
   object FunId {
@@ -108,4 +108,8 @@ object ContractSystem {
   lazy val sysTransferFunc: Array[Byte] = Shorts.toByteArray(FunId.sysTransfer) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysTransferParaType) ++ OpcLine.sysTransferLine
   lazy val sysDepositFunc: Array[Byte] = Shorts.toByteArray(FunId.sysDeposit) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysDepositParaType) ++ OpcLine.sysDepositLine
   lazy val sysWithdrawFunc: Array[Byte] = Shorts.toByteArray(FunId.sysWithdraw) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysWithdrawParaType) ++ OpcLine.sysWithdrawLine
+
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq())
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq())
+  lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(Seq())
 }
