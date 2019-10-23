@@ -1,5 +1,6 @@
 package vsys.blockchain.state.opcdiffs
 
+import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import vsys.blockchain.state._
 import vsys.account.{Address, ContractAccount}
@@ -137,9 +138,7 @@ object TDBAOpcDiff extends OpcDiffer {
           recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
           recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress,
             tokenAccountBalance = Map(recipientBalanceKey -> transferAmount))
-          returnDiff = OpcDiff.opcDiffMonoid.combine(
-            OpcDiff.opcDiffMonoid.combine(senderTotalDiff, recipientCallDiff),
-            recipientDiff)
+          returnDiff = Monoid.combineAll(Seq(senderTotalDiff, recipientCallDiff, recipientDiff))
         } yield returnDiff
       }
     }
@@ -198,7 +197,7 @@ object TDBAOpcDiff extends OpcDiffer {
 
     val DepositTDBA  = TDBATypeVal(1, 3, (c, b, d) => deposit(c)(d(b(1)), d(b(2)), tokenIndex(b, d, 3)))
     val WithdrawTDBA = TDBATypeVal(2, 3, (c, b, d) => withdraw(c)(d(b(1)), d(b(2)), tokenIndex(b, d, 3)))
-    val TransferTDBA = TDBATypeVal(3, 4, (c, b, d) => transfer(c)(d(b(1)), d(b(2)), d(b(3)), tokenIndex(b, d, 4)))
+    val TransferTDBA = TDBATypeVal(3, 4, (c, b, d) => contractTransfer(c)(d(b(1)), d(b(2)), d(b(3)), tokenIndex(b, d, 4)))
 
     def fromByte(implicit b: Byte): Option[TDBAType.TDBATypeVal] = Try(TDBAType(b).asInstanceOf[TDBATypeVal]).toOption
 
