@@ -95,9 +95,9 @@ object ContractDepositWithdraw {
   }
 
   object ParaName {
-    val initPara: Seq[String] = Seq()
-    val depositPara: Seq[String] = Seq("sender", "amount")
-    val withdrawPara: Seq[String] = Seq("recipient", "amount")
+    val initPara: Seq[String] = Seq("signer")
+    val depositPara: Seq[String] = Seq("")
+    val withdrawPara: Seq[String] = Seq("")
   }
 
   val stateVarName = List("maker")
