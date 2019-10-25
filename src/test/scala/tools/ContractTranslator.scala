@@ -2,7 +2,7 @@ package tools
 
 import com.google.common.primitives.Shorts
 import scorex.crypto.encode.Base58
-import vsys.blockchain.contract.ContractPermitted
+import vsys.blockchain.contract._
 import vsys.blockchain.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
 import vsys.blockchain.state.opcdiffs.AssertOpcDiff.AssertType
 import vsys.blockchain.state.opcdiffs.CDBVOpcDiff.CDBVType
@@ -13,6 +13,7 @@ import vsys.blockchain.state.opcdiffs.TDBAOpcDiff.TDBAType
 import vsys.blockchain.state.opcdiffs.TDBAROpcDiff.TDBARType
 import vsys.blockchain.state.opcdiffs.TDBOpcDiff.TDBType
 import vsys.blockchain.state.opcdiffs.TDBROpcDiff.TDBRType
+import vsys.blockchain.state.systemdiffs.SystemTransferDiff.TransferType
 import vsys.utils.serialization.Deser
 
 import scala.util.{Failure, Success, Try}
@@ -213,6 +214,11 @@ object ContractTranslator extends App {
     val y = data(1)
     val stateNameList = textualStr.get._3
     x match {
+      case opcType: Byte if opcType == OpcType.SystemOpc.id =>
+        y match {
+          case opcType: Byte if opcType == TransferType.Transfer.id => "operation.system.transfer(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
+          case _ => "--- invalid opc code ---"
+        }
 
       case opcType: Byte if opcType == OpcType.AssertOpc.id =>
         y match {
