@@ -102,6 +102,25 @@ object ContractSystem {
     Bytes.concat(retType, paraType)
   }
 
+  def textualFunc(name: String, ret: Seq[String], para: Seq[String]): Array[Byte] = {
+    val funcByte = Deser.serializeArray(Deser.serilizeString(name))
+    val retByte = Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x))))
+    val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
+    Bytes.concat(funcByte, retByte, paraByte)
+  }
+
+  object ParaName {
+    val sysSendPara: Seq[String] = Seq("recipient", "amount", "caller")
+    val sysDepositPara: Seq[String] = Seq("sender", "smart", "amount")
+    val sysWithdrawPara: Seq[String]= Seq("smart", "recipient", "amount")
+    val sysTransferPara: Seq[String]= Seq("sender", "recipient", "amount")
+  }
+
+  val sysSendFuncBytes: Array[Byte] = textualFunc("send", Seq(), ParaName.sysSendPara)
+  val sysDepositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), ParaName.sysDepositPara)
+  val sysWithdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), ParaName.sysWithdrawPara)
+  val sysTransferFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), ParaName.sysTransferPara)
+
   lazy val nonReturnType: Array[Byte] = Array[Byte]()
   lazy val publicFuncType: Byte = 0
   lazy val sysSendFunc: Array[Byte] = Shorts.toByteArray(FunId.sysSend) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysSendParaType) ++ OpcLine.sysSendLine
@@ -110,6 +129,6 @@ object ContractSystem {
   lazy val sysWithdrawFunc: Array[Byte] = Shorts.toByteArray(FunId.sysWithdraw) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysWithdrawParaType) ++ OpcLine.sysWithdrawLine
 
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq())
-  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq())
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(sysSendFuncBytes, sysDepositFuncBytes, sysWithdrawFuncBytes, sysTransferFuncBytes))
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(Seq())
 }
