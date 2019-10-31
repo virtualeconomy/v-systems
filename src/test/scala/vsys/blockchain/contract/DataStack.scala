@@ -2,7 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import org.scalacheck.Gen
-import vsys.account.Address
+import vsys.account.{Address, ContractAccount}
 
 trait DataStack {
 
@@ -63,6 +63,18 @@ trait DataStack {
 
   def transferDataStackGen(sender: Address, recipient: Address, amount: Long): Gen[Seq[DataEntry]] = for {
     se <- Gen.const(DataEntry(sender.bytes.arr, DataType.Address))
+    reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(se, reci, am)
+
+  def transferDataStackGen(sender: Address, recipient: ContractAccount, amount: Long): Gen[Seq[DataEntry]] = for {
+    se <- Gen.const(DataEntry(sender.bytes.arr, DataType.Address))
+    reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.ContractAccount))
+    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
+  } yield Seq(se, reci, am)
+
+  def transferDataStackGen(sender: ContractAccount, recipient: Address, amount: Long): Gen[Seq[DataEntry]] = for {
+    se <- Gen.const(DataEntry(sender.bytes.arr, DataType.ContractAccount))
     reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
   } yield Seq(se, reci, am)
