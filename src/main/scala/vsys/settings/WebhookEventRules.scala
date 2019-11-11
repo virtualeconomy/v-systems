@@ -5,14 +5,15 @@ import scala.util.Try
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
+import play.api.libs.json.{JsObject, Json}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.account.Address
 import vsys.blockchain.transaction.ProcessedTransaction
 import vsys.utils.{ScorexLogging, TransactionHelper}
 
 trait WebhookEventRules extends Product with Serializable with ScorexLogging {
   val value: Any
-  def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean
+  val json: JsObject
+  def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean
 }
 
 trait RuleConfigReader {
@@ -28,7 +29,8 @@ trait RuleConfigReader {
 }
 
 case class AfterHeight(value: Long) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = height >= value
+  override lazy val json: JsObject = Json.obj("afterHeight" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = height >= value
 }
 
 object AfterHeight extends RuleConfigReader {
@@ -40,7 +42,8 @@ object AfterHeight extends RuleConfigReader {
 }
 
 case class AfterTime(value: Long) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = blockTime >= value
+  override lazy val json: JsObject = Json.obj("afterTime" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = blockTime >= value
 }
 
 object AfterTime extends RuleConfigReader {
@@ -52,7 +55,8 @@ object AfterTime extends RuleConfigReader {
 }
 
 case class WithTxs(value: Boolean) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = value
+  override lazy val json: JsObject = Json.obj("withTxs" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = value
 }
 
 object WithTxs extends RuleConfigReader {
@@ -64,7 +68,8 @@ object WithTxs extends RuleConfigReader {
 }
 
 case class WithMintingTxs(value: Boolean) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+  override lazy val json: JsObject = Json.obj("withMintingTxs" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
     tx.transaction.transactionType != TransactionType.MintingTransaction | value
   }
 }
@@ -78,12 +83,12 @@ object WithMintingTxs extends RuleConfigReader {
 }
 
 case class RelatedAccs(value: Seq[String]) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    val addrInTx = accs.toSeq.map(_.toString)
+  override lazy val json: JsObject = Json.obj("relatedAccount" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
     if(value.nonEmpty) {
-      value.intersect(addrInTx).nonEmpty
+      value.intersect(accs).nonEmpty
     } else {
-      addrInTx.isEmpty
+      accs.isEmpty
     }
   }
 }
@@ -97,7 +102,8 @@ object RelatedAccs extends RuleConfigReader {
 }
 
 case class IncludeTypes(value: Seq[Int]) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+  override lazy val json: JsObject = Json.obj("includeTypes" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
     value.contains(tx.transaction.transactionType.id)
   }
 }
@@ -111,7 +117,8 @@ object IncludeTypes extends RuleConfigReader {
 }
 
 case class ExcludeTypes(value: Seq[Int]) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+  override lazy val json: JsObject = Json.obj("excludeTypes" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
     !value.contains(tx.transaction.transactionType.id)
   }
 }
@@ -125,7 +132,14 @@ object ExcludeTypes extends RuleConfigReader {
 }
 
 case class Amount(value: Long, gteVal: Long, ltVal: Long, lteVal: Long, withFeeVal: Boolean) extends WebhookEventRules {
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+  override lazy val json: JsObject = Json.obj("amount" -> Json.obj(
+    "gt" -> value,
+    "gte" -> gteVal,
+    "lt" -> ltVal,
+    "lte" -> lteVal,
+    "withFee" -> withFeeVal
+  ))
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
     val (amt, fee) = TransactionHelper.extractAmtFee(tx)
 
     if (withFeeVal) {
@@ -159,8 +173,8 @@ object Amount extends RuleConfigReader {
 }
 
 case class WithTxsOfTypes(value: Seq[Int]) extends WebhookEventRules {
-  // TO DO
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
+  override lazy val json: JsObject = Json.obj("withTxsOfTypes" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
     value.contains(tx.transaction.transactionType.txType)
   }
 }
@@ -174,9 +188,9 @@ object WithTxsOfTypes extends RuleConfigReader {
 }
 
 case class WithTxsOfAccs(value: Seq[String]) extends WebhookEventRules {
-  // TO DO
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = {
-    accs.foldLeft(false) {case (accum, acc) => value.contains(acc.toString) || accum}
+  override lazy val json: JsObject = Json.obj("withTxsOfAccs" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
+    accs.foldLeft(false) {case (accum, acc) => value.contains(acc) || accum}
   }
 }
 
@@ -190,7 +204,8 @@ object WithTxsOfAccs extends RuleConfigReader {
 
 case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules {
   // TO DO
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Set[Address]): Boolean = ???
+  override lazy val json: JsObject = Json.obj("withStateOfAccs" -> value)
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = ???
 }
 
 object WithStateOfAccs extends RuleConfigReader {

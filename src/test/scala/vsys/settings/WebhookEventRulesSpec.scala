@@ -8,7 +8,6 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import vsys.blockchain.transaction.{ProcessedTransaction, MintingTransaction, PaymentTransaction, TransactionGen}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.account.Address
 import org.scalacheck.Gen
 
 class WebhookEventRulesSpec extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with MockitoSugar with TransactionGen {
@@ -71,41 +70,37 @@ class WebhookEventRulesSpec extends PropSpec with PropertyChecks with GeneratorD
     when(tx2.transactionType).thenReturn(TransactionType.PaymentTransaction)
     when(mockTx2.transaction).thenReturn(tx2)
 
-    val mockRuleFields: Gen[(Long, Long, ProcessedTransaction, Set[Address], Boolean, Int)] = for {
+    val mockRuleFields: Gen[(Long, Long, ProcessedTransaction, Seq[String], Boolean, Int)] = for {
       height <- Gen.choose(1, Long.MaxValue)
       timestamp <- timestampGen
       pTx <- randomProcessedTransactionGen
       tfVal <- Gen.oneOf(true, false)
       randTxType <- Gen.choose(1, 10)
-    } yield(height, timestamp, pTx, Set.empty, tfVal, randTxType)
+    } yield(height, timestamp, pTx, Seq.empty, tfVal, randTxType)
 
-    forAll (mockRuleFields) {case ((height, timestamp, pTx: ProcessedTransaction, aSet: Set[Address], tfVal, randTxType)) =>
-      AfterHeight(100).applyRule(height, timestamp, pTx, aSet) shouldBe(height >= 100)
-      AfterTime(100).applyRule(height, timestamp, pTx, aSet) shouldBe(timestamp >= 100)
-      WithTxs(tfVal).applyRule(height, timestamp, pTx, aSet) shouldBe(tfVal)
-      WithMintingTxs(tfVal).applyRule(height, timestamp, pTx, aSet) shouldBe(pTx.transaction.transactionType != TransactionType.MintingTransaction | tfVal)
-      IncludeTypes(Seq(randTxType)).applyRule(height, timestamp, pTx, aSet) shouldBe(pTx.transaction.transactionType.txType == randTxType)
-      IncludeTypes(Seq.empty).applyRule(height, timestamp, pTx, aSet) shouldBe(false)
-      ExcludeTypes(Seq(randTxType)).applyRule(height, timestamp, pTx, aSet) shouldBe(pTx.transaction.transactionType.txType != randTxType)
-      ExcludeTypes(Seq.empty).applyRule(height, timestamp, pTx, aSet) shouldBe(true)
+    forAll (mockRuleFields) {case ((height, timestamp, pTx: ProcessedTransaction, aSeq: Seq[String], tfVal, randTxType)) =>
+      AfterHeight(100).applyRule(height, timestamp, pTx, aSeq) shouldBe(height >= 100)
+      AfterTime(100).applyRule(height, timestamp, pTx, aSeq) shouldBe(timestamp >= 100)
+      WithTxs(tfVal).applyRule(height, timestamp, pTx, aSeq) shouldBe(tfVal)
+      WithMintingTxs(tfVal).applyRule(height, timestamp, pTx, aSeq) shouldBe(pTx.transaction.transactionType != TransactionType.MintingTransaction | tfVal)
+      IncludeTypes(Seq(randTxType)).applyRule(height, timestamp, pTx, aSeq) shouldBe(pTx.transaction.transactionType.txType == randTxType)
+      IncludeTypes(Seq.empty).applyRule(height, timestamp, pTx, aSeq) shouldBe(false)
+      ExcludeTypes(Seq(randTxType)).applyRule(height, timestamp, pTx, aSeq) shouldBe(pTx.transaction.transactionType.txType != randTxType)
+      ExcludeTypes(Seq.empty).applyRule(height, timestamp, pTx, aSeq) shouldBe(true)
     }
 
-    val addr1 = mock[Address]
-    val addr2 = mock[Address]
-    when(addr1.toString).thenReturn("addr1")
-    when(addr2.toString).thenReturn("addr2")
-    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set(addr1, addr2)) shouldBe(true)
-    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set(addr2)) shouldBe(false)
-    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(false)
-    RelatedAccs(Seq.empty).applyRule(0, blockTime1, mockTx1, Set.empty) shouldBe(true)
+    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Seq("addr1", "addr2")) shouldBe(true)
+    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Seq("addr2")) shouldBe(false)
+    RelatedAccs(Seq("addr1")).applyRule(0, blockTime1, mockTx1, Seq.empty) shouldBe(false)
+    RelatedAccs(Seq.empty).applyRule(0, blockTime1, mockTx1, Seq.empty) shouldBe(true)
 
     for(withFee <- Seq(false, true)) {
       for(x <- -2 to 2) {
         val amt = if (withFee) 250 else 150
-        Amount(amt + x, 0, 1000, 1000, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(x < 0)
-        Amount(0, amt + x, 1000, 1000, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(x <= 0 )
-        Amount(0, 0, amt + x, 1000, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(x > 0)
-        Amount(0, 0, 1000, amt + x, withFee).applyRule(0, blockTime2, mockTx2, Set.empty) shouldBe(x >= 0)
+        Amount(amt + x, 0, 1000, 1000, withFee).applyRule(0, blockTime2, mockTx2, Seq.empty) shouldBe(x < 0)
+        Amount(0, amt + x, 1000, 1000, withFee).applyRule(0, blockTime2, mockTx2, Seq.empty) shouldBe(x <= 0 )
+        Amount(0, 0, amt + x, 1000, withFee).applyRule(0, blockTime2, mockTx2, Seq.empty) shouldBe(x > 0)
+        Amount(0, 0, 1000, amt + x, withFee).applyRule(0, blockTime2, mockTx2, Seq.empty) shouldBe(x >= 0)
       }
     }
   }
