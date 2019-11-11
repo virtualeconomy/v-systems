@@ -1,5 +1,6 @@
 package vsys.blockchain.state.opcdiffs
 
+import cats.Monoid
 import cats.implicits._
 import com.google.common.primitives.Longs
 import vsys.account._
@@ -68,9 +69,7 @@ object SystemTransferDiff extends OpcDiffer {
           LeaseInfo.empty,
           assets = Map.empty))
       recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress, portfolios = recipientPortDiff)
-      returnDiff = OpcDiff.opcDiffMonoid.combine(
-        OpcDiff.opcDiffMonoid.combine(senderTotalDiff, recipientCallDiff),
-        recipientDiff)
+      returnDiff = Monoid.combineAll(Seq(senderTotalDiff, recipientCallDiff, recipientDiff))
     } yield returnDiff
   }
 

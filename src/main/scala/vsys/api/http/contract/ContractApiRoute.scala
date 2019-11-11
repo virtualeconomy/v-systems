@@ -8,14 +8,14 @@ import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
-import vsys.account.{Address, ContractAccount}
+import vsys.account.{Account, Address, ContractAccount}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction._
 import vsys.blockchain.UtxPool
-import vsys.blockchain.contract.ContractPermitted
+import vsys.blockchain.contract.{ContractDepositWithdraw, ContractPermitted, ContractSystem}
 import vsys.settings.RestAPISettings
 import vsys.utils.serialization.Deser
 import vsys.utils.Time
@@ -23,7 +23,6 @@ import vsys.wallet.Wallet
 
 import scala.util.Success
 import scala.util.control.Exception
-
 import ContractApiRoute._
 
 @Path("/contract")
@@ -64,8 +63,8 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   }
 
   private def vBalanceJson(contractId: String): ToResponseMarshallable = {
-    ContractAccount.fromString(contractId).right.map(acc => ToResponseMarshallable(Balance(
-      acc.address,
+    Account.fromString(contractId).right.map(acc => ToResponseMarshallable(Balance(
+      acc.bytes.base58,
       0,
       state.balance(acc)
     ))).getOrElse(InvalidContractAddress)
@@ -78,10 +77,11 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   ))
   def content: Route = (get & path("content" / Segment)) { encoded =>
     ByteStr.decodeBase58(encoded) match {
-      case Success(id) => state.contractContent(id) match {
+      case Success(id) if id != ContractAccount.systemContractId.bytes => state.contractContent(id) match {
         case Some((h, txId, ct)) => complete(Json.obj("transactionId" -> txId.base58) ++ ct.json ++ Json.obj("height" -> JsNumber(h)))
         case None => complete(ContractNotExists)
       }
+      case Success(id) if id == ContractAccount.systemContractId.bytes => complete(Json.obj("transactionId" -> "") ++ ContractSystem.contract.json ++ Json.obj("height" -> JsNumber(-1)))
       case _ => complete(InvalidAddress)
     }
   }
@@ -97,30 +97,36 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
 
   private def infoJson(contractIdStr: String): Either[ApiError, JsObject] = {
     ByteStr.decodeBase58(contractIdStr) match {
-      case Success(id) => state.contractContent(id) match {
+      case Success(id) if id != ContractAccount.systemContractId.bytes => state.contractContent(id) match {
         case Some((h, txId, ct)) => Right(Json.obj(
           "contractId" -> contractIdStr,
           "transactionId" -> txId.base58,
-          "type" -> typeFromBytes(ct.bytes.arr),
+          "type" -> typeFromBytes(ct.bytes),
           "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual.last)).zipped.map { (a, b) =>
             (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
           "height" -> JsNumber(h))
         )
         case None => Left(ContractNotExists)
       }
+      case Success(id) if id == ContractAccount.systemContractId.bytes => Right(Json.obj(
+        "contractId" -> contractIdStr,
+        "transactionId" -> "",
+        "type" -> typeFromBytes(ContractSystem.contract.bytes),
+        "info" -> JsArray((ContractSystem.contract.stateVar, paraFromBytes(ContractSystem.contract.textual.last)).zipped.map { (a, b) =>
+          (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
+        "height" -> JsNumber(-1))
+      )
       case _ => Left(InvalidAddress)
     }
   }
 
-  private def typeFromBytes(bytes: Array[Byte]): String = {
-    if (bytes sameElements ContractPermitted.contract.bytes.arr) {
-      "TokenContractWithSplit"
-    } else if (bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) {
-      "TokenContract"
-    } else {
-      "GeneralContract"
+  private def typeFromBytes(bytes: ByteStr): String = bytes match {
+      case ContractPermitted.contract.bytes => "TokenContractWithSplit"
+      case ContractPermitted.contractWithoutSplit.bytes => "TokenContract"
+      case ContractDepositWithdraw.contract.bytes => "DepositWithdrawContract"
+      case ContractSystem.contract.bytes => "SystemContract"
+      case _ => "GeneralContract"
     }
-  }
 
   @Path("/tokenInfo/{tokenId}")
   @ApiOperation(value = "Token's Info", notes = "Token's info by given token", httpMethod = "Get")
