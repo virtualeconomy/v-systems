@@ -10,6 +10,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import akka.routing.{DefaultResizer, RoundRobinPool}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.netty.channel.Channel
 import io.netty.channel.group.DefaultChannelGroup
@@ -33,21 +34,29 @@ import vsys.blockchain.transaction._
 import vsys.db.openDB
 import vsys.network.{NetworkServer, PeerDatabaseImpl, PeerInfo, UPnP}
 import vsys.settings._
-import vsys.utils.{ScorexLogging, Time, TimeImpl, forceStopApplication}
+import vsys.utils.{ScorexLogging, Time, TimeImpl, forceStopApplication, SimpleEventQueue}
 import vsys.wallet.Wallet
-import vsys.events.{EventTriggers, EventWriterActor}
+import vsys.events.{EventTriggers, EventWriterActor, EventDispatchActor}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.util.Try
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
 
   private val db = openDB(settings.dataDirectory)
 
   private val checkpointService = new CheckpointServiceImpl(db, settings.checkpointsSettings)
-  private val triggerService = EventTriggers(actorSystem.actorOf(Props[EventWriterActor]), settings.eventSettings)
+  private val eventQueue = new SimpleEventQueue()
+  private val resizer = DefaultResizer(lowerBound = 2, upperBound = 10)
+  private val eventDispatchActor = actorSystem.actorOf(RoundRobinPool(2, Some(resizer)).props(Props(EventDispatchActor(actorSystem))))
+  private val eventWriterActor = actorSystem.actorOf(Props(EventWriterActor(eventQueue, eventDispatchActor)))
+  private val triggerService = EventTriggers(eventWriterActor, settings.eventSettings)
+  // val tmp = FiniteDuration(0, SECONDS)
+  // val tmp2 = FiniteDuration(1, SECONDS)
+  // actorSystem.scheduler.schedule(tmp, tmp2, eventDispatchActor, eventQueue)
   private val (history, _, stateReader, blockchainUpdater) = StorageFactory(db, settings.blockchainSettings, triggerService)
   private lazy val upnp = new UPnP(settings.networkSettings.uPnPSettings) // don't initialize unless enabled
 
