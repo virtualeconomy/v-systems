@@ -27,6 +27,8 @@ object RegisterContractTransactionDiff {
         portfolios = Map(senderAddr -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
         contracts = Map(tx.contractId.bytes -> contractInfo),
         contractDB = diff.contractDB,
+        contractNumDB = diff.contractNumDB,
+        contractStateDB = diff.contractStateDB,
         contractTokens = diff.contractTokens,
         tokenDB = diff.tokenDB,
         tokenAccountBalance = diff.tokenAccountBalance,
