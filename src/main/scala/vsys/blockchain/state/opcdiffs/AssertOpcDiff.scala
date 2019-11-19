@@ -1,7 +1,6 @@
 package vsys.blockchain.state.opcdiffs
 
 import com.google.common.primitives.Longs
-import vsys.account.Address
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
@@ -42,11 +41,7 @@ object AssertOpcDiff extends OpcDiffer {
   }
 
   def equal(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (add1.dataType == DataType.Address && add2.dataType == DataType.Address
-      && Address.fromBytes(add1.data) == Address.fromBytes(add2.data))
-      Right(OpcDiff.empty)
-    else if (add1.dataType == DataType.Amount && add2.dataType == DataType.Amount
-      && Longs.fromByteArray(add1.data) == Longs.fromByteArray(add2.data))
+    if (add1.bytes sameElements add2.bytes)
       Right(OpcDiff.empty)
     else
       Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.data} is not equal to ${add2.data}"))
