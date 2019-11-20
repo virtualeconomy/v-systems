@@ -71,6 +71,8 @@ class StateStorage private(db: DB) extends Storage(db){
 
   val contractDB: StateMap[ByteStr, Array[Byte]] = new StateMap(db, "contractDB", keyType=DataTypes.byteStr)
 
+  val contractNumDB: StateMap[ByteStr, Long] = new StateMap(db, "contractNumDB", keyType=DataTypes.byteStr)
+
   val contractTokens: StateMap[ByteStr, Int] = new StateMap(db, "contractTokens", keyType=DataTypes.byteStr)
 
   val tokenDB: StateMap[ByteStr, Array[Byte]] = new StateMap(db, "tokenDB", keyType=DataTypes.byteStr)
