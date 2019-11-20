@@ -9,6 +9,8 @@ object DataType extends Enumeration {
   val ContractAccount = Value(6)
   val Account = Value(7)
   val TokenId = Value(8)
+  val Balance = Value(9)
+  val Timestamp = Value(10)
 
   def fromByte(b: Byte): Option[DataType.Value] = {
     if (b < DataType.PublicKey.id || b > DataType.TokenId.id)

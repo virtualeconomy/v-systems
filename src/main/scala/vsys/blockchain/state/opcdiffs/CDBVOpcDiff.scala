@@ -1,11 +1,12 @@
 package vsys.blockchain.state.opcdiffs
 
+import com.google.common.primitives.Longs
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable}
 import vsys.account.Address
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
-import vsys.blockchain.contract.Contract.checkStateVar
+import vsys.blockchain.contract.Contract.{checkStateMap, checkStateVar}
 
 import scala.util.{Left, Right, Try}
 
@@ -22,6 +23,17 @@ object CDBVOpcDiff extends OpcDiffer {
         case Some(addr) => OpcDiff(relatedAddress = Map(addr -> true), contractDB = contractDB)
         case None => OpcDiff(contractDB = contractDB)
       }
+    } yield diff
+  }
+
+  def mapSet(context: ExecutionContext)(stateMap: Array[Byte],
+                                        keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
+    for {
+      // condition and  validation error need to be updated
+      _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, dataValue.dataType), (), ContractInvalidStateVariable)
+      combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+      diff = if (dataValue.dataType == DataType.Amount || dataValue.dataType == DataType.Balance) OpcDiff(contractDB = Map(combinedKey -> dataValue.bytes))
+             else OpcDiff(contractNumDB = Map(combinedKey -> Longs.fromByteArray(dataValue.data)))
     } yield diff
   }
 

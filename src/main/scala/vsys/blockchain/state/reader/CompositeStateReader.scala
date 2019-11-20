@@ -81,6 +81,8 @@ class CompositeStateReader(inner: StateReader, blockDiff: BlockDiff) extends Sta
       .map(t => DataEntry.fromBytes(t).explicitGet())
       .orElse(inner.contractInfo(id))
 
+  override def contractNumInfo(id: ByteStr): Long = inner.contractNumInfo(id) + txDiff.contractNumDB.getOrElse(id, 0L)
+
   override def contractTokens(id: ByteStr): Int = inner.contractTokens(id) + txDiff.contractTokens.getOrElse(id, 0)
 
   override def tokenInfo(id: ByteStr): Option[DataEntry] = {
@@ -147,6 +149,9 @@ object CompositeStateReader {
 
     override def contractInfo(id: ByteStr): Option[DataEntry] =
       new CompositeStateReader(inner, blockDiff()).contractInfo(id)
+
+    override def contractNumInfo(id: ByteStr): Long =
+      new CompositeStateReader(inner, blockDiff()).contractNumInfo(id)
 
     override def contractTokens(id: ByteStr): Int =
       new CompositeStateReader(inner, blockDiff()).contractTokens(id)

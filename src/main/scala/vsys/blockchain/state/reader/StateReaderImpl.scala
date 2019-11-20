@@ -66,6 +66,10 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     sp().contractDB.get(id).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
   }
 
+  override def contractNumInfo(id: ByteStr): Long = read { implicit l =>
+    sp().contractNumDB.get(id).getOrElse(0L)
+  }
+
   override def contractTokens(id: ByteStr): Int = read { implicit l =>
     sp().contractTokens.get(id).getOrElse(0)
   }

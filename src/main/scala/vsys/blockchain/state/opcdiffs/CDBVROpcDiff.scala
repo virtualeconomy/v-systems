@@ -1,5 +1,6 @@
 package vsys.blockchain.state.opcdiffs
 
+import com.google.common.primitives.Longs
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable, ContractLocalVariableIndexOutOfRange, ContractStateVariableNotDefined}
@@ -20,6 +21,28 @@ object CDBVROpcDiff extends OpcDiffer {
       context.state.contractInfo(ByteStr(context.contractId.bytes.arr ++ Array(stateVar(0)))) match {
         case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
         case _ => Left(ContractStateVariableNotDefined)
+      }
+    }
+  }
+
+  def mapGet(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
+                                        pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(ContractLocalVariableIndexOutOfRange)
+    } else {
+      // TODO
+      // new validation error
+      // for stateMap
+      val combinedKey = context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes
+      if (stateMap(0) == 0.toByte) { // amount balance map
+        val getVal = context.state.contractNumInfo(ByteStr(combinedKey))
+        // for general case, DataType.Amount should get from the stateMap
+        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType.Amount)), 1))
+      } else {
+        context.state.contractInfo(ByteStr(combinedKey)) match {
+          case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
+          case _ => Left(ContractStateVariableNotDefined)
+        }
       }
     }
   }

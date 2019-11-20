@@ -42,6 +42,8 @@ trait StateReader extends Synchronized {
 
   def contractInfo(id: ByteStr): Option[DataEntry]
 
+  def contractNumInfo(id: ByteStr): Long
+
   def contractTokens(id: ByteStr): Int
 
   def tokenInfo(id: ByteStr): Option[DataEntry]
