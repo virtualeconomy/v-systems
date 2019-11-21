@@ -3,7 +3,7 @@ package vsys.blockchain.state.opcdiffs
 import com.google.common.primitives.Longs
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable}
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData, ContractInvalidStateVariable}
 import vsys.account.Address
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.Contract.{checkStateMap, checkStateVar}
@@ -32,9 +32,23 @@ object CDBVOpcDiff extends OpcDiffer {
       // condition and  validation error need to be updated
       _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, dataValue.dataType), (), ContractInvalidStateVariable)
       combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
-      diff = if (dataValue.dataType == DataType.Amount || dataValue.dataType == DataType.Balance) OpcDiff(contractDB = Map(combinedKey -> dataValue.bytes))
-             else OpcDiff(contractNumDB = Map(combinedKey -> Longs.fromByteArray(dataValue.data)))
+      diff = if (dataValue.dataType == DataType.Amount || dataValue.dataType == DataType.Balance) OpcDiff(contractNumDB = Map(combinedKey -> Longs.fromByteArray(dataValue.data)))
+             else OpcDiff(contractDB = Map(combinedKey -> dataValue.bytes))
     } yield diff
+  }
+
+  def mapValueAdd(context: ExecutionContext)(stateMap: Array[Byte],
+                                             keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
+    val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+    if (dataValue.dataType == DataType.Amount) Right(OpcDiff(contractNumDB = Map(combinedKey -> Longs.fromByteArray(dataValue.data))))
+    else Left(ContractDataTypeMismatch)
+  }
+
+  def mapValueMinus(context: ExecutionContext)(stateMap: Array[Byte],
+                                               keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
+    val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+    if (dataValue.dataType == DataType.Amount) Right(OpcDiff(contractNumDB = Map(combinedKey -> -Longs.fromByteArray(dataValue.data))))
+    else Left(ContractDataTypeMismatch)
   }
 
   object CDBVType extends Enumeration {
