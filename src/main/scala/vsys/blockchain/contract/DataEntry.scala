@@ -7,7 +7,7 @@ import vsys.account.{Address, AddressScheme, ContractAccount, PublicKeyAccount}
 import vsys.account.ContractAccount.ChecksumLength
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.contract.RegisterContractTransaction.MaxDescriptionSize
-import vsys.blockchain.transaction.TransactionParser.{AmountLength, KeyLength}
+import vsys.blockchain.transaction.TransactionParser.{AmountLength, KeyLength, TimestampLength}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
 import vsys.utils.crypto.hash.SecureCryptographicHash._
@@ -33,6 +33,7 @@ case class DataEntry(data: Array[Byte],
       case DataType.ShortText => Json.toJson(Base58.encode(d))
       case DataType.ContractAccount => Json.toJson(ContractAccount.fromBytes(d).right.get.address)
       case DataType.TokenId => Json.toJson(ByteStr(d).base58)
+      case DataType.Timestamp => Json.toJson(Longs.fromByteArray(d))
     }
   }
 }
@@ -82,6 +83,8 @@ object DataEntry {
         Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
       case Some(DataType.TokenId) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId) =>
         Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId), position + 1 + ContractAccount.TokenAddressLength))
+      case Some(DataType.Timestamp) if checkDataType(bytes.slice(position + 1, position + 1 + TimestampLength), DataType.Timestamp) =>
+        Right((DataEntry(bytes.slice(position + 1, position + 1 + TimestampLength), DataType.Timestamp), position + 1 + TimestampLength))
       case _ => Left(InvalidDataEntry)
     }
   }
@@ -114,6 +117,7 @@ object DataEntry {
       case DataType.ShortText => Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length && data.length <= 2 + MaxDescriptionSize
       case DataType.ContractAccount => ContractAccount.fromBytes(data).isRight
       case DataType.TokenId => isTokenIdValid(data)
+      case DataType.Timestamp => data.length == TimestampLength
       case _ => false
   }
 
