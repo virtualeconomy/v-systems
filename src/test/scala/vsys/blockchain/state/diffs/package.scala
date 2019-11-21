@@ -68,9 +68,9 @@ package object diffs {
 
     tx match {
       case tx: RegisterContractTransaction
-      => assertion(OpcFuncDiffer(ExecutionContext.fromRegConTx(state, height, tx).right.get)(tx.data))
+      => assertion(OpcFuncDiffer(ExecutionContext.fromRegConTx(state, Option(0), 1, height, tx).right.get)(tx.data))
       case tx: ExecuteContractFunctionTransaction
-      => assertion(OpcFuncDiffer(ExecutionContext.fromExeConTx(state, height, tx).right.get)(tx.data))
+      => assertion(OpcFuncDiffer(ExecutionContext.fromExeConTx(state, Option(0), 1, height, tx).right.get)(tx.data))
     }
   }
 }
