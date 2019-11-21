@@ -47,6 +47,28 @@ object CDBVROpcDiff extends OpcDiffer {
     }
   }
 
+  def mapGetOrDefault(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
+                                                 pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(ContractLocalVariableIndexOutOfRange)
+    } else {
+      // TODO
+      // for more types
+      // for stateMap
+      val combinedKey = context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes
+      if (stateMap(0) == 0.toByte) { // amount balance map
+        val getVal = context.state.contractNumInfo(ByteStr(combinedKey))
+        // for general case, DataType.Amount should get from the stateMap
+        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType.Amount)), 1))
+      } else {
+        context.state.contractInfo(ByteStr(combinedKey)) match {
+          case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
+          case _ => Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(0L), DataType.Timestamp)), 1))
+        }
+      }
+    }
+  }
+
   object CDBVRType extends Enumeration {
     val GetCDBVR = Value(1)
   }
