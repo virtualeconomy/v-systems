@@ -12,6 +12,15 @@ import scala.util.{Left, Right, Try}
 
 object AssertOpcDiff extends OpcDiffer {
 
+  def assertTrue(v: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (v.dataType != DataType.Boolean)
+      Left(ContractDataTypeMismatch)
+    else if (v.data sameElements Array(1.toByte))
+      Right(OpcDiff.empty)
+    else
+      Left(GenericError(s"Invalid Assert (Boolean True): Value False"))
+  }
+
   def gtEq0(v: DataEntry): Either[ValidationError, OpcDiff] = {
     if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) >= 0)
       Right(OpcDiff.empty)
