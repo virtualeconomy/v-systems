@@ -11,7 +11,7 @@ import vsys.settings.GenesisSettings
 import vsys.utils.crypto.EllipticCurveImpl
 import vsys.utils.ScorexLogging
 
-import scala.util.{Failure, Try}
+import scala.util.{DynamicVariable, Failure, Try}
 
 case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData: SignerData,
                  consensusData: SposConsensusBlockData, transactionData: Seq[ProcessedTransaction]) extends Signed {
@@ -117,36 +117,37 @@ object Block extends ScorexLogging {
 
     val version = bytes.head
 
-    var position = 1
+    val positionVal = new DynamicVariable(1)
+    def position = positionVal.value
 
     val timestamp = Longs.fromByteArray(bytes.slice(position, position + 8))
-    position += 8
+    positionVal.value = position + 8
 
     val reference = ByteStr(bytes.slice(position, position + SignatureLength))
-    position += SignatureLength
+    positionVal.value = position + SignatureLength
 
     val cBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
-    position += 4
+    positionVal.value = position + 4
     val cBytes = bytes.slice(position, position + cBytesLength)
     val mintTimeBytes = cBytes.slice(0, Block.MintTimeLength)
     val mintBalanceBytes = cBytes.slice(Block.MintTimeLength, Block.MintTimeLength + Block.MintBalanceLength)
     val consData = SposConsensusBlockData(Longs.fromByteArray(mintTimeBytes), Longs.fromByteArray(mintBalanceBytes))
-    position += cBytesLength
+    positionVal.value = position + cBytesLength
 
     val fBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
-    position += 4
-    position += fBytesLength
+    positionVal.value = position + 4
+    positionVal.value = position + fBytesLength
 
-    position += TransactionMerkleRootLength
+    positionVal.value = position + TransactionMerkleRootLength
 
     val tBytesLength = Ints.fromByteArray(bytes.slice(position, position + 4))
-    position += 4
+    positionVal.value = position + 4
     val tBytes = bytes.slice(position, position + tBytesLength)
     val txBlockField = transParseBytes(version.toInt, tBytes).get
-    position += tBytesLength
+    positionVal.value = position + tBytesLength
 
     val genPK = bytes.slice(position, position + KeyLength)
-    position += KeyLength
+    positionVal.value = position + KeyLength
 
     val signature = ByteStr(bytes.slice(position, position + SignatureLength))
 

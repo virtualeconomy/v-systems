@@ -38,7 +38,7 @@ object ContractAccount extends ScorexLogging {
   val AddressLength = 1 + 1 + ChecksumLength + HashLength
   val AddressStringLength = base58Length(AddressLength)
 
-  private def scheme = AddressScheme.current
+  private lazy val scheme = AddressScheme.current.value
 
   private class ContractAddressImpl(val bytes: ByteStr) extends ContractAccount
 
