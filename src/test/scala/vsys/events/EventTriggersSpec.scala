@@ -15,7 +15,7 @@ import vsys.settings.{EventSettings, AfterHeight, AfterTime, WithTxs, WithMintin
 class EventTriggersSpec extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with MockitoSugar {
   val system = ActorSystem()
   val blockTime = 10
-  val trigger = EventTriggers(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty))
+  val trigger = EventTriggers(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty, 0))
 
   property("Private Method filterTxs should filter AfterHeight correctly") {
     val eventRules = Seq(AfterHeight(12))

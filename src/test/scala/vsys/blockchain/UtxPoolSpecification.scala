@@ -38,7 +38,7 @@ class UtxPoolSpecification extends FreeSpec
 
   private def mkState(senderAccount: Address, senderBalance: Long) = {
     val genesisSettings = TestHelpers.genesisSettings(Map(senderAccount -> senderBalance))
-    val trigger = EventTriggers(ActorSystem().actorOf(Props[EventWriterActor]), EventSettings(Seq.empty))
+    val trigger = EventTriggers(ActorSystem().actorOf(Props[EventWriterActor]), EventSettings(Seq.empty, 0))
     val (history, _, state, bcu) =
       StorageFactory(db, BlockchainSettings('T', 5, FunctionalitySettings.TESTNET, genesisSettings, TestStateSettings.AllOn), trigger, true)
 

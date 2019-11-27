@@ -13,13 +13,12 @@ case class EventWriterActor(queue: SimpleEventQueue, dispatcher: ActorRef) exten
       queue.enqueue(e)
       dispatcher ! Tuple2(queue, e.maxSize)
 
-    case TxConfirmedEvent(url, scKey, enKey, maxSize, subscribeData) =>
-      println(subscribeData)
+    case e: TxConfirmedEvent =>
+      queue.enqueue(e)
+      dispatcher ! Tuple2(queue, e.maxSize)
 
-    case BlockRollbackEvent(url, scKey, enKey, maxSize, subscribeData) =>
-      print(subscribeData)
-
-    case Terminated(dispatcher) =>
-      log.warn("Event dispatcher actor is stopped. Writer actor is terminating")
+    case e: BlockRollbackEvent =>
+      queue.enqueue(e)
+      dispatcher ! Tuple2(queue, e.maxSize)
   }
 }

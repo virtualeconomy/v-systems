@@ -21,7 +21,7 @@ package object history {
     genesisSettings = null,
     stateSettings = TestStateSettings.AllOn)
 
-  val DefaultEventSetting = EventSettings(Seq.empty)
+  val DefaultEventSetting = EventSettings(Seq.empty, 0)
   val DefaultActorSys = ActorSystem().actorOf(Props[EventWriterActor])
   val triggerService = EventTriggers(DefaultActorSys, DefaultEventSetting)
   val db = openDB("./test/data", true)

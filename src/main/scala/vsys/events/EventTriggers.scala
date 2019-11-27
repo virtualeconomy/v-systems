@@ -8,6 +8,7 @@ import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.blockchain.state.{BlockDiff, ByteStr}
 import vsys.blockchain.block.Block
 import vsys.blockchain.contract.DataEntry
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.account.{Address, ContractAccount}
 import akka.actor.ActorRef
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -81,8 +82,8 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
           case e: StateUpdatedEventSettings if (evokeFrom == "processBlock") =>
             val height = getHeight(blockDiff)
             val re = filterTxs(e.eventRules, block.timestamp, blockDiff)
-            val ctRe = filterContracts(e.eventRules, block.timestamp, blockDiff)
             val txJson = formTxJson(re)
+            
 
 
 
@@ -107,7 +108,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
               "referringRules" -> rulesJson
             )
             
-            eventWriter ! subscribeData
+            eventWriter ! BlockRollbackEvent(url, scKey, enKey, maxSize, subscribeData)
 
           case _ =>
             if (evokeFrom == "invalidRollbackHeight") {
@@ -120,26 +121,15 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
 
   private[events] def filterTxs(rules: Seq[WebhookEventRules], blockTime: Long, blockDiff: BlockDiff): List[(Long, ProcessedTransaction, Seq[String])] = {
     rules.foldLeft(blockDiff.txsDiff.transactions.toList)((accum, rule) =>
-      accum.filter(aTuple => aTuple match {case (id, (h, tx, accs)) => rule.applyRule(h.toLong, blockTime, tx, accToStr(accs))}
-      )).collect {case (id, (h, tx, accs)) => (h.toLong, tx, accToStr(accs))}
-  }
-
-  private def filterContracts(rules: Seq[WebhookEventRules], blockTime: Long, blockDiff: BlockDiff): List[(Long, ProcessedTransaction, ByteStr, ByteStr, Seq[String])]= {
-    val txMap = blockDiff.txsDiff.transactions
-    val contracts = blockDiff.txsDiff.contracts
-    val contractTokens = blockDiff.txsDiff.contractTokens
-    rules.foldLeft(contracts.toList)((accum, rule) =>
-      accum.filter(aTuple => aTuple match {case (ctId: ByteStr, (h: Int, txId: ByteStr, _, _)) => rule.applyRule(h.toLong, blockTime, (getTx _).tupled(txMap(txId)), Seq(ctId.toString))}
-      )).collect {
-      case (ctId: ByteStr, (h: Int, txId: ByteStr, _, accs: Set[Address])) =>
-        val pTx = (getTx _).tupled(txMap(txId))
-        pTx.transaction match {
-          case p: ExecuteContractFunctionTransaction =>
-            val tokenId = ContractAccount.tokenIdFromBytes(ctId.arr, Array(contractTokens(ctId).toByte)).right.get
-            (h.toLong, pTx, ctId, tokenId, accToStr(accs))
-          case _ => (0L, pTx, ctId, ctId, Seq.empty)
+      accum.filter(aTuple => aTuple match {case (id, (h, tx, accs)) =>
+          if (tx.transaction.transactionType == TransactionType.ExecuteContractFunctionTransaction) {
+            val combineAccs = accToStr(accs) ++ Seq(tx.transaction.asInstanceOf[ExecuteContractFunctionTransaction].contractId.toString)
+            rule.applyRule(h.toLong, blockTime, tx, combineAccs)
+          } else {
+            rule.applyRule(h.toLong, blockTime, tx, accToStr(accs))
+          }
         }
-      }.filter {finTup => finTup match {case (h: Long, _, _, _, _) => h != 0}}
+      )).collect {case (id, (h, tx, accs)) => (h.toLong, tx, accToStr(accs))}
   }
 
   private def accToStr(accs: Set[Address]): Seq[String] = {
