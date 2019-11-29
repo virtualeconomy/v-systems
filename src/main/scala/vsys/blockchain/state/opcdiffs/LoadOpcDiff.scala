@@ -1,8 +1,10 @@
 package vsys.blockchain.state.opcdiffs
 
+import com.google.common.primitives.Longs
+import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractLocalVariableIndexOutOfRange}
-import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
+
 
 import scala.util.{Left, Right, Try}
 
@@ -18,6 +20,14 @@ object LoadOpcDiff extends OpcDiffer {
 
   def caller(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     signer(context)(dataStack, pointer)
+  }
+
+  def timestamp(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(ContractLocalVariableIndexOutOfRange)
+    } else {
+      Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(context.prevBlockTimestamp.getOrElse(0L)), DataType.Timestamp)), 1))
+    }
   }
 
   object LoadType extends Enumeration {

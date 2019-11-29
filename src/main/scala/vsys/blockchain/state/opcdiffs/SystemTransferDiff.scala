@@ -2,7 +2,8 @@ package vsys.blockchain.state.opcdiffs
 
 import cats.Monoid
 import cats.implicits._
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Ints, Longs}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.account._
 import vsys.blockchain.contract.{CallType, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state._
@@ -14,7 +15,7 @@ import scala.util.{Left, Right, Try}
 object SystemTransferDiff extends OpcDiffer {
 
   def getTriggerCallOpcDiff(context: ExecutionContext, diff: OpcDiff,
-                            sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+                            sender: DataEntry, recipient: DataEntry, amount: DataEntry, tokenId: DataEntry,
                             callType: CallType.Value, callIndex: Int): Either[ValidationError, OpcDiff] = {
     if (callType == CallType.Trigger){
       callIndex match {
@@ -22,13 +23,13 @@ object SystemTransferDiff extends OpcDiffer {
           if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val senderContractId = ContractAccount.fromBytes(sender.data).explicitGet()
-            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
+            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount, tokenId), callType, callIndex)
           }
         case 2 =>
           if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val recipientContractId = ContractAccount.fromBytes(recipient.data).explicitGet()
-            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
+            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount, tokenId), callType, callIndex)
           }
         case _ => Left(GenericError("Invalid Call Index"))
       }
@@ -41,7 +42,7 @@ object SystemTransferDiff extends OpcDiffer {
               (sender: DataEntry, recipient: DataEntry, amount: DataEntry): Either[ValidationError, OpcDiff] = {
     val dType = Array(amount.dataType.id.toByte, sender.dataType.id.toByte, recipient.dataType.id.toByte)
     val rType = Array(DataType.Amount.id.toByte, DataType.Account.id.toByte, DataType.Account.id.toByte)
-
+    val sysTokenId = DataEntry(tokenIdFromBytes(context.contractId.bytes.arr, Ints.toByteArray(0)).right.get.arr, DataType.TokenId)
     for {
       _ <- Either.cond(DataType.checkTypes(dType, rType), (), ContractDataTypeMismatch)
       transferAmount = Longs.fromByteArray(amount.data)
@@ -52,7 +53,7 @@ object SystemTransferDiff extends OpcDiffer {
       _ <- Either.cond(senderBalance >= transferAmount, (), ContractTokenBalanceInsufficient)
       _ <- Either.cond(Try(Math.addExact(transferAmount, recipientBalance)).isSuccess, (), OverflowError)
       _ <- Either.cond(transferAmount >= 0, (), ContractInvalidAmount)
-      senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, CallType.Trigger, 1)
+      senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, sysTokenId, CallType.Trigger, 1)
       senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).explicitGet() -> true) else Map[Address, Boolean]()
       senderPortDiff: Map[Account, Portfolio] = Map(
         senderAddr._1 -> Portfolio(
@@ -61,7 +62,7 @@ object SystemTransferDiff extends OpcDiffer {
           assets = Map.empty))
       senderDiff = OpcDiff(relatedAddress = senderRelatedAddress, portfolios = senderPortDiff)
       senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
-      recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, CallType.Trigger, 2)
+      recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, sysTokenId, CallType.Trigger, 2)
       recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
       recipientPortDiff: Map[Account, Portfolio] = Map(
         recipientAddr._1 -> Portfolio(

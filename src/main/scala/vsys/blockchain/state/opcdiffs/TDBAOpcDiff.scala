@@ -77,7 +77,7 @@ object TDBAOpcDiff extends OpcDiffer {
   }
 
   def getTriggerCallOpcDiff(context: ExecutionContext, diff: OpcDiff,
-                            sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+                            sender: DataEntry, recipient: DataEntry, amount: DataEntry, tokenId: DataEntry,
                             callType: CallType.Value, callIndex: Int): Either[ValidationError, OpcDiff] = {
     if (callType == CallType.Trigger){
       callIndex match {
@@ -85,13 +85,13 @@ object TDBAOpcDiff extends OpcDiffer {
           if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val senderContractId = ContractAccount.fromBytes(sender.data).explicitGet()
-            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount), callType, callIndex)
+            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount, tokenId), callType, callIndex)
           }
         case 2 =>
           if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val recipientContractId = ContractAccount.fromBytes(recipient.data).explicitGet()
-            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount), callType, callIndex)
+            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount, tokenId), callType, callIndex)
           }
         case _ => Left(GenericError("Invalid Call Index"))
       }
@@ -113,6 +113,7 @@ object TDBAOpcDiff extends OpcDiffer {
       val tokenIndexNumber = Ints.fromByteArray(tokenIndex.data)
       val transferAmount = Longs.fromByteArray(amount.data)
       val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
+      val tokenIdDataEntry = DataEntry(tokenID.arr, DataType.TokenId)
       val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
       val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
       val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))
@@ -129,12 +130,12 @@ object TDBAOpcDiff extends OpcDiffer {
         // TODO
         // relatedContract needed
         for {
-          senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, CallType.Trigger, 1)
+          senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, tokenIdDataEntry, CallType.Trigger, 1)
           senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).explicitGet() -> true) else Map[Address, Boolean]()
           senderDiff = OpcDiff(relatedAddress = senderRelatedAddress,
             tokenAccountBalance = Map(senderBalanceKey -> -transferAmount))
           senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
-          recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, CallType.Trigger, 2)
+          recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, tokenIdDataEntry, CallType.Trigger, 2)
           recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
           recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress,
             tokenAccountBalance = Map(recipientBalanceKey -> transferAmount))
