@@ -46,6 +46,7 @@ object OpcDiffer {
     val TDBAOpc   = OpcTypeVal(7, TDBAOpcDiff)
     val TDBAROpc  = OpcTypeVal(8, TDBAROpcDiff)
     val ReturnOpc = OpcTypeVal(9, ReturnOpcDiff)
+    val CompareOpc = OpcTypeVal(10, CompareOpcDiff)
 
     def fromByte(implicit b: Byte): Option[OpcTypeVal] =
       Try(OpcType(b).asInstanceOf[OpcTypeVal]).toOption
