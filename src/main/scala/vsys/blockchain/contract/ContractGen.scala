@@ -24,6 +24,14 @@ object ContractGen {
 
   val compareGreater           = Array(10.toByte, 1.toByte)
 
+  sealed case class StateVar(index: Byte, dataType: Byte) {
+    lazy val arr: Array[Byte] = Array(index, dataType)
+  }
+
+  sealed case class StateMap(index: Byte, keyType: Byte, valueType: Byte) {
+    lazy val arr: Array[Byte] = Array(index, keyType, valueType)
+  }
+
   def genFunctionOpcs(opcs: Seq[Seq[Array[Byte]]]): Array[Byte] = {
     val numOpc = Shorts.toByteArray(opcs.length.toShort)
     val combinedOpcs = opcs.map(x => Deser.serializeArray(x.head ++ Deser.serializeArray(x.last))).toArray.flatten
