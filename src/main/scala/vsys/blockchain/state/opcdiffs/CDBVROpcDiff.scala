@@ -5,7 +5,7 @@ import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable, ContractLocalVariableIndexOutOfRange, ContractStateVariableNotDefined}
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
-import vsys.blockchain.contract.Contract.checkStateVar
+import vsys.blockchain.contract.Contract.{checkStateMap, checkStateVar}
 
 import scala.util.{Left, Right, Try}
 
@@ -27,17 +27,15 @@ object CDBVROpcDiff extends OpcDiffer {
 
   def mapGet(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
+    if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)))) {
+      Left(ValidationError.GenericError(s"Contract Invalid State Map"))
+    } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
-      // TODO
-      // new validation error
-      // for stateMap
       val combinedKey = context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes
-      if (stateMap(0) == 0.toByte) { // amount balance map
+      if (DataType(stateMap(2)) == DataType.Amount) { // amount balance map
         val getVal = context.state.contractNumInfo(ByteStr(combinedKey))
-        // for general case, DataType.Amount should get from the stateMap
-        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType.Amount)), 1))
+        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType(stateMap(2)))), 1))
       } else {
         context.state.contractInfo(ByteStr(combinedKey)) match {
           case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
@@ -49,34 +47,39 @@ object CDBVROpcDiff extends OpcDiffer {
 
   def mapGetOrDefault(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                                  pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
+    if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)))) {
+      Left(ValidationError.GenericError(s"Contract Invalid State Map"))
+    } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
-      // TODO
-      // for more types
-      // for stateMap
       val combinedKey = context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes
-      if (stateMap(0) == 0.toByte) { // amount balance map
+      if (DataType(stateMap(2)) == DataType.Amount) { // amount balance map
         val getVal = context.state.contractNumInfo(ByteStr(combinedKey))
-        // for general case, DataType.Amount should get from the stateMap
         Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType.Amount)), 1))
-      } else {
+      } else if (DataType(stateMap(2)) == DataType.Timestamp) { // timestamp
         context.state.contractInfo(ByteStr(combinedKey)) match {
           case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
           case _ => Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(0L), DataType.Timestamp)), 1))
         }
+      } else {
+        Left(ContractStateVariableNotDefined)
       }
     }
   }
 
-  object CDBVRType extends Enumeration {
-    val GetCDBVR = Value(1)
+  object CDBVRType extends Enumeration(1) {
+    val GetCDBVR, MapGetOrDefaultCDBVR = Value
   }
 
+  private def checkCDBVRIndex(bytes: Array[Byte], id: Int, stateVarOrMapSize: Int): Boolean =
+    bytes(id) < stateVarOrMapSize && bytes(id) >=0
+
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
-    bytes.headOption.flatMap(f => Try(CDBVRType(f)).toOption) match {
-      case Some(CDBVRType.GetCDBVR) if bytes.length == 3 && bytes(1) < context.stateVar.length &&
-        bytes(1) >= 0 => get(context)(context.stateVar(bytes(1)), data, bytes(2))
+    (bytes.headOption.flatMap(f => Try(CDBVRType(f)).toOption), bytes.length) match {
+      case (Some(CDBVRType.GetCDBVR), 3) if checkCDBVRIndex(bytes, 1, context.stateVar.length) =>
+        get(context)(context.stateVar(bytes(1)), data, bytes(2))
+      case (Some(CDBVRType.MapGetOrDefaultCDBVR), 4) if checkCDBVRIndex(bytes, 1, context.stateMap.length) && bytes(2) >=0 &&
+        bytes(2) <= data.length => mapGetOrDefault(context)(context.stateMap(bytes(1)), data(bytes(2)), data, bytes(3))
       case _ => Left(ContractInvalidOPCData)
     }
 }

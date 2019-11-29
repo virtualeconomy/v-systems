@@ -40,25 +40,47 @@ object CDBVOpcDiff extends OpcDiffer {
   def mapValueAdd(context: ExecutionContext)(stateMap: Array[Byte],
                                              keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
-    if (dataValue.dataType == DataType.Amount) Right(OpcDiff(contractNumDB = Map(combinedKey -> Longs.fromByteArray(dataValue.data))))
+    if (dataValue.dataType == DataType.Amount){
+      val cntBalance = context.state.contractNumInfo(combinedKey)
+      val addAmount = Longs.fromByteArray(dataValue.data)
+      if (Try(Math.addExact(cntBalance, addAmount)).isFailure)
+        Left(ValidationError.OverflowError)
+      else
+        Right(OpcDiff(contractNumDB = Map(combinedKey -> addAmount)))
+    }
     else Left(ContractDataTypeMismatch)
   }
 
   def mapValueMinus(context: ExecutionContext)(stateMap: Array[Byte],
                                                keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
-    if (dataValue.dataType == DataType.Amount) Right(OpcDiff(contractNumDB = Map(combinedKey -> -Longs.fromByteArray(dataValue.data))))
+    if (dataValue.dataType == DataType.Amount){
+      val cntBalance = context.state.contractNumInfo(combinedKey)
+      val minusAmount = Longs.fromByteArray(dataValue.data)
+      if (cntBalance >= minusAmount)
+        Right(OpcDiff(contractNumDB = Map(combinedKey -> -minusAmount)))
+      else Left(ValidationError.GenericError(s"Insufficient Value Minus"))
+    }
     else Left(ContractDataTypeMismatch)
   }
 
-  object CDBVType extends Enumeration {
-    val SetCDBV = Value(1)
+  object CDBVType extends Enumeration(1) {
+    val SetCDBV, mapSetCDBV, mapValueAddCDBV, mapValueMinusCDBV = Value
   }
 
+  private def checkCDBVBytes(bytes: Array[Byte], dLength: Int, stateVarOrMapSize: Int): Boolean =
+    (bytes.length == 2 || (bytes.tail.max < dLength && bytes.tail.min >= 0)) && bytes(1) < stateVarOrMapSize && bytes(1) >=0
+
   override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
-    bytes.headOption.flatMap(f => Try(CDBVType(f)).toOption) match {
-      case Some(CDBVType.SetCDBV) if bytes.length == 3 && bytes(1) < context.stateVar.length
-        && bytes.last < data.length && bytes.tail.min >= 0 => set(context)(context.stateVar(bytes(1)), data(bytes(2)))
+    (bytes.headOption.flatMap(f => Try(CDBVType(f)).toOption), bytes.length) match {
+      case (Some(CDBVType.SetCDBV), 3) if checkCDBVBytes(bytes, data.length, context.stateVar.length) =>
+        set(context)(context.stateVar(bytes(1)), data(bytes(2)))
+      case (Some(CDBVType.mapSetCDBV), 4) if checkCDBVBytes(bytes, data.length, context.stateMap.length) =>
+        mapSet(context)(context.stateMap(bytes(1)), data(bytes(2)), data(bytes(3)))
+      case (Some(CDBVType.mapValueAddCDBV), 4) if checkCDBVBytes(bytes, data.length, context.stateMap.length) =>
+        mapValueAdd(context)(context.stateMap(bytes(1)), data(bytes(2)), data(bytes(3)))
+      case (Some(CDBVType.mapValueMinusCDBV), 4) if checkCDBVBytes(bytes, data.length, context.stateMap.length) =>
+        mapValueMinus(context)(context.stateMap(bytes(1)), data(bytes(2)), data(bytes(3)))
       case _ => Left(ContractInvalidOPCData)
     }
 }
