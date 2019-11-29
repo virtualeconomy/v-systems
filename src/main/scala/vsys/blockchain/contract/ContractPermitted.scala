@@ -9,6 +9,7 @@ object ContractPermitted {
     Seq(supersedeFunc, issueFunc, destroyFunc, splitFunc, sendFunc, transferFunc, depositFunc, withdrawFunc,
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte)),
+    Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
@@ -17,6 +18,7 @@ object ContractPermitted {
       transferFuncWithoutSplit, depositFuncWithoutSplit, withdrawFuncWithoutSplit, totalSupplyFuncWithoutSplit,
       maxSupplyFuncWithoutSplit, balanceOfFuncWithoutSplit, getIssuerFuncWithoutSplit),
     Seq(Array(StateVar.issuer, DataType.Address.id.toByte), Array(StateVar.maker, DataType.Address.id.toByte)),
+    Seq(),
     Seq(triggerTextual, descriptorTextualWithoutSplit, stateVarTextual)
   ).right.get
 

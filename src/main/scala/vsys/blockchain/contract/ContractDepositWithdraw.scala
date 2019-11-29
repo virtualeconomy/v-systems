@@ -6,7 +6,7 @@ import vsys.utils.serialization.Deser
 
 object ContractDepositWithdraw {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
-    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(),
+    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(), Seq(),
     Seq(Array(StateVar.maker, DataType.Address.id.toByte)), Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
