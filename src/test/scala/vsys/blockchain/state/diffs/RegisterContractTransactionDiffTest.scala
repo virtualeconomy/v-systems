@@ -40,7 +40,7 @@ class RegisterContractTransactionDiffTest extends PropSpec
 
   property("register contract build doesn't break invariant"){
     forAll(preconditionAndBuildRegContract) { case (langCode, langVer, init, descriptor, stateVar, textual) =>
-      Contract.buildContract(langCode, langVer, init, descriptor, stateVar, textual) shouldBe an[Right[_, _]]
+      Contract.buildContract(langCode, langVer, init, descriptor, stateVar, Seq(), textual) shouldBe an[Right[_, _]]
     }
   }
 
