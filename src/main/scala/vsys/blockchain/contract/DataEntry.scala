@@ -34,6 +34,7 @@ case class DataEntry(data: Array[Byte],
       case DataType.ContractAccount => Json.toJson(ContractAccount.fromBytes(d).right.get.address)
       case DataType.TokenId => Json.toJson(ByteStr(d).base58)
       case DataType.Timestamp => Json.toJson(Longs.fromByteArray(d))
+      case DataType.Boolean => Json.toJson(if (d(0) == 1.toByte) "True" else "False")
     }
   }
 }
@@ -118,6 +119,7 @@ object DataEntry {
       case DataType.ContractAccount => ContractAccount.fromBytes(data).isRight
       case DataType.TokenId => isTokenIdValid(data)
       case DataType.Timestamp => data.length == TimestampLength
+      case DataType.Boolean => data.length == 1 && (data(0) == 1.toByte || data(0) == 0.toByte)
       case _ => false
   }
 
