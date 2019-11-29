@@ -18,6 +18,7 @@ case class ExecutionContext(signers: Seq[PublicKeyAccount],
                             contractId: ContractAccount,
                             opcFunc: Array[Byte],
                             stateVar: Seq[Array[Byte]],
+                            stateMap: Seq[Array[Byte]],
                             description: Array[Byte],
                             depth: Int) {
 
@@ -34,9 +35,10 @@ object ExecutionContext {
     val contractId = tx.contractId
     val opcFunc = tx.contract.trigger.find(a => (a.length > 2) && (a(2) == 0.toByte)).getOrElse(Array[Byte]())
     val stateVar = tx.contract.stateVar
+    val stateMap = tx.contract.stateMap
     val description = Deser.serilizeString(tx.description)
     Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp, height,
-                           tx, contractId, opcFunc, stateVar, description, 0))
+                           tx, contractId, opcFunc, stateVar, stateMap, description, 0))
   }
 
   def fromExeConTx(s: StateReader,
@@ -51,7 +53,7 @@ object ExecutionContext {
       if (tx.funcIdx >= 0 && tx.funcIdx < ContractSystem.contract.descriptor.length) {
         Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp,
                                height, tx, contractId, ContractSystem.contract.descriptor(tx.funcIdx),
-                               ContractSystem.contract.stateVar, description, 0))
+                               ContractSystem.contract.stateVar, ContractSystem.contract.stateMap, description, 0))
       } else {
         Left(InvalidFunctionIndex)
       }
@@ -60,7 +62,7 @@ object ExecutionContext {
         case Some(c) if tx.funcIdx >=0 && tx.funcIdx < c._3.descriptor.length =>
           Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp,
                                  height, tx, contractId, c._3.descriptor(tx.funcIdx),
-                                 c._3.stateVar, description, 0))
+                                 c._3.stateVar, c._3.stateMap, description, 0))
         case Some(_) => Left(InvalidFunctionIndex)
         case _ => Left(InvalidContractAddress)
       }
@@ -83,7 +85,7 @@ object ExecutionContext {
         if (opcFunc.isDefined) {
           Right(ExecutionContext(c.signers, state, c.prevBlockTimestamp, c.currentBlockTimestamp,
                                  c.height, c.transaction, contractId, opcFunc.get,
-                                 contract._3.stateVar, c.description, c.depth + 1))
+                                 contract._3.stateVar, contract._3.stateMap, c.description, c.depth + 1))
         } else {
           Left(GenericError("no such trigger"))
         }
@@ -91,7 +93,7 @@ object ExecutionContext {
         if (callIndex >= 0 && callIndex < contract._3.descriptor.length) {
           Right(ExecutionContext(c.signers, state, c.prevBlockTimestamp, c.currentBlockTimestamp,
                                  c.height, c.transaction, contractId, contract._3.descriptor(callIndex),
-                                 contract._3.stateVar, c.description, c.depth + 1))
+                                 contract._3.stateVar, contract._3.stateMap, c.description, c.depth + 1))
         } else {
           Left(GenericError("invalid contract function index"))
         }
