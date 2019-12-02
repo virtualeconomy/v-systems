@@ -10,7 +10,7 @@ object ContractGen {
   val assertCaller             = Array(1.toByte, 6.toByte)
   val assertEqual              = Array(1.toByte, 5.toByte)
 
-  val loadSinger               = Array(2.toByte, 1.toByte)
+  val loadSigner               = Array(2.toByte, 1.toByte)
   val loadCaller               = Array(2.toByte, 2.toByte)
   val loadTimestamp            = Array(2.toByte, 3.toByte)
 
@@ -32,9 +32,9 @@ object ContractGen {
     lazy val arr: Array[Byte] = Array(index, keyType, valueType)
   }
 
-  def genFunctionOpcs(opcs: Seq[Seq[Array[Byte]]]): Array[Byte] = {
+  def genFunctionOpcs(opcs: Seq[Array[Byte]]): Array[Byte] = {
     val numOpc = Shorts.toByteArray(opcs.length.toShort)
-    val combinedOpcs = opcs.map(x => Deser.serializeArray(x.head ++ Deser.serializeArray(x.last))).toArray.flatten
+    val combinedOpcs = opcs.map(x => Deser.serializeArray(x)).toArray.flatten
     val length = Shorts.toByteArray((combinedOpcs.length + 2).toShort)
     Bytes.concat(length, numOpc, combinedOpcs)
   }

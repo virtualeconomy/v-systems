@@ -29,10 +29,10 @@ object ContractLock {
   val initPara: Seq[String] = Seq("tokenId",
                                   "signer")
   val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte)
-  val initTriggerOpcs: Seq[Seq[Array[Byte]]] = Seq(
-    Seq(loadSinger, Array(1.toByte)),
-    Seq(cdbvSet, Array(makerStateVar.index, 1.toByte)),
-    Seq(cdbvSet, Array(tokenIdStateVar.index, 0.toByte))
+  val initTriggerOpcs: Seq[Array[Byte]] = Seq(
+    loadSigner ++ Array(1.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 1.toByte),
+    cdbvSet ++ Array(tokenIdStateVar.index, 0.toByte)
   )
   lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
   val initFuncBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
@@ -42,11 +42,11 @@ object ContractLock {
   val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId",
                                      "contractTokenId")
   val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
-  val depositTriggerOpcs: Seq[Seq[Array[Byte]]] = Seq(
-    Seq(assertCaller, Array(0.toByte)),
-    Seq(cdbvrGet, Array(tokenIdStateVar.index, 3.toByte)),
-    Seq(assertEqual, Array(2.toByte, 3.toByte)),
-    Seq(cdbvMapValAdd, Array(balanceMap.index, 0.toByte, 1.toByte))
+  val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(tokenIdStateVar.index, 3.toByte),
+    assertEqual ++ Array(2.toByte, 3.toByte),
+    cdbvMapValAdd ++ Array(balanceMap.index, 0.toByte, 1.toByte)
   )
   lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
   val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
@@ -56,15 +56,15 @@ object ContractLock {
   val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId",
                                       "contractTokenId", "lastBlockTime", "lockedTime", "compareResult")
   val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
-  val withdrawTriggerOpcs: Seq[Seq[Array[Byte]]] = Seq(
-    Seq(assertCaller, Array(0.toByte)),
-    Seq(cdbvrGet, Array(tokenIdStateVar.index, 3.toByte)),
-    Seq(assertEqual, Array(2.toByte, 3.toByte)),
-    Seq(loadTimestamp, Array(4.toByte)),
-    Seq(cdbvrMapGetOrDefault, Array(lockTimeMap.index, 0.toByte, 5.toByte)),
-    Seq(compareGreater, Array(4.toByte, 5.toByte, 6.toByte)),
-    Seq(assertTrue, Array(6.toByte)),
-    Seq(cdbvMapValMinus, Array(balanceMap.index, 0.toByte, 1.toByte))
+  val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(tokenIdStateVar.index, 3.toByte),
+    assertEqual ++ Array(2.toByte, 3.toByte),
+    loadTimestamp ++ Array(4.toByte),
+    cdbvrMapGetOrDefault ++ Array(lockTimeMap.index, 0.toByte, 5.toByte),
+    compareGreater ++ Array(4.toByte, 5.toByte, 6.toByte),
+    assertTrue ++ Array(6.toByte),
+    cdbvMapValMinus ++ Array(balanceMap.index, 0.toByte, 1.toByte)
   )
   lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, depositTriggerOpcs)
   val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
@@ -74,12 +74,12 @@ object ContractLock {
   val lockPara: Seq[String] = Seq("timestamp",
                                   "caller", "lockedTime", "compareResult")
   val lockDataType: Array[Byte] = Array(DataType.Timestamp.id.toByte)
-  val lockFunctionOpcs: Seq[Seq[Array[Byte]]] = Seq(
-    Seq(loadCaller, Array(1.toByte)),
-    Seq(cdbvrMapGetOrDefault, Array(lockTimeMap.index, 1.toByte, 2.toByte)),
-    Seq(compareGreater, Array(0.toByte, 2.toByte, 3.toByte)),
-    Seq(assertTrue, Array(3.toByte)),
-    Seq(cdbvMapSet, Array(lockTimeMap.index, 1.toByte, 0.toByte))
+  val lockFunctionOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(1.toByte),
+    cdbvrMapGetOrDefault ++ Array(lockTimeMap.index, 1.toByte, 2.toByte),
+    compareGreater ++ Array(0.toByte, 2.toByte, 3.toByte),
+    assertTrue ++ Array(3.toByte),
+    cdbvMapSet ++ Array(lockTimeMap.index, 1.toByte, 0.toByte)
   )
   lazy val lockFunc: Array[Byte] = getFunctionBytes(lockId, publicFuncType, nonReturnType, lockDataType, lockFunctionOpcs)
   val lockFuncBytes: Array[Byte] = textualFunc("lock", Seq(), lockPara)
