@@ -25,7 +25,7 @@ object ContractLock {
   lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
 
   // Initialization Trigger
-  val initId: Byte = 0.toByte
+  val initId: Short = 0
   val initPara: Seq[String] = Seq("tokenId",
                                   "signer")
   val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte)
@@ -38,7 +38,7 @@ object ContractLock {
   val initFuncBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Deposit Trigger
-  val depositId: Byte = 1.toByte
+  val depositId: Short = 1
   val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId",
                                      "contractTokenId")
   val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
@@ -52,7 +52,7 @@ object ContractLock {
   val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   // WithDraw Trigger
-  val withdrawId: Byte = 2.toByte
+  val withdrawId: Short = 2
   val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId",
                                       "contractTokenId", "lastBlockTime", "lockedTime", "compareResult")
   val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
@@ -70,7 +70,7 @@ object ContractLock {
   val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Lock Function
-  val lockId: Byte = 0.toByte
+  val lockId: Short = 0
   val lockPara: Seq[String] = Seq("timestamp",
                                   "caller", "lockedTime", "compareResult")
   val lockDataType: Array[Byte] = Array(DataType.Timestamp.id.toByte)
