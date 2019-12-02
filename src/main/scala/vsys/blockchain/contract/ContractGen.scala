@@ -40,7 +40,7 @@ object ContractGen {
   }
 
   def getFunctionBytes(id: Short, funcType: Byte, retType: Array[Byte],
-                       listParaTypes: Array[Byte], opcLines: Seq[Seq[Array[Byte]]]): Array[Byte] =
+                       listParaTypes: Array[Byte], opcLines: Seq[Array[Byte]]): Array[Byte] =
     Shorts.toByteArray(id) ++ Array(funcType) ++ protoType(retType, listParaTypes) ++ genFunctionOpcs(opcLines)
 
   def protoType(listReturnType: Array[Byte], listParaTypes: Array[Byte]): Array[Byte] = {
