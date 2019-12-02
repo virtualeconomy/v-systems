@@ -8,7 +8,7 @@ object ContractSystem {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(),
     Seq(sysSendFunc, sysDepositFunc, sysWithdrawFunc, sysTransferFunc),
-    Seq(),
+    Seq(), Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 

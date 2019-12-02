@@ -33,12 +33,14 @@ object LoadOpcDiff extends OpcDiffer {
   object LoadType extends Enumeration {
     val SignerLoad = Value(1)
     val CallerLoad = Value(2)
+    val TimestampLoad = Value(3)
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     (bytes.headOption.flatMap(b => Try(LoadType(b)).toOption), bytes.length) match {
       case (Some(LoadType.SignerLoad), 2) => signer(context)(data, bytes.last)
       case (Some(LoadType.CallerLoad), 2) => caller(context)(data, bytes.last)
+      case (Some(LoadType.TimestampLoad), 2) => timestamp(context)(data, bytes.last)
       case _ => Left(ContractInvalidOPCData)
     }
 }

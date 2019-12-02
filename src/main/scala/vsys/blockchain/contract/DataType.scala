@@ -14,7 +14,7 @@ object DataType extends Enumeration {
   val Balance = Value(11)
 
   def fromByte(b: Byte): Option[DataType.Value] = {
-    if (b < DataType.PublicKey.id || b > DataType.Timestamp.id)
+    if (b < DataType.PublicKey.id || b > DataType.Boolean.id)
       None
     else
       Some(DataType(b))

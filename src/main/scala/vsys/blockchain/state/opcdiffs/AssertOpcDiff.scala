@@ -99,6 +99,7 @@ object AssertOpcDiff extends OpcDiffer {
     val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equal(d(b(1)), d(b(2))))
     val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => isCallerOrigin(c)(d(b(1))))
     val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d) => isSignerOrigin(c)(d(b(1))))
+    val BooleanTrueAssert    = AssertTypeVal(8, 1, (c, b, d) => assertTrue(d(b(1))))
 
     def fromByte(b: Byte): Option[AssertTypeVal] = Try(AssertType(b).asInstanceOf[AssertTypeVal]).toOption
   }

@@ -34,7 +34,7 @@ object CompareOpcDiff extends OpcDiffer {
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(CompareType(f)).toOption) match {
-      case Some(CompareType.Geq) if bytes.length == 3 => geq(context)(data(bytes(0)), data(bytes(1)), data, bytes(2))
+      case Some(CompareType.Geq) if bytes.length == 4 => geq(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
       case _ => Left(ContractInvalidOPCData)
     }
 }
