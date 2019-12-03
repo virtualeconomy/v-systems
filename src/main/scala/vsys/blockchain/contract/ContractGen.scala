@@ -5,6 +5,8 @@ import vsys.utils.serialization.Deser
 
 object ContractGen {
 
+  val sysTransfer              = Array(0.toByte, 1.toByte)
+
   val assertTrue               = Array(1.toByte, 8.toByte)
   val assertSigner             = Array(1.toByte, 7.toByte)
   val assertCaller             = Array(1.toByte, 6.toByte)
