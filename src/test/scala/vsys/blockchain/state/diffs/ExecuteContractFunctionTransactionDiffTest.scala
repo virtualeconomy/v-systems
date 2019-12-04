@@ -37,7 +37,7 @@ class ExecuteContractFunctionTransactionDiffTest extends PropSpec
     feeScale <- feeScaleGen
     recipient <- mintingAddressGen
     fee: Long <- smallFeeGen
-    funcIdx: Short <- Gen.const(ContractSystem.FunId.sysSend)
+    funcIdx: Short <- Gen.const(ContractSystem.sysSendId)
     data: Seq[DataEntry] <- sendDataStackGen(recipient, 100000L)
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     ts1: Long <- positiveLongGen
