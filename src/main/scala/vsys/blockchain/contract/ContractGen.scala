@@ -5,6 +5,8 @@ import vsys.utils.serialization.Deser
 
 object ContractGen {
 
+  val sysTransfer              = Array(0.toByte, 1.toByte)
+
   val assertTrue               = Array(1.toByte, 8.toByte)
   val assertSigner             = Array(1.toByte, 7.toByte)
   val assertCaller             = Array(1.toByte, 6.toByte)
@@ -21,6 +23,20 @@ object ContractGen {
 
   val cdbvrGet                 = Array(4.toByte, 1.toByte)
   val cdbvrMapGetOrDefault     = Array(4.toByte, 2.toByte)
+
+  val tdbNewToken              = Array(5.toByte, 1.toByte)
+  val tdbSplit                 = Array(5.toByte, 2.toByte)
+
+  val tdbroOpcMax              = Array(6.toByte, 1.toByte)
+  val tdbroOpcTotal            = Array(6.toByte, 2.toByte)
+
+  val tdbaDeposit              = Array(7.toByte, 1.toByte)
+  val tdbaWithdraw             = Array(7.toByte, 2.toByte)
+  val tdbaTransfer             = Array(7.toByte, 3.toByte)
+
+  val tdbarBalance             = Array(8.toByte, 1.toByte)
+
+  val returnValue              = Array(9.toByte, 1.toByte)
 
   val compareGreater           = Array(10.toByte, 1.toByte)
 
