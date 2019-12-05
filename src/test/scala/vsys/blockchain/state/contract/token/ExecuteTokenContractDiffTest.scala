@@ -7,9 +7,10 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
 import vsys.utils.serialization.Deser
+import vsys.account.Address
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract._
-import vsys.blockchain.contract.token.TokenContractGen
+import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
@@ -22,6 +23,7 @@ class ExecuteTokenContractDiffTest extends PropSpec
   with GeneratorDrivenPropertyChecks
   with Matchers
   with TransactionGen
+  with SystemContractGen
   with TokenContractGen {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
@@ -260,6 +262,30 @@ class ExecuteTokenContractDiffTest extends PropSpec
         TestBlock.createWithTxStatus(Seq(executeContractGetIssuer), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+      }
+    }
+  }
+
+  val preconditionsAndExecuteContractSystemSend: Gen[(GenesisTransaction, ExecuteContractFunctionTransaction, Long, Address)] = for {
+    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
+    genesis <- genesisTokenGen(master, ts)
+    recipient <- mintingAddressGen
+    description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    executeContractSystemSend <- sendVSYSGen(master, recipient, 100000L, description, fee, ts)
+  } yield (genesis, executeContractSystemSend, fee, recipient)
+
+  property("execute contract transaction systemSend successfully") {
+    forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend: ExecuteContractFunctionTransaction, fee: Long, recipient) =>
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(executeContractSystemSend))) { (blockDiff, newState) =>
+        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
+        val sender = EllipticCurve25519Proof.fromBytes(executeContractSystemSend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val recipientPortfolio = newState.accountPortfolio(recipient)
+        val senderPortfolio = newState.accountPortfolio(sender)
+        totalPortfolioDiff.balance shouldBe -fee
+        totalPortfolioDiff.effectiveBalance shouldBe -fee
+        recipientPortfolio shouldBe Portfolio(100000, LeaseInfo.empty, Map.empty)
+        senderPortfolio shouldBe Portfolio(ENOUGH_AMT - 100000L - fee, LeaseInfo.empty, Map.empty)
+        newState.accountTransactionIds(sender.toAddress, 2, 0)._2.size shouldBe 2 // genesis and send
       }
     }
   }
