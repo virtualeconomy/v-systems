@@ -6,8 +6,8 @@ import vsys.utils.serialization.Deser
 
 object ContractDepositWithdrawProductive {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
-    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(), Seq(),
-    Seq(Array(StateVar.maker, DataType.Address.id.toByte)), Seq(triggerTextual, descriptorTextual, stateVarTextual)
+    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(),
+    Seq(Array(StateVar.maker, DataType.Address.id.toByte), Array(StateVar.tokenId, DataType.TokenId.id.toByte)), Seq(), Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
   object FunId {
@@ -75,8 +75,8 @@ object ContractDepositWithdrawProductive {
     val opcCDBVSetMakerIndex: Array[Byte] = Array(StateVar.maker, DataStack.initInput.issuerLoadIndex)
     val opcCDBVSetTokenIdIndex: Array[Byte] = Array(StateVar.tokenId, DataStack.initInput.tokenIdIndex)
 
-    val opcCDBVRGetTokenIdDepositIndex: Array[Byte] = Array(StateVar.tokenId, DataStack.depositInput.tokenIdIndex)
-    val opcCDBVRGetTokenIdWithdrawIndex: Array[Byte] = Array(StateVar.tokenId, DataStack.withdrawInput.tokenIdIndex)
+    val opcCDBVRGetTokenIdDepositIndex: Array[Byte] = Array(StateVar.tokenId, DataStack.depositInput.tokenIdGetIndex)
+    val opcCDBVRGetTokenIdWithdrawIndex: Array[Byte] = Array(StateVar.tokenId, DataStack.withdrawInput.tokenIdGetIndex)
 
     val opcAssertIsCallerOriginDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex)
     val opcAssertIsCallerOriginWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.receiptIndex)
