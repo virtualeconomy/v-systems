@@ -19,17 +19,17 @@ object SystemTransferDiff extends OpcDiffer {
                             callType: CallType.Value, callIndex: Int): Either[ValidationError, OpcDiff] = {
     if (callType == CallType.Trigger){
       callIndex match {
-        case 1 =>
+        case 2 =>
           if (sender.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val senderContractId = ContractAccount.fromBytes(sender.data).explicitGet()
-            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount, tokenId), callType, callIndex)
+            CallOpcDiff(context, diff, senderContractId, Seq(recipient, amount, tokenId), callType, 2)
           }
-        case 2 =>
+        case 1 =>
           if (recipient.dataType == DataType.Address) Right(OpcDiff.empty)
           else {
             val recipientContractId = ContractAccount.fromBytes(recipient.data).explicitGet()
-            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount, tokenId), callType, callIndex)
+            CallOpcDiff(context, diff, recipientContractId, Seq(sender, amount, tokenId), callType, 1)
           }
         case _ => Left(GenericError("Invalid Call Index"))
       }
@@ -53,7 +53,7 @@ object SystemTransferDiff extends OpcDiffer {
       _ <- Either.cond(senderBalance >= transferAmount, (), ContractTokenBalanceInsufficient)
       _ <- Either.cond(Try(Math.addExact(transferAmount, recipientBalance)).isSuccess, (), OverflowError)
       _ <- Either.cond(transferAmount >= 0, (), ContractInvalidAmount)
-      senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, sysTokenId, CallType.Trigger, 1)
+      senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, sysTokenId, CallType.Trigger, 2)
       senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).explicitGet() -> true) else Map[Address, Boolean]()
       senderPortDiff: Map[Account, Portfolio] = Map(
         senderAddr._1 -> Portfolio(
@@ -62,7 +62,7 @@ object SystemTransferDiff extends OpcDiffer {
           assets = Map.empty))
       senderDiff = OpcDiff(relatedAddress = senderRelatedAddress, portfolios = senderPortDiff)
       senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
-      recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, sysTokenId, CallType.Trigger, 2)
+      recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, sysTokenId, CallType.Trigger, 1)
       recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
       recipientPortDiff: Map[Account, Portfolio] = Map(
         recipientAddr._1 -> Portfolio(
