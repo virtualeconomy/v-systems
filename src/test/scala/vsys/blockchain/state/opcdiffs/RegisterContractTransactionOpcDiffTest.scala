@@ -45,7 +45,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
 
   property("register contract transaction cannot pass due to wrong list of parameters"){
     forAll(preconditionsAndRegContractWrongPara) { case (genesis, create, feeCreate) =>
-      assertOpcFuncDifferEi(2, create) { OpcFunDiffEi =>
+      assertOpcFuncDifferEi(2, None, create) { OpcFunDiffEi =>
         OpcFunDiffEi shouldBe Left(ValidationError.ContractDataTypeMismatch)
       }
     }
@@ -66,7 +66,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
 
   property("register contract transaction pass OpcFunDiff"){
     forAll(preconditionsAndRegContract) { case (genesis, create, _) =>
-      assertOpcFuncDifferEi(2, create) { OpcFunDiffEi =>
+      assertOpcFuncDifferEi(2, None, create) { OpcFunDiffEi =>
         OpcFunDiffEi shouldBe an[Right[_, _]]
       }
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(create))) { blockDiffEi =>
@@ -90,7 +90,7 @@ class RegisterContractTransactionOpcDiffTest extends PropSpec
 
   property("register contract transaction cannot pass due to wrong TDB opcode"){
     forAll(preconditionsAndRegContractWrongFun) { case (genesis, create, feeCreate) =>
-      assertOpcFuncDifferEi(2, create) { OpcFunDiffEi =>
+      assertOpcFuncDifferEi(2, None, create) { OpcFunDiffEi =>
         OpcFunDiffEi shouldBe Left(ContractInvalidOPCData)
       }
     }
