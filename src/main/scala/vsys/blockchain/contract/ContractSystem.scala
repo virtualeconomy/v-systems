@@ -1,7 +1,7 @@
 package vsys.blockchain.contract
 
-import com.google.common.primitives.{Bytes, Ints, Shorts}
-import vsys.blockchain.state.opcdiffs.{AssertOpcDiff, LoadOpcDiff, OpcDiffer, SystemTransferDiff}
+import com.google.common.primitives.Ints
+import vsys.blockchain.contract.ContractGen._
 import vsys.utils.serialization.Deser
 
 object ContractSystem {
@@ -12,122 +12,48 @@ object ContractSystem {
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
-  object FunId {
-    val sysSend: Short = 0
-    val sysDeposit: Short = 1
-    val sysWithdraw: Short = 2
-    val sysTransfer: Short = 3
-  }
+  //sysSend
+  val sysSendId: Short = 0
+  val sysSendPara: Seq[String] = Seq("recipient", "amount",
+                                     "caller")
+  val sysSendDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val sysSendOpcs: Seq[Array[Byte]] = Seq(
+    loadSigner ++ Array(2.toByte),
+    sysTransfer ++ Array(2.toByte, 0.toByte, 1.toByte))
+  lazy val sysSendFunc: Array[Byte] = getFunctionBytes(sysSendId, publicFuncType, nonReturnType, sysSendDataType, sysSendOpcs)
+  val sysSendFuncBytes: Array[Byte] = textualFunc("send", Seq(), sysSendPara)
 
-  object ProtoType {
-    val sysSendParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte)
-    val sysDepositParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte)
-    val sysWithdrawParaType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
-    val sysTransferParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
-  }
+  //sysDeposit
+  val sysDepositId: Short = 1
+  val sysDepositPara: Seq[String] = Seq("sender", "smart", "amount")
+  val sysDepositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte)
+  val sysDepositOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    sysTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+  lazy val sysDepositFunc: Array[Byte] = getFunctionBytes(sysDepositId, publicFuncType, nonReturnType, sysDepositDataType, sysDepositOpcs)
+  val sysDepositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), sysDepositPara)
 
-  def listOpc(ids: List[Array[Byte]], indexInput: List[Array[Byte]]): Array[Byte] = {
-    val length = Shorts.toByteArray((ids.zip(indexInput).map(x => ((x._1 ++ x._2).length + 2).toShort).sum + 2).toShort)
-    val numOpc = Shorts.toByteArray(ids.length.toShort)
-    val listOpc = ids.zip(indexInput).map(x => Shorts.toByteArray((x._1 ++ x._2).length.toShort) ++ x._1 ++ x._2).toArray.flatten
-    Bytes.concat(length, numOpc, listOpc)
-  }
+  //sysWithdraw
+  val sysWithdrawId: Short = 2
+  val sysWithdrawPara: Seq[String] = Seq("smart", "recipient", "amount")
+  val sysWithdrawDataType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val sysWithdrawOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(1.toByte),
+    sysTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+  lazy val sysWithdrawFunc: Array[Byte] = getFunctionBytes(sysWithdrawId, publicFuncType, nonReturnType, sysWithdrawDataType, sysWithdrawOpcs)
+  val sysWithdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), sysWithdrawPara)
 
-  object OpcId {
-    val sysLoadSigner: Array[Byte] = Array(OpcDiffer.OpcType.LoadOpc.id.toByte, LoadOpcDiff.LoadType.SignerLoad.id.toByte)
-    val sysAssertIsCallerOrigin: Array[Byte] = Array(OpcDiffer.OpcType.AssertOpc.id.toByte, AssertOpcDiff.AssertType.IsCallerOriginAssert.id.toByte)
-    val sysTransfer: Array[Byte] = Array(OpcDiffer.OpcType.SystemOpc.id.toByte, SystemTransferDiff.TransferType.Transfer.id.toByte)
-  }
+  //sysTransfer
+  val sysTransferId: Short = 3
+  val sysTransferPara: Seq[String] = Seq("sender", "recipient", "amount")
+  val sysTransferDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val sysTransferOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    sysTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+  lazy val sysTransferFunc: Array[Byte] = getFunctionBytes(sysTransferId, publicFuncType, nonReturnType, sysTransferDataType, sysTransferOpcs)
+  val sysTransferFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), sysTransferPara)
 
-  object DataStack {
-    object sendInput {
-      val recipientIndex: Byte = 0
-      val amountIndex: Byte = 1
-      val signerLoadIndex: Byte = 2
-    }
-
-    object transferInput {
-      val senderIndex: Byte = 0
-      val recipientIndex: Byte = 1
-      val amountIndex: Byte = 2
-    }
-
-    object depositInput {
-      val senderIndex: Byte = 0
-      val smartIndex: Byte = 1
-      val amountIndex: Byte = 2
-    }
-
-    object withdrawInput {
-      val smartIndex: Byte = 0
-      val recipientIndex: Byte = 1
-      val amountIndex: Byte = 2
-    }
-  }
-
-  object ListOpc {
-    val sysLoadSignerIndex: Array[Byte] = Array(DataStack.sendInput.signerLoadIndex)
-    val sysAssertIsCallerOriginTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex)
-    val sysAssertIsCallerOriginDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex)
-    val sysAssertIsCallerOriginWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.recipientIndex)
-    val sysTransferSendIndex: Array[Byte] = Array(DataStack.sendInput.signerLoadIndex, DataStack.sendInput.recipientIndex, DataStack.sendInput.amountIndex)
-    val sysTransferTransferIndex: Array[Byte] = Array(DataStack.transferInput.senderIndex, DataStack.transferInput.recipientIndex, DataStack.transferInput.amountIndex)
-    val sysTransferDepositIndex: Array[Byte] = Array(DataStack.depositInput.senderIndex, DataStack.depositInput.smartIndex, DataStack.depositInput.amountIndex)
-    val sysTransferWithdrawIndex: Array[Byte] = Array(DataStack.withdrawInput.smartIndex, DataStack.withdrawInput.recipientIndex, DataStack.withdrawInput.amountIndex)
-
-    // send
-    val sysSend: List[Array[Byte]] = List(OpcId.sysLoadSigner, OpcId.sysTransfer)
-    val sysSendIndex: List[Array[Byte]] = List(sysLoadSignerIndex, sysTransferSendIndex)
-    // transfer
-    val sysTransfer: List[Array[Byte]] = List(OpcId.sysAssertIsCallerOrigin, OpcId.sysTransfer)
-    val sysTransferIndex: List[Array[Byte]] = List(sysAssertIsCallerOriginTransferIndex, sysTransferTransferIndex)
-    // deposit
-    val sysDeposit: List[Array[Byte]] = List(OpcId.sysAssertIsCallerOrigin, OpcId.sysTransfer)
-    val sysDepositIndex: List[Array[Byte]] = List(sysAssertIsCallerOriginDepositIndex, sysTransferDepositIndex)
-    // withdraw
-    val sysWithdraw: List[Array[Byte]] = List(OpcId.sysAssertIsCallerOrigin, OpcId.sysTransfer)
-    val sysWithdrawIndex: List[Array[Byte]] = List(sysAssertIsCallerOriginWithdrawIndex, sysTransferWithdrawIndex)
-  }
-
-  object OpcLine {
-    val sysSendLine: Array[Byte] = listOpc(ListOpc.sysSend, ListOpc.sysSendIndex)
-    val sysTransferLine: Array[Byte] = listOpc(ListOpc.sysTransfer, ListOpc.sysTransferIndex)
-    val sysDepositLine: Array[Byte] = listOpc(ListOpc.sysDeposit, ListOpc.sysDepositIndex)
-    val sysWithdrawLine: Array[Byte] = listOpc(ListOpc.sysWithdraw, ListOpc.sysWithdrawIndex)
-  }
-
-  def protoType(listReturnType: Array[Byte], listParaTypes: Array[Byte]): Array[Byte] = {
-    val retType = Deser.serializeArray(listReturnType)
-    val paraType = Deser.serializeArray(listParaTypes)
-    Bytes.concat(retType, paraType)
-  }
-
-  def textualFunc(name: String, ret: Seq[String], para: Seq[String]): Array[Byte] = {
-    val funcByte = Deser.serializeArray(Deser.serilizeString(name))
-    val retByte = Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x))))
-    val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
-    Bytes.concat(funcByte, retByte, paraByte)
-  }
-
-  object ParaName {
-    val sysSendPara: Seq[String] = Seq("recipient", "amount", "caller")
-    val sysDepositPara: Seq[String] = Seq("sender", "smart", "amount")
-    val sysWithdrawPara: Seq[String]= Seq("smart", "recipient", "amount")
-    val sysTransferPara: Seq[String]= Seq("sender", "recipient", "amount")
-  }
-
-  val sysSendFuncBytes: Array[Byte] = textualFunc("send", Seq(), ParaName.sysSendPara)
-  val sysDepositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), ParaName.sysDepositPara)
-  val sysWithdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), ParaName.sysWithdrawPara)
-  val sysTransferFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), ParaName.sysTransferPara)
-
-  lazy val nonReturnType: Array[Byte] = Array[Byte]()
-  lazy val publicFuncType: Byte = 0
-  lazy val sysSendFunc: Array[Byte] = Shorts.toByteArray(FunId.sysSend) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysSendParaType) ++ OpcLine.sysSendLine
-  lazy val sysTransferFunc: Array[Byte] = Shorts.toByteArray(FunId.sysTransfer) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysTransferParaType) ++ OpcLine.sysTransferLine
-  lazy val sysDepositFunc: Array[Byte] = Shorts.toByteArray(FunId.sysDeposit) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysDepositParaType) ++ OpcLine.sysDepositLine
-  lazy val sysWithdrawFunc: Array[Byte] = Shorts.toByteArray(FunId.sysWithdraw) ++ Array(publicFuncType) ++ protoType(nonReturnType, ProtoType.sysWithdrawParaType) ++ OpcLine.sysWithdrawLine
-
+  //textual
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq())
   lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(sysSendFuncBytes, sysDepositFuncBytes, sysWithdrawFuncBytes, sysTransferFuncBytes))
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(Seq())
