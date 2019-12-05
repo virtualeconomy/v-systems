@@ -6,8 +6,8 @@ import vsys.utils.serialization.Deser
 
 object ContractDepositWithdraw {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
-    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(), Seq(),
-    Seq(Array(StateVar.maker, DataType.Address.id.toByte)), Seq(triggerTextual, descriptorTextual, stateVarTextual)
+    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(),
+    Seq(Array(StateVar.maker, DataType.Address.id.toByte)), Seq(), Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
   object FunId {
@@ -18,8 +18,8 @@ object ContractDepositWithdraw {
 
   object ProtoType {
     val initParaType: Array[Byte] = Array()
-    val depositParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte)
-    val withdrawParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte)
+    val depositParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
+    val withdrawParaType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   }
 
   def listOpc(ids: List[Array[Byte]], indexInput: List[Array[Byte]]): Array[Byte] = {
