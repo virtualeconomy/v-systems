@@ -37,6 +37,14 @@ case class DataEntry(data: Array[Byte],
       case DataType.Boolean => Json.toJson(if (d(0) == 1.toByte) "True" else "False")
     }
   }
+
+  override def equals(obj: Any): Boolean = obj match {
+    case a: DataEntry => bytes sameElements a.bytes
+    case _ => false
+  }
+
+  override def hashCode(): Int = java.util.Arrays.hashCode(bytes)
+
 }
 
 object DataEntry {
