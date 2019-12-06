@@ -77,15 +77,14 @@ class RegisterTokenContractTransactionDiffTest extends PropSpec
 
         newState.accountTransactionIds(master, 2, 0)._2.size shouldBe 2 // genesis, reg
         newState.contractTokens(contractId) shouldBe 1
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractPermitted.contract.bytes.arr
-        newState.contractInfo(issuerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPermitted.contract))
+
+        newState.contractInfo(issuerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.tokenInfo(maxKey) shouldEqual Some(DataEntry(Longs.toByteArray(100000000L), DataType.Amount))
         newState.tokenAccountBalance(totalKey) shouldBe 0L
-        newState.tokenInfo(unityKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100L), DataType.Amount).bytes
-        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).explicitGet().bytes
+        newState.tokenInfo(unityKey) shouldEqual Some(DataEntry(Longs.toByteArray(100L), DataType.Amount))
+        newState.tokenInfo(descKey) shouldEqual Some(DataEntry.create(descDE, DataType.ShortText).explicitGet())
         newState.tokenAccountBalance(masterBalanceKey) shouldBe 0L
       }
     }

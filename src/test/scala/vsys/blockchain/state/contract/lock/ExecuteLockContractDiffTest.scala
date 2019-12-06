@@ -77,14 +77,12 @@ class ExecuteLockContractDiffTest extends PropSpec
 
         newState.accountTransactionIds(master, 5, 0)._2.size shouldBe 5 // genesis, reg, deposit, lock, withdraw
         // lock contract
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractLock.contract.bytes.arr
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractLock.contract))
         // lock contract Info
-        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(contractTokenIdKey).get.bytes shouldEqual DataEntry(vsysId.arr, DataType.TokenId).bytes
+        newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(contractTokenIdKey) shouldEqual Some(DataEntry(vsysId.arr, DataType.TokenId))
         newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 1L
-        newState.contractInfo(masterLockTimeInContractKey).get.bytes shouldBe DataEntry(Longs.toByteArray(lockV.timestamp), DataType.Timestamp).bytes
+        newState.contractInfo(masterLockTimeInContractKey) shouldBe Some(DataEntry(Longs.toByteArray(lockV.timestamp), DataType.Timestamp))
         // VSYS balance
         newState.balance(master.toAddress) shouldBe ENOUGH_AMT - 10000L + 1L - 4 * fee - 10000000000L
         newState.balance(reg.contractId) shouldBe 9999L
@@ -196,25 +194,21 @@ class ExecuteLockContractDiffTest extends PropSpec
 
         newState.accountTransactionIds(master, 7, 0)._2.size shouldBe 7 // genesis, reg, reg2, issue, deposit, lock, withdraw
         // lock contract
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractLock.contract.bytes.arr
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractLock.contract))
         // token contract
-        newState.contractContent(tokenContractId).get._1 shouldBe 2
-        newState.contractContent(tokenContractId).get._2.arr shouldEqual reg2.id.arr
-        newState.contractContent(tokenContractId).get._3.bytes.arr shouldEqual ContractPermitted.contractWithoutSplit.bytes.arr
+        newState.contractContent(tokenContractId) shouldEqual Some((2, reg2.id, ContractPermitted.contractWithoutSplit))
         // lock contract Info
-        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(contractTokenIdKey).get.bytes shouldEqual DataEntry(tokenId.arr, DataType.TokenId).bytes
+        newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(contractTokenIdKey) shouldEqual Some(DataEntry(tokenId.arr, DataType.TokenId))
         newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 1L
-        newState.contractInfo(masterLockTimeInContractKey).get.bytes shouldBe DataEntry(Longs.toByteArray(lockV.timestamp), DataType.Timestamp).bytes
+        newState.contractInfo(masterLockTimeInContractKey) shouldBe Some(DataEntry(Longs.toByteArray(lockV.timestamp), DataType.Timestamp))
         // token contract Info
-        newState.contractInfo(issuerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(tokenMakerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
+        newState.contractInfo(issuerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(tokenMakerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.tokenInfo(maxKey) shouldEqual Some(DataEntry(Longs.toByteArray(100000000L), DataType.Amount))
         newState.tokenAccountBalance(totalKey) shouldBe 100000L
-        newState.tokenInfo(unityKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100L), DataType.Amount).bytes
-        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).explicitGet().bytes
+        newState.tokenInfo(unityKey) shouldEqual Some(DataEntry(Longs.toByteArray(100L), DataType.Amount))
+        newState.tokenInfo(descKey) shouldEqual Some(DataEntry.create(descDE, DataType.ShortText).explicitGet())
         // VSYS balance
         newState.balance(master.toAddress) shouldBe ENOUGH_AMT - 6 * fee - 20000000000L
         newState.balance(reg.contractId) shouldBe 0L
