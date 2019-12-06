@@ -47,6 +47,14 @@ sealed trait Contract {
       "descriptors" -> Base58.encode(textual(1)),
       "stateVariables" -> Base58.encode(textual.last))
   )
+
+  override def equals(obj: Any): Boolean = obj match {
+    case a: Contract => bytes == a.bytes
+    case _ => false
+  }
+
+  override def hashCode(): Int = java.util.Arrays.hashCode(bytes.arr)
+
 }
 
 object Contract extends ScorexLogging {
