@@ -11,7 +11,6 @@ import vsys.blockchain.contract.token.TokenContractGen
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
-import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.blockchain.transaction.contract._
 
 class ExecuteTokenContractInvalidDiffTest extends PropSpec

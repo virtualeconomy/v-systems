@@ -38,8 +38,8 @@ class TokenContractOpcDiffTest extends PropSpec
 
   property("register contract transaction pass OpcFunDiff"){
     forAll(preconditionsAndRegContract) { case (genesis, create) =>
-      assertOpcFuncDifferEi(2, None, create) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe an[Right[_, _]]
+      assertOpcFuncDifferEi(2, None, create) { opcFunDiffEi =>
+        opcFunDiffEi shouldBe an[Right[_, _]]
       }
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.createWithTxStatus(Seq(create), TransactionStatus.Success)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -61,8 +61,8 @@ class TokenContractOpcDiffTest extends PropSpec
 
   property("token contract transaction cannot pass due to wrong list of parameters"){
     forAll(preconditionsAndRegContractWrongPara) { case create =>
-      assertOpcFuncDifferEi(2, None, create) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe Left(ContractDataTypeMismatch)
+      assertOpcFuncDifferEi(2, None, create) { opcFunDiffEi =>
+        opcFunDiffEi shouldBe Left(ContractDataTypeMismatch)
       }
     }
   }
@@ -81,8 +81,8 @@ class TokenContractOpcDiffTest extends PropSpec
 
   property("register contract transaction cannot pass due to wrong opcode"){
     forAll(preconditionsAndRegContractWrongFun) { case create =>
-      assertOpcFuncDifferEi(2, None, create) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe Left(ContractInvalidOPCData)
+      assertOpcFuncDifferEi(2, None, create) { opcFunDiffEi =>
+        opcFunDiffEi shouldBe Left(ContractInvalidOPCData)
       }
     }
   }

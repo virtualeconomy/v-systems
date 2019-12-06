@@ -14,7 +14,6 @@ import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
-import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.contract._
 import vsys.utils.serialization.Deser
@@ -68,7 +67,7 @@ class ExecuteLockContractDiffTest extends PropSpec
         val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).explicitGet().publicKey
         val masterBytes = genesis.recipient.bytes.arr
         val contractId = reg.contractId.bytes
-        val VSYSId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+        val vsysId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
 
         val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
         val contractTokenIdKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
@@ -83,7 +82,7 @@ class ExecuteLockContractDiffTest extends PropSpec
         newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractLock.contract.bytes.arr
         // lock contract Info
         newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(contractTokenIdKey).get.bytes shouldEqual DataEntry(VSYSId.arr, DataType.TokenId).bytes
+        newState.contractInfo(contractTokenIdKey).get.bytes shouldEqual DataEntry(vsysId.arr, DataType.TokenId).bytes
         newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 1L
         newState.contractInfo(masterLockTimeInContractKey).get.bytes shouldBe DataEntry(Longs.toByteArray(lockV.timestamp), DataType.Timestamp).bytes
         // VSYS balance

@@ -45,8 +45,8 @@ class LockContractOpcDiffTest extends PropSpec
 
   property("execute lock asset contract transaction pass OpcFunDiff"){
     forAll(preconditionsAndLockContract) { case (genesis, create, lockV) =>
-      assertOpcFuncDifferEi(2, Option(create), lockV) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe an[Right[_, _]]
+      assertOpcFuncDifferEi(2, Option(create), lockV) { opcFunDiffEi =>
+        opcFunDiffEi shouldBe an[Right[_, _]]
       }
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, create))), TestBlock.createWithTxStatus(Seq(lockV), TransactionStatus.Success)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -83,16 +83,16 @@ class LockContractOpcDiffTest extends PropSpec
 
   property("lock asset contract transaction cannot pass due to wrong list of parameters"){
     forAll(preconditionsAndLockContractInvalid) { case (reg1, _, lockWrongPara, _) =>
-      assertOpcFuncDifferEi(2, Option(reg1), lockWrongPara) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe Left(ContractDataTypeMismatch)
+      assertOpcFuncDifferEi(2, Option(reg1), lockWrongPara) { opcFunDiffEi =>
+        opcFunDiffEi shouldBe Left(ContractDataTypeMismatch)
       }
     }
   }
 
   property("lock asset contract transaction cannot pass due to wrong opcode"){
     forAll(preconditionsAndLockContractInvalid) { case (_, reg2, _, lockWrongOpcFunc) =>
-      assertOpcFuncDifferEi(2, Option(reg2), lockWrongOpcFunc) { OpcFunDiffEi =>
-        OpcFunDiffEi shouldBe Left(ContractInvalidOPCData)
+      assertOpcFuncDifferEi(2, Option(reg2), lockWrongOpcFunc) { opcFunDiffEi =>
+        opcFunDiffEi shouldBe Left(ContractInvalidOPCData)
       }
     }
   }

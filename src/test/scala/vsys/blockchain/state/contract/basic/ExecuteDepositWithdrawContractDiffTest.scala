@@ -15,7 +15,6 @@ import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
-import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.contract._
 

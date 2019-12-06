@@ -10,8 +10,8 @@ import vsys.blockchain.transaction.contract.RegisterContractTransaction
 
 trait BasicContractGen {
 
-  def contractGen(Productive: Boolean): Gen[Contract] =
-    if (Productive) ContractDepositWithdrawProductive.contract
+  def contractGen(productive: Boolean): Gen[Contract] =
+    if (productive) ContractDepositWithdrawProductive.contract
     else ContractDepositWithdraw.contract
 
   def initDepositWithdrawDataStackGen(tokenId: Array[Byte]): Gen[Seq[DataEntry]] = for {
