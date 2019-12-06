@@ -5,7 +5,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import vsys.account.PublicKeyAccount._
 import vsys.account._
 import vsys.blockchain.consensus.SPoSCalc._
-import vsys.blockchain.contract.{Contract, ContractPermitted, DataEntry, DataType => ContractDataType}
+import vsys.blockchain.contract.{Contract, ContractDepositWithdraw, ContractDepositWithdrawProductive, ContractLock, ContractPermitted, DataEntry, DataType => ContractDataType}
 import vsys.blockchain.database.{DataType, Entry}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.contract._
@@ -93,7 +93,9 @@ trait TransactionGen {
     length <- Gen.chooseNum(1, 1000)
     contentStr <- Gen.listOfN(length, validAlphabetGen)
   } yield contentStr.mkString
-  val contractGen: Gen[Contract] = ContractPermitted.contract
+
+  val contractGen: Gen[Contract] = Gen.oneOf(ContractPermitted.contract, ContractPermitted.contractWithoutSplit,
+    ContractDepositWithdraw.contract, ContractDepositWithdrawProductive.contract, ContractLock.contract)
 
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
 
