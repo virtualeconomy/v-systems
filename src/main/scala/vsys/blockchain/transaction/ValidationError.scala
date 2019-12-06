@@ -50,6 +50,12 @@ object ValidationError {
   case object ContractStateVariableNotDefined extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractStateVariableNotDefined
   }
+  case object ContractInvalidStateMap extends ContractValidationError {
+    override val transactionStatus = TransactionStatus.ContractInvalidStateMap
+  }
+  case object ContractStateMapNotDefined extends ContractValidationError {
+    override val transactionStatus = TransactionStatus.ContractStateMapNotDefined
+  }
   case object ContractInvalidOPCData extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidOPCData
   }
@@ -91,6 +97,9 @@ object ValidationError {
   }
   case object ContractUnsupportedDeposit extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractUnsupportedDeposit
+  }
+  case object ContractMapValueInsufficient extends ContractValidationError {
+    override val transactionStatus = TransactionStatus.ContractMapValueInsufficient
   }
   case object EmptyProofs extends ValidationError
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError
