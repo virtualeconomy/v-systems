@@ -14,7 +14,6 @@ import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.contract._
 
 class ExecuteTokenContractDiffTest extends PropSpec
@@ -58,8 +57,8 @@ class ExecuteTokenContractDiffTest extends PropSpec
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -(feeEx + feeEx)
         totalPortfolioDiff.effectiveBalance shouldBe -(feeEx + feeEx)
-        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).explicitGet().publicKey
-        val user = EllipticCurve25519Proof.fromBytes(send.proofs.proofs.head.bytes.arr).explicitGet().publicKey
+        val master = reg.proofs.firstCurveProof.explicitGet().publicKey
+        val user = send.proofs.firstCurveProof.explicitGet().publicKey
         val contractId = reg.contractId.bytes
         val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
         val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
@@ -196,7 +195,7 @@ class ExecuteTokenContractDiffTest extends PropSpec
     executeContractSelfSend: ExecuteContractFunctionTransaction, _, _, _, _, _, feeSelfSend: Long) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractSelfSend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        val sender = EllipticCurve25519Proof.fromBytes(executeContractSelfSend.proofs.proofs.head.bytes.arr).explicitGet().publicKey
+        val sender = executeContractSelfSend.proofs.firstCurveProof.explicitGet().publicKey
         totalPortfolioDiff.balance shouldBe -feeSelfSend
         totalPortfolioDiff.effectiveBalance shouldBe -feeSelfSend
         val contractId = regContract.contractId.bytes
@@ -276,7 +275,7 @@ class ExecuteTokenContractDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend: ExecuteContractFunctionTransaction, fee: Long, recipient) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(executeContractSystemSend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        val sender = EllipticCurve25519Proof.fromBytes(executeContractSystemSend.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val sender = executeContractSystemSend.proofs.firstCurveProof.toOption.get.publicKey
         val recipientPortfolio = newState.accountPortfolio(recipient)
         val senderPortfolio = newState.accountPortfolio(sender)
         totalPortfolioDiff.balance shouldBe -fee

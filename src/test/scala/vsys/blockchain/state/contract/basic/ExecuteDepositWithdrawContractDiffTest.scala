@@ -15,7 +15,6 @@ import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.transaction.contract._
 
 class ExecuteDepositWithdrawContractDiffTest extends PropSpec
@@ -75,8 +74,8 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -fee * 5
         totalPortfolioDiff.effectiveBalance shouldBe -fee * 5
-        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).explicitGet().publicKey
-        val user = EllipticCurve25519Proof.fromBytes(withdraw.proofs.proofs.head.bytes.arr).explicitGet().publicKey
+        val master = reg.proofs.firstCurveProof.explicitGet().publicKey
+        val user = withdraw.proofs.firstCurveProof.explicitGet().publicKey
         val masterBytes = genesis.recipient.bytes.arr
         val userBytes = genesis2.recipient.bytes.arr
         val contractId = reg.contractId.bytes
@@ -162,8 +161,8 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
         totalPortfolioDiff.balance shouldBe -fee * 5
         totalPortfolioDiff.effectiveBalance shouldBe -fee * 5
 
-        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).explicitGet().publicKey
-        val user = EllipticCurve25519Proof.fromBytes(withdraw.proofs.proofs.head.bytes.arr).explicitGet().publicKey
+        val master = reg.proofs.firstCurveProof.explicitGet().publicKey
+        val user = withdraw.proofs.firstCurveProof.explicitGet().publicKey
         val masterAddress = genesis.recipient
         val userAddress= genesis2.recipient
         val contractId = reg.contractId.bytes

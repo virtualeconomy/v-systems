@@ -14,7 +14,6 @@ import vsys.blockchain.state.{ByteStr, EitherExt2, Portfolio}
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 import vsys.blockchain.transaction.contract._
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.utils.serialization.Deser
 
 class RegisterTokenContractTransactionDiffTest extends PropSpec
@@ -63,7 +62,7 @@ class RegisterTokenContractTransactionDiffTest extends PropSpec
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -reg.transactionFee
         totalPortfolioDiff.effectiveBalance shouldBe -reg.transactionFee
-        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val master = reg.proofs.firstCurveProof.toOption.get.publicKey
         val contractId = reg.contractId.bytes
         val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
         val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))

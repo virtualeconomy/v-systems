@@ -14,7 +14,6 @@ import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class RegisterLockContractDiffTest extends PropSpec
   with PropertyChecks
@@ -43,7 +42,7 @@ class RegisterLockContractDiffTest extends PropSpec
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -fee
         totalPortfolioDiff.effectiveBalance shouldBe -fee
-        val master = EllipticCurve25519Proof.fromBytes(reg.proofs.proofs.head.bytes.arr).explicitGet().publicKey
+        val master = reg.proofs.firstCurveProof.explicitGet().publicKey
         val contractId = reg.contractId.bytes
         val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
         val tokenIdKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
