@@ -86,9 +86,12 @@ package object diffs {
 
     val state = newState()
     if (preconditions.isDefined) {
-      val tx = preconditions.get
-      val txDiffer = RegisterContractTransactionDiff(state, height, Option(0L), 1L)(tx).explicitGet()
-      val bf = BlockDiff(txDiffer, 1, Map.empty)
+      val bf = preconditions match {
+        case Some(tx) =>
+          val txDiffer = RegisterContractTransactionDiff(state, height, Option(0L), 1L)(tx).explicitGet()
+          BlockDiff(txDiffer, 1, Map.empty)
+        case _ => BlockDiff.empty
+      }
       state.applyBlockDiff(bf)
     }
 
@@ -97,7 +100,7 @@ package object diffs {
       => assertion(OpcFuncDiffer(ExecutionContext.fromRegConTx(state, Option(0L), 1L, height, tx).right.get)(tx.data))
       case tx: ExecuteContractFunctionTransaction
       => {
-        val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).toOption.get.publicKey)
+        val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).explicitGet().publicKey)
         val contractId = tx.contractId
         val description = tx.attachment
         val c = preconditions.get.contract
