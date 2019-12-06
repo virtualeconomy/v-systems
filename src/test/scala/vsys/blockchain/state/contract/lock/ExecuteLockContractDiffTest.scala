@@ -226,4 +226,48 @@ class ExecuteLockContractDiffTest extends PropSpec
     }
   }
 
+  property("execute deposit token to lock contract successfully") {
+    forAll(preconditionsAndLockWithTokenContractTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
+    reg2, issue, deposit, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg2, reg, issue))),
+        TestBlock.create(Seq(deposit))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
+
+  property("execute lock token in lock contract successfully") {
+    forAll(preconditionsAndLockWithTokenContractTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
+    reg2, issue, deposit, lockV, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg2, reg, issue, deposit))),
+        TestBlock.create(Seq(lockV))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
+
+  // re-tested, same as the first one
+  property("execute withdraw token from lock contract successfully") {
+    forAll(preconditionsAndLockWithTokenContractTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
+    reg2, issue, deposit, lockV: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, _) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(lockV.timestamp, Seq(reg2, reg, issue, deposit, lockV))),
+        TestBlock.create(withdraw.timestamp + 1, Seq(withdraw))) { (blockDiff, _) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe false
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiff.txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
 }
