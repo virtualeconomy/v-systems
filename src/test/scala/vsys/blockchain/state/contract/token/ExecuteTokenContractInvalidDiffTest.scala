@@ -31,7 +31,7 @@ class ExecuteTokenContractInvalidDiffTest extends PropSpec
     contract <- tokenContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
-    regContract <- registerTokenContractGen(master, contract, dataStack, description, fee + 10000000000L, ts)
+    regContract <- registerTokenGen(master, contract, dataStack, description, fee + 10000000000L, ts)
     contractId = regContract.contractId
     genesis <- genesisTokenGen(master, ts)
     rep <- mintingAddressGen
@@ -85,7 +85,7 @@ class ExecuteTokenContractInvalidDiffTest extends PropSpec
     contract <- tokenContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
-    regContract <- registerTokenContractGen(master, contract, dataStack, description, fee + 10000000000L, ts)
+    regContract <- registerTokenGen(master, contract, dataStack, description, fee + 10000000000L, ts)
     contractId = regContract.contractId
     genesis <- genesisTokenGen(master, ts)
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
@@ -177,7 +177,7 @@ class ExecuteTokenContractInvalidDiffTest extends PropSpec
     contract <- tokenContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
-    regContract <- registerTokenContractGen(master, contract, dataStack, description, fee, ts)
+    regContract <- registerTokenGen(master, contract, dataStack, description, fee, ts)
     contractId = regContract.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, description, fee, ts)

@@ -33,7 +33,7 @@ class TokenContractOpcDiffTest extends PropSpec
     data <- initTokenDataStackGen(100000000L, 100L, "initializer")
     description <- validDescStringGen
     genesis <- genesisTokenGen(master, ts)
-    create <- registerTokenContractGen(master, contract, data, description, fee, ts + 1)
+    create <- registerTokenGen(master, contract, data, description, fee, ts + 1)
   } yield (genesis, create)
 
   property("register contract transaction pass OpcFunDiff"){
@@ -56,7 +56,7 @@ class TokenContractOpcDiffTest extends PropSpec
     contract <- regWrongParaContract
     data <- initTokenDataStackGen(100000000L, 100L, "initializer")
     description <- validDescStringGen
-    create <- registerTokenContractGen(master, contract, data, description, fee, ts)
+    create <- registerTokenGen(master, contract, data, description, fee, ts)
   } yield create
 
   property("token contract transaction cannot pass due to wrong list of parameters"){
@@ -76,7 +76,7 @@ class TokenContractOpcDiffTest extends PropSpec
     contract <- regWrongOpcFunContract
     data <- initTokenDataStackGen(100000000L, 100L, "initializer")
     description <- validDescStringGen
-    create <- registerTokenContractGen(master, contract, data, description, fee, ts)
+    create <- registerTokenGen(master, contract, data, description, fee, ts)
   } yield create
 
   property("register contract transaction cannot pass due to wrong opcode"){

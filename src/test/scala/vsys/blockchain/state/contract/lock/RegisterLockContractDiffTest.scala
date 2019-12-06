@@ -32,7 +32,7 @@ class RegisterLockContractDiffTest extends PropSpec
     description <- validDescStringGen
     tokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     dataStack <- initLockContractDataStackGen(tokenId.arr)
-    regContract <- registerLockContractGen(master, contract, dataStack, description, fee + 10000000000L, ts)
+    regContract <- registerLockGen(master, contract, dataStack, description, fee + 10000000000L, ts)
     genesis <- genesisLockGen(master, ts)
   } yield (genesis, regContract, fee + 10000000000L)
 
@@ -48,7 +48,8 @@ class RegisterLockContractDiffTest extends PropSpec
         val tokenIdKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte)))
         val tokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
 
-        newState.accountTransactionIds(master, 2, 0)._2.size shouldBe 2 // genesis, reg
+        val (_, masterTxs) = newState.accountTransactionIds(master, 2, 0)
+        masterTxs.size shouldBe 2 // genesis, reg
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractLock.contract))
         newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
         newState.contractInfo(tokenIdKey) shouldEqual Some(DataEntry(tokenId.arr, DataType.TokenId))

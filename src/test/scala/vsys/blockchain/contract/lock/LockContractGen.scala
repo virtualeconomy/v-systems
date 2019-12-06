@@ -27,7 +27,7 @@ trait LockContractGen {
   def genesisLockGen(rep: PrivateKeyAccount, ts: Long): Gen[GenesisTransaction] =
     GenesisTransaction.create(rep, ENOUGH_AMT, -1, ts).explicitGet()
 
-  def registerLockContractGen(signer: PrivateKeyAccount, contract: Contract, dataStack: Seq[DataEntry],
+  def registerLockGen(signer: PrivateKeyAccount, contract: Contract, dataStack: Seq[DataEntry],
                                                    description: String, fee: Long, ts: Long): Gen[RegisterContractTransaction] =
     RegisterContractTransaction.create(signer, contract, dataStack, description, fee, feeScale, ts).explicitGet()
 

@@ -37,7 +37,7 @@ class LockContractOpcDiffTest extends PropSpec
     data <- initLockContractDataStackGen(sysTokenId.arr)
     description <- validDescStringGen
     genesis <- genesisLockGen(master, ts)
-    regContract <- registerLockContractGen(master, contract, data, description, fee + 10000000000L, ts + 1)
+    regContract <- registerLockGen(master, contract, data, description, fee + 10000000000L, ts + 1)
     contractId = regContract.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     lockV <- lockAssetGen(master, contractId, ts + 2, attach, fee, ts)
@@ -72,9 +72,9 @@ class LockContractOpcDiffTest extends PropSpec
     sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     data <- initLockContractDataStackGen(sysTokenId.arr)
     description <- validDescStringGen
-    regContract1 <- registerLockContractGen(master, contract1, data, description, fee + 10000000000L, ts + 1)
+    regContract1 <- registerLockGen(master, contract1, data, description, fee + 10000000000L, ts + 1)
     contractId1 = regContract1.contractId
-    regContract2 <- registerLockContractGen(master, contract2, data, description, fee + 10000000000L, ts + 1)
+    regContract2 <- registerLockGen(master, contract2, data, description, fee + 10000000000L, ts + 1)
     contractId2 = regContract2.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     lockV1 <- lockAssetGen(master, contractId1, ts + 2, attach, fee, ts)

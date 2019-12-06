@@ -53,7 +53,7 @@ trait TokenContractGen {
     if (split) ContractPermitted.contract
     else ContractPermitted.contractWithoutSplit
 
-  def registerTokenContractGen(signer: PrivateKeyAccount, contract: Contract, dataStack: Seq[DataEntry],
+  def registerTokenGen(signer: PrivateKeyAccount, contract: Contract, dataStack: Seq[DataEntry],
                           description: String, fee: Long, ts: Long): Gen[RegisterContractTransaction] =
     RegisterContractTransaction.create(signer, contract, dataStack, description, fee, feeScale, ts).explicitGet()
 

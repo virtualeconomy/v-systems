@@ -74,7 +74,7 @@ object ContractGenHelper extends TransactionGen {
   }
 
   def dataListGen(seqDataByte: Seq[Array[Byte]], seqDataType: Seq[DataType.Value]): Gen[Seq[DataEntry]] =
-    seqDataByte.zip(seqDataType).map(x => DataEntry.create(x._1, x._2).explicitGet())
+    seqDataByte.zip(seqDataType).map { case (e1: Array[Byte], e2: DataType.Value) => DataEntry.create(e1, e2).explicitGet()}
 
   def basicContractTestGen(): Gen[(PrivateKeyAccount, Long, Long)] = for {
     master <- accountGen

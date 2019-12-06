@@ -5,7 +5,8 @@ import org.scalacheck.{Arbitrary, Gen}
 import vsys.account.PublicKeyAccount._
 import vsys.account._
 import vsys.blockchain.consensus.SPoSCalc._
-import vsys.blockchain.contract.{Contract, ContractDepositWithdraw, ContractDepositWithdrawProductive, ContractLock, ContractPermitted, DataEntry, DataType => ContractDataType}
+import vsys.blockchain.contract._
+import vsys.blockchain.contract.{DataType => ContractDataType}
 import vsys.blockchain.database.{DataType, Entry}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.contract._

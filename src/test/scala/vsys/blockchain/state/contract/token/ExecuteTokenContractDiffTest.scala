@@ -36,7 +36,7 @@ class ExecuteTokenContractDiffTest extends PropSpec
     contract <- tokenContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
-    regContract <- registerTokenContractGen(master, contract, dataStack, description, fee + 10000000000L, ts)
+    regContract <- registerTokenGen(master, contract, dataStack, description, fee + 10000000000L, ts)
     contractId = regContract.contractId
     genesis <- genesisTokenGen(master, ts)
     genesis2 <- genesisTokenGen(user, ts)
@@ -71,8 +71,11 @@ class ExecuteTokenContractDiffTest extends PropSpec
         val masterBalanceKey = ByteStr(Bytes.concat(tokenId.arr, master.toAddress.bytes.arr))
         val userBalanceKey = ByteStr(Bytes.concat(tokenId.arr, user.toAddress.bytes.arr))
 
-        newState.accountTransactionIds(master, 5, 0)._2.size shouldBe 5 // genesis, reg, split, supersede, send
-        newState.accountTransactionIds(user, 6, 0)._2.size shouldBe 6 // genesis2, supersede, issue, destory, send, selfSend
+        val (_, masterTxs) = newState.accountTransactionIds(master, 5, 0)
+        masterTxs.size shouldBe 5 // genesis, reg, split, supersede, send
+        val (_, userTxs) = newState.accountTransactionIds(user, 6, 0)
+        userTxs.size shouldBe 6 // genesis2, supersede, issue, destory, send, selfSend
+
         newState.contractTokens(contractId) shouldBe 1
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPermitted.contract))
 
@@ -100,7 +103,7 @@ class ExecuteTokenContractDiffTest extends PropSpec
     contract <- tokenContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
-    regContract <- registerTokenContractGen(master, contract, dataStack, description, fee, ts)
+    regContract <- registerTokenGen(master, contract, dataStack, description, fee, ts)
     contractId = regContract.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     executeContractSupersede <- supersedeTokenGen(master, contractId, newIssuer.toAddress, description, fee, ts)
@@ -201,7 +204,8 @@ class ExecuteTokenContractDiffTest extends PropSpec
         val contractId = regContract.contractId.bytes
         val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
         val senderBalanceKey = ByteStr(Bytes.concat(tokenId.arr, sender.toAddress.bytes.arr))
-        newState.accountTransactionIds(sender.toAddress, 4, 0)._2.size shouldBe 4 // genesis and payment
+        val (_, senderTxs) = newState.accountTransactionIds(sender.toAddress, 4, 0)
+        senderTxs.size shouldBe 4 // genesis and payment, issue and send
         newState.tokenAccountBalance(senderBalanceKey) shouldBe 100000L
       }
     }
@@ -282,7 +286,8 @@ class ExecuteTokenContractDiffTest extends PropSpec
         totalPortfolioDiff.effectiveBalance shouldBe -fee
         recipientPortfolio shouldBe Portfolio(100000, LeaseInfo.empty, Map.empty)
         senderPortfolio shouldBe Portfolio(ENOUGH_AMT - 100000L - fee, LeaseInfo.empty, Map.empty)
-        newState.accountTransactionIds(sender.toAddress, 2, 0)._2.size shouldBe 2 // genesis and send
+        val (_, senderTxs) = newState.accountTransactionIds(sender.toAddress, 2, 0)
+        senderTxs.size shouldBe 2 // genesis and send
       }
     }
   }

@@ -53,7 +53,7 @@ class RegisterTokenContractTransactionDiffTest extends PropSpec
     contract <- validContract
     data: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
-    create <- registerTokenContractGen(master, contract, data, description, fee, ts + 1)
+    create <- registerTokenGen(master, contract, data, description, fee, ts + 1)
   } yield (genesis, create)
 
   property("register token contract transaction doesn't break invariant") {
@@ -74,7 +74,8 @@ class RegisterTokenContractTransactionDiffTest extends PropSpec
         val descDE = Deser.serilizeString("init")
         val masterBalanceKey = ByteStr(Bytes.concat(tokenId.arr, master.toAddress.bytes.arr))
 
-        newState.accountTransactionIds(master, 2, 0)._2.size shouldBe 2 // genesis, reg
+        val (_, masterTxs) = newState.accountTransactionIds(master, 2, 0)
+        masterTxs.size shouldBe 2 // genesis, reg
         newState.contractTokens(contractId) shouldBe 1
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPermitted.contract))
 

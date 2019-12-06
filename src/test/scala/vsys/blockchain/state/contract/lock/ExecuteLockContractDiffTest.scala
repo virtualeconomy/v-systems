@@ -40,7 +40,7 @@ class ExecuteLockContractDiffTest extends PropSpec
     sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     dataStack <- initLockContractDataStackGen(sysTokenId.arr)
     // register a lock contract only support VSYS
-    regContract <- registerLockContractGen(master, contract, dataStack, description, fee + 10000000000L, ts)
+    regContract <- registerLockGen(master, contract, dataStack, description, fee + 10000000000L, ts)
     contractId = regContract.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(10000L))
@@ -74,7 +74,8 @@ class ExecuteLockContractDiffTest extends PropSpec
         val masterBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
         val masterLockTimeInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(1.toByte), DataEntry(masterBytes, DataType.Address).bytes))
 
-        newState.accountTransactionIds(master, 5, 0)._2.size shouldBe 5 // genesis, reg, deposit, lock, withdraw
+        val (_, masterTxs) = newState.accountTransactionIds(master, 5, 0)
+        masterTxs.size shouldBe 5 // genesis, reg, deposit, lock, withdraw
         // lock contract
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractLock.contract))
         // lock contract Info
@@ -139,12 +140,12 @@ class ExecuteLockContractDiffTest extends PropSpec
     lContract <- lockContract
     description <- validDescStringGen
     initDataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
-    regTokenContract <- registerTokenContractGen(master, tContract, initDataStack, description, fee + 10000000000L, ts)
+    regTokenContract <- registerTokenGen(master, tContract, initDataStack, description, fee + 10000000000L, ts)
     tokenContractId = regTokenContract.contractId
     tokenId = tokenIdFromBytes(tokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     dataStack <- initLockContractDataStackGen(tokenId.arr)
     // register a lock contract only support regTokenContract's' tokenId
-    regContract <- registerLockContractGen(master, lContract, dataStack, description, fee + 10000000000L, ts + 1)
+    regContract <- registerLockGen(master, lContract, dataStack, description, fee + 10000000000L, ts + 1)
     lockContractId = regContract.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     issueToken <- issueTokenGen(master, tokenContractId, 100000L, attach, fee, ts + 1)
@@ -191,7 +192,8 @@ class ExecuteLockContractDiffTest extends PropSpec
         val masterTokenBalanceKey = ByteStr(Bytes.concat(tokenId.arr, master.toAddress.bytes.arr))
         val contractTokenBalanceKey = ByteStr(Bytes.concat(tokenId.arr, contractId.arr))
 
-        newState.accountTransactionIds(master, 7, 0)._2.size shouldBe 7 // genesis, reg, reg2, issue, deposit, lock, withdraw
+        val (_, masterTxs) = newState.accountTransactionIds(master, 7, 0)
+        masterTxs.size shouldBe 7 // genesis, reg, reg2, issue, deposit, lock, withdraw
         // lock contract
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractLock.contract))
         // token contract

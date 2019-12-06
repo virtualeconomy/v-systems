@@ -45,7 +45,7 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
     contractId = regContract.contractId
     tokenContract <- tokenContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
-    regTokenContract <- registerTokenContractGen(master, tokenContract, dataStack, description, fee + 10000000000L, ts)
+    regTokenContract <- registerTokenGen(master, tokenContract, dataStack, description, fee + 10000000000L, ts)
     tokenContractId = regTokenContract.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     executeContractIssue <- issueTokenGen(master, tokenContractId, 100000L, description, fee, ts)
@@ -94,8 +94,10 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
         val userBalanceKey = ByteStr(Bytes.concat(tokenId.arr, userBytes))
         val contractBalanceKey = ByteStr(Bytes.concat(tokenId.arr, contractId.arr))
 
-        newState.accountTransactionIds(master, 10, 0)._2.size shouldBe 7 // genesis, reg, regToken, issue, transfer, deposit, withdraw2
-        newState.accountTransactionIds(user, 10, 0)._2.size shouldBe 3 //genesis2, withdraw, deposit2
+        val (_, masterTxs) = newState.accountTransactionIds(master, 10, 0)
+        masterTxs.size shouldBe 7 // genesis, reg, regToken, issue, transfer, deposit, withdraw2
+        val (_, userTxs) = newState.accountTransactionIds(user, 10, 0)
+        userTxs.size shouldBe 3 //genesis2, withdraw, deposit2
         // deposit withdraw contract
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractDepositWithdraw.contract))
         // token contract
@@ -168,8 +170,10 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
         val contractId = reg.contractId.bytes
         val contractAddress = reg.contractId
 
-        newState.accountTransactionIds(master, 8, 0)._2.size shouldBe 5 // genesis, reg, transfer, deposit, withdraw2
-        newState.accountTransactionIds(user, 8, 0)._2.size shouldBe 3 //genesis2, withdraw, deposit2
+        val (_, masterTxs) = newState.accountTransactionIds(master, 8, 0)
+        masterTxs.size shouldBe 5 // genesis, reg, transfer, deposit, withdraw2
+        val (_, userTxs) = newState.accountTransactionIds(user, 8, 0)
+        userTxs.size shouldBe 3 //genesis2, withdraw, deposit2
         // deposit withdraw contract
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractDepositWithdrawProductive.contract))
         // V balance
