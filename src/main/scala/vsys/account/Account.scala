@@ -11,7 +11,7 @@ trait Account {
 
   override def toString: String = stringRepr
 
-  override def equals(obj: scala.Any): Boolean = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case a: Account => bytes == a.bytes
     case _ => false
   }
