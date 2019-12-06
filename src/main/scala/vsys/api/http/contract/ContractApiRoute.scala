@@ -31,7 +31,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData
   }
 
   @Path("/register")
@@ -84,6 +84,16 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       case Success(id) if id == ContractAccount.systemContractId.bytes => complete(Json.obj("transactionId" -> "") ++ ContractSystem.contract.json ++ Json.obj("height" -> JsNumber(-1)))
       case _ => complete(InvalidAddress)
     }
+  }
+
+  @Path("data/{contractId}/{key}")
+  @ApiOperation(value = "Contract Data", notes = "Contract data by given contract ID and key (default numerical 0).", httpMethod = "Get", authorizations = Array(new Authorization("api_key")))
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "contractId", value = "Contract Account", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "key", value = "Key", required = true, dataType = "string", paramType = "path")
+  ))
+  def getContractData: Route = (get & withAuth & path("data" / Segment / Segment)) { (contractId, key) =>
+    complete(dataJson(contractId, key))
   }
 
   @Path("/info/{contractId}")
@@ -192,6 +202,31 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           case _ => Left(TokenNotExists)
         }
       case _ => Left(InvalidAddress)
+    }
+  }
+
+  private def dataJson(contractIdStr: String, keyStr: String): Either[ApiError, JsObject] = {
+    ByteStr.decodeBase58(contractIdStr) match {
+      case Success(contractId) =>
+        ByteStr.decodeBase58(keyStr) match {
+          case Success(key) =>
+            val dataKey = ByteStr(contractId.arr ++ key.arr)
+            state.contractInfo(dataKey) match {
+              case Some(x) => Right(Json.obj("contractId" -> contractIdStr,
+                                      "key" -> keyStr,
+                                      "height" -> state.height,
+                                      "dbName" -> "contractInfo",
+                                      "dataType" -> x.json.value("type"),
+                                       "value" -> x.json.value("data")))
+              case _ => Right(Json.obj("contractId" -> contractIdStr,
+                                 "key" -> keyStr,
+                                 "height" -> state.height,
+                                 "dbName" -> "contractNumInfo",
+                                 "value" -> state.contractNumInfo(dataKey)))
+            }
+          case _ => Left(InvalidDbKey)
+        }
+      case _ => Left(InvalidContractAddress)
     }
   }
 
