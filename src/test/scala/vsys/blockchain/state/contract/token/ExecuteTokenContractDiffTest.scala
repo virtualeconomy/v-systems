@@ -279,7 +279,7 @@ class ExecuteTokenContractDiffTest extends PropSpec
     forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend: ExecuteContractFunctionTransaction, fee: Long, recipient) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(executeContractSystemSend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        val sender = executeContractSystemSend.proofs.firstCurveProof.toOption.get.publicKey
+        val sender = executeContractSystemSend.proofs.firstCurveProof.explicitGet().publicKey
         val recipientPortfolio = newState.accountPortfolio(recipient)
         val senderPortfolio = newState.accountPortfolio(sender)
         totalPortfolioDiff.balance shouldBe -fee

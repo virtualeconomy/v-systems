@@ -62,7 +62,7 @@ class RegisterTokenContractTransactionDiffTest extends PropSpec
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -reg.transactionFee
         totalPortfolioDiff.effectiveBalance shouldBe -reg.transactionFee
-        val master = reg.proofs.firstCurveProof.toOption.get.publicKey
+        val master = reg.proofs.firstCurveProof.explicitGet().publicKey
         val contractId = reg.contractId.bytes
         val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
         val issuerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))

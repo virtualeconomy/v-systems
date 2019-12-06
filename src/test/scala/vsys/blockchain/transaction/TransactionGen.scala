@@ -6,8 +6,7 @@ import vsys.account.PublicKeyAccount._
 import vsys.account._
 import vsys.blockchain.consensus.SPoSCalc._
 import vsys.blockchain.contract._
-import vsys.blockchain.contract.{DataType => ContractDataType}
-import vsys.blockchain.database.{DataType, Entry}
+import vsys.blockchain.database.{DataType => DatabaseDataType, Entry}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.database.DbPutTransaction
@@ -83,8 +82,8 @@ trait TransactionGen {
   val attachmentGen: Gen[Array[Byte]] = genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
-  } yield Entry.buildEntry(data, DataType.ByteArray).explicitGet()
-  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, ContractDataType.Address)))
+  } yield Entry.buildEntry(data, DatabaseDataType.ByteArray).explicitGet()
+  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, DataType.Address)))
 
   val invalidUtf8StringGen: Gen[String] = for {
     data <- Gen.listOfN(2, invalidUtf8Char)
