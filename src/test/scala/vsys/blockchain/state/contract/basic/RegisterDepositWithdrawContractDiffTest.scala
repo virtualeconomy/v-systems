@@ -46,10 +46,8 @@ class RegisterDepositWithdrawContractDiffTest extends PropSpec
         val makerKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte)))
 
         newState.accountTransactionIds(master, 2, 0)._2.size shouldBe 2 // genesis, reg
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractDepositWithdraw.contract.bytes.arr
-        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractDepositWithdraw.contract))
+        newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
       }
     }
   }
@@ -79,11 +77,9 @@ class RegisterDepositWithdrawContractDiffTest extends PropSpec
         val tokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
 
         newState.accountTransactionIds(master, 2, 0)._2.size shouldBe 2 // genesis, reg
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractDepositWithdrawProductive.contract.bytes.arr
-        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(tokenIdKey).get.bytes shouldEqual DataEntry(tokenId.arr, DataType.TokenId).bytes
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractDepositWithdrawProductive.contract))
+        newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(tokenIdKey) shouldEqual Some(DataEntry(tokenId.arr, DataType.TokenId))
       }
     }
   }

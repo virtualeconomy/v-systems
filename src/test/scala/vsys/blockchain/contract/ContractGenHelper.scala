@@ -3,6 +3,7 @@ package vsys.blockchain.contract
 import org.scalacheck.Gen
 import com.google.common.primitives.{Bytes, Ints, Shorts}
 import vsys.account.PrivateKeyAccount
+import vsys.blockchain.state._
 import vsys.blockchain.transaction.TransactionGen
 import vsys.utils.serialization.Deser
 
@@ -73,7 +74,7 @@ object ContractGenHelper extends TransactionGen {
   }
 
   def dataListGen(seqDataByte: Seq[Array[Byte]], seqDataType: Seq[DataType.Value]): Gen[Seq[DataEntry]] =
-    seqDataByte.zip(seqDataType).map(x => DataEntry.create(x._1, x._2).right.get)
+    seqDataByte.zip(seqDataType).map(x => DataEntry.create(x._1, x._2).explicitGet())
 
   def basicContractTestGen(): Gen[(PrivateKeyAccount, Long, Long)] = for {
     master <- accountGen
@@ -97,6 +98,6 @@ object ContractGenHelper extends TransactionGen {
     descriptor <- desc
     stateVar <- state
     textual <- text
-  } yield Contract.buildContract(langCode, langVer, initializer, descriptor, stateVar, Seq(), textual).right.get
+  } yield Contract.buildContract(langCode, langVer, initializer, descriptor, stateVar, Seq(), textual).explicitGet()
 
 }

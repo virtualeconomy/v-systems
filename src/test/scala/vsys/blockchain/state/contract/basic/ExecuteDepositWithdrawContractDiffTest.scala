@@ -98,21 +98,17 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
         newState.accountTransactionIds(master, 10, 0)._2.size shouldBe 7 // genesis, reg, regToken, issue, transfer, deposit, withdraw2
         newState.accountTransactionIds(user, 10, 0)._2.size shouldBe 3 //genesis2, withdraw, deposit2
         // deposit withdraw contract
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractDepositWithdraw.contract.bytes.arr
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractDepositWithdraw.contract))
         // token contract
         newState.contractTokens(tokenContractId) shouldBe 1
-        newState.contractContent(tokenContractId).get._1 shouldBe 2
-        newState.contractContent(tokenContractId).get._2.arr shouldEqual regToken.id.arr
-        newState.contractContent(tokenContractId).get._3.bytes.arr shouldEqual ContractPermitted.contractWithoutSplit.bytes.arr
+        newState.contractContent(tokenContractId) shouldEqual Some((2, regToken.id, ContractPermitted.contractWithoutSplit))
         // token contract token Info
-        newState.contractInfo(issuerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.contractInfo(makerKey).get.bytes shouldEqual DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes
-        newState.tokenInfo(maxKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100000000L), DataType.Amount).bytes
+        newState.contractInfo(issuerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.tokenInfo(maxKey) shouldEqual Some(DataEntry(Longs.toByteArray(100000000L), DataType.Amount))
         newState.tokenAccountBalance(totalKey) shouldBe 100000L
-        newState.tokenInfo(unityKey).get.bytes shouldEqual DataEntry(Longs.toByteArray(100L), DataType.Amount).bytes
-        newState.tokenInfo(descKey).get.bytes shouldEqual DataEntry.create(descDE, DataType.ShortText).explicitGet().bytes
+        newState.tokenInfo(unityKey) shouldEqual Some(DataEntry(Longs.toByteArray(100L), DataType.Amount))
+        newState.tokenInfo(descKey) shouldEqual Some(DataEntry.create(descDE, DataType.ShortText).explicitGet())
         // token balance
         newState.tokenAccountBalance(masterBalanceKey) shouldBe 98100L
         newState.tokenAccountBalance(contractBalanceKey) shouldBe 1810L
@@ -176,9 +172,7 @@ class ExecuteDepositWithdrawContractDiffTest extends PropSpec
         newState.accountTransactionIds(master, 8, 0)._2.size shouldBe 5 // genesis, reg, transfer, deposit, withdraw2
         newState.accountTransactionIds(user, 8, 0)._2.size shouldBe 3 //genesis2, withdraw, deposit2
         // deposit withdraw contract
-        newState.contractContent(contractId).get._1 shouldBe 2
-        newState.contractContent(contractId).get._2.arr shouldEqual reg.id.arr
-        newState.contractContent(contractId).get._3.bytes.arr shouldEqual ContractDepositWithdrawProductive.contract.bytes.arr
+        newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractDepositWithdrawProductive.contract))
         // V balance
         newState.balance(masterAddress) shouldBe ENOUGH_AMT - 4 * fee - 10000000000L - 2 * 1000L + 100L
         newState.balance(userAddress) shouldBe ENOUGH_AMT - 2 * fee + 100L - 10L
