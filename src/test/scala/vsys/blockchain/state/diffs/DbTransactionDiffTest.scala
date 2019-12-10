@@ -8,7 +8,6 @@ import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 import vsys.blockchain.transaction.database.DbPutTransaction
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -38,8 +37,9 @@ class DbTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorD
         totalPortfolioDiff.balance shouldBe -dbPutTx.transactionFee
         totalPortfolioDiff.effectiveBalance shouldBe -dbPutTx.transactionFee
         totalPortfolioDiff.spendableBalance shouldBe -dbPutTx.transactionFee
-        val sender = EllipticCurve25519Proof.fromBytes(dbPutTx.proofs.proofs.head.bytes.arr).toOption.get.publicKey
-        newState.accountTransactionIds(sender, 2, 0)._2.size shouldBe 2 // genesis and dbPut transaction
+        val sender = dbPutTx.proofs.firstCurveProof.explicitGet().publicKey
+        val (_, txs) = newState.accountTransactionIds(sender, 2, 0)
+        txs.size shouldBe 2 // genesis and dbPut transaction
       }
     }
   }

@@ -3,10 +3,8 @@ package vsys.blockchain.state
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import vsys.blockchain.history.HistoryWriterImpl
-import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state.reader.{CompositeStateReader, StateReader}
 import vsys.blockchain.block.Block
-import vsys.settings.TestFunctionalitySettings
 import vsys.blockchain.history.History
 import vsys.blockchain.transaction.{Transaction, ValidationError}
 import vsys.blockchain.contract.ExecutionContext
@@ -14,7 +12,7 @@ import vsys.blockchain.state.opcdiffs.{OpcDiff, OpcFuncDiffer}
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.blockchain.history.db
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
-import vsys.settings.TestStateSettings
+import vsys.settings.{FunctionalitySettings, TestFunctionalitySettings, TestStateSettings}
 
 package object diffs {
 
