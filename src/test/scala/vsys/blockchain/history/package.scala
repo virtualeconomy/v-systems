@@ -1,16 +1,13 @@
 package vsys.blockchain
 
-import vsys.settings.BlockchainSettings
 import vsys.blockchain.state._
 import vsys.account.PrivateKeyAccount
-import vsys.blockchain.block.Block
-import vsys.blockchain.block.SposConsensusBlockData
-import vsys.blockchain.block.TestBlock
+import vsys.blockchain.block.{Block, SposConsensusBlockData, TestBlock}
 import vsys.settings.TestFunctionalitySettings
 import vsys.blockchain.transaction.{Transaction, TransactionParser}
 import vsys.db.openDB
 import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
-import vsys.settings.TestStateSettings
+import vsys.settings.{BlockchainSettings, TestStateSettings}
 
 package object history {
   val MinInMemoryDiffSize = 5

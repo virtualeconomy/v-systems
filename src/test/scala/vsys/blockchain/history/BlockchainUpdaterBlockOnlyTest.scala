@@ -1,6 +1,5 @@
 package vsys.blockchain.history
 
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state.diffs._
 import org.scalacheck.Gen
 import org.scalatest._
