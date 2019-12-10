@@ -1,6 +1,6 @@
 package vsys.blockchain.transaction.contract
 
-import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 import vsys.account._
