@@ -162,8 +162,8 @@ trait TransactionGen {
     feeScale2: Short <- feeScaleGen
   } yield (lease, LeaseCancelTransaction.create(otherSender, lease.id, fee2, feeScale2, timestamp2).explicitGet())
 
-  val leaseGen: Gen[LeaseTransaction] = leaseAndCancelGen.map(_._1)
-  val leaseCancelGen: Gen[LeaseCancelTransaction] = leaseAndCancelGen.map(_._2)
+  val leaseGen: Gen[LeaseTransaction] = leaseAndCancelGen.map{ case (lease, _) => lease}
+  val leaseCancelGen: Gen[LeaseCancelTransaction] = leaseAndCancelGen.map{ case (_, cancel) => cancel}
 
   val mintingGen: Gen[MintingTransaction] = for {
     recipient: Address <- mintingAddressGen
