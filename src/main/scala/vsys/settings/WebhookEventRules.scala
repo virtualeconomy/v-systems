@@ -203,9 +203,14 @@ object WithTxsOfAccs extends RuleConfigReader {
 }
 
 case class WithStateOfAccs(value: Seq[String]) extends WebhookEventRules {
-  // TO DO
   override lazy val json: JsObject = Json.obj("withStateOfAccs" -> value)
-  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = ???
+  override def applyRule(height: Long, blockTime: Long, tx: ProcessedTransaction, accs: Seq[String]): Boolean = {
+    if(value.nonEmpty) {
+      value.intersect(accs).nonEmpty
+    } else {
+      accs.isEmpty
+    }
+  }
 }
 
 object WithStateOfAccs extends RuleConfigReader {
