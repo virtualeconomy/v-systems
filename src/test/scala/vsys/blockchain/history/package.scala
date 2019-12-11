@@ -10,7 +10,8 @@ import vsys.blockchain.block.TestBlock
 import vsys.blockchain.transaction.{Transaction, TransactionParser}
 import vsys.db.openDB
 import vsys.blockchain.transaction.{ProcessedTransaction, TransactionStatus}
-import vsys.events.{EventTriggers, EventWriterActor}
+import vsys.events.{EventTriggers, EventWriterActor, EventDispatchActor}
+import vsys.utils.SimpleEventQueue
 
 package object history {
   val MinInMemoryDiffSize = 5
@@ -21,8 +22,11 @@ package object history {
     genesisSettings = null,
     stateSettings = TestStateSettings.AllOn)
 
+  val actorSystem = ActorSystem()
   val DefaultEventSetting = EventSettings(Seq.empty, 0)
-  val DefaultActorSys = ActorSystem().actorOf(Props[EventWriterActor])
+  val DefaultEventQueue = new SimpleEventQueue()
+  val DefaultEventDispatchActor = actorSystem.actorOf(Props(EventDispatchActor(actorSystem)))
+  val DefaultActorSys = actorSystem.actorOf(Props(EventWriterActor(DefaultEventQueue, DefaultEventDispatchActor)))
   val triggerService = EventTriggers(DefaultActorSys, DefaultEventSetting)
   val db = openDB("./test/data", true)
   def domain(): Domain = {

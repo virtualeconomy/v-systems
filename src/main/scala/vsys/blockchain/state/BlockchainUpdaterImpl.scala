@@ -67,7 +67,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       topMemoryDiff.set(BlockDiff.empty)
     }
     historyWriter.appendBlock(block)(BlockDiffer.fromBlock(settings, currentPersistedBlocksState, historyWriter.lastBlock.map(_.timestamp))(block)).map { newBlockDiff =>
-      eventTrigger.evokeWebhook(block, newBlockDiff, "processBlock")
+      eventTrigger.evokeWebhook(block, newBlockDiff, currentPersistedBlocksState, "processBlock")
       topMemoryDiff.set(Monoid.combine(topMemoryDiff(), newBlockDiff))
     }.map(_ => log.trace(s"Block ${block.uniqueId} appended. New height: ${historyWriter.height()}, new score: ${historyWriter.score()}"))
   }
@@ -100,10 +100,10 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
         }
 
         if (fromHeight - height < 10) {
-          blockSeq.result().foreach {case(b, d) => eventTrigger.evokeWebhook(b, d, "removeAfter")}
+          blockSeq.result().foreach {case(b, d) => eventTrigger.evokeWebhook(b, d, persisted,"removeAfter")}
         } else {
           val blockDiff = BlockDiff(Diff.empty, fromHeight - height, Map.empty)
-          eventTrigger.evokeWebhook(historyWriter.lastBlock.get, blockDiff, "invalidRollbackHeight")
+          eventTrigger.evokeWebhook(historyWriter.lastBlock.get, blockDiff, persisted, "invalidRollbackHeight")
         }
 
         if (height < persisted.height) {

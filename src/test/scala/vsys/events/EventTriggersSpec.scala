@@ -11,11 +11,14 @@ import vsys.blockchain.state._
 import vsys.account.Address
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.settings.{EventSettings, AfterHeight, AfterTime, WithTxs, WithMintingTxs}
+import vsys.utils.SimpleEventQueue
 
 class EventTriggersSpec extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with MockitoSugar {
   val system = ActorSystem()
   val blockTime = 10
-  val trigger = EventTriggers(system.actorOf(Props[EventWriterActor], name = "testing"), EventSettings(Seq.empty, 0))
+  val eventQueue = new SimpleEventQueue()
+  val eventDispatchActor = system.actorOf(Props(EventDispatchActor(system)))
+  val trigger = EventTriggers(system.actorOf(Props(EventWriterActor(eventQueue, eventDispatchActor)), name = "testing"), EventSettings(Seq.empty, 0))
 
   property("Private Method filterTxs should filter AfterHeight correctly") {
     val eventRules = Seq(AfterHeight(12))

@@ -14,8 +14,8 @@ import vsys.db.openDB
 import vsys.blockchain.history.{HistoryWriterImpl, StorageFactory}
 import vsys.settings._
 import vsys.blockchain.transaction.{FeeCalculator, MintingTransaction, PaymentTransaction, Transaction, TransactionGen}
-import vsys.utils.{Time, TestTime, TestHelpers}
-import vsys.events.{EventTriggers, EventWriterActor}
+import vsys.utils.{Time, TestTime, TestHelpers, SimpleEventQueue}
+import vsys.events.{EventTriggers, EventWriterActor, EventDispatchActor}
 import akka.actor.{ActorSystem, Props}
 
 import scala.concurrent.duration._
@@ -38,7 +38,10 @@ class UtxPoolSpecification extends FreeSpec
 
   private def mkState(senderAccount: Address, senderBalance: Long) = {
     val genesisSettings = TestHelpers.genesisSettings(Map(senderAccount -> senderBalance))
-    val trigger = EventTriggers(ActorSystem().actorOf(Props[EventWriterActor]), EventSettings(Seq.empty, 0))
+    val actorSys = ActorSystem()
+    val simpleQueue = new SimpleEventQueue()
+    val eventDispatcher = actorSys.actorOf(Props(EventDispatchActor(actorSys)))
+    val trigger = EventTriggers(actorSys.actorOf(Props(EventWriterActor(simpleQueue, eventDispatcher))), EventSettings(Seq.empty, 0))
     val (history, _, state, bcu) =
       StorageFactory(db, BlockchainSettings('T', 5, FunctionalitySettings.TESTNET, genesisSettings, TestStateSettings.AllOn), trigger, true)
 
