@@ -19,7 +19,7 @@ case class EventDispatchActor(actorSys: ActorSystem) extends Actor with ScorexLo
   def process: Receive = {
     case (q: SimpleEventQueue, maxSize: Int) =>
       val curSize = q.size
-      if (maxSize >= 5 && maxSize <= 3000 && curSize >= maxSize || curSize >= 1000) {
+      if (maxSize >= 1 && maxSize <= 3000 && curSize >= maxSize || curSize >= 1000) {
         val curList = q.dequeAll()
         packAndDispatch(curList, maxSize)
       }
