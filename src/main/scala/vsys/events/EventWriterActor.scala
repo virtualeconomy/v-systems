@@ -17,6 +17,10 @@ case class EventWriterActor(queue: SimpleEventQueue, dispatcher: ActorRef) exten
       queue.enqueue(e)
       dispatcher ! Tuple2(queue, e.maxSize)
 
+    case e: StateUpdatedEvent =>
+      queue.enqueue(e)
+      dispatcher ! Tuple2(queue, e.maxSize)
+      
     case e: BlockRollbackEvent =>
       queue.enqueue(e)
       dispatcher ! Tuple2(queue, e.maxSize)
