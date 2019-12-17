@@ -30,6 +30,14 @@ object LoadOpcDiff extends OpcDiffer {
     }
   }
 
+  def transactionId(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(ContractLocalVariableIndexOutOfRange)
+    } else {
+      Right(dataStack.patch(pointer, Seq(DataEntry(context.transaction.id.arr, DataType.ShortText)), 1))
+    }
+  }
+
   object LoadType extends Enumeration {
     val SignerLoad = Value(1)
     val CallerLoad = Value(2)
