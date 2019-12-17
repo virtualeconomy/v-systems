@@ -67,6 +67,39 @@ object CDBVOpcDiff extends OpcDiffer {
     else Left(ContractDataTypeMismatch)
   }
 
+  def mapSetTrue(context: ExecutionContext)(stateMap: Array[Byte],
+                                            keyValue: DataEntry): Either[ValidationError, OpcDiff] = {
+    for {
+      _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, DataType.Boolean), (), ContractInvalidStateMap)
+      combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+      v <- DataEntry.create(Array(1.toByte), DataType.Boolean)
+      diff = OpcDiff(contractDB = Map(combinedKey -> v.bytes))
+    } yield diff
+  }
+
+  def mapSetFalse(context: ExecutionContext)(stateMap: Array[Byte],
+                                             keyValue: DataEntry): Either[ValidationError, OpcDiff] = {
+    for {
+      _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, DataType.Boolean), (), ContractInvalidStateMap)
+      combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+      v <- DataEntry.create(Array(0.toByte), DataType.Boolean)
+      diff = OpcDiff(contractDB = Map(combinedKey -> v.bytes))
+    } yield diff
+  }
+
+  def mapSetChange(context: ExecutionContext)(stateMap: Array[Byte],
+                                              keyValue: DataEntry): Either[ValidationError, OpcDiff] = {
+    for {
+      _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, DataType.Boolean), (), ContractInvalidStateMap)
+      combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+      vFromDB = context.state.contractInfo(combinedKey)
+      v <- vFromDB.toRight(InvalidDataEntry)
+      changeValue <- if (v.data sameElements Array(1.toByte)) DataEntry.create(Array(0.toByte), DataType.Boolean)
+                     else DataEntry.create(Array(1.toByte), DataType.Boolean)
+      diff = OpcDiff(contractDB = Map(combinedKey -> changeValue.bytes))
+    } yield diff
+  }
+
   object CDBVType extends Enumeration(1) {
     val SetCDBV, mapSetCDBV, mapValueAddCDBV, mapValueMinusCDBV = Value
   }
