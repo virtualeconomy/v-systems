@@ -1,12 +1,13 @@
 package tools
 
-import com.google.common.primitives.Shorts
+import com.google.common.primitives.{Ints, Shorts}
 import scorex.crypto.encode.Base58
 import vsys.blockchain.contract._
 import vsys.blockchain.contract.Contract.{LanguageCodeByteLength, LanguageVersionByteLength}
 import vsys.blockchain.state.opcdiffs.AssertOpcDiff.AssertType
 import vsys.blockchain.state.opcdiffs.CDBVOpcDiff.CDBVType
 import vsys.blockchain.state.opcdiffs.CDBVROpcDiff.CDBVRType
+import vsys.blockchain.state.opcdiffs.CompareOpcDiff.CompareType
 import vsys.blockchain.state.opcdiffs.LoadOpcDiff.LoadType
 import vsys.blockchain.state.opcdiffs.OpcDiffer.OpcType
 import vsys.blockchain.state.opcdiffs.TDBAOpcDiff.TDBAType
@@ -19,7 +20,7 @@ import vsys.utils.serialization.Deser
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractPermitted.contract.bytes.arr
+  val bytes = ContractLock.contract.bytes.arr
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
@@ -49,10 +50,18 @@ object ContractTranslator extends App {
   println("State Variables:")
   printSeqHex(stateVar)
 
-  val textual = Deser.parseArrays(bytes.slice(stateVarEnd, bytes.length))
+  val (stateMap, last) = if (languageVersion sameElements Ints.toByteArray(2)) {
+    val (stateMapBytes, stateMapEnd) = Deser.parseArraySize(bytes, stateVarEnd)
+    (Deser.parseArrays(stateMapBytes), stateMapEnd)
+  } else (Seq(), stateVarEnd)
+
+  println("State Maps:")
+  printSeqHex(stateMap)
+
+  val textual = Deser.parseArrays(bytes.slice(last, bytes.length))
   val textualStr = textualFromBytes(textual)
 
-  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account")
+  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "Timestamp", "Boolean")
 
   printTextual(textualStr)
 
@@ -142,8 +151,10 @@ object ContractTranslator extends App {
   }
 
   def printSeqHex(data: Seq[Array[Byte]]): Unit = {
-    List.range(0, data.size).foreach { i =>
-      println("%02d".format(i) + " | " + convertBytesToHex(data(i)))
+    if (data.size > 0) {
+      List.range(0, data.size).foreach { i =>
+        println("%02d".format(i) + " | " + convertBytesToHex(data(i)))
+      }
     }
   }
 
@@ -153,7 +164,7 @@ object ContractTranslator extends App {
     }
   }
 
-  def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])]): Unit = {
+  def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])]): Unit = {
     if (t.isFailure) println("Invalid Texture")
     else {
       val r = t.get
@@ -165,16 +176,21 @@ object ContractTranslator extends App {
       List.range(0, r._3.size).foreach { i =>
         println("%02d".format(i) + " | " + r._3(i))
       }
+      println("State Maps:")
+      List.range(0, r._4.size).foreach { i =>
+        println("%02d".format(i) + " | " + r._4(i))
+      }
     }
   }
 
-  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String])] = Try {
+  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])] = Try {
     val initializerFuncBytes = Deser.parseArrays(bs.head)
     val initializerFunc = funcFromBytes(initializerFuncBytes)
     val descriptorFuncBytes = Deser.parseArrays(bs(1))
     val descriptorFunc = funcFromBytes(descriptorFuncBytes)
-    val stateVar = paraFromBytes(bs.last)
-    (initializerFunc, descriptorFunc, stateVar)
+    val stateVar = paraFromBytes(bs(2))
+    val stateMap = if (bs.length == 4) paraFromBytes(bs(3)) else Seq()
+    (initializerFunc, descriptorFunc, stateVar, stateMap)
   }
 
   private def funcFromBytes(bs: Seq[Array[Byte]]): Seq[Seq[String]] = {
@@ -213,6 +229,7 @@ object ContractTranslator extends App {
     val x = data(0)
     val y = data(1)
     val stateNameList = textualStr.get._3
+    val stateMapList = textualStr.get._4
     x match {
       case opcType: Byte if opcType == OpcType.SystemOpc.id =>
         y match {
@@ -226,9 +243,10 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == AssertType.LteqAssert.id => "opc_assert_lteq"
           case opcType: Byte if opcType == AssertType.LtInt64Assert.id => "opc_assert_ltInt64"
           case opcType: Byte if opcType == AssertType.GtZeroAssert.id => "opc_assert_gt0"
-          case opcType: Byte if opcType == AssertType.EqAssert.id => "opc_assert_eq"
           case opcType: Byte if opcType == AssertType.IsCallerOriginAssert.id => "operation.check.assertCaller(" + nameList(data(2)) + ")"
           case opcType: Byte if opcType == AssertType.IsSignerOriginAssert.id => "operation.check.assertSigner(" + nameList(data(2)) + ")"
+          case opcType: Byte if opcType == AssertType.EqAssert.id => "operation.check.assertEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == AssertType.BooleanTrueAssert.id => "operation.check.assertTrue(" + nameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
@@ -236,18 +254,23 @@ object ContractTranslator extends App {
         y match {
           case opcType: Byte if opcType == LoadType.SignerLoad.id => nameList(data(2)) + " = operation.env.getSigner()"
           case opcType: Byte if opcType == LoadType.CallerLoad.id => nameList(data(2)) + " = operation.env.getCaller()"
+          case opcType: Byte if opcType == LoadType.TimestampLoad.id => nameList(data(2)) + " = operation.env.getTimestamp()"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.CDBVOpc.id =>
         y match {
           case opcType: Byte if opcType == CDBVType.SetCDBV.id => "operation.db.setVariable(" + "db." + stateNameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CDBVType.mapValueAddCDBV.id => "operation.db.mapValueAdd(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3))  + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == CDBVType.mapValueMinusCDBV.id => "operation.db.mapValueMinus(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3))  + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == CDBVType.mapSetCDBV.id => "operation.db.mapSet(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3))  + ", " + nameList(data(4)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
       case opcType: Byte if opcType == OpcType.CDBVROpc.id =>
         y match {
           case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => nameList(data(3)) + " = operation.db.getVariable(db." + stateNameList(data(2)) + ")"
+          case opcType: Byte if opcType == CDBVRType.MapGetOrDefaultCDBVR.id => nameList(data(4)) + " = operation.db.mapGetOrDefault(db." + stateNameList(data(2)) + ", " + stateNameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
@@ -280,6 +303,12 @@ object ContractTranslator extends App {
         }
 
       case opcType: Byte if opcType == OpcType.ReturnOpc.id => "operation.control.return(" + nameList(data(2)) + ")"
+
+      case opcType: Byte if opcType == OpcType.CompareOpc.id =>
+        y match {
+          case opcType: Byte if opcType == CompareType.Geq.id => nameList(data(4)) + " = operation.compare.greater(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case _ => "--- invalid opc code ---"
+        }
 
       case _ => "--- invalid opc code ---"
 
