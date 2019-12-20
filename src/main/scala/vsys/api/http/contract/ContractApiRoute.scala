@@ -112,7 +112,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           "contractId" -> contractIdStr,
           "transactionId" -> txId.base58,
           "type" -> typeFromBytes(ct.bytes),
-          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual.last)).zipped.map { (a, b) =>
+          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual(2))).zipped.map { (a, b) =>
             (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
           "height" -> JsNumber(h))
         )
@@ -122,7 +122,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         "contractId" -> contractIdStr,
         "transactionId" -> "",
         "type" -> typeFromBytes(ContractSystem.contract.bytes),
-        "info" -> JsArray((ContractSystem.contract.stateVar, paraFromBytes(ContractSystem.contract.textual.last)).zipped.map { (a, b) =>
+        "info" -> JsArray((ContractSystem.contract.stateVar, paraFromBytes(ContractSystem.contract.textual(2))).zipped.map { (a, b) =>
           (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
         "height" -> JsNumber(-1))
       )
