@@ -61,7 +61,7 @@ object ContractTranslator extends App {
   val textual = Deser.parseArrays(bytes.slice(last, bytes.length))
   val textualStr = textualFromBytes(textual)
 
-  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "Timestamp", "Boolean")
+  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "TokenId", "Timestamp", "Boolean")
 
   printTextual(textualStr)
 
