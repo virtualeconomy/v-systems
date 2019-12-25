@@ -14,7 +14,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction._
 import vsys.settings.FunctionalitySettings
-import vsys.utils.ScorexLogging
+import vsys.utils.{ScorexLogging, TransactionHelper}
 import vsys.events.EventTriggers
 
 class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
@@ -80,18 +80,14 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       case Some(height) =>
         logHeights(s"Rollback to h=$height started")
         val discardedTransactions = Seq.newBuilder[Transaction]
-        val blockSeq = Seq.newBuilder[Tuple2[Block, BlockDiff]]
         val fromHeight = historyWriter.height
 
         while (historyWriter.height > height) {
-
-          if (fromHeight - height < 10) {
-            val curBlock = historyWriter.lastBlock.get
-            val txs = curBlock.transactionData
-            val txsDiff = txs.foldLeft(Diff.empty)((accum, aTx) => Monoid.combine(accum, Diff(historyWriter.height, aTx.transaction)))
-            val blockDiff = BlockDiff(txsDiff, -1, Map.empty)
-            blockSeq ++= Seq((curBlock, blockDiff))
-          }
+          val curBlock = historyWriter.lastBlock.get
+          val txs = curBlock.transactionData
+          val txsDiff = txs.foldLeft(Diff.empty) {(accum, pTx) => Monoid.combine(accum, Diff(historyWriter.height, pTx.transaction))}
+          val blockDiff = BlockDiff(txsDiff, -1, Map.empty)
+          eventTrigger.evokeWebhook(curBlock, blockDiff, currentPersistedBlocksState, "removeAfter")
           
           val transactions = historyWriter.discardBlock()
           log.trace(s"Collecting ${transactions.size} discarded transactions: $transactions")
@@ -99,12 +95,12 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
           discardedTransactions ++= transactions
         }
 
-        if (fromHeight - height < 10) {
-          blockSeq.result().foreach {case(b, d) => eventTrigger.evokeWebhook(b, d, persisted,"removeAfter")}
-        } else {
-          val blockDiff = BlockDiff(Diff.empty, fromHeight - height, Map.empty)
-          eventTrigger.evokeWebhook(historyWriter.lastBlock.get, blockDiff, persisted, "invalidRollbackHeight")
-        }
+        // if (fromHeight - height < 10) {
+        //   blockSeq.result().foreach {case(b, d) => }
+        // } else {
+        //   val blockDiff = BlockDiff(Diff.empty, fromHeight - height, Map.empty)
+        //   eventTrigger.evokeWebhook(historyWriter.lastBlock.get, blockDiff, persisted, "invalidRollbackHeight")
+        // }
 
         if (height < persisted.height) {
           log.info(s"Rollback to h=$height requested. Persisted height=${persisted.height}, will drop state and reapply blockchain now")
