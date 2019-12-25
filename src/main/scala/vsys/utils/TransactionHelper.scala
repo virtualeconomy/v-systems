@@ -1,7 +1,9 @@
 package vsys.utils
 
 import vsys.blockchain.transaction._
-import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
+import vsys.blockchain.transaction.contract.{RegisterContractTransaction, ExecuteContractFunctionTransaction}
+import vsys.blockchain.transaction.lease.{LeaseTransaction, LeaseCancelTransaction}
+import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}
 import vsys.blockchain.contract._
 import vsys.blockchain.contract.{ContractPermitted, Contract}
 import vsys.blockchain.state.reader.StateReader
@@ -23,7 +25,7 @@ object TransactionHelper {
     }
   }
 
-  def execTxsFuncDataParser(txIn: ProcessedTransaction, state: StateReader): (ProcessedTransaction, Option[FuncDataStruct]) = {
+  def execTxsFuncDataParser(txIn: ProcessedTransaction, state: StateReader): Option[(ProcessedTransaction, FuncDataStruct)] = {
   	val tx = txIn.transaction.asInstanceOf[ExecuteContractFunctionTransaction]
   	val funcInd = tx.funcIdx
     val txFee = tx.transactionFee
@@ -40,29 +42,105 @@ object TransactionHelper {
     }
 
     if (tokenIdStr == "") {
-      return (txIn, None)
+      return None
     }
 
-    val funcData = (funcInd, ctType) match {
+    (funcInd, ctType) match {
       case (0, _) =>
-        Some(SupercedeFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[String]))
+        Some((
+          txIn,
+          SupercedeFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(0).json \ "data").as[String])
+        ))
       case (1, _) =>
-        Some(IssueFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[Long]))
+        Some((
+          txIn,
+          IssueFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(0).json \ "data").as[Long])
+        ))
       case (2, _) =>
-        Some(DestroyFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[Long]))
+        Some((
+          txIn,
+          DestroyFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(0).json \ "data").as[Long])
+        ))
       case (3, "TokenContractWithSplit") =>
-        Some(SplitFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[Long]))
+        Some((
+          txIn,
+          SplitFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(0).json \ "data").as[Long])
+        ))
       case (3, "TokenContract") | (4, "TokenContractWithSplit") =>
-        Some(SendFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[String], (data(1).json \ "data").as[Long]))
+        Some((
+          txIn,
+          SendFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(0).json \ "data").as[String],
+            (data(1).json \ "data").as[Long])
+        ))
       case (4, "TokenContract") | (5, "TokenContractWithSplit") =>
-        Some(TransferFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[String], (data(1).json \ "data").as[String], (data(2).json \ "data").as[Long]))
+        Some((
+            txIn,
+            TransferFuncData(
+              funcInd,
+              txFee,
+              signer,
+              ctStr,
+              tokenIdStr,
+              (data(0).json \ "data").as[String],
+              (data(1).json \ "data").as[String],
+              (data(2).json \ "data").as[Long])
+        ))
       case (5, "TokenContract") | (6, "TokenContractWithSplit") =>
-        Some(DepositFuncData(funcInd, signer, ctStr, tokenIdStr, (data(0).json \ "data").as[String], (data(2).json \ "data").as[Long]))
+        Some((
+          txIn,
+          DepositFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(0).json \ "data").as[String],
+            (data(2).json \ "data").as[Long])
+        ))
       case (6, "TokenContract") | (7, "TokenContractWithSplit") =>
-        Some(WithdrawFuncData(funcInd, signer, ctStr, tokenIdStr, (data(1).json \ "data").as[String], (data(2).json \ "data").as[Long]))
+        Some((
+          txIn,
+          WithdrawFuncData(
+            funcInd,
+            txFee,
+            signer,
+            ctStr,
+            tokenIdStr,
+            (data(1).json \ "data").as[String],
+            (data(2).json \ "data").as[Long])
+        ))
       case (_, _) => None
     }
-    (txIn, funcData)
   }
 
   def getContractType(ctIdStr: String, state: StateReader): String = {
@@ -91,6 +169,59 @@ object TransactionHelper {
     Address.fromString(address) match {
       case Right(acc) => state.balance(acc)
       case Left(_) => -1
+    }
+  }
+
+  def getTransactionAccs(pTx: ProcessedTransaction, state: StateReader): Seq[String] = {
+    val tx = pTx.transaction
+    tx match {
+      case gtx: GenesisTransaction => Seq(gtx.recipient.address)
+      case mtx: MintingTransaction => Seq(mtx.recipient.address)
+      case ptx: PaymentTransaction =>
+        val sender = (ptx.proofs.proofs(0).json \ "address").as[String]
+        Seq(sender, ptx.recipient.address)
+      case ltx: LeaseTransaction =>
+        val sender = (ltx.proofs.proofs(0).json \ "address").as[String]
+        Seq(sender, ltx.recipient.address)
+      case lctx: LeaseCancelTransaction =>
+        val canceller = (lctx.proofs.proofs(0).json \ "address").as[String]
+        state.findTransaction[LeaseTransaction](lctx.leaseId) match {
+          case None => Seq.empty
+          case Some(ltx) => Seq(ltx.recipient.address, canceller)
+        }
+      case cstx: ContendSlotsTransaction =>
+        Seq((cstx.proofs.proofs(0).json \ "address").as[String])
+      case rstx: ReleaseSlotsTransaction =>
+        Seq((rstx.proofs.proofs(0).json \ "address").as[String])
+      case rctx: RegisterContractTransaction =>
+        val sender = (rctx.proofs.proofs(0).json \ "address").as[String]
+        Seq(rctx.contractId.address, sender)
+
+      case ectx: ExecuteContractFunctionTransaction =>
+        execTxsFuncDataParser(pTx, state) match {
+          case None => Seq.empty
+          case Some((_, fd)) => fd match {
+            case d: SupercedeFuncData =>
+              Seq(d.signer, d.contractId, d.newIssuer)
+            case d: IssueFuncData =>
+              Seq(d.signer, d.contractId)
+            case d: DestroyFuncData =>
+              Seq(d.signer, d.contractId)
+            case d: SplitFuncData =>
+              Seq(d.signer, d.contractId)
+            case d: SendFuncData =>
+              Seq(d.signer, d.contractId, d.recipient)
+            case d: TransferFuncData =>
+              Seq(d.signer, d.sender, d.recipient)
+            case d: DepositFuncData =>
+              Seq(d.signer, d.contractId, d.sender)
+            case d: WithdrawFuncData =>
+              Seq(d.signer, d.contractId, d.recipient)
+            case _ => Seq.empty
+          }
+        }
+
+      case _ => Seq.empty
     }
   }
 
