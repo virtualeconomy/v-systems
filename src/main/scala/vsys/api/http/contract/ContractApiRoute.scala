@@ -191,8 +191,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         val height = state.height
         state.tokenInfo(unityKey) match {
           case Some(x) => (for {
-            acc <- if (Address.fromString(address).isRight) Address.fromString(address)
-                   else ContractAccount.fromString(address)
+            acc <- Account.fromString(address)
           } yield Json.obj(
             "address/contract" -> address,
             "height" -> height,
