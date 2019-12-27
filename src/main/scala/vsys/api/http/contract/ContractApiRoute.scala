@@ -8,7 +8,7 @@ import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
-import vsys.account.{Account, Address, ContractAccount}
+import vsys.account.{Account, ContractAccount}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
@@ -193,7 +193,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           case Some(x) => (for {
             acc <- Account.fromString(address)
           } yield Json.obj(
-            "address/contract" -> address,
+            "address/contract" -> acc.bytes.base58,
             "height" -> height,
             "tokenId" -> tokenIdStr,
             "balance" -> state.tokenAccountBalance(ByteStr(tokenId.arr ++ acc.bytes.arr)),
