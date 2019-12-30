@@ -690,7 +690,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
           }
         }
         
-      case _ => Seq[JsObject]()
+      case _ => Seq.empty[JsObject]
     }
   }
 

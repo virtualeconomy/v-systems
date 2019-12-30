@@ -14,7 +14,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction._
 import vsys.settings.FunctionalitySettings
-import vsys.utils.{ScorexLogging, TransactionHelper}
+import vsys.utils.ScorexLogging
 import vsys.events.EventTriggers
 
 class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
@@ -80,7 +80,6 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
       case Some(height) =>
         logHeights(s"Rollback to h=$height started")
         val discardedTransactions = Seq.newBuilder[Transaction]
-        val fromHeight = historyWriter.height
 
         while (historyWriter.height > height) {
           val curBlock = historyWriter.lastBlock.get
