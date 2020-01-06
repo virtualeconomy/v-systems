@@ -3,7 +3,7 @@ package vsys.blockchain.state.opcdiffs
 import com.google.common.primitives.Longs
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidOPCData, ContractInvalidStateVariable}
+import vsys.blockchain.transaction.ValidationError._
 import vsys.account.Address
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.Contract.{checkStateMap, checkStateVar}
@@ -30,16 +30,17 @@ object CDBVOpcDiff extends OpcDiffer {
                                         keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     for {
       // condition and  validation error need to be updated
-      _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, dataValue.dataType), (), ContractInvalidStateVariable)
+      _ <- Either.cond(checkStateMap(stateMap, keyValue.dataType, dataValue.dataType), (), ContractInvalidStateMap)
       combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
-      diff = if (dataValue.dataType == DataType.Amount || dataValue.dataType == DataType.Balance) OpcDiff(contractNumDB = Map(combinedKey -> Longs.fromByteArray(dataValue.data)))
-             else OpcDiff(contractDB = Map(combinedKey -> dataValue.bytes))
+      diff = OpcDiff(contractDB = Map(combinedKey -> dataValue.bytes))
     } yield diff
   }
 
   def mapValueAdd(context: ExecutionContext)(stateMap: Array[Byte],
                                              keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+    if (!checkStateMap(stateMap, keyValue.dataType, dataValue.dataType))
+      Left(ContractInvalidStateMap)
     if (dataValue.dataType == DataType.Amount){
       val cntBalance = context.state.contractNumInfo(combinedKey)
       val addAmount = Longs.fromByteArray(dataValue.data)
@@ -54,12 +55,14 @@ object CDBVOpcDiff extends OpcDiffer {
   def mapValueMinus(context: ExecutionContext)(stateMap: Array[Byte],
                                                keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
+    if (!checkStateMap(stateMap, keyValue.dataType, dataValue.dataType))
+      Left(ContractInvalidStateMap)
     if (dataValue.dataType == DataType.Amount){
       val cntBalance = context.state.contractNumInfo(combinedKey)
       val minusAmount = Longs.fromByteArray(dataValue.data)
       if (cntBalance >= minusAmount)
         Right(OpcDiff(contractNumDB = Map(combinedKey -> -minusAmount)))
-      else Left(ValidationError.GenericError(s"Insufficient Value Minus"))
+      else Left(ContractMapValueInsufficient)
     }
     else Left(ContractDataTypeMismatch)
   }

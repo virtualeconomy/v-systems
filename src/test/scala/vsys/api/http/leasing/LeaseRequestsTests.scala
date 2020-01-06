@@ -1,7 +1,7 @@
 package vsys.api.http.leasing
 
 import org.scalatest.{FunSuite, Matchers}
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, JsSuccess}
 
 class LeaseRequestsTests extends FunSuite with Matchers {
 
@@ -17,9 +17,9 @@ class LeaseRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[LeaseRequest].get
+    val req = Json.parse(json).validate[LeaseRequest]
 
-    req shouldBe LeaseRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 100000, 1000, 100, "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7")
+    req shouldBe JsSuccess(LeaseRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 100000, 1000, 100, "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7"))
   }
 
   test("LeaseRequest with string amount") {
@@ -34,9 +34,9 @@ class LeaseRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[LeaseRequest].get
+    val req = Json.parse(json).validate[LeaseRequest]
 
-    req shouldBe LeaseRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 100000, 1000, 100, "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7")
+    req shouldBe JsSuccess(LeaseRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 100000, 1000, 100, "3Myss6gmMckKYtka3cKCM563TBJofnxvfD7"))
   }
 
   test("LeaseCancelRequest") {
@@ -50,9 +50,9 @@ class LeaseRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[LeaseCancelRequest].get
+    val req = Json.parse(json).validate[LeaseCancelRequest]
 
-    req shouldBe LeaseCancelRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", "ABMZDPY4MyQz7kKNAevw5P9eNmRErMutJoV9UNeCtqRV", 10000000, 100)
+    req shouldBe JsSuccess(LeaseCancelRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", "ABMZDPY4MyQz7kKNAevw5P9eNmRErMutJoV9UNeCtqRV", 10000000, 100))
   }
 
   test("SignedLeaseRequest") {
@@ -69,10 +69,10 @@ class LeaseRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[SignedLeaseRequest].get
+    val req = Json.parse(json).validate[SignedLeaseRequest]
 
-    req shouldBe SignedLeaseRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000L, 1000000L, 100,
-      "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+    req shouldBe JsSuccess(SignedLeaseRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000L, 1000000L, 100,
+      "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"))
   }
 
   test("SignedLeaseRequest with string amount") {
@@ -89,10 +89,10 @@ class LeaseRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[SignedLeaseRequest].get
+    val req = Json.parse(json).validate[SignedLeaseRequest]
 
-    req shouldBe SignedLeaseRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000L, 1000000L, 100,
-      "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+    req shouldBe JsSuccess(SignedLeaseRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000L, 1000000L, 100,
+      "3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"))
   }
 
   test("SignedLeaseCancelRequest") {
@@ -108,9 +108,9 @@ class LeaseRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[SignedLeaseCancelRequest].get
+    val req = Json.parse(json).validate[SignedLeaseCancelRequest]
 
-    req shouldBe SignedLeaseCancelRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
-      "D6HmGZqpXCyAqpz8mCAfWijYDWsPKncKe5v3jq1nTpf5", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC", 1000000L, 100)
+    req shouldBe JsSuccess(SignedLeaseCancelRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+      "D6HmGZqpXCyAqpz8mCAfWijYDWsPKncKe5v3jq1nTpf5", 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC", 1000000L, 100))
   }
 }

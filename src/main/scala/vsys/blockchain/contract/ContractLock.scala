@@ -66,7 +66,7 @@ object ContractLock {
     assertTrue ++ Array(6.toByte),
     cdbvMapValMinus ++ Array(balanceMap.index, 0.toByte, 1.toByte)
   )
-  lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, depositTriggerOpcs)
+  lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
   val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Lock Function

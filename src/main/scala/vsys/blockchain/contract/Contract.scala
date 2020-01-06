@@ -36,17 +36,37 @@ sealed trait Contract {
   val languageCode: Array[Byte]
   val languageVersion: Array[Byte]
 
-  lazy val json: JsObject = Json.obj(
+  lazy val json: JsObject = if (languageVersion sameElements Ints.toByteArray(1))
+    Json.obj(
+    "languageCode" -> Deser.deserilizeString(languageCode),
+    "languageVersion" -> Ints.fromByteArray(languageVersion),
+    "triggers" -> trigger.map(p => Base58.encode(p)),
+    "descriptors" -> descriptor.map(p => Base58.encode(p)),
+    "stateVariables" -> stateVar.map(p => Base58.encode(p)),
+    "textual" -> Json.obj("triggers" -> Base58.encode(textual(0)),
+      "descriptors" -> Base58.encode(textual(1)),
+      "stateVariables" -> Base58.encode(textual(2)))
+    )
+  else Json.obj(
     "languageCode" -> Deser.deserilizeString(languageCode),
     "languageVersion" -> Ints.fromByteArray(languageVersion),
     "triggers" -> trigger.map(p => Base58.encode(p)),
     "descriptors" -> descriptor.map(p => Base58.encode(p)),
     "stateVariables" -> stateVar.map(p => Base58.encode(p)),
     "stateMaps" -> stateMap.map(p => Base58.encode(p)),
-    "textual" -> Json.obj("triggers" -> Base58.encode(textual.head),
+    "textual" -> Json.obj("triggers" -> Base58.encode(textual(0)),
       "descriptors" -> Base58.encode(textual(1)),
-      "stateVariables" -> Base58.encode(textual.last))
+      "stateVariables" -> Base58.encode(textual(2)),
+    "stateMaps" -> Base58.encode(textual(3)))
   )
+
+  override def equals(obj: Any): Boolean = obj match {
+    case a: Contract => bytes == a.bytes
+    case _ => false
+  }
+
+  override def hashCode(): Int = java.util.Arrays.hashCode(bytes.arr)
+
 }
 
 object Contract extends ScorexLogging {
@@ -122,7 +142,9 @@ object Contract extends ScorexLogging {
     val textualStr = textualFromBytes(textual)
     if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
       !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) &&
-      !(bytes sameElements ContractDepositWithdraw.contract.bytes.arr)) {
+      !(bytes sameElements ContractDepositWithdraw.contract.bytes.arr) &&
+      !(bytes sameElements ContractDepositWithdrawProductive.contract.bytes.arr) &&
+      !(bytes sameElements ContractLock.contract.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||

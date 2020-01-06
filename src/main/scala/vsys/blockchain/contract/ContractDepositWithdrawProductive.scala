@@ -6,12 +6,12 @@ import vsys.utils.serialization.Deser
 
 object ContractDepositWithdrawProductive {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
-    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(), Seq(),
-    Seq(makerStateVar.arr), Seq(triggerTextual, descriptorTextual, stateVarTextual)
+    Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(),
+    Seq(makerStateVar.arr, tokenIdStateVar.arr), Seq(), Seq(triggerTextual, descriptorTextual, stateVarTextual)
   ).right.get
 
   //statevar
-  val stateVarName = List("maker")
+  val stateVarName = List("maker", "tokenId")
   val makerStateVar = StateVar(0.toByte, DataType.Address.id.toByte)
   val tokenIdStateVar = StateVar(1.toByte, DataType.TokenId.id.toByte)
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
@@ -29,22 +29,22 @@ object ContractDepositWithdrawProductive {
 
   //depositTrigger
   val depositId: Short = 1
-  val depositPara: Seq[String] = Seq("sender", "amount", "tokenId")
+  val depositPara: Seq[String] = Seq("sender", "amount", "tokenId", "contractTokenId")
   val depositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val depositOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
-    cdbvrGet ++ Array(tokenIdStateVar.index, 2.toByte),
+    cdbvrGet ++ Array(tokenIdStateVar.index, 3.toByte),
     assertEqual ++ Array(2.toByte, 3.toByte))
   val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositOpcs)
   val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   //withdrawTrigger
   val withdrawId: Short = 2
-  val withdrawPara: Seq[String] = Seq("recipient", "amount", "tokenId")
+  val withdrawPara: Seq[String] = Seq("recipient", "amount", "tokenId", "contractTokenId")
   val withdrawDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val withdrawOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
-    cdbvrGet ++ Array(tokenIdStateVar.index, 2.toByte),
+    cdbvrGet ++ Array(tokenIdStateVar.index, 3.toByte),
     assertEqual ++ Array(2.toByte, 3.toByte))
   val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawOpcs)
   val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)

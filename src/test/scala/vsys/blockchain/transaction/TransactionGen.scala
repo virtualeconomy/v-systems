@@ -5,8 +5,8 @@ import org.scalacheck.{Arbitrary, Gen}
 import vsys.account.PublicKeyAccount._
 import vsys.account._
 import vsys.blockchain.consensus.SPoSCalc._
-import vsys.blockchain.contract.{Contract, ContractPermitted, DataEntry, DataType => ContractDataType}
-import vsys.blockchain.database.{DataType, Entry}
+import vsys.blockchain.contract._
+import vsys.blockchain.database.{DataType => DatabaseDataType, Entry}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.database.DbPutTransaction
@@ -82,8 +82,8 @@ trait TransactionGen {
   val attachmentGen: Gen[Array[Byte]] = genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
-  } yield Entry.buildEntry(data, DataType.ByteArray).explicitGet()
-  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, ContractDataType.Address)))
+  } yield Entry.buildEntry(data, DatabaseDataType.ByteArray).explicitGet()
+  val dataEntryGen: Gen[Seq[DataEntry]] = accountGen.map(x => Seq(DataEntry(x.bytes.arr, DataType.Address)))
 
   val invalidUtf8StringGen: Gen[String] = for {
     data <- Gen.listOfN(2, invalidUtf8Char)
@@ -93,7 +93,9 @@ trait TransactionGen {
     length <- Gen.chooseNum(1, 1000)
     contentStr <- Gen.listOfN(length, validAlphabetGen)
   } yield contentStr.mkString
-  val contractGen: Gen[Contract] = ContractPermitted.contract
+
+  val contractGen: Gen[Contract] = Gen.oneOf(ContractPermitted.contract, ContractPermitted.contractWithoutSplit,
+    ContractDepositWithdraw.contract, ContractDepositWithdrawProductive.contract, ContractLock.contract)
 
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
 
@@ -160,8 +162,8 @@ trait TransactionGen {
     feeScale2: Short <- feeScaleGen
   } yield (lease, LeaseCancelTransaction.create(otherSender, lease.id, fee2, feeScale2, timestamp2).explicitGet())
 
-  val leaseGen: Gen[LeaseTransaction] = leaseAndCancelGen.map(_._1)
-  val leaseCancelGen: Gen[LeaseCancelTransaction] = leaseAndCancelGen.map(_._2)
+  val leaseGen: Gen[LeaseTransaction] = leaseAndCancelGen.map{ case (lease, _) => lease}
+  val leaseCancelGen: Gen[LeaseCancelTransaction] = leaseAndCancelGen.map{ case (_, cancel) => cancel}
 
   val mintingGen: Gen[MintingTransaction] = for {
     recipient: Address <- mintingAddressGen
