@@ -12,7 +12,7 @@ import scala.util.{Left, Right, Try}
 object TDBOpcDiff extends OpcDiffer {
 
   def newToken(context: ExecutionContext)
-              (max: DataEntry, unity: DataEntry, desc: DataEntry):Either[ValidationError, OpcDiff] = {
+              (max: DataEntry, unity: DataEntry, desc: DataEntry): Either[ValidationError, OpcDiff] = {
 
     if (max.dataType != DataType.Amount || unity.dataType != DataType.Amount || desc.dataType != DataType.ShortText) {
       Left(ContractDataTypeMismatch)
@@ -32,7 +32,7 @@ object TDBOpcDiff extends OpcDiffer {
           ByteStr(tokenMaxKey) -> max.bytes,
           ByteStr(tokenUnityKey) -> unity.bytes,
           ByteStr(tokenDescKey) -> desc.bytes),
-        contractTokens = Map(context.contractId.bytes -> 1),
+        contractTokens = Map(context.contractId.bytes -> (contractTokens + 1)),
         tokenAccountBalance = Map(ByteStr(tokenTotalKey) -> 0L)
       ))
     }

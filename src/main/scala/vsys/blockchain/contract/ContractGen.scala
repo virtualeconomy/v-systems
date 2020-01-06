@@ -15,6 +15,7 @@ object ContractGen {
   val loadSigner               = Array(2.toByte, 1.toByte)
   val loadCaller               = Array(2.toByte, 2.toByte)
   val loadTimestamp            = Array(2.toByte, 3.toByte)
+  val loadTokenNum             = Array(2.toByte, 4.toByte)
 
   val cdbvSet                  = Array(3.toByte, 1.toByte)
   val cdbvMapSet               = Array(3.toByte, 2.toByte)
@@ -23,6 +24,7 @@ object ContractGen {
 
   val cdbvrGet                 = Array(4.toByte, 1.toByte)
   val cdbvrMapGetOrDefault     = Array(4.toByte, 2.toByte)
+  val cdbvrConstantGet         = Array(4.toByte, 3.toByte)
 
   val tdbNewToken              = Array(5.toByte, 1.toByte)
   val tdbSplit                 = Array(5.toByte, 2.toByte)
