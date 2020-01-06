@@ -1,11 +1,11 @@
 package vsys.blockchain.state.opcdiffs
 
+import scorex.crypto.hash.Sha256
 import com.google.common.primitives.Longs
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
-import vsys.utils.crypto.hash.FastCryptographicHash
 
 import scala.util.{Left, Right, Try}
 
@@ -80,7 +80,7 @@ object AssertOpcDiff extends OpcDiffer {
     if (hashValue.dataType != DataType.ShortText || hashKey.dataType != DataType.ShortText)
       Left(ContractDataTypeMismatch)
     else {
-      val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
+      val hashResult = ByteStr(Sha256(hashKey.data))
       Either.cond(hashResult.equals(ByteStr(hashValue.data)), OpcDiff.empty, ContractInvalidHash)
     }
   }
