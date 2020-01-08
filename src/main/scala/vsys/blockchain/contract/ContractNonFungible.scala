@@ -5,7 +5,7 @@ import vsys.blockchain.contract.ContractGen._
 import vsys.utils.serialization.Deser
 
 object ContractNonFungible {
-  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
+  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, sendFunc, transferFunc, depositFunc, withdrawFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
@@ -61,42 +61,49 @@ object ContractNonFungible {
 
   //send
   val sendId: Short = 2
-  val sendPara: Seq[String] = Seq("recipient", "amount",
-    "caller")
-  val sendDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val sendPara: Seq[String] = Seq("recipient", "tokenIndex",
+    "caller" , "amount")
+  val sendDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Int32.id.toByte)
   val sendOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(2.toByte),
-    tdbaTransfer ++ Array(2.toByte, 0.toByte, 1.toByte))
+    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    tdbaTransfer ++ Array(2.toByte, 0.toByte, 3.toByte, 1.toByte))
   lazy val sendFunc: Array[Byte] = getFunctionBytes(sendId, publicFuncType, nonReturnType, sendDataType, sendOpcs)
   val sendFuncBytes: Array[Byte] = textualFunc("send", Seq(), sendPara)
 
   //transfer
   val transferId: Short = 3
-  val transferPara: Seq[String] = Seq("sender", "recipient", "amount")
-  val transferDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val transferPara: Seq[String] = Seq("sender", "recipient", "tokenIndex",
+    "amount")
+  val transferDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Int32.id.toByte)
   val transferOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
-    tdbaTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte))
   lazy val transferFunc: Array[Byte] = getFunctionBytes(transferId, publicFuncType, nonReturnType, transferDataType, transferOpcs)
   val transferFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
 
   //deposit
   val depositId: Short = 4
-  val depositPara: Seq[String] = Seq("sender", "smart", "amount")
-  val depositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Amount.id.toByte)
+  val depositPara: Seq[String] = Seq("sender", "smart", "tokenIndex",
+    "amount")
+  val depositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Int32.id.toByte)
   val depositOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
-    tdbaTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte))
   lazy val depositFunc: Array[Byte] = getFunctionBytes(depositId, publicFuncType, nonReturnType, depositDataType, depositOpcs)
   val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   //withdraw
   val withdrawId: Short = 5
-  val withdrawPara: Seq[String] = Seq("smart", "recipient", "amount")
-  val withdrawDataType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+  val withdrawPara: Seq[String] = Seq("smart", "recipient", "tokenIndex",
+    "amount")
+  val withdrawDataType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Int32.id.toByte)
   val withdrawOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(1.toByte),
-    tdbaTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte))
   lazy val withdrawFunc: Array[Byte] = getFunctionBytes(withdrawId, publicFuncType, nonReturnType, withdrawDataType, withdrawOpcs)
   val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 

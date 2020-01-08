@@ -32,7 +32,7 @@ object TDBOpcDiff extends OpcDiffer {
           ByteStr(tokenMaxKey) -> max.bytes,
           ByteStr(tokenUnityKey) -> unity.bytes,
           ByteStr(tokenDescKey) -> desc.bytes),
-        contractTokens = Map(context.contractId.bytes -> (contractTokens + 1)),
+        contractTokens = Map(context.contractId.bytes -> 1),
         tokenAccountBalance = Map(ByteStr(tokenTotalKey) -> 0L)
       ))
     }
