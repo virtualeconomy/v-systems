@@ -1,7 +1,7 @@
 package vsys.api.http.spos
 
 import org.scalatest.{FunSuite, Matchers}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsSuccess, Json}
 
 class SPOSRequestsTests extends FunSuite with Matchers {
 
@@ -16,9 +16,9 @@ class SPOSRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[ContendSlotsRequest].get
+    val req = Json.parse(json).validate[ContendSlotsRequest]
 
-    req shouldBe ContendSlotsRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0, 100000000000L, 100)
+    req shouldBe JsSuccess(ContendSlotsRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", 0, 100000000000L, 100))
   }
 
   test("ReleaseSlotsRequest") {
@@ -32,9 +32,9 @@ class SPOSRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[ReleaseSlotsRequest].get
+    val req = Json.parse(json).validate[ReleaseSlotsRequest]
 
-    req shouldBe ReleaseSlotsRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", 0, 100000000000L, 100)
+    req shouldBe JsSuccess(ReleaseSlotsRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", 0, 100000000000L, 100))
   }
 
   test("SignedContendSlotsRequest") {
@@ -50,10 +50,10 @@ class SPOSRequestsTests extends FunSuite with Matchers {
          }
       """
 
-    val req = Json.parse(json).validate[SignedContendSlotsRequest].get
+    val req = Json.parse(json).validate[SignedContendSlotsRequest]
 
-    req shouldBe SignedContendSlotsRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000000000L, 100, 0,
-      0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+    req shouldBe JsSuccess(SignedContendSlotsRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",100000000000L, 100, 0,
+      0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"))
   }
 
   test("SignedReleaseSlotsRequest") {
@@ -69,9 +69,9 @@ class SPOSRequestsTests extends FunSuite with Matchers {
          }
       """
 
-    val req = Json.parse(json).validate[SignedReleaseSlotsRequest].get
+    val req = Json.parse(json).validate[SignedReleaseSlotsRequest]
 
-    req shouldBe SignedReleaseSlotsRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
-      100000000000L, 100, 0, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+    req shouldBe JsSuccess(SignedReleaseSlotsRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+      100000000000L, 100, 0, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"))
   }
 }

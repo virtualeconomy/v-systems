@@ -45,30 +45,41 @@ class StateReaderTransactionQueryTest extends PropSpec with PropertyChecks with 
   private def txToProcessedTx(tx: Transaction): ProcessedTransaction =
     ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)
 
+  private def getSeqProcessedTx(inputs: (Int, Seq[(Int, ProcessedTransaction)])): Seq[ProcessedTransaction] = {
+    val (_, txs: Seq[(Int, ProcessedTransaction)]) = inputs
+    txs.map { case (_, tx) => tx }
+  }
+
   property("txTypeAccountTransactions working properly") {
-    forAll(preTxsAndNewTxs) { case (preTxs, newTxs, m, r1, r2) =>
+    forAll(preTxsAndNewTxs) { case (preTxs: Seq[Transaction], newTxs: Seq[Transaction], m, r1, r2) =>
       val Seq(processedPre: Seq[ProcessedTransaction], processedNew: Seq[ProcessedTransaction]) =
         Seq(preTxs, newTxs).map(_.map(txToProcessedTx))
       assertDiffAndState(Seq(TestBlock.create(preTxs)), TestBlock.create(newTxs)) { (blockDiff, newState) =>
 
-        newState.txTypeAccountTransactions(TransactionType.GenesisTransaction, m, 1, 0)._2.map{case (h,tx) => tx} shouldBe processedPre.take(1)
-        newState.txTypeAccountTransactions(TransactionType.GenesisTransaction, m, 10, 0)._2.map{case (h,tx) => tx} shouldBe processedPre.take(1)
-        (1 to 20).foreach(i => { newState.txTypeAccountTransactions(TransactionType.PaymentTransaction, m, i, 0)._2.map{case (h,tx) => tx} shouldBe processedNew.slice(20 - i, 20).reverse })
-        (20 to 39).foreach(i => { newState.txTypeAccountTransactions(TransactionType.PaymentTransaction, m, 1, i)._2.map{case (h,tx) => tx} shouldBe processedPre.slice(40 - i, 41 - i) })
-        (0 to 9).foreach(i => { newState.txTypeAccountTransactions(TransactionType.LeaseTransaction, m, 1, i)._2.map{case (h,tx) => tx} shouldBe processedNew.slice(49 - i, 50 - i) })
+        getSeqProcessedTx(newState.txTypeAccountTransactions(TransactionType.GenesisTransaction, m, 1, 0)) shouldBe processedPre.take(1)
+        getSeqProcessedTx(newState.txTypeAccountTransactions(TransactionType.GenesisTransaction, m, 10, 0)) shouldBe processedPre.take(1)
+        (1 to 20).foreach(i => {
+          getSeqProcessedTx(newState.txTypeAccountTransactions(TransactionType.PaymentTransaction, m, i, 0)) shouldBe processedNew.slice(20 - i, 20).reverse
+        })
+        (20 to 39).foreach(i => {
+          getSeqProcessedTx(newState.txTypeAccountTransactions(TransactionType.PaymentTransaction, m, 1, i)) shouldBe processedPre.slice(40 - i, 41 - i)
+        })
+        (0 to 9).foreach(i => {
+          getSeqProcessedTx(newState.txTypeAccountTransactions(TransactionType.LeaseTransaction, m, 1, i)) shouldBe processedNew.slice(49 - i, 50 - i)
+        })
         (21 to 30).foreach(i => {
-          newState.txTypeAccountTransactions(TransactionType.LeaseTransaction, m, i, 0)._2.map{case (h,tx) => tx} shouldBe (processedPre.slice(71 - i, 51) ++ processedNew.slice(20, 30) ++ processedNew.slice(40, 50)).reverse
+          getSeqProcessedTx(newState.txTypeAccountTransactions(TransactionType.LeaseTransaction, m, i, 0)) shouldBe (processedPre.slice(71 - i, 51) ++ processedNew.slice(20, 30) ++ processedNew.slice(40, 50)).reverse
         })
         
         newState.txTypeAccountTransactions(TransactionType.LeaseCancelTransaction, r1, 10, 5) match {
           case (c, txsWithHeight) => {
-            val txs = txsWithHeight.toSeq.map{_._2}
+            val txs = txsWithHeight.toSeq.map{ case (_, tx) => tx }
             Seq(c, txs) shouldBe Seq(20, (processedPre.slice(36, 41) ++ processedNew.slice(30, 35)).reverse)
           }
         }
         newState.txTypeAccountTransactions(TransactionType.LeaseCancelTransaction, r2, 10, 5) match {
           case (c, txsWithHeight) => {
-            val txs = txsWithHeight.toSeq.map{_._2}
+            val txs = txsWithHeight.toSeq.map{ case (_, tx) => tx }
             Seq(c, txs) shouldBe Seq(20, (processedPre.slice(56, 61) ++ processedNew.slice(50, 55)).reverse)
           }
         }

@@ -3,8 +3,7 @@ package vsys.blockchain.state.diffs
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.Diff
 import vsys.blockchain.transaction._
-import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
-import vsys.blockchain.transaction.contract.RegisterContractTransaction
+import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.blockchain.transaction.database.DbPutTransaction
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.spos.{ContendSlotsTransaction, ReleaseSlotsTransaction}

@@ -1,6 +1,6 @@
 package vsys.blockchain.transaction.contract
 
-import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 import vsys.account._
@@ -36,14 +36,7 @@ case class RegisterContractTransaction private(contract: Contract,
 
   override lazy val json: JsObject = jsonBase() ++ Json.obj(
     "contractId" ->  contractId.address,
-    "contract" -> Json.obj("languageCode" ->Deser.deserilizeString(contract.languageCode),
-      "languageVersion" -> Ints.fromByteArray(contract.languageVersion),
-      "triggers" -> contract.trigger.map(p => Base58.encode(p)),
-      "descriptors" -> contract.descriptor.map(p => Base58.encode(p)),
-      "stateVariables" -> contract.stateVar.map(p => Base58.encode(p)),
-      "textual" -> Json.obj("triggers" -> Base58.encode(contract.textual.head),
-        "descriptors" -> Base58.encode(contract.textual(1)),
-        "stateVariables" -> Base58.encode(contract.textual.last))),
+    "contract" -> contract.json,
     "initData" -> Base58.encode(DataEntry.serializeArrays(data)),
     "description" -> description,
     "timestamp" -> timestamp

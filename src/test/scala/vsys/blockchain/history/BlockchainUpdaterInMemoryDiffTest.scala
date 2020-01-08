@@ -1,6 +1,5 @@
 package vsys.blockchain.history
 
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import org.scalacheck.Gen
@@ -15,7 +14,7 @@ class BlockchainUpdaterInMemoryDiffTest extends PropSpec with PropertyChecks wit
     recipient <- accountGen
     //just because the block time is 0 in this test case. Need refactoring later.
     ts <- Gen.choose(1, MaxTimeTransactionOverBlockDiff.toNanos - 1)
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     payment: PaymentTransaction <- paymentGeneratorP(ts, master, recipient)
     payment2: PaymentTransaction <- paymentGeneratorP(ts, master, recipient)
   } yield (genesis, payment, payment2)

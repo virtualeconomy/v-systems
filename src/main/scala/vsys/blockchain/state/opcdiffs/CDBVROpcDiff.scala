@@ -3,7 +3,7 @@ package vsys.blockchain.state.opcdiffs
 import com.google.common.primitives.Longs
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractInvalidStateVariable, ContractLocalVariableIndexOutOfRange, ContractStateVariableNotDefined}
+import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.Contract.{checkStateMap, checkStateVar}
 
@@ -28,7 +28,7 @@ object CDBVROpcDiff extends OpcDiffer {
   def mapGet(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)))) {
-      Left(ValidationError.GenericError(s"Contract Invalid State Map"))
+      Left(ContractInvalidStateMap)
     } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
@@ -39,7 +39,7 @@ object CDBVROpcDiff extends OpcDiffer {
       } else {
         context.state.contractInfo(ByteStr(combinedKey)) match {
           case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-          case _ => Left(ContractStateVariableNotDefined)
+          case _ => Left(ContractStateMapNotDefined)
         }
       }
     }
@@ -48,7 +48,7 @@ object CDBVROpcDiff extends OpcDiffer {
   def mapGetOrDefault(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                                  pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)))) {
-      Left(ValidationError.GenericError(s"Contract Invalid State Map"))
+      Left(ContractInvalidStateMap)
     } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
@@ -62,7 +62,7 @@ object CDBVROpcDiff extends OpcDiffer {
           case _ => Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(0L), DataType.Timestamp)), 1))
         }
       } else {
-        Left(ContractStateVariableNotDefined)
+        Left(ContractStateMapNotDefined)
       }
     }
   }

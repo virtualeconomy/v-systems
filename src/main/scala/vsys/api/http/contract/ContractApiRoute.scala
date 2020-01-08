@@ -8,7 +8,7 @@ import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
-import vsys.account.{Account, Address, ContractAccount}
+import vsys.account.{Account, ContractAccount}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
@@ -31,7 +31,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData
   }
 
   @Path("/register")
@@ -86,6 +86,16 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     }
   }
 
+  @Path("data/{contractId}/{key}")
+  @ApiOperation(value = "Contract Data", notes = "Contract data by given contract ID and key (default numerical 0).", httpMethod = "Get", authorizations = Array(new Authorization("api_key")))
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "contractId", value = "Contract Account", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "key", value = "Key", required = true, dataType = "string", paramType = "path")
+  ))
+  def getContractData: Route = (get & withAuth & path("data" / Segment / Segment)) { (contractId, key) =>
+    complete(dataJson(contractId, key))
+  }
+
   @Path("/info/{contractId}")
   @ApiOperation(value = "Info", notes = "Get contract info associated with a contract id.", httpMethod = "GET")
   @ApiImplicitParams(Array(
@@ -102,7 +112,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           "contractId" -> contractIdStr,
           "transactionId" -> txId.base58,
           "type" -> typeFromBytes(ct.bytes),
-          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual.last)).zipped.map { (a, b) =>
+          "info" -> JsArray((ct.stateVar, paraFromBytes(ct.textual(2))).zipped.map { (a, b) =>
             (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
           "height" -> JsNumber(h))
         )
@@ -112,7 +122,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         "contractId" -> contractIdStr,
         "transactionId" -> "",
         "type" -> typeFromBytes(ContractSystem.contract.bytes),
-        "info" -> JsArray((ContractSystem.contract.stateVar, paraFromBytes(ContractSystem.contract.textual.last)).zipped.map { (a, b) =>
+        "info" -> JsArray((ContractSystem.contract.stateVar, paraFromBytes(ContractSystem.contract.textual(2))).zipped.map { (a, b) =>
           (state.contractInfo(ByteStr(id.arr ++ Array(a(0)))), b) }.filter(_._1.isDefined).map { a => a._1.get.json ++ Json.obj("name" -> a._2) }),
         "height" -> JsNumber(-1))
       )
@@ -181,9 +191,9 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
         val height = state.height
         state.tokenInfo(unityKey) match {
           case Some(x) => (for {
-            acc <- Address.fromString(address)
+            acc <- Account.fromString(address)
           } yield Json.obj(
-            "address" -> acc.address,
+            "address/contract" -> acc.bytes.base58,
             "height" -> height,
             "tokenId" -> tokenIdStr,
             "balance" -> state.tokenAccountBalance(ByteStr(tokenId.arr ++ acc.bytes.arr)),
@@ -192,6 +202,31 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           case _ => Left(TokenNotExists)
         }
       case _ => Left(InvalidAddress)
+    }
+  }
+
+  private def dataJson(contractIdStr: String, keyStr: String): Either[ApiError, JsObject] = {
+    ByteStr.decodeBase58(contractIdStr) match {
+      case Success(contractId) =>
+        ByteStr.decodeBase58(keyStr) match {
+          case Success(key) =>
+            val dataKey = ByteStr(contractId.arr ++ key.arr)
+            state.contractInfo(dataKey) match {
+              case Some(x) => Right(Json.obj("contractId" -> contractIdStr,
+                                      "key" -> keyStr,
+                                      "height" -> state.height,
+                                      "dbName" -> "contractInfo",
+                                      "dataType" -> x.json.value("type"),
+                                       "value" -> x.json.value("data")))
+              case _ => Right(Json.obj("contractId" -> contractIdStr,
+                                 "key" -> keyStr,
+                                 "height" -> state.height,
+                                 "dbName" -> "contractNumInfo",
+                                 "value" -> state.contractNumInfo(dataKey)))
+            }
+          case _ => Left(InvalidDbKey)
+        }
+      case _ => Left(InvalidContractAddress)
     }
   }
 
