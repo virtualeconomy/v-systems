@@ -72,7 +72,7 @@ object CDBVOpcDiff extends OpcDiffer {
   }
 
   private def checkCDBVBytes(bytes: Array[Byte], dLength: Int, stateVarOrMapSize: Int): Boolean =
-    (bytes.length == 2 || bytes.tail.tail.max < dLength) && bytes(1) < stateVarOrMapSize && bytes.tail.min >= 0
+    (bytes.length == 2 || (bytes.tail.max < dLength && bytes.tail.min >= 0)) && bytes(1) < stateVarOrMapSize && bytes(1) >=0
 
   override def parseBytesDf(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, OpcDiff] =
     (bytes.headOption.flatMap(f => Try(CDBVType(f)).toOption), bytes.length) match {
