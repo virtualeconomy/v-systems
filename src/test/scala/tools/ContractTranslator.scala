@@ -20,7 +20,7 @@ import vsys.utils.serialization.Deser
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractLock.contract.bytes.arr
+  val bytes = ContractPermitted.contract.bytes.arr
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
@@ -151,7 +151,7 @@ object ContractTranslator extends App {
   }
 
   def printSeqHex(data: Seq[Array[Byte]]): Unit = {
-    if (data.size > 0) {
+    if (data.nonEmpty) {
       List.range(0, data.size).foreach { i =>
         println("%02d".format(i) + " | " + convertBytesToHex(data(i)))
       }

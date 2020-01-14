@@ -1,10 +1,9 @@
 package vsys.blockchain.state.opcdiffs
 
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractLocalVariableIndexOutOfRange}
-
 
 import scala.util.{Left, Right, Try}
 
@@ -30,10 +29,20 @@ object LoadOpcDiff extends OpcDiffer {
     }
   }
 
+  def lastTokenIndex(context: ExecutionContext)(dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (pointer > dataStack.length || pointer < 0) {
+      Left(ContractLocalVariableIndexOutOfRange)
+    } else {
+      val contractTokens = context.state.contractTokens(context.contractId.bytes)
+      Right(dataStack.patch(pointer, Seq(DataEntry(Ints.toByteArray(contractTokens - 1), DataType.Int32)), 1))
+    }
+  }
+
   object LoadType extends Enumeration {
     val SignerLoad = Value(1)
     val CallerLoad = Value(2)
     val TimestampLoad = Value(3)
+    val lastTokenIndexLoad = Value(4)
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
@@ -41,6 +50,7 @@ object LoadOpcDiff extends OpcDiffer {
       case (Some(LoadType.SignerLoad), 2) => signer(context)(data, bytes.last)
       case (Some(LoadType.CallerLoad), 2) => caller(context)(data, bytes.last)
       case (Some(LoadType.TimestampLoad), 2) => timestamp(context)(data, bytes.last)
+      case (Some(LoadType.lastTokenIndexLoad), 2) => lastTokenIndex(context)(data, bytes.last)
       case _ => Left(ContractInvalidOPCData)
     }
 }

@@ -17,7 +17,8 @@ object ContractDepositWithdraw {
 
   //initTrigger
   val initId: Short = 0
-  val initPara: Seq[String] = Seq("signer")
+  val initPara: Seq[String] = Seq(
+    "signer")
   val initDataType: Array[Byte] = Array()
   val initOpcs: Seq[Array[Byte]] = Seq(
     loadSigner ++ Array(0.toByte),
