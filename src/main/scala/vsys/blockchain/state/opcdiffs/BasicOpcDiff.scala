@@ -40,6 +40,68 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
+  def minus(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                       pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (x.dataType == y.dataType) {
+      val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
+      supportList.find(a => a == x.dataType) match {
+        case Some(_) => {
+          if (x.dataType == DataType.Int32) {
+            val xValue = Ints.fromByteArray(x.data)
+            val yValue = Ints.fromByteArray(y.data)
+            if (Try(Math.subtractExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
+            else {
+              for {
+                zDataEntry <- DataEntry.create(Ints.toByteArray(xValue - yValue), x.dataType)
+              } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
+            }
+          } else {
+            val xValue = Longs.fromByteArray(x.data)
+            val yValue = Longs.fromByteArray(y.data)
+            if (Try(Math.subtractExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
+            else {
+              for {
+                zDataEntry <- DataEntry.create(Longs.toByteArray(xValue - yValue), x.dataType)
+              } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
+            }
+          }
+        }
+        case None => Left(ContractUnsupportedOPC)
+      }
+    } else Left(ContractDataTypeMismatch)
+  }
+
+  def multiply(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (x.dataType == y.dataType) {
+      val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
+      supportList.find(a => a == x.dataType) match {
+        case Some(_) => {
+          if (x.dataType == DataType.Int32) {
+            val xValue = Ints.fromByteArray(x.data)
+            val yValue = Ints.fromByteArray(y.data)
+            if (Try(Math.multiplyExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
+            else {
+              for {
+                zDataEntry <- DataEntry.create(Ints.toByteArray(xValue * yValue), x.dataType)
+              } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
+            }
+          } else {
+            val xValue = Longs.fromByteArray(x.data)
+            val yValue = Longs.fromByteArray(y.data)
+            if (Try(Math.multiplyExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
+            else {
+              for {
+                zDataEntry <- DataEntry.create(Longs.toByteArray(xValue * yValue), x.dataType)
+              } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
+            }
+          }
+        }
+        case None => Left(ContractUnsupportedOPC)
+      }
+    } else Left(ContractDataTypeMismatch)
+  }
+
   object BasicType extends Enumeration {
     val Add = Value(1)
   }
