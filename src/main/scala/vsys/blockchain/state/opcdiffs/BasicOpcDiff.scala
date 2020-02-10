@@ -165,6 +165,13 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
+  def concat(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                        pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    for {
+      res <- DataEntry.create(x.data ++ y.data, DataType.ShortText)
+    } yield dataStack.patch(pointer, Seq(res), 1)
+  }
+
   object BasicType extends Enumeration {
     val Add = Value(1)
   }
