@@ -7,7 +7,7 @@ import vsys.utils.serialization.Deser
 object ContractPaymentChannel {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger),
-    Seq(createFunc),
+    Seq(createFunc, updateExpiredTimeFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
         channelCapacityMap.arr, channelExecutedMap.arr, channelExpiredTimeMap.arr),
@@ -93,8 +93,25 @@ object ContractPaymentChannel {
   lazy val createFunc: Array[Byte] = getFunctionBytes(createId, publicFuncType, nonReturnType, createDataType, createFunctionOpcs)
   val createFuncBytes: Array[Byte] = textualFunc("create", Seq(), createPara)
 
+  // Update Expired Time Function
+  val updateExpiredTimeId: Short = 1
+  val updateExpiredTimePara: Seq[String] = Seq("channelId", "expiredTime",
+                                               "sender", "oldExpiredTime", "res")
+  val updateExpiredTimeDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
+  val updateExpiredTimeFunctionOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
+    assertCaller ++ Array(2.toByte),
+    cdbvrGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 3.toByte),
+    compareGreater ++ Array(1.toByte, 3.toByte, 4.toByte),
+    assertTrue ++ Array(4.toByte),
+    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 1.toByte)
+  )
+  lazy val updateExpiredTimeFunc: Array[Byte] = getFunctionBytes(updateExpiredTimeId, publicFuncType, nonReturnType,
+                                                                 updateExpiredTimeDataType, updateExpiredTimeFunctionOpcs)
+  val updateExpiredTimeFuncBytes: Array[Byte] = textualFunc("updateExpiredTime", Seq(), updateExpiredTimePara)
+
   // Gen Textual
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes, depositFuncBytes, withdrawFuncBytes))
-  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createFuncBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createFuncBytes, updateExpiredTimeFuncBytes))
 
 }
