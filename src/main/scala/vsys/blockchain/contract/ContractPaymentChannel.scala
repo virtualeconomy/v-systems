@@ -7,7 +7,7 @@ import vsys.utils.serialization.Deser
 object ContractPaymentChannel {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger),
-    Seq(createFunc, updateExpiredTimeFunc, chargeFunc),
+    Seq(createFunc, updateExpiredTimeFunc, chargeFunc, terminateFunc, executeWithdrawFunc, executePaymentFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
         channelCapacityMap.arr, channelExecutedMap.arr, channelExpiredTimeMap.arr),
@@ -42,7 +42,7 @@ object ContractPaymentChannel {
     cdbvSet ++ Array(tokenIdStateVar.index, 0.toByte)
   )
   lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
-  val initFuncBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
+  val initTextualBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Deposit Trigger
   val depositId: Short = 1
@@ -56,7 +56,7 @@ object ContractPaymentChannel {
     cdbvMapValAdd ++ Array(balanceMap.index, 0.toByte, 1.toByte)
   )
   lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
-  val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
+  val depositTextualBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   // WithDraw Trigger
   val withdrawId: Short = 2
@@ -70,7 +70,7 @@ object ContractPaymentChannel {
     cdbvMapValMinus ++ Array(balanceMap.index, 0.toByte, 1.toByte)
   )
   lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
-  val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
+  val withdrawTextualBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Create Function
   val createId: Short = 0
@@ -91,7 +91,7 @@ object ContractPaymentChannel {
     cdbvMapSet ++ Array(channelExpiredTimeMap.index, 5.toByte, 2.toByte)
   )
   lazy val createFunc: Array[Byte] = getFunctionBytes(createId, publicFuncType, nonReturnType, createDataType, createFunctionOpcs)
-  val createFuncBytes: Array[Byte] = textualFunc("create", Seq(), createPara)
+  val createTextualBytes: Array[Byte] = textualFunc("create", Seq(), createPara)
 
   // Update Expired Time Function
   val updateExpiredTimeId: Short = 1
@@ -108,7 +108,7 @@ object ContractPaymentChannel {
   )
   lazy val updateExpiredTimeFunc: Array[Byte] = getFunctionBytes(updateExpiredTimeId, publicFuncType, nonReturnType,
                                                                  updateExpiredTimeDataType, updateExpiredTimeFunctionOpcs)
-  val updateExpiredTimeFuncBytes: Array[Byte] = textualFunc("updateExpiredTime", Seq(), updateExpiredTimePara)
+  val updateExpiredTimeTextualBytes: Array[Byte] = textualFunc("updateExpiredTime", Seq(), updateExpiredTimePara)
 
   // Charge Function
   val chargeId: Short = 2
@@ -122,7 +122,7 @@ object ContractPaymentChannel {
     cdbvMapValAdd ++ Array(channelCapacityMap.index, 0.toByte, 1.toByte)
   )
   lazy val chargeFunc: Array[Byte] = getFunctionBytes(chargeId, publicFuncType, nonReturnType, chargeDataType, chargeFunctionOpcs)
-  val chargeFuncBytes: Array[Byte] = textualFunc("charge", Seq(), chargePara)
+  val chargeTextualBytes: Array[Byte] = textualFunc("charge", Seq(), chargePara)
 
   // Terminate Function
   val terminateId: Short = 3
@@ -140,7 +140,7 @@ object ContractPaymentChannel {
     cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 6.toByte)
   )
   lazy val terminateFunc: Array[Byte] = getFunctionBytes(terminateId, publicFuncType, nonReturnType, terminateDataType, terminateFunctionOpcs)
-  val terminateFuncBytes: Array[Byte] = textualFunc("terminate", Seq(), terminatePara)
+  val terminateTextualBytes: Array[Byte] = textualFunc("terminate", Seq(), terminatePara)
 
   // Execute Withdraw Function
   val executeWithdrawId: Short = 4
@@ -162,11 +162,41 @@ object ContractPaymentChannel {
   )
   lazy val executeWithdrawFunc: Array[Byte] = getFunctionBytes(executeWithdrawId, publicFuncType, nonReturnType,
                                                                executeWithdrawDataType, executeWithdrawFunctionOpcs)
-  val executeFuncBytes: Array[Byte] = textualFunc("executeWithdraw", Seq(), executeWithdrawPara)
-  
+  val executeWithdrawTextualBytes: Array[Byte] = textualFunc("executeWithdraw", Seq(), executeWithdrawPara)
+
+  // Execute Payment Function
+  val executePaymentId: Short = 5
+  val executePaymentPara: Seq[String] = Seq("channelId", "amount", "signature",
+                                             "recipient", "currentTime", "expiredTime", "res", "senderPublicKey", "toSign",
+                                             "currentExecuted", "resPayment", "currentTotal", "resCapacity")
+  val executePaymentDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
+  val executePaymentFunctionOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(channelRecipientMap.index, 0.toByte, 3.toByte),
+    assertCaller ++ Array(3.toByte),
+    loadTimestamp ++ Array(4.toByte),
+    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 5.toByte),
+    compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
+    assertTrue ++ Array(6.toByte),
+    cdbvrMapGet ++ Array(channelCreatorPublicKeyMap.index, 0.toByte, 7.toByte),
+    basicConcat ++ Array(0.toByte, 1.toByte, 8.toByte),
+    assertSig ++ Array(8.toByte, 2.toByte, 7.toByte),
+    cdbvrMapGetOrDefault ++ Array(channelExecutedMap.index, 0.toByte, 9.toByte),
+    compareGreater ++ Array(1.toByte, 9.toByte, 10.toByte),
+    assertTrue ++ Array(10.toByte),
+    cdbvrMapGetOrDefault ++ Array(channelCapacityMap.index, 0.toByte, 11.toByte),
+    compareGreater ++ Array(11.toByte, 1.toByte, 12.toByte),
+    assertTrue ++ Array(12.toByte),
+    basicMinus ++ Array(1.toByte, 9.toByte, 13.toByte),
+    cdbvMapValAdd ++ Array(channelExecutedMap.index, 0.toByte, 13.toByte),
+    cdbvMapValAdd ++ Array(balanceMap.index, 3.toByte, 13.toByte)
+  )
+  lazy val executePaymentFunc: Array[Byte] = getFunctionBytes(executePaymentId, publicFuncType, nonReturnType,
+                                                              executePaymentDataType, executePaymentFunctionOpcs)
+  val executePaymentTextualBytes: Array[Byte] = textualFunc("executePayment", Seq(), executePaymentPara)
 
   // Gen Textual
-  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes, depositFuncBytes, withdrawFuncBytes))
-  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createFuncBytes, updateExpiredTimeFuncBytes, chargeFuncBytes))
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initTextualBytes, depositTextualBytes, withdrawTextualBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createTextualBytes, updateExpiredTimeTextualBytes, chargeTextualBytes,
+                                                                      terminateTextualBytes, executeWithdrawTextualBytes, executePaymentTextualBytes))
 
 }
