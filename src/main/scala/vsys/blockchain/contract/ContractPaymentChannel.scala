@@ -101,7 +101,7 @@ object ContractPaymentChannel {
   val updateExpiredTimeFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
     assertCaller ++ Array(2.toByte),
-    cdbvrGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 3.toByte),
+    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 3.toByte),
     compareGreater ++ Array(1.toByte, 3.toByte, 4.toByte),
     assertTrue ++ Array(4.toByte),
     cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 1.toByte)
@@ -168,7 +168,7 @@ object ContractPaymentChannel {
   val executePaymentId: Short = 5
   val executePaymentPara: Seq[String] = Seq("channelId", "amount", "signature",
                                              "recipient", "currentTime", "expiredTime", "res", "senderPublicKey", "toSign",
-                                             "currentExecuted", "resPayment", "currentTotal", "resCapacity")
+                                             "currentExecuted", "resPayment", "currentTotal", "resCapacity", "toExecute")
   val executePaymentDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
   val executePaymentFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelRecipientMap.index, 0.toByte, 3.toByte),
