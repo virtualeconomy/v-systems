@@ -124,6 +124,23 @@ object ContractPaymentChannel {
   lazy val chargeFunc: Array[Byte] = getFunctionBytes(chargeId, publicFuncType, nonReturnType, chargeDataType, chargeFunctionOpcs)
   val chargeFuncBytes: Array[Byte] = textualFunc("charge", Seq(), chargePara)
 
+  val terminateId: Short = 3
+  val terminatePara: Seq[String] = Seq("channelId",
+                                       "sender", "currentTime", "gap", "time", "expiredTime", "terminateTime")
+  val terminateDataType: Array[Byte] = Array(DataType.ShortText.id.toByte)
+  val terminateFunctionOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    loadTimestamp ++ Array(2.toByte),
+    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(48 * 3600 * 1000000000L), DataType.Timestamp).bytes ++ Array(3.toByte),
+    basicAdd ++ Array(2.toByte, 3.toByte, 4.toByte),
+    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 5.toByte),
+    basicMin ++ Array(4.toByte, 5.toByte, 6.toByte),
+    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 6.toByte)
+  )
+  lazy val terminateFunc: Array[Byte] = getFunctionBytes(terminateId, publicFuncType, nonReturnType, terminateDataType, terminateFunctionOpcs)
+  val terminateFuncBytes: Array[Byte] = textualFunc("terminate", Seq(), terminatePara)
+
   // Gen Textual
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes, depositFuncBytes, withdrawFuncBytes))
   lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createFuncBytes, updateExpiredTimeFuncBytes, chargeFuncBytes))
