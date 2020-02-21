@@ -183,9 +183,9 @@ object BasicOpcDiff extends OpcDiffer {
     val Minus      = basicTypeVal(2, 4, (c, b, d) => minus(c)(d(b(1)), d(b(2)), d, b(3)))
     val Multiply   = basicTypeVal(3, 4, (c, b, d) => multiply(c)(d(b(1)), d(b(2)), d, b(3)))
     val Divide     = basicTypeVal(4, 4, (c, b, d) => divide(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Minimum    = basicTypeVal(4, 4, (c, b, d) => minimum(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Maximum    = basicTypeVal(4, 4, (c, b, d) => maximum(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Concat     = basicTypeVal(4, 4, (c, b, d) => concat(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Minimum    = basicTypeVal(5, 4, (c, b, d) => minimum(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Maximum    = basicTypeVal(6, 4, (c, b, d) => maximum(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Concat     = basicTypeVal(7, 4, (c, b, d) => concat(c)(d(b(1)), d(b(2)), d, b(3)))
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
