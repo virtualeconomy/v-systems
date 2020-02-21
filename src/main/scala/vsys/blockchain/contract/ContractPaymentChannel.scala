@@ -124,6 +124,7 @@ object ContractPaymentChannel {
   lazy val chargeFunc: Array[Byte] = getFunctionBytes(chargeId, publicFuncType, nonReturnType, chargeDataType, chargeFunctionOpcs)
   val chargeFuncBytes: Array[Byte] = textualFunc("charge", Seq(), chargePara)
 
+  // Terminate Function
   val terminateId: Short = 3
   val terminatePara: Seq[String] = Seq("channelId",
                                        "sender", "currentTime", "gap", "time", "expiredTime", "terminateTime")
@@ -140,6 +141,29 @@ object ContractPaymentChannel {
   )
   lazy val terminateFunc: Array[Byte] = getFunctionBytes(terminateId, publicFuncType, nonReturnType, terminateDataType, terminateFunctionOpcs)
   val terminateFuncBytes: Array[Byte] = textualFunc("terminate", Seq(), terminatePara)
+
+  // Execute Withdraw Function
+  val executeWithdrawId: Short = 4
+  val executeWithdrawPara: Seq[String] = Seq("channelId",
+                                             "sender", "currentTime", "expiredTime", "res", "currentTotal", "currentExecuted", "toWithdraw")
+  val executeWithdrawDataType: Array[Byte] = Array(DataType.ShortText.id.toByte)
+  val executeWithdrawFunctionOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    loadTimestamp ++ Array(2.toByte),
+    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 3.toByte),
+    compareGreater ++ Array(2.toByte, 3.toByte, 4.toByte),
+    assertTrue ++ Array(4.toByte),
+    cdbvrMapGetOrDefault ++ Array(channelCapacityMap.index, 0.toByte, 5.toByte),
+    cdbvrMapGetOrDefault ++ Array(channelExecutedMap.index, 0.toByte, 6.toByte),
+    basicMinus ++ Array(5.toByte, 6.toByte, 7.toByte),
+    cdbvMapValAdd ++ Array(channelExecutedMap.index, 0.toByte, 7.toByte),
+    cdbvMapValAdd ++ Array(balanceMap.index, 1.toByte, 7.toByte)
+  )
+  lazy val executeWithdrawFunc: Array[Byte] = getFunctionBytes(executeWithdrawId, publicFuncType, nonReturnType,
+                                                               executeWithdrawDataType, executeWithdrawFunctionOpcs)
+  val executeFuncBytes: Array[Byte] = textualFunc("executeWithdraw", Seq(), executeWithdrawPara)
+  
 
   // Gen Textual
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes, depositFuncBytes, withdrawFuncBytes))
