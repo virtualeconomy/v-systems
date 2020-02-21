@@ -5,7 +5,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
-import scala.util.{Left, Try}
+import scala.util.{Left, Right, Try}
 
 object BasicOpcDiff extends OpcDiffer {
 
@@ -100,6 +100,76 @@ object BasicOpcDiff extends OpcDiffer {
         case None => Left(ContractUnsupportedOPC)
       }
     } else Left(ContractDataTypeMismatch)
+  }
+
+  def divide(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                        pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (x.dataType == y.dataType) {
+      val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
+      supportList.find(a => a == x.dataType) match {
+        case Some(_) => {
+          if (x.dataType == DataType.Int32) {
+            val xValue = Ints.fromByteArray(x.data)
+            val yValue = Ints.fromByteArray(y.data)
+            if (yValue == 0) Left(ValidationError.OverflowError)
+            else {
+              for {
+                zDataEntry <- DataEntry.create(Ints.toByteArray(xValue / yValue), x.dataType)
+              } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
+            }
+          } else {
+            val xValue = Longs.fromByteArray(x.data)
+            val yValue = Longs.fromByteArray(y.data)
+            if (yValue == 0) Left(ValidationError.OverflowError)
+            else {
+              for {
+                zDataEntry <- DataEntry.create(Longs.toByteArray(xValue / yValue), x.dataType)
+              } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
+            }
+          }
+        }
+        case None => Left(ContractUnsupportedOPC)
+      }
+    } else Left(ContractDataTypeMismatch)
+  }
+
+  def minimum(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (x.dataType == y.dataType) {
+      val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
+      supportList.find(a => a == x.dataType) match {
+        case Some(_) => {
+          val xValue = if (x.dataType == DataType.Int32) Ints.fromByteArray(x.data) else Longs.fromByteArray(x.data)
+          val yValue = if (y.dataType == DataType.Int32) Ints.fromByteArray(y.data) else Longs.fromByteArray(y.data)
+          if (xValue > yValue) Right(dataStack.patch(pointer, Seq(y), 1))
+          else Right(dataStack.patch(pointer, Seq(x), 1))
+        }
+        case None => Left(ContractUnsupportedOPC)
+      }
+    } else Left(ContractDataTypeMismatch)
+  }
+
+  def maximum(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    if (x.dataType == y.dataType) {
+      val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
+      supportList.find(a => a == x.dataType) match {
+        case Some(_) => {
+          val xValue = if (x.dataType == DataType.Int32) Ints.fromByteArray(x.data) else Longs.fromByteArray(x.data)
+          val yValue = if (y.dataType == DataType.Int32) Ints.fromByteArray(y.data) else Longs.fromByteArray(y.data)
+          if (xValue > yValue) Right(dataStack.patch(pointer, Seq(x), 1))
+          else Right(dataStack.patch(pointer, Seq(y), 1))
+        }
+        case None => Left(ContractUnsupportedOPC)
+      }
+    } else Left(ContractDataTypeMismatch)
+  }
+
+  def concat(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+                                        pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    for {
+      res <- DataEntry.create(x.data ++ y.data, DataType.ShortText)
+    } yield dataStack.patch(pointer, Seq(res), 1)
   }
 
   object BasicType extends Enumeration {

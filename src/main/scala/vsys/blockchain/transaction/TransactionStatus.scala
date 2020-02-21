@@ -29,4 +29,5 @@ object TransactionStatus extends Enumeration {
   val ContractInvalidStateMap = Value(26)
   val ContractStateMapNotDefined = Value(27)
   val ContractMapValueInsufficient = Value(28)
+  val ContractInvalidSignature = Value(29)
 }

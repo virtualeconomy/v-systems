@@ -6,6 +6,7 @@ import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.utils.crypto.EllipticCurveImpl
 
 import scala.util.{Left, Right, Try}
 
@@ -82,6 +83,14 @@ object AssertOpcDiff extends OpcDiffer {
     else {
       val hashResult = ByteStr(Sha256(hashKey.data))
       Either.cond(hashResult.equals(ByteStr(hashValue.data)), OpcDiff.empty, ContractInvalidHash)
+    }
+  }
+
+  def verifySig(toSign: DataEntry, sig: DataEntry, pub: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (toSign.dataType != DataType.ShortText || sig.dataType != DataType.ShortText || pub.dataType != DataType.ShortText)
+      Left(ContractDataTypeMismatch)
+    else {
+      Either.cond(EllipticCurveImpl.verify(sig.data, toSign.data, pub.data), OpcDiff.empty, ContractInvalidSignature)
     }
   }
 
