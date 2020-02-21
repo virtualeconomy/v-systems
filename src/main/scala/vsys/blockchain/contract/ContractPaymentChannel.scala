@@ -7,7 +7,7 @@ import vsys.utils.serialization.Deser
 object ContractPaymentChannel {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger),
-    Seq(createFunc, updateExpiredTimeFunc),
+    Seq(createFunc, updateExpiredTimeFunc, chargeFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
         channelCapacityMap.arr, channelExecutedMap.arr, channelExpiredTimeMap.arr),
@@ -110,8 +110,22 @@ object ContractPaymentChannel {
                                                                  updateExpiredTimeDataType, updateExpiredTimeFunctionOpcs)
   val updateExpiredTimeFuncBytes: Array[Byte] = textualFunc("updateExpiredTime", Seq(), updateExpiredTimePara)
 
+  // Charge Function
+  val chargeId: Short = 2
+  val chargePara: Seq[String] = Seq("channelId", "amount",
+                                    "sender")
+  val chargeDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
+  val chargeFunctionOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
+    assertCaller ++ Array(2.toByte),
+    cdbvMapValMinus ++ Array(balanceMap.index, 2.toByte, 1.toByte),
+    cdbvMapValAdd ++ Array(channelCapacityMap.index, 0.toByte, 1.toByte)
+  )
+  lazy val chargeFunc: Array[Byte] = getFunctionBytes(chargeId, publicFuncType, nonReturnType, chargeDataType, chargeFunctionOpcs)
+  val chargeFuncBytes: Array[Byte] = textualFunc("charge", Seq(), chargePara)
+
   // Gen Textual
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes, depositFuncBytes, withdrawFuncBytes))
-  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createFuncBytes, updateExpiredTimeFuncBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(createFuncBytes, updateExpiredTimeFuncBytes, chargeFuncBytes))
 
 }
