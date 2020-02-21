@@ -101,14 +101,16 @@ object AssertOpcDiff extends OpcDiffer {
       differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, OpcDiff])
     extends Val(assertType) { def *(n: Int): Int = n * assertType }
 
-    val GteqZeroAssert       = AssertTypeVal(1, 1, (c, b, d) => gtEq0(d(b(1))))
-    val LteqAssert           = AssertTypeVal(2, 2, (c, b, d) => ltEq(d(b(1)), d(b(2))))
-    val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d) => ltInt64(d(b(1))))
-    val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d) => gt0(d(b(1))))
-    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equal(d(b(1)), d(b(2))))
-    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => isCallerOrigin(c)(d(b(1))))
-    val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d) => isSignerOrigin(c)(d(b(1))))
-    val BooleanTrueAssert    = AssertTypeVal(8, 1, (c, b, d) => assertTrue(d(b(1))))
+    val GteqZeroAssert       = AssertTypeVal(1, 1, (c, b, d)  => gtEq0(d(b(1))))
+    val LteqAssert           = AssertTypeVal(2, 2, (c, b, d)  => ltEq(d(b(1)), d(b(2))))
+    val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d)  => ltInt64(d(b(1))))
+    val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d)  => gt0(d(b(1))))
+    val EqAssert             = AssertTypeVal(5, 2, (c, b, d)  => equal(d(b(1)), d(b(2))))
+    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d)  => isCallerOrigin(c)(d(b(1))))
+    val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d)  => isSignerOrigin(c)(d(b(1))))
+    val BooleanTrueAssert    = AssertTypeVal(8, 1, (c, b, d)  => assertTrue(d(b(1))))
+    val HashCheckAssert      = AssertTypeVal(9, 1, (c, b, d)  => checkHash(d(b(1)), d(b(2))))
+    val SigVerifyAssert      = AssertTypeVal(10, 1, (c, b, d) => verifySig(d(b(1)), d(b(2)), d(b(3))))
 
     def fromByte(b: Byte): Option[AssertTypeVal] = Try(AssertType(b).asInstanceOf[AssertTypeVal]).toOption
   }
