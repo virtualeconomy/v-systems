@@ -21,7 +21,7 @@ object ContractPaymentChannel {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
-  val stateMapName = List("balance", "channelCreator", "channelCreatorPublicKey", "channelRecipient", "channelCapacity", "channelExecuted", "channelExpiredTime")
+  val stateMapName = List("balance", "channelCreator", "channelCreatorPublicKey", "channelRecipient", "channelCapacity", "channelExecuted", "channelExpiredTime", "channelStatus")
   val balanceMap: StateMap                   = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val channelCreatorMap: StateMap            = StateMap(1.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
   val channelCreatorPublicKeyMap: StateMap   = StateMap(2.toByte, DataType.ShortText.id.toByte, DataType.PublicKey.id.toByte)
@@ -29,6 +29,7 @@ object ContractPaymentChannel {
   val channelCapacityMap: StateMap           = StateMap(4.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
   val channelExecutedMap: StateMap           = StateMap(5.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
   val channelExpiredTimeMap: StateMap        = StateMap(6.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
+  val channelStatusMap: StateMap             = StateMap(7.toByte, DataType.ShortText.id.toByte, DataType.Boolean.id.toByte)
   lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
 
   // Initialization Trigger
@@ -75,7 +76,7 @@ object ContractPaymentChannel {
   // Create Function
   val createId: Short = 0
   val createPara: Seq[String] = Seq("recipient", "amount", "expiredTime",
-                                    "caller", "callerPublicKey", "channelId", "valueZero")
+                                    "caller", "callerPublicKey", "channelId", "valueZero", "valueTrue")
   val createDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
   val createFunctionOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(3.toByte),
@@ -88,7 +89,9 @@ object ContractPaymentChannel {
     cdbvMapSet ++ Array(channelRecipientMap.index, 5.toByte, 0.toByte),
     cdbvMapValAdd ++ Array(channelCapacityMap.index, 5.toByte, 1.toByte),
     cdbvMapValAdd ++ Array(channelExecutedMap.index, 5.toByte, 6.toByte),
-    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 5.toByte, 2.toByte)
+    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 5.toByte, 2.toByte),
+    cdbvrConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
+    cdbvMapSet ++ Array(channelStatusMap.index, 5.toByte, 7.toByte)
   )
   lazy val createFunc: Array[Byte] = getFunctionBytes(createId, publicFuncType, nonReturnType, createDataType, createFunctionOpcs)
   val createTextualBytes: Array[Byte] = textualFunc("create", Seq(), createPara)
@@ -96,14 +99,16 @@ object ContractPaymentChannel {
   // Update Expired Time Function
   val updateExpiredTimeId: Short = 1
   val updateExpiredTimePara: Seq[String] = Seq("channelId", "expiredTime",
-                                               "sender", "oldExpiredTime", "res")
+                                               "sender", "status", "oldExpiredTime", "res")
   val updateExpiredTimeDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
   val updateExpiredTimeFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
     assertCaller ++ Array(2.toByte),
-    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 3.toByte),
-    compareGreater ++ Array(1.toByte, 3.toByte, 4.toByte),
-    assertTrue ++ Array(4.toByte),
+    cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 3.toByte),
+    assertTrue ++ Array(3.toByte),
+    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 4.toByte),
+    compareGreater ++ Array(1.toByte, 4.toByte, 5.toByte),
+    assertTrue ++ Array(5.toByte),
     cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 1.toByte)
   )
   lazy val updateExpiredTimeFunc: Array[Byte] = getFunctionBytes(updateExpiredTimeId, publicFuncType, nonReturnType,
@@ -127,7 +132,7 @@ object ContractPaymentChannel {
   // Terminate Function
   val terminateId: Short = 3
   val terminatePara: Seq[String] = Seq("channelId",
-                                       "sender", "currentTime", "gap", "time", "expiredTime", "terminateTime")
+                                       "sender", "currentTime", "gap", "time", "expiredTime", "terminateTime", "valueFalse")
   val terminateDataType: Array[Byte] = Array(DataType.ShortText.id.toByte)
   val terminateFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
@@ -137,7 +142,9 @@ object ContractPaymentChannel {
     basicAdd ++ Array(2.toByte, 3.toByte, 4.toByte),
     cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 5.toByte),
     basicMin ++ Array(4.toByte, 5.toByte, 6.toByte),
-    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 6.toByte)
+    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 6.toByte),
+    cdbvrConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
+    cdbvMapSet ++ Array(channelStatusMap.index, 0.toByte, 7.toByte)
   )
   lazy val terminateFunc: Array[Byte] = getFunctionBytes(terminateId, publicFuncType, nonReturnType, terminateDataType, terminateFunctionOpcs)
   val terminateTextualBytes: Array[Byte] = textualFunc("terminate", Seq(), terminatePara)
