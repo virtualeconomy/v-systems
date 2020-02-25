@@ -25,10 +25,10 @@ object ContractPaymentChannel {
   val balanceMap: StateMap                   = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val channelCreatorMap: StateMap            = StateMap(1.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
   val channelCreatorPublicKeyMap: StateMap   = StateMap(2.toByte, DataType.ShortText.id.toByte, DataType.PublicKey.id.toByte)
-  val channelRecipientMap: StateMap          = StateMap(2.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
-  val channelCapacityMap: StateMap           = StateMap(3.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
-  val channelExecutedMap: StateMap           = StateMap(4.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
-  val channelExpiredTimeMap: StateMap        = StateMap(5.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
+  val channelRecipientMap: StateMap          = StateMap(3.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
+  val channelCapacityMap: StateMap           = StateMap(4.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
+  val channelExecutedMap: StateMap           = StateMap(5.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
+  val channelExpiredTimeMap: StateMap        = StateMap(6.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
   lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
 
   // Initialization Trigger
