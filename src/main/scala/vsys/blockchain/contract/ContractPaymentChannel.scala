@@ -10,7 +10,7 @@ object ContractPaymentChannel {
     Seq(createFunc, updateExpiredTimeFunc, chargeFunc, terminateFunc, executeWithdrawFunc, executePaymentFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
-        channelCapacityMap.arr, channelExecutedMap.arr, channelExpiredTimeMap.arr),
+        channelCapacityMap.arr, channelExecutedMap.arr, channelExpiredTimeMap.arr, channelStatusMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
   ).right.get
 
