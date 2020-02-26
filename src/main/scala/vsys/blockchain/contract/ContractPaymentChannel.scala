@@ -104,7 +104,7 @@ object ContractPaymentChannel {
   val updateExpiredTimeFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
     assertCaller ++ Array(2.toByte),
-    cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 3.toByte),
+    cdbvrMapGet ++ Array(channelStatusMap.index, 0.toByte, 3.toByte),
     assertTrue ++ Array(3.toByte),
     cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 4.toByte),
     compareGreater ++ Array(1.toByte, 4.toByte, 5.toByte),
