@@ -268,6 +268,7 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == AssertType.EqAssert.id => "operation.check.assertEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == AssertType.BooleanTrueAssert.id => "operation.check.assertTrue(" + nameList(data(2)) + ")"
           case opcType: Byte if opcType == AssertType.SigVerifyAssert.id => "operation.check.assertSignature(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == AssertType.HashCheckAssert.id => "operation.check.assertHash(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
