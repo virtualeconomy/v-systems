@@ -41,14 +41,9 @@ object CDBVROpcDiff extends OpcDiffer {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val combinedKey = context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes
-      if (DataType(stateMap(2)) == DataType.Amount) { // amount balance map
-        val getVal = context.state.contractNumInfo(ByteStr(combinedKey))
-        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType(stateMap(2)))), 1))
-      } else {
-        context.state.contractInfo(ByteStr(combinedKey)) match {
-          case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-          case _ => Left(ContractStateMapNotDefined)
-        }
+      context.state.contractInfo(ByteStr(combinedKey)) match {
+        case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
+        case _ => Left(ContractStateMapNotDefined)
       }
     }
   }
@@ -76,7 +71,7 @@ object CDBVROpcDiff extends OpcDiffer {
   }
 
   object CDBVRType extends Enumeration(1) {
-    val GetCDBVR, MapGetOrDefaultCDBVR, ConstantGetCDBVR= Value
+    val GetCDBVR, MapGetOrDefaultCDBVR, ConstantGetCDBVR, MapGetCDVVR = Value
   }
 
   private def checkCDBVRIndex(bytes: Array[Byte], id: Int, stateVarOrMapSize: Int): Boolean =
@@ -89,6 +84,8 @@ object CDBVROpcDiff extends OpcDiffer {
       case (Some(CDBVRType.MapGetOrDefaultCDBVR), 4) if checkCDBVRIndex(bytes, 1, context.stateMap.length) && bytes(2) >=0 &&
         bytes(2) <= data.length => mapGetOrDefault(context)(context.stateMap(bytes(1)), data(bytes(2)), data, bytes(3))
       case (Some(CDBVRType.ConstantGetCDBVR), l) if l > 2 => constantGet(context)(bytes.slice(1, l-1), data, bytes(l-1))
+      case (Some(CDBVRType.MapGetCDVVR), 4) if checkCDBVRIndex(bytes, 1, context.stateMap.length) && bytes(2) >=0 &&
+        bytes(2) <= data.length => mapGet(context)(context.stateMap(bytes(1)), data(bytes(2)), data, bytes(3))
       case _ => Left(ContractInvalidOPCData)
     }
 }
