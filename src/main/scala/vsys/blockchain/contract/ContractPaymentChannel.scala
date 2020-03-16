@@ -23,13 +23,13 @@ object ContractPaymentChannel {
   // State Map
   val stateMapName = List("balance", "channelCreator", "channelCreatorPublicKey", "channelRecipient", "channelCapacity", "channelExecuted", "channelExpiredTime", "channelStatus")
   val balanceMap: StateMap                   = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
-  val channelCreatorMap: StateMap            = StateMap(1.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
-  val channelCreatorPublicKeyMap: StateMap   = StateMap(2.toByte, DataType.ShortText.id.toByte, DataType.PublicKey.id.toByte)
-  val channelRecipientMap: StateMap          = StateMap(3.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
-  val channelCapacityMap: StateMap           = StateMap(4.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
-  val channelExecutedMap: StateMap           = StateMap(5.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
-  val channelExpiredTimeMap: StateMap        = StateMap(6.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
-  val channelStatusMap: StateMap             = StateMap(7.toByte, DataType.ShortText.id.toByte, DataType.Boolean.id.toByte)
+  val channelCreatorMap: StateMap            = StateMap(1.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
+  val channelCreatorPublicKeyMap: StateMap   = StateMap(2.toByte, DataType.ShortBytes.id.toByte, DataType.PublicKey.id.toByte)
+  val channelRecipientMap: StateMap          = StateMap(3.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
+  val channelCapacityMap: StateMap           = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val channelExecutedMap: StateMap           = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val channelExpiredTimeMap: StateMap        = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
+  val channelStatusMap: StateMap             = StateMap(7.toByte, DataType.ShortBytes.id.toByte, DataType.Boolean.id.toByte)
   lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
 
   // Initialization Trigger
@@ -100,7 +100,7 @@ object ContractPaymentChannel {
   val updateExpiredTimeId: Short = 1
   val updateExpiredTimePara: Seq[String] = Seq("channelId", "expiredTime",
                                                "sender", "status", "oldExpiredTime", "res")
-  val updateExpiredTimeDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
+  val updateExpiredTimeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
   val updateExpiredTimeFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
     assertCaller ++ Array(2.toByte),
@@ -119,7 +119,7 @@ object ContractPaymentChannel {
   val chargeId: Short = 2
   val chargePara: Seq[String] = Seq("channelId", "amount",
                                     "sender")
-  val chargeDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
+  val chargeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
   val chargeFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
     assertCaller ++ Array(2.toByte),
@@ -133,7 +133,7 @@ object ContractPaymentChannel {
   val terminateId: Short = 3
   val terminatePara: Seq[String] = Seq("channelId",
                                        "sender", "currentTime", "gap", "time", "expiredTime", "terminateTime", "valueFalse")
-  val terminateDataType: Array[Byte] = Array(DataType.ShortText.id.toByte)
+  val terminateDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val terminateFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
@@ -153,7 +153,7 @@ object ContractPaymentChannel {
   val executeWithdrawId: Short = 4
   val executeWithdrawPara: Seq[String] = Seq("channelId",
                                              "sender", "currentTime", "expiredTime", "res", "currentTotal", "currentExecuted", "toWithdraw")
-  val executeWithdrawDataType: Array[Byte] = Array(DataType.ShortText.id.toByte)
+  val executeWithdrawDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val executeWithdrawFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
@@ -176,7 +176,7 @@ object ContractPaymentChannel {
   val executePaymentPara: Seq[String] = Seq("channelId", "amount", "signature",
                                              "recipient", "currentTime", "expiredTime", "res", "senderPublicKey", "toSign",
                                              "currentExecuted", "resPayment", "currentTotal", "resCapacity", "toExecute")
-  val executePaymentDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
+  val executePaymentDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.ShortBytes.id.toByte)
   val executePaymentFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(channelRecipientMap.index, 0.toByte, 3.toByte),
     assertCaller ++ Array(3.toByte),
