@@ -43,7 +43,7 @@ object LoadOpcDiff extends OpcDiffer {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val txId = context.transaction.id
-      Right(dataStack.patch(pointer, Seq(DataEntry(txId.arr, DataType.ShortText)), 1))
+      Right(dataStack.patch(pointer, Seq(DataEntry(txId.arr, DataType.ShortBytes)), 1))
     }
   }
 
