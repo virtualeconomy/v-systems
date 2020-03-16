@@ -87,7 +87,7 @@ object AssertOpcDiff extends OpcDiffer {
   }
 
   def verifySig(toSign: DataEntry, sig: DataEntry, pub: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (toSign.dataType != DataType.ShortText || sig.dataType != DataType.ShortText || pub.dataType != DataType.ShortText)
+    if (toSign.dataType != DataType.ShortBytes || sig.dataType != DataType.ShortBytes || pub.dataType != DataType.PublicKey)
       Left(ContractDataTypeMismatch)
     else {
       Either.cond(EllipticCurveImpl.verify(sig.data, toSign.data, pub.data), OpcDiff.empty, ContractInvalidSignature)

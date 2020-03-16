@@ -16,8 +16,9 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.fromByte(8) should be (Some(DataType.TokenId))
     DataType.fromByte(9) should be (Some(DataType.Timestamp))
     DataType.fromByte(10) should be (Some(DataType.Boolean))
+    DataType.fromByte(11) should be (Some(DataType.ShortBytes))
     DataType.fromByte(0) should be (None)
-    DataType.fromByte(11) should be (None)
+    DataType.fromByte(12) should be (None)
   }
 
   property("convert DataType to byte") {
@@ -31,5 +32,6 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.TokenId.id should be (8)
     DataType.Timestamp.id should be (9)
     DataType.Boolean.id should be (10)
+    DataType.ShortBytes.id should be (11)
   }
 }

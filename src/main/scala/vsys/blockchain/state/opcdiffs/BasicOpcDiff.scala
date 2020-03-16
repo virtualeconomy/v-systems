@@ -168,7 +168,7 @@ object BasicOpcDiff extends OpcDiffer {
   def concat(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     for {
-      res <- DataEntry.create(x.data ++ y.data, DataType.ShortText)
+      res <- DataEntry.create(x.data ++ y.data, DataType.ShortBytes)
     } yield dataStack.patch(pointer, Seq(res), 1)
   }
 
