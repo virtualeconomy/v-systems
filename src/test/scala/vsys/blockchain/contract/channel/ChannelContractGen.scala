@@ -27,23 +27,23 @@ trait ChannelContractGen {
   } yield Seq(reci, am, ts)
 
   def updateExpiredTimeFunctionDataStackGen(channelId: String, expiredTime: Long): Gen[Seq[DataEntry]] = for {
-    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortText))
+    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortBytes))
     ts <- Gen.const(DataEntry(Longs.toByteArray(expiredTime), DataType.Timestamp))
   } yield Seq(cId, ts)
 
   def chargeFunctionDataStackGen(channelId: String, amount: Long): Gen[Seq[DataEntry]] = for {
-    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortText))
+    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortBytes))
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
   } yield Seq(cId, am)
 
   def terminateFunctionDataStackGen(channelId: String): Gen[Seq[DataEntry]] = for {
-    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortText))
+    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortBytes))
   } yield Seq(cId)
 
   def executePaymentFunctionDataStackGen(channelId: String, amount: Long, signature: String): Gen[Seq[DataEntry]] = for {
-    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortText))
+    cId <- Gen.const(DataEntry(channelId.getBytes(), DataType.ShortBytes))
     am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
-    sig <- Gen.const(DataEntry(signature.getBytes(), DataType.ShortText))
+    sig <- Gen.const(DataEntry(signature.getBytes(), DataType.ShortBytes))
   } yield Seq(cId, am, sig)
 
   def paymenChannelContractGen(): Gen[Contract] =
