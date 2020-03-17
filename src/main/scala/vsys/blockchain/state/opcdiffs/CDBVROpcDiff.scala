@@ -25,14 +25,6 @@ object CDBVROpcDiff extends OpcDiffer {
     }
   }
 
-  def constantGet(context: ExecutionContext)(constant: Array[Byte], dataStack: Seq[DataEntry],
-                                             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    DataEntry.fromBytes(constant) match {
-      case Right(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-      case Left(e) => Left(e)
-    }
-  }
-
   def mapGet(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)))) {
@@ -71,7 +63,7 @@ object CDBVROpcDiff extends OpcDiffer {
   }
 
   object CDBVRType extends Enumeration(1) {
-    val GetCDBVR, MapGetOrDefaultCDBVR, ConstantGetCDBVR, MapGetCDVVR = Value
+    val GetCDBVR, MapGetOrDefaultCDBVR, MapGetCDVVR = Value
   }
 
   private def checkCDBVRIndex(bytes: Array[Byte], id: Int, stateVarOrMapSize: Int): Boolean =
@@ -83,7 +75,6 @@ object CDBVROpcDiff extends OpcDiffer {
         get(context)(context.stateVar(bytes(1)), data, bytes(2))
       case (Some(CDBVRType.MapGetOrDefaultCDBVR), 4) if checkCDBVRIndex(bytes, 1, context.stateMap.length) && bytes(2) >=0 &&
         bytes(2) <= data.length => mapGetOrDefault(context)(context.stateMap(bytes(1)), data(bytes(2)), data, bytes(3))
-      case (Some(CDBVRType.ConstantGetCDBVR), l) if l > 2 => constantGet(context)(bytes.slice(1, l-1), data, bytes(l-1))
       case (Some(CDBVRType.MapGetCDVVR), 4) if checkCDBVRIndex(bytes, 1, context.stateMap.length) && bytes(2) >=0 &&
         bytes(2) <= data.length => mapGet(context)(context.stateMap(bytes(1)), data(bytes(2)), data, bytes(3))
       case _ => Left(ContractInvalidOPCData)

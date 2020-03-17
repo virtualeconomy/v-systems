@@ -172,6 +172,14 @@ object BasicOpcDiff extends OpcDiffer {
     } yield dataStack.patch(pointer, Seq(res), 1)
   }
 
+  def constantGet(context: ExecutionContext)(constant: Array[Byte], dataStack: Seq[DataEntry],
+                                             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+    DataEntry.fromBytes(constant) match {
+      case Right(v) => Right(dataStack.patch(pointer, Seq(v), 1))
+      case Left(e) => Left(e)
+    }
+  }
+
   object BasicType extends Enumeration {
     sealed case class basicTypeVal(
       basicType: Int,
@@ -179,18 +187,23 @@ object BasicOpcDiff extends OpcDiffer {
       differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, Seq[DataEntry]])
     extends Val(basicType) { def *(n: Int): Int = n * basicType }
 
-    val Add        = basicTypeVal(1, 4, (c, b, d) => add(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Minus      = basicTypeVal(2, 4, (c, b, d) => minus(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Multiply   = basicTypeVal(3, 4, (c, b, d) => multiply(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Divide     = basicTypeVal(4, 4, (c, b, d) => divide(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Minimum    = basicTypeVal(5, 4, (c, b, d) => minimum(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Maximum    = basicTypeVal(6, 4, (c, b, d) => maximum(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Concat     = basicTypeVal(7, 4, (c, b, d) => concat(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Add         = basicTypeVal(1, 4, (c, b, d) => add(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Minus       = basicTypeVal(2, 4, (c, b, d) => minus(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Multiply    = basicTypeVal(3, 4, (c, b, d) => multiply(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Divide      = basicTypeVal(4, 4, (c, b, d) => divide(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Minimum     = basicTypeVal(5, 4, (c, b, d) => minimum(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Maximum     = basicTypeVal(6, 4, (c, b, d) => maximum(c)(d(b(1)), d(b(2)), d, b(3)))
+    val Concat      = basicTypeVal(7, 4, (c, b, d) => concat(c)(d(b(1)), d(b(2)), d, b(3)))
+    val ConstantGet = basicTypeVal(8, 2, (c, b, d) => constantGet(c)(b.slice(1, b.length-1), d, b(b.length-1)))
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(BasicType(f)).toOption) match {
-      case Some(t: BasicType.basicTypeVal) if bytes.length == t.len => t.differ(context, bytes, data)
+      case Some(t: BasicType.basicTypeVal) if checkBytesLength(bytes, t) => t.differ(context, bytes, data)
       case _ => Left(ContractInvalidOPCData)
     }
+
+  private def checkBytesLength(bytes: Array[Byte], t: BasicType.basicTypeVal): Boolean = {
+    (t.basicType == 8 && bytes.length > t.len) || (bytes.length == t.len)
+  }
 }
