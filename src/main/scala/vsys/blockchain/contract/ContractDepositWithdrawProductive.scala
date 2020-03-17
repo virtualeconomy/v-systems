@@ -18,7 +18,7 @@ object ContractDepositWithdrawProductive {
 
   //initTrigger
   val initId: Short = 0
-  val initPara: Seq[String] = Seq("tokenId")
+  val initPara: Seq[String] = Seq("tokenId", "signer")
   val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte)
   val initOpcs: Seq[Array[Byte]] = Seq(
     loadSigner ++ Array(1.toByte),

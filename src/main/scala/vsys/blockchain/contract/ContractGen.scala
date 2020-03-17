@@ -7,6 +7,8 @@ object ContractGen {
 
   val sysTransfer              = Array(0.toByte, 1.toByte)
 
+  val assertSig                = Array(1.toByte, 10.toByte)
+  val assertHash               = Array(1.toByte, 9.toByte)
   val assertTrue               = Array(1.toByte, 8.toByte)
   val assertSigner             = Array(1.toByte, 7.toByte)
   val assertCaller             = Array(1.toByte, 6.toByte)
@@ -16,6 +18,8 @@ object ContractGen {
   val loadCaller               = Array(2.toByte, 2.toByte)
   val loadTimestamp            = Array(2.toByte, 3.toByte)
   val loadTokenNum             = Array(2.toByte, 4.toByte)
+  val loadTransactionId        = Array(2.toByte, 5.toByte)
+  val loadPublicKey            = Array(2.toByte, 6.toByte)
 
   val cdbvSet                  = Array(3.toByte, 1.toByte)
   val cdbvMapSet               = Array(3.toByte, 2.toByte)
@@ -25,6 +29,7 @@ object ContractGen {
   val cdbvrGet                 = Array(4.toByte, 1.toByte)
   val cdbvrMapGetOrDefault     = Array(4.toByte, 2.toByte)
   val cdbvrConstantGet         = Array(4.toByte, 3.toByte)
+  val cdbvrMapGet              = Array(4.toByte, 4.toByte)
 
   val tdbNewToken              = Array(5.toByte, 1.toByte)
   val tdbSplit                 = Array(5.toByte, 2.toByte)
@@ -41,6 +46,14 @@ object ContractGen {
   val returnValue              = Array(9.toByte, 1.toByte)
 
   val compareGreater           = Array(10.toByte, 1.toByte)
+
+  val basicAdd                 = Array(11.toByte, 1.toByte)
+  val basicMinus               = Array(11.toByte, 2.toByte)
+  val basicMultiply            = Array(11.toByte, 3.toByte)
+  val basicDivide              = Array(11.toByte, 4.toByte)
+  val basicMin                 = Array(11.toByte, 5.toByte)
+  val basicMax                 = Array(11.toByte, 6.toByte)
+  val basicConcat              = Array(11.toByte, 7.toByte)
 
   sealed case class StateVar(index: Byte, dataType: Byte) {
     lazy val arr: Array[Byte] = Array(index, dataType)

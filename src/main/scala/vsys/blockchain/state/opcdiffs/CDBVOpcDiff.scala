@@ -44,6 +44,9 @@ object CDBVOpcDiff extends OpcDiffer {
     if (dataValue.dataType == DataType.Amount){
       val cntBalance = context.state.contractNumInfo(combinedKey)
       val addAmount = Longs.fromByteArray(dataValue.data)
+      if (addAmount < 0){
+        Left(InvalidDataEntry)
+      }
       if (Try(Math.addExact(cntBalance, addAmount)).isFailure)
         Left(ValidationError.OverflowError)
       else
@@ -60,6 +63,9 @@ object CDBVOpcDiff extends OpcDiffer {
     if (dataValue.dataType == DataType.Amount){
       val cntBalance = context.state.contractNumInfo(combinedKey)
       val minusAmount = Longs.fromByteArray(dataValue.data)
+      if (minusAmount < 0){
+        Left(InvalidDataEntry)
+      }
       if (cntBalance >= minusAmount)
         Right(OpcDiff(contractNumDB = Map(combinedKey -> -minusAmount)))
       else Left(ContractMapValueInsufficient)
