@@ -18,7 +18,7 @@ object BlockDiffer extends ScorexLogging {
 
   def right(diff: Diff): Either[ValidationError, Diff] = Right(diff)
 
-  def fromBlock(settings: FunctionalitySettings, s: StateReader,  prevBlockTimestamp : Option[Long])(block: Block): Either[ValidationError, BlockDiff] =
+  def fromBlock(settings: FunctionalitySettings, s: StateReader, prevBlockTimestamp: Option[Long])(block: Block): Either[ValidationError, BlockDiff] =
     Signed.validateSignatures(block).flatMap { _ => apply(settings, s, prevBlockTimestamp)(block.feesDistribution, block.timestamp, block.transactionData, 1) }
 
   def unsafeDiffMany(settings: FunctionalitySettings, s: StateReader, prevBlockTimestamp: Option[Long])(blocks: Seq[Block]): BlockDiff =
@@ -29,10 +29,10 @@ object BlockDiffer extends ScorexLogging {
 
   private def apply(settings: FunctionalitySettings,
                     s: StateReader,
-                    prevBlockTimestamp : Option[Long])(feesDistribution: Diff,
-                                                       timestamp: Long,
-                                                       txs: Seq[ProcessedTransaction],
-                                                       heightDiff: Int): Either[ValidationError, BlockDiff] = {
+                    prevBlockTimestamp: Option[Long])(feesDistribution: Diff,
+                                                      timestamp: Long,
+                                                      txs: Seq[ProcessedTransaction],
+                                                      heightDiff: Int): Either[ValidationError, BlockDiff] = {
     val currentBlockHeight = s.height + 1
 
     val txDiffer = TransactionDiffer(settings, prevBlockTimestamp, timestamp, currentBlockHeight) _
@@ -43,10 +43,9 @@ object BlockDiffer extends ScorexLogging {
     */
     val txsDiffEi = txs.foldLeft(right(feesDistribution)) { case (ei, tx) => ei.flatMap(diff =>
       txDiffer(new CompositeStateReader(s, diff.asBlockDiff), tx.transaction) match {
-        case Right(newDiff) => if (newDiff.chargedFee == tx.feeCharged && newDiff.txStatus == tx.status){
+        case Right(newDiff) => if (newDiff.chargedFee == tx.feeCharged && newDiff.txStatus == tx.status) {
             Right(diff.combine(newDiff))
-          }
-          else{
+          } else {
             Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
           }
         case Left(l) => Left(l)

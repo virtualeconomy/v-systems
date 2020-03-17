@@ -1,6 +1,6 @@
 package vsys.blockchain.contract.token
 
-import com.google.common.primitives.{Ints, Longs}
+import com.google.common.primitives.Ints
 import org.scalacheck.Gen
 import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.{Contract, ContractGenHelper, ContractNonFungible, DataEntry, DataType}
@@ -27,12 +27,6 @@ trait NonFungibleContractGen {
   def addressDataStackGen(address: Address): Gen[Seq[DataEntry]] = for {
     add <- Gen.const(DataEntry(address.bytes.arr, DataType.Address))
   } yield Seq(add)
-
-  def sendDataStackGen(recipient: Address, amount: Long, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
-    reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
-    am <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
-    index <- Gen.const(DataEntry(Ints.toByteArray(tokenIndex), DataType.Int32))
-  } yield Seq(reci, am, index)
 
   def sendDataStackGen(recipient: Address, tokenIndex: Int): Gen[Seq[DataEntry]] = for {
     reci <- Gen.const(DataEntry(recipient.bytes.arr, DataType.Address))
