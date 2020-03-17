@@ -46,7 +46,7 @@ trait ChannelContractGen {
     sig <- Gen.const(DataEntry(signature.getBytes(), DataType.ShortBytes))
   } yield Seq(cId, am, sig)
 
-  def paymenChannelContractGen(): Gen[Contract] =
+  def paymentChannelContractGen(): Gen[Contract] =
     ContractPaymentChannel.contract
 
   def registerChannelGen(signer: PrivateKeyAccount, contract: Contract, dataStack: Seq[DataEntry],
