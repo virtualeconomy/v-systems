@@ -82,7 +82,7 @@ object ContractPaymentChannel {
     loadCaller ++ Array(3.toByte),
     loadPublicKey ++ Array(4.toByte),
     loadTransactionId ++ Array(5.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(0), DataType.Amount).bytes ++ Array(6.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(0), DataType.Amount).bytes ++ Array(6.toByte),
     cdbvMapValMinus ++ Array(balanceMap.index, 3.toByte, 1.toByte),
     cdbvMapSet ++ Array(channelCreatorMap.index, 5.toByte, 3.toByte),
     cdbvMapSet ++ Array(channelCreatorPublicKeyMap.index, 5.toByte, 4.toByte),
@@ -90,7 +90,7 @@ object ContractPaymentChannel {
     cdbvMapValAdd ++ Array(channelCapacityMap.index, 5.toByte, 1.toByte),
     cdbvMapValAdd ++ Array(channelExecutedMap.index, 5.toByte, 6.toByte),
     cdbvMapSet ++ Array(channelExpiredTimeMap.index, 5.toByte, 2.toByte),
-    cdbvrConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     cdbvMapSet ++ Array(channelStatusMap.index, 5.toByte, 7.toByte)
   )
   lazy val createFunc: Array[Byte] = getFunctionBytes(createId, publicFuncType, nonReturnType, createDataType, createFunctionOpcs)
@@ -138,12 +138,12 @@ object ContractPaymentChannel {
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     loadTimestamp ++ Array(2.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(48 * 3600 * 1000000000L), DataType.Timestamp).bytes ++ Array(3.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(48 * 3600 * 1000000000L), DataType.Timestamp).bytes ++ Array(3.toByte),
     basicAdd ++ Array(2.toByte, 3.toByte, 4.toByte),
     cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 5.toByte),
     basicMin ++ Array(4.toByte, 5.toByte, 6.toByte),
     cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 6.toByte),
-    cdbvrConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     cdbvMapSet ++ Array(channelStatusMap.index, 0.toByte, 7.toByte)
   )
   lazy val terminateFunc: Array[Byte] = getFunctionBytes(terminateId, publicFuncType, nonReturnType, terminateDataType, terminateFunctionOpcs)

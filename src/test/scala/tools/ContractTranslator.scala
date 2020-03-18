@@ -297,7 +297,6 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => nameList(data(3)) + " = operation.db.getVariable(db." + stateNameList(data(2)) + ")"
           case opcType: Byte if opcType == CDBVRType.MapGetOrDefaultCDBVR.id => nameList(data(4)) + " = operation.db.mapGetOrDefault(db." + stateMapList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == CDBVRType.MapGetCDVVR.id => nameList(data(4)) + " = operation.db.mapGet(db." + stateMapList(data(2)) + ", " + nameList(data(3)) + ")"
-          case opcType: Byte if opcType == CDBVRType.ConstantGetCDBVR.id => nameList(data.last) + " = operation.db.getConstant(" + strDataEntry(data.slice(2, data.length - 1)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
@@ -346,6 +345,7 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == BasicType.Minimum.id => nameList(data(4)) + " = operation.basic.minimum(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == BasicType.Maximum.id => nameList(data(4)) + " = operation.basic.maximum(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == BasicType.Concat.id => nameList(data(4)) + " = operation.basic.concat(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == BasicType.ConstantGet.id => nameList(data.last) + " = operation.basic.getConstant(" + strDataEntry(data.slice(2, data.length - 1)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
