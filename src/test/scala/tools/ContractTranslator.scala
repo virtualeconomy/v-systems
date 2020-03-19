@@ -62,7 +62,7 @@ object ContractTranslator extends App {
   val textual = Deser.parseArrays(bytes.slice(last, bytes.length))
   val textualStr = textualFromBytes(textual)
 
-  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "TokenId", "Timestamp", "Boolean")
+  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "TokenId", "Timestamp", "Boolean", "ShortBytes")
 
   printTextual(textualStr)
 
@@ -175,11 +175,11 @@ object ContractTranslator extends App {
       printSeqSeqString(r._2)
       println("State Variables:")
       List.range(0, r._3.size).foreach { i =>
-        println("%02d".format(i) + " | " + r._3(i))
+        println("%02d".format(i) + " | " + r._3(i) + ": " + dataTypeList(stateVar(i)(1) - 1))
       }
       println("State Maps:")
       List.range(0, r._4.size).foreach { i =>
-        println("%02d".format(i) + " | " + r._4(i))
+        println("%02d".format(i) + " | " + r._4(i) + ": Map[" + dataTypeList(stateMap(i)(1) - 1) + ", " + dataTypeList(stateMap(i)(2) - 1) + "]")
       }
     }
   }
