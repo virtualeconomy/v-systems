@@ -9,7 +9,7 @@ import vsys.account.ContractAccount
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract._
-import vsys.blockchain.contract.channel.ChannelContractGen
+import vsys.blockchain.contract.channel.PaymentChannelContractGen
 import vsys.blockchain.state._
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
@@ -20,7 +20,7 @@ class RegisterPaymentChannelContractDiffTest extends PropSpec
   with GeneratorDrivenPropertyChecks
   with Matchers
   with TransactionGen
-  with ChannelContractGen {
+  with PaymentChannelContractGen {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
@@ -31,9 +31,9 @@ class RegisterPaymentChannelContractDiffTest extends PropSpec
     contract <- ChannelContract
     description <- validDescStringGen
     tokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
-    dataStack <- initChannelDataStackGen(tokenId.arr)
-    regContract <- registerChannelGen(master, contract, dataStack, description, fee + 10000000000L, ts)
-    genesis <- genesisChannelGen(master, ts)
+    dataStack <- initPaymentChannelContractDataStackGen(tokenId.arr)
+    regContract <- registerPaymentChannelGen(master, contract, dataStack, description, fee + 10000000000L, ts)
+    genesis <- genesisPaymentChannelGen(master, ts)
   } yield (genesis, regContract, fee + 10000000000L)
 
   property("register payment channel contract function transactions doesn't break invariant") {

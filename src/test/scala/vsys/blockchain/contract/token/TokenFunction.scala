@@ -12,14 +12,14 @@ trait TokenFunction {
   val initWrongDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte, DataType.ShortText.id.toByte)
 
   val initTriggerOpcs: Seq[Array[Byte]] = Seq(
-    loadSinger ++ Array(3.toByte),
+    loadSigner ++ Array(3.toByte),
     cdbvSet ++ Array(0.toByte, 3.toByte),
     cdbvSet ++ Array(1.toByte, 3.toByte),
     tdbNewToken ++ Array(0.toByte, 1.toByte, 2.toByte)
   )
 
   val initWrongTriggerOpcs: Seq[Array[Byte]] = Seq(
-    loadSinger ++ Array(3.toByte),
+    loadSigner ++ Array(3.toByte),
     cdbvSet ++ Array(0.toByte, 3.toByte),
     cdbvSet ++ Array(1.toByte, 3.toByte),
     Array(5.toByte, 3.toByte) ++ Array(0.toByte, 1.toByte, 2.toByte)
