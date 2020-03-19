@@ -64,6 +64,8 @@ object ContractTranslator extends App {
 
   val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "TokenId", "Timestamp", "Boolean", "ShortBytes")
 
+  val triggerTypeList = Seq("onInit trigger", "onDeposit trigger", "onWithdraw trigger")
+
   printTextual(textualStr)
 
   println("Triggers:")
@@ -82,7 +84,7 @@ object ContractTranslator extends App {
           // TODO
           // need a more complex ftTypes check
           // print function or trigger type
-          val ftType = if (tp == 0) "onInit trigger" else "public function"
+          val ftType = if (tp == 0) triggerTypeList(bytes(2).toInt) else "public function"
           print(ftType + " ")
 
           // print function or trigger name
