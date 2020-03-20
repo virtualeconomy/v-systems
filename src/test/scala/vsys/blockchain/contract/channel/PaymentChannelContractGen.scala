@@ -38,7 +38,7 @@ trait PaymentChannelContractGen {
   } yield Seq(withdraw, res, tokenId)
 
   def channelIdDataStackGen(channelId: String): Gen[Seq[DataEntry]] = for {
-    id <- Gen.const(DataEntry.create(channelId.getBytes(), DataType.ShortText).right.get)
+    id <- Gen.const(DataEntry.create(channelId.getBytes(), DataType.ShortBytes).right.get)
   } yield Seq(id)
 
   def genesisPaymentChannelGen(rep: PrivateKeyAccount, ts: Long): Gen[GenesisTransaction] =

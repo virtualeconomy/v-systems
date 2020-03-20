@@ -30,10 +30,12 @@ class PaymentChannelContractDiffTest extends PropSpec
   val channelContract: Gen[Contract] = paymentChannelContractGen()
   val tokenContract: Gen[Contract] = tokenContractGen(false)
 
-  val preconditionsAndChannelContractTest: Gen[(GenesisTransaction, RegisterContractTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
+  val preconditionsAndChannelContractTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     genesis <- genesisPaymentChannelGen(master, ts)
+    user <- accountGen
+    genesis2 <- genesisPaymentChannelGen(user, ts)
     contract <- channelContract
     description <- validDescStringGen
     sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
@@ -42,18 +44,17 @@ class PaymentChannelContractDiffTest extends PropSpec
     regContract <- registerPaymentChannelGen(master, contract, dataStack, description, fee, ts)
     contractId = regContract.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    user <- accountGen
     depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(10000L))
     depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
     depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
     createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
     createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
     create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
-  } yield (genesis, regContract, depositVSYS, create, fee)
+  } yield (genesis, genesis2, regContract, depositVSYS, create, fee, ts)
 
   property("Execute payment channel doesn't break invariant") {
-    forAll(preconditionsAndChannelContractTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
-      deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, fee: Long) =>
+    forAll(preconditionsAndChannelContractTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
+      deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, fee: Long, ts: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
         TestBlock.create(create.timestamp + 1, Seq(create))) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
@@ -74,7 +75,6 @@ class PaymentChannelContractDiffTest extends PropSpec
         val masterBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
         val creatorKey = ByteStr(Bytes.concat(contractId.arr,  Array(1.toByte), DataEntry(create.id.arr, DataType.ShortBytes).bytes))
         val creatorPublicKeyKey = ByteStr(Bytes.concat(contractId.arr,  Array(2.toByte), DataEntry(create.id.arr, DataType.ShortBytes).bytes))
-        val recipientKey = ByteStr(Bytes.concat(contractId.arr,  Array(3.toByte), DataEntry(create.id.arr, DataType.ShortBytes).bytes))
         val channelBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr,  Array(4.toByte), DataEntry(create.id.arr, DataType.ShortBytes).bytes))
         val executedKey = ByteStr(Bytes.concat(contractId.arr,  Array(5.toByte), DataEntry(create.id.arr, DataType.ShortBytes).bytes))
         val expiredTimeKey = ByteStr(Bytes.concat(contractId.arr,  Array(6.toByte), DataEntry(create.id.arr, DataType.ShortBytes).bytes))
@@ -83,14 +83,19 @@ class PaymentChannelContractDiffTest extends PropSpec
         val (_, masterTxs) = newState.accountTransactionIds(master, 4, 0)
         masterTxs.size shouldBe 4 // genesis, reg, deposit, create
 
-        //channel statevar info
+        //channel info
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPaymentChannel.contract))
         newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
         newState.contractInfo(contractTokenIdKey) shouldEqual Some(DataEntry(vsysId.arr, DataType.TokenId))
+        newState.contractInfo(creatorKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
+        newState.contractInfo(creatorPublicKeyKey) shouldEqual Some(DataEntry(master.publicKey, DataType.PublicKey))
+        newState.contractInfo(expiredTimeKey) shouldEqual Some(DataEntry(Longs.toByteArray(ts + 1000000000000L), DataType.Timestamp))
+        newState.contractInfo(channelStatusKey) shouldEqual Some(DataEntry(Array(1.toByte), DataType.Boolean))
 
-        //channel statemap info
+        //channel num info
         newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 100L // deposited - locked
         newState.contractNumInfo(channelBalanceInContractKey) shouldBe 100L // locked
+        newState.contractNumInfo(executedKey)
 
         // VSYS balance
         newState.balance(master.toAddress)shouldBe ENOUGH_AMT - 3 * fee - 10000L
