@@ -14,7 +14,7 @@ object ContractGenHelper extends TransactionGen {
   val assertCaller             = Array(1.toByte, 6.toByte)
   val assertEqual              = Array(1.toByte, 5.toByte)
 
-  val loadSinger               = Array(2.toByte, 1.toByte)
+  val loadSigner               = Array(2.toByte, 1.toByte)
   val loadCaller               = Array(2.toByte, 2.toByte)
   val loadTimestamp            = Array(2.toByte, 3.toByte)
 
