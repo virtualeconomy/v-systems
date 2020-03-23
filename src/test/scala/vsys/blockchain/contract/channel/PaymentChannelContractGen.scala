@@ -25,20 +25,8 @@ trait PaymentChannelContractGen {
     tokenId <- Gen.const(DataEntry(tokenId, DataType.TokenId))
   } yield Seq(tokenId)
 
-  def depositChannelContractDataStackGen(depositor: Address, amount: Long, tokenId: Array[Byte]): Gen[Seq[DataEntry]] = for {
-    deposit <- Gen.const(DataEntry(depositor.bytes.arr, DataType.Address))
-    res <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
-    tokenId <- Gen.const(DataEntry(tokenId, DataType.TokenId))
-  } yield Seq(deposit, res, tokenId)
-
-  def withdrawChannelContractDataStackGen(withdrawer: Address, amount: Long, tokenId: Array[Byte]): Gen[Seq[DataEntry]] = for {
-    withdraw <- Gen.const(DataEntry(withdrawer.bytes.arr, DataType.Address))
-    res <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
-    tokenId <- Gen.const(DataEntry(tokenId, DataType.TokenId))
-  } yield Seq(withdraw, res, tokenId)
-
-  def channelIdDataStackGen(channelId: String): Gen[Seq[DataEntry]] = for {
-    id <- Gen.const(DataEntry.create(channelId.getBytes(), DataType.ShortBytes).right.get)
+  def channelIdDataStackGen(channelId: Array[Byte]): Gen[Seq[DataEntry]] = for {
+    id <- Gen.const(DataEntry.create(channelId, DataType.ShortBytes).right.get)
   } yield Seq(id)
 
   def genesisPaymentChannelGen(rep: PrivateKeyAccount, ts: Long): Gen[GenesisTransaction] =
@@ -72,7 +60,7 @@ trait PaymentChannelContractGen {
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def terminateChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, channelId: String,
+  def terminateChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, channelId: Array[Byte],
                           attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = terminateIndex.toShort
     for {
@@ -80,7 +68,7 @@ trait PaymentChannelContractGen {
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def executeWithdrawChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, channelId: String,
+  def executeWithdrawChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, channelId: Array[Byte],
                                 attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = executeWithdrawIndex.toShort
     for {
