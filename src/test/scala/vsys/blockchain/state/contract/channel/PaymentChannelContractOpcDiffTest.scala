@@ -16,7 +16,7 @@ import vsys.blockchain.contract.channel.{PaymentChannelContractGen, PaymentChann
 import vsys.blockchain.transaction.contract._
 
 
-class ChannelContractOpcDiffTest extends PropSpec
+class PaymentChannelContractOpcDiffTest extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
   with Matchers

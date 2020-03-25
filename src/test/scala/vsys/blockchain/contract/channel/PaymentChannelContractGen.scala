@@ -1,8 +1,7 @@
 package vsys.blockchain.contract.channel
 
-import com.google.common.primitives.Longs
 import org.scalacheck.Gen
-import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
+import vsys.account.{ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.ContractGenHelper._
 import vsys.blockchain.contract._
 import vsys.blockchain.state._
