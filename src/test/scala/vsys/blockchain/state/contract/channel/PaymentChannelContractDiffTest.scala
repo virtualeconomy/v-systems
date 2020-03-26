@@ -28,30 +28,12 @@ class PaymentChannelContractDiffTest extends PropSpec
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  val channelContract: Gen[Contract] = paymentChannelContractGen()
-  val tokenContract: Gen[Contract] = tokenContractGen(false)
 
   val preconditionsAndCreatePaymentChannelContractTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, Long, Long)] = for {
-    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
-    genesis <- genesisPaymentChannelGen(master, ts)
-    user <- accountGen
-    genesis2 <- genesisPaymentChannelGen(user, ts)
-    contract <- channelContract
-    description <- validDescStringGen
-    sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
-    dataStack <- initPaymentChannelContractDataStackGen(sysTokenId.arr)
-    // Register a payment channel that supports VSYS
-    regContract <- registerPaymentChannelGen(master, contract, dataStack, description, fee, ts)
+    (genesis, genesis2, master, user, regContract, depositVSYS, create, ts, fee, description, attach) <- createAndDepositVSYSPaymentChannelGen(10000L, 100L, 1000000000000L)
     contractId = regContract.contractId
-    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(10000L))
-    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
-    depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
-    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
-    createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
-    create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
     chargeData = Seq(create.id.arr, Longs.toByteArray(100L))
     chargeType = Seq(DataType.ShortBytes, DataType.Amount)
     charge <- chargeChannelGen(master, contractId, chargeData, chargeType, attach, fee, ts)
@@ -76,6 +58,7 @@ class PaymentChannelContractDiffTest extends PropSpec
         val master = reg.proofs.firstCurveProof.explicitGet().publicKey
         val user = executePayment.proofs.firstCurveProof.explicitGet().publicKey
         val masterBytes = genesis.recipient.bytes.arr
+        val userBytes = genesis2.recipient.bytes.arr
         val contractId = reg.contractId.bytes
         val vsysId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
 
@@ -85,7 +68,8 @@ class PaymentChannelContractDiffTest extends PropSpec
 
         //Statemap keys
         val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
-        val balanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
+        val masterBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
+        val userBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(userBytes, DataType.Address).bytes))
         val creatorKey = ByteStr(Bytes.concat(contractId.arr,  Array(1.toByte), channelId))
         val creatorPublicKeyKey = ByteStr(Bytes.concat(contractId.arr,  Array(2.toByte), channelId))
         val channelRecipientKey = ByteStr(Bytes.concat(contractId.arr,  Array(3.toByte), channelId))
@@ -95,12 +79,16 @@ class PaymentChannelContractDiffTest extends PropSpec
         val channelStatusKey = ByteStr(Bytes.concat(contractId.arr,  Array(7.toByte), channelId))
 
         val (_, masterTxs) = newState.accountTransactionIds(master, 5, 0)
+        val (_, userTxs) = newState.accountTransactionIds(user, 1, 0)
         masterTxs.size shouldBe 5 // genesis, reg, deposit, create, charge
+        userTxs.size shouldBe 1 // executePayment
 
-        //channel info
+        //contract info
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPaymentChannel.contract))
         newState.contractInfo(makerKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
         newState.contractInfo(contractTokenIdKey) shouldEqual Some(DataEntry(vsysId.arr, DataType.TokenId))
+
+        //channel info
         newState.contractInfo(creatorKey) shouldEqual Some(DataEntry(master.toAddress.bytes.arr, DataType.Address))
         newState.contractInfo(creatorPublicKeyKey) shouldEqual Some(DataEntry(master.publicKey, DataType.PublicKey))
         newState.contractInfo(channelRecipientKey) shouldEqual Some(DataEntry(user.toAddress.bytes.arr, DataType.Address))
@@ -108,7 +96,8 @@ class PaymentChannelContractDiffTest extends PropSpec
         newState.contractInfo(channelStatusKey) shouldEqual Some(DataEntry(Array(1.toByte), DataType.Boolean))
 
         //channel num info
-        newState.contractNumInfo(balanceInContractKey) shouldBe 10000L - 200L // deposited - locked
+        newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 200L // deposited - locked
+        newState.contractNumInfo(userBalanceInContractKey) shouldBe 50L // executed
         newState.contractNumInfo(channelCapacityInContractKey) shouldBe 200L // locked
         newState.contractNumInfo(executedKey) shouldBe 50L
 
@@ -123,23 +112,8 @@ class PaymentChannelContractDiffTest extends PropSpec
   val preconditionsAndPaymentChannelFunctionTest: Gen[(GenesisTransaction, RegisterContractTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
-    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
-    user <- accountGen
-    genesis <- genesisPaymentChannelGen(master, ts)
-    contract <- channelContract
-    description <- validDescStringGen
-    sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
-    dataStack <- initPaymentChannelContractDataStackGen(sysTokenId.arr)
-    // Register a payment channel that supports VSYS
-    regContract <- registerPaymentChannelGen(master, contract, dataStack, description, fee, ts)
+    (genesis, genesis2, master, user, regContract, depositVSYS, create, ts, fee, description, attach) <- createAndDepositVSYSPaymentChannelGen(10000L, 100L, 1000000000000L)
     contractId = regContract.contractId
-    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(10000L))
-    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
-    depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
-    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
-    createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
-    create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
     updateTimeData = Seq(create.id.arr, Longs.toByteArray(create.timestamp + 1000000000000L))
     updateTimeType = Seq(DataType.ShortBytes, DataType.Timestamp)
     updateTime <- updateExpiredTimeChannelGen(master, contractId, updateTimeData, updateTimeType, attach, fee, ts)
@@ -151,13 +125,13 @@ class PaymentChannelContractDiffTest extends PropSpec
     forAll(preconditionsAndPaymentChannelFunctionTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
       deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, _,
       updateTime: ExecuteContractFunctionTransaction, _, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, deposit, create))),
-        TestBlock.create(Seq(updateTime))) { blockDiffEi =>
-        blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
-        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
-        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
-        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, deposit, create))),
+        TestBlock.create(Seq(updateTime))) { (blockDiff, newState) =>
+        val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
+        val contractId = reg.contractId.bytes
+        val expiredTimeKey = ByteStr(Bytes.concat(contractId.arr,  Array(6.toByte), channelId))
+
+        newState.contractInfo(expiredTimeKey) shouldEqual Some(DataEntry(Longs.toByteArray(create.timestamp + 1000000000000L), DataType.Timestamp))
       }
     }
   }
@@ -166,13 +140,13 @@ class PaymentChannelContractDiffTest extends PropSpec
     forAll(preconditionsAndPaymentChannelFunctionTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
       deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction,
       _, _, terminate: ExecuteContractFunctionTransaction, _, _) =>
-        assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, deposit, create))),
-          TestBlock.create(Seq(terminate))) { blockDiffEi =>
-          blockDiffEi shouldBe an[Right[_, _]]
-          blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
-          blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
-          blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
-          blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+        assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, deposit, create))),
+          TestBlock.create(Seq(terminate))) { (blockDiff, newState) =>
+          val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
+          val contractId = reg.contractId.bytes
+          val channelStatusKey = ByteStr(Bytes.concat(contractId.arr,  Array(7.toByte), channelId))
+
+          newState.contractInfo(channelStatusKey) shouldEqual Some(DataEntry(Array(0.toByte), DataType.Boolean))
         }
     }
   }
@@ -187,7 +161,6 @@ class PaymentChannelContractDiffTest extends PropSpec
           val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
           totalPortfolioDiff.balance shouldBe - fee
           totalPortfolioDiff.effectiveBalance shouldBe - fee
-
           val master = reg.proofs.firstCurveProof.explicitGet().publicKey
           val masterBytes = genesis.recipient.bytes.arr
           val contractId = reg.contractId.bytes
@@ -216,32 +189,11 @@ class PaymentChannelContractDiffTest extends PropSpec
   val preconditionsAndCreatePaymentChannelWithTokenTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
     RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
-    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
-    genesis <- genesisPaymentChannelGen(master, ts)
-    user <- accountGen
-    genesis2 <- genesisPaymentChannelGen(user, ts)
-    tContract <- tokenContract
-    cContract <- channelContract
-    description <- validDescStringGen
-    initDataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
-    regTokenContract <- registerTokenGen(master, tContract, initDataStack, description, fee + 10000000000L, ts)
-    tokenContractId = regTokenContract.contractId
-    tokenId = tokenIdFromBytes(tokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
-    dataStack <- initPaymentChannelContractDataStackGen(tokenId.arr)
-    // register a payment channel contract only support regTokenContract's' tokenId
-    regContract <- registerPaymentChannelGen(master, cContract, dataStack, description, fee + 10000000000L, ts + 1)
-    contractId = regContract.contractId
-    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    issueToken <- issueTokenGen(master, tokenContractId, 100000L, attach, fee, ts + 1)
-    // use token contract deposit/withdraw
-    depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(10000L))
-    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
-    depositToken <- depositTokenGen(master, tokenContractId, false, depositData, depositType, attach, fee, ts + 2)
-    //create payment channel
-    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
-    createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
-    create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts + 3)
+    (genesis, genesis2, master, user, regTokenContract, regContract, issueToken, depositToken, create, ts, fee, description, attach) <- createAndDepositTokenPaymentChannelGen(
+      100000000L, 100L, 100000L, 10000L, 100L, 1000000000000L)
     //charge payment channel
+    tokenContractId = regTokenContract.contractId
+    contractId = regContract.contractId
     chargeData = Seq(create.id.arr, Longs.toByteArray(100L))
     chargeType = Seq(DataType.ShortBytes, DataType.Amount)
     charge <- chargeChannelGen(master, contractId, chargeData, chargeType, attach, fee, ts + 4)
@@ -328,30 +280,10 @@ class PaymentChannelContractDiffTest extends PropSpec
     RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, Long, Long)] = for {
-    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
-    genesis <- genesisPaymentChannelGen(master, ts)
-    user <- accountGen
-    tContract <- tokenContract
-    cContract <- channelContract
-    description <- validDescStringGen
-    initDataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
-    regTokenContract <- registerTokenGen(master, tContract, initDataStack, description, fee + 10000000000L, ts)
+    (genesis, _, master, user, regTokenContract, regContract, issueToken, depositToken, create, ts, fee, description, attach) <- createAndDepositTokenPaymentChannelGen(
+      100000000L, 100L, 100000L, 10000L, 100L, 1000000000000L)
     tokenContractId = regTokenContract.contractId
-    tokenId = tokenIdFromBytes(tokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
-    dataStack <- initPaymentChannelContractDataStackGen(tokenId.arr)
-    // register a payment channel contract only support regTokenContract's' tokenId
-    regContract <- registerPaymentChannelGen(master, cContract, dataStack, description, fee + 10000000000L, ts + 1)
     contractId = regContract.contractId
-    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    issueToken <- issueTokenGen(master, tokenContractId, 100000L, attach, fee, ts + 1)
-    // use token contract deposit/withdraw
-    depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(10000L))
-    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
-    depositToken <- depositTokenGen(master, tokenContractId, false, depositData, depositType, attach, fee, ts + 2)
-    //create payment channel
-    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
-    createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
-    create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts + 3)
     //update expired time
     updateTimeData = Seq(create.id.arr, Longs.toByteArray(create.timestamp + 1000000000000L))
     updateTimeType = Seq(DataType.ShortBytes, DataType.Timestamp)
@@ -367,13 +299,13 @@ class PaymentChannelContractDiffTest extends PropSpec
     forAll(preconditionsAndPaymentChannelWithTokenFunctionTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
     reg2: RegisterContractTransaction, issue: ExecuteContractFunctionTransaction, deposit: ExecuteContractFunctionTransaction,
     create: ExecuteContractFunctionTransaction, updateTime: ExecuteContractFunctionTransaction, _, _, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, reg2, issue, deposit, create))),
-        TestBlock.create(Seq(updateTime))) { blockDiffEi =>
-        blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
-        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
-        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
-        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, reg2, issue, deposit, create))),
+        TestBlock.create(Seq(updateTime))) { (blockDiff, newState) =>
+        val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
+        val contractId = reg.contractId.bytes
+        val expiredTimeKey = ByteStr(Bytes.concat(contractId.arr,  Array(6.toByte), channelId))
+
+        newState.contractInfo(expiredTimeKey) shouldEqual Some(DataEntry(Longs.toByteArray(create.timestamp + 1000000000000L), DataType.Timestamp))
       }
     }
   }
@@ -382,13 +314,13 @@ class PaymentChannelContractDiffTest extends PropSpec
     forAll(preconditionsAndPaymentChannelWithTokenFunctionTest) { case (genesis: GenesisTransaction, reg: RegisterContractTransaction,
     reg2: RegisterContractTransaction, issue: ExecuteContractFunctionTransaction, deposit: ExecuteContractFunctionTransaction,
     create: ExecuteContractFunctionTransaction, _, _, terminate: ExecuteContractFunctionTransaction, _, _) =>
-      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, reg2, issue, deposit, create))),
-        TestBlock.create(Seq(terminate))) { blockDiffEi =>
-        blockDiffEi shouldBe an[Right[_, _]]
-        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
-        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
-        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
-        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, reg2, issue, deposit, create))),
+        TestBlock.create(Seq(terminate))) { (blockDiff, newState) =>
+        val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
+        val contractId = reg.contractId.bytes
+        val channelStatusKey = ByteStr(Bytes.concat(contractId.arr,  Array(7.toByte), channelId))
+
+        newState.contractInfo(channelStatusKey) shouldEqual Some(DataEntry(Array(0.toByte), DataType.Boolean))
       }
     }
   }
