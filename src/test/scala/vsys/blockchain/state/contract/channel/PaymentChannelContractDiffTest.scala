@@ -30,10 +30,11 @@ class PaymentChannelContractDiffTest extends PropSpec
 
 
   val preconditionsAndCreatePaymentChannelContractTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, Long, Long)] = for {
     (genesis, genesis2, master, user, regContract, depositVSYS, create, ts, fee, description, attach) <- createAndDepositVSYSPaymentChannelGen(10000L, 100L, 1000000000000L)
     contractId = regContract.contractId
+    sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     chargeData = Seq(create.id.arr, Longs.toByteArray(100L))
     chargeType = Seq(DataType.ShortBytes, DataType.Amount)
     charge <- chargeChannelGen(master, contractId, chargeData, chargeType, attach, fee, ts)
@@ -42,18 +43,21 @@ class PaymentChannelContractDiffTest extends PropSpec
     executePaymentData = Seq(create.id.arr, Longs.toByteArray(50L), paymentSignatureBytes)
     executePaymentType = Seq(DataType.ShortBytes, DataType.Amount, DataType.ShortBytes)
     executePayment <- executePaymentChannelGen(user, contractId, executePaymentData, executePaymentType, attach, fee, ts)
-  } yield (genesis, genesis2, regContract, depositVSYS, create, charge, executePayment, fee, ts)
+    withdrawData = Seq(contractId.bytes.arr, user.toAddress.bytes.arr, Longs.toByteArray(25L))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Amount)
+    withdraw <- withdrawVSYSGen(user, withdrawData, withdrawType, attach, fee, ts)
+  } yield (genesis, genesis2, regContract, depositVSYS, create, charge, executePayment, withdraw, fee, ts)
 
   property("Execute payment channel doesn't break invariant") {
     forAll(preconditionsAndCreatePaymentChannelContractTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
       deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction,
-      executePayment: ExecuteContractFunctionTransaction, fee: Long, ts: Long) =>
+      executePayment: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, fee: Long, ts: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
-        TestBlock.create(create.timestamp + 1, Seq(create, charge, executePayment))) { (blockDiff, newState) =>
+        TestBlock.create(create.timestamp + 1, Seq(create, charge, executePayment, withdraw))) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        totalPortfolioDiff.balance shouldBe - 3 * fee
-        totalPortfolioDiff.effectiveBalance shouldBe - 3 * fee
+        totalPortfolioDiff.balance shouldBe - 4 * fee
+        totalPortfolioDiff.effectiveBalance shouldBe - 4 * fee
 
         val master = reg.proofs.firstCurveProof.explicitGet().publicKey
         val user = executePayment.proofs.firstCurveProof.explicitGet().publicKey
@@ -79,9 +83,9 @@ class PaymentChannelContractDiffTest extends PropSpec
         val channelStatusKey = ByteStr(Bytes.concat(contractId.arr,  Array(7.toByte), channelId))
 
         val (_, masterTxs) = newState.accountTransactionIds(master, 5, 0)
-        val (_, userTxs) = newState.accountTransactionIds(user, 1, 0)
+        val (_, userTxs) = newState.accountTransactionIds(user, 2, 0)
         masterTxs.size shouldBe 5 // genesis, reg, deposit, create, charge
-        userTxs.size shouldBe 1 // executePayment
+        userTxs.size shouldBe 2 // executePayment
 
         //contract info
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPaymentChannel.contract))
@@ -97,14 +101,14 @@ class PaymentChannelContractDiffTest extends PropSpec
 
         //channel num info
         newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 200L // deposited - locked
-        newState.contractNumInfo(userBalanceInContractKey) shouldBe 50L // executed
+        newState.contractNumInfo(userBalanceInContractKey) shouldBe 25L // executed - wthdrawn
         newState.contractNumInfo(channelCapacityInContractKey) shouldBe 200L // locked
         newState.contractNumInfo(executedKey) shouldBe 50L
 
         // VSYS balance
         newState.balance(master.toAddress) shouldBe ENOUGH_AMT - 4 * fee - 10000L
-        newState.balance(user.toAddress) shouldBe ENOUGH_AMT - fee
-        newState.balance(reg.contractId) shouldBe 10000L
+        newState.balance(user.toAddress) shouldBe ENOUGH_AMT - 2 * fee + 25L
+        newState.balance(reg.contractId) shouldBe 10000L - 25L // deposited - withdrawn
       }
     }
   }
@@ -127,6 +131,9 @@ class PaymentChannelContractDiffTest extends PropSpec
       updateTime: ExecuteContractFunctionTransaction, _, _, _) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, deposit, create))),
         TestBlock.create(Seq(updateTime))) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe false
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
         val contractId = reg.contractId.bytes
         val expiredTimeKey = ByteStr(Bytes.concat(contractId.arr,  Array(6.toByte), channelId))
@@ -142,6 +149,9 @@ class PaymentChannelContractDiffTest extends PropSpec
       _, _, terminate: ExecuteContractFunctionTransaction, _, _) =>
         assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, deposit, create))),
           TestBlock.create(Seq(terminate))) { (blockDiff, newState) =>
+          blockDiff.txsDiff.contractDB.isEmpty shouldBe false
+          blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+          blockDiff.txsDiff.portfolios.isEmpty shouldBe false
           val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
           val contractId = reg.contractId.bytes
           val channelStatusKey = ByteStr(Bytes.concat(contractId.arr,  Array(7.toByte), channelId))
@@ -167,7 +177,7 @@ class PaymentChannelContractDiffTest extends PropSpec
 
           //stateMap keys
           val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
-          val balanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
+          val masterBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
           val channelCapacityInContractKey = ByteStr(Bytes.concat(contractId.arr,  Array(4.toByte), channelId))
           val executedKey = ByteStr(Bytes.concat(contractId.arr,  Array(5.toByte), channelId))
 
@@ -175,7 +185,7 @@ class PaymentChannelContractDiffTest extends PropSpec
           masterTxs.size shouldBe 5 // genesis, reg, deposit, create, executeWithdraw
 
           //channel num info
-          newState.contractNumInfo(balanceInContractKey) shouldBe 10000L
+          newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L
           newState.contractNumInfo(channelCapacityInContractKey) shouldBe 100L
           newState.contractNumInfo(executedKey) shouldBe 100L
 
@@ -232,7 +242,8 @@ class PaymentChannelContractDiffTest extends PropSpec
 
         //Statemap keys
         val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
-        val balanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
+        val masterBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
+        val userBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(userBytes, DataType.Address).bytes))
         val creatorKey = ByteStr(Bytes.concat(contractId.arr,  Array(1.toByte), channelId))
         val creatorPublicKeyKey = ByteStr(Bytes.concat(contractId.arr,  Array(2.toByte), channelId))
         val channelRecipientKey = ByteStr(Bytes.concat(contractId.arr,  Array(3.toByte), channelId))
@@ -247,7 +258,9 @@ class PaymentChannelContractDiffTest extends PropSpec
         val contractBalanceKey = ByteStr(Bytes.concat(tokenId.arr, contractId.arr))
 
         val (_, masterTxs) = newState.accountTransactionIds(master, 7, 0)
+        val (_, userTxs) = newState.accountTransactionIds(user, 2, 0)
         masterTxs.size shouldBe 7 // genesis, reg1, reg2, issue, deposit, create, charge
+        userTxs.size shouldBe 2 // executePayment, withdraw
 
         //channel info
         newState.contractContent(contractId) shouldEqual Some((2, reg.id, ContractPaymentChannel.contract))
@@ -260,7 +273,8 @@ class PaymentChannelContractDiffTest extends PropSpec
         newState.contractInfo(channelStatusKey) shouldEqual Some(DataEntry(Array(1.toByte), DataType.Boolean))
 
         //channel num info
-        newState.contractNumInfo(balanceInContractKey) shouldBe 10000L - 200L // deposited - locked
+        newState.contractNumInfo(masterBalanceInContractKey) shouldBe 10000L - 200L // deposited - locked
+        newState.contractNumInfo(userBalanceInContractKey) shouldBe 0L // all withdrawn
         newState.contractNumInfo(channelCapacityInContractKey) shouldBe 200L // locked
         newState.contractNumInfo(executedKey) shouldBe 200L
 
@@ -301,6 +315,9 @@ class PaymentChannelContractDiffTest extends PropSpec
     create: ExecuteContractFunctionTransaction, updateTime: ExecuteContractFunctionTransaction, _, _, _, _) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, reg2, issue, deposit, create))),
         TestBlock.create(Seq(updateTime))) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe false
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
         val contractId = reg.contractId.bytes
         val expiredTimeKey = ByteStr(Bytes.concat(contractId.arr,  Array(6.toByte), channelId))
@@ -316,6 +333,9 @@ class PaymentChannelContractDiffTest extends PropSpec
     create: ExecuteContractFunctionTransaction, _, _, terminate: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(reg, reg2, issue, deposit, create))),
         TestBlock.create(Seq(terminate))) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe false
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         val channelId = DataEntry(Shorts.toByteArray(create.id.arr.length.toShort) ++ create.id.arr, DataType.ShortBytes).bytes
         val contractId = reg.contractId.bytes
         val channelStatusKey = ByteStr(Bytes.concat(contractId.arr,  Array(7.toByte), channelId))
