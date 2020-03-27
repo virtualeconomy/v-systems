@@ -1,6 +1,6 @@
 package vsys.blockchain.state.opcdiffs
 
-import com.google.common.primitives.{Ints, Longs}
+import com.google.common.primitives.{Shorts, Ints, Longs}
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractInvalidOPCData, ContractLocalVariableIndexOutOfRange}
@@ -43,7 +43,8 @@ object LoadOpcDiff extends OpcDiffer {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val txId = context.transaction.id
-      Right(dataStack.patch(pointer, Seq(DataEntry(txId.arr, DataType.ShortBytes)), 1))
+      val txIdLength = txId.arr.length.toShort
+      Right(dataStack.patch(pointer, Seq(DataEntry(Shorts.toByteArray(txIdLength) ++ txId.arr, DataType.ShortBytes)), 1))
     }
   }
 
