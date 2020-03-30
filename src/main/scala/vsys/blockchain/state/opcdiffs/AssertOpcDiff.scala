@@ -78,11 +78,11 @@ object AssertOpcDiff extends OpcDiffer {
   }
 
   def checkHash(hashValue: DataEntry, hashKey: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (hashValue.dataType != DataType.ShortText || hashKey.dataType != DataType.ShortText)
+    if (hashValue.dataType != DataType.ShortBytes || hashKey.dataType != DataType.ShortBytes)
       Left(ContractDataTypeMismatch)
     else {
-      val hashResult = ByteStr(Sha256(hashKey.data))
-      Either.cond(hashResult.equals(ByteStr(hashValue.data)), OpcDiff.empty, ContractInvalidHash)
+      val hashResult = ByteStr(Sha256(hashKey.data.tail.tail))
+      Either.cond(hashResult.equals(ByteStr(hashValue.data.tail.tail)), OpcDiff.empty, ContractInvalidHash)
     }
   }
 
@@ -109,7 +109,7 @@ object AssertOpcDiff extends OpcDiffer {
     val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d)  => isCallerOrigin(c)(d(b(1))))
     val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d)  => isSignerOrigin(c)(d(b(1))))
     val BooleanTrueAssert    = AssertTypeVal(8, 1, (c, b, d)  => assertTrue(d(b(1))))
-    val HashCheckAssert      = AssertTypeVal(9, 1, (c, b, d)  => checkHash(d(b(1)), d(b(2))))
+    val HashCheckAssert      = AssertTypeVal(9, 2, (c, b, d)  => checkHash(d(b(1)), d(b(2))))
     val SigVerifyAssert      = AssertTypeVal(10, 3, (c, b, d) => verifySig(d(b(1)), d(b(2)), d(b(3))))
 
     def fromByte(b: Byte): Option[AssertTypeVal] = Try(AssertType(b).asInstanceOf[AssertTypeVal]).toOption
