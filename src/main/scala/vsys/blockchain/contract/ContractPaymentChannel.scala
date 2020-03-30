@@ -10,7 +10,7 @@ object ContractPaymentChannel {
     Seq(createFunc, updateExpiredTimeFunc, chargeFunc, terminateFunc, executeWithdrawFunc, executePaymentFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
-        channelCapacityMap.arr, channelExecutedMap.arr, channelExpiredTimeMap.arr, channelStatusMap.arr),
+      accumulatedLoadMap.arr, accumulatedPaymentMap.arr, channelExpirationTimeMap.arr, channelStatusMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
   ).right.get
 
@@ -21,14 +21,14 @@ object ContractPaymentChannel {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
-  val stateMapName = List("balance", "channelCreator", "channelCreatorPublicKey", "channelRecipient", "channelCapacity", "channelExecuted", "channelExpiredTime", "channelStatus")
+  val stateMapName = List("balance", "channelCreator", "channelCreatorPublicKey", "channelRecipient", "accumulatedLoad", "accumulatedPayment", "channelExpirationTime", "channelStatus")
   val balanceMap: StateMap                   = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val channelCreatorMap: StateMap            = StateMap(1.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
   val channelCreatorPublicKeyMap: StateMap   = StateMap(2.toByte, DataType.ShortBytes.id.toByte, DataType.PublicKey.id.toByte)
   val channelRecipientMap: StateMap          = StateMap(3.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
-  val channelCapacityMap: StateMap           = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val channelExecutedMap: StateMap           = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val channelExpiredTimeMap: StateMap        = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
+  val accumulatedLoadMap: StateMap           = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val accumulatedPaymentMap: StateMap        = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val channelExpirationTimeMap: StateMap     = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
   val channelStatusMap: StateMap             = StateMap(7.toByte, DataType.ShortBytes.id.toByte, DataType.Boolean.id.toByte)
   lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
 
@@ -87,9 +87,9 @@ object ContractPaymentChannel {
     cdbvMapSet ++ Array(channelCreatorMap.index, 5.toByte, 3.toByte),
     cdbvMapSet ++ Array(channelCreatorPublicKeyMap.index, 5.toByte, 4.toByte),
     cdbvMapSet ++ Array(channelRecipientMap.index, 5.toByte, 0.toByte),
-    cdbvMapValAdd ++ Array(channelCapacityMap.index, 5.toByte, 1.toByte),
-    cdbvMapValAdd ++ Array(channelExecutedMap.index, 5.toByte, 6.toByte),
-    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 5.toByte, 2.toByte),
+    cdbvMapValAdd ++ Array(accumulatedLoadMap.index, 5.toByte, 1.toByte),
+    cdbvMapValAdd ++ Array(accumulatedPaymentMap.index, 5.toByte, 6.toByte),
+    cdbvMapSet ++ Array(channelExpirationTimeMap.index, 5.toByte, 2.toByte),
     basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     cdbvMapSet ++ Array(channelStatusMap.index, 5.toByte, 7.toByte)
   )
@@ -106,10 +106,10 @@ object ContractPaymentChannel {
     assertCaller ++ Array(2.toByte),
     cdbvrMapGet ++ Array(channelStatusMap.index, 0.toByte, 3.toByte),
     assertTrue ++ Array(3.toByte),
-    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 4.toByte),
+    cdbvrMapGet ++ Array(channelExpirationTimeMap.index, 0.toByte, 4.toByte),
     compareGreater ++ Array(1.toByte, 4.toByte, 5.toByte),
     assertTrue ++ Array(5.toByte),
-    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 1.toByte)
+    cdbvMapSet ++ Array(channelExpirationTimeMap.index, 0.toByte, 1.toByte)
   )
   lazy val updateExpiredTimeFunc: Array[Byte] = getFunctionBytes(updateExpiredTimeId, publicFuncType, nonReturnType,
                                                                  updateExpiredTimeDataType, updateExpiredTimeFunctionOpcs)
@@ -124,7 +124,7 @@ object ContractPaymentChannel {
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 2.toByte),
     assertCaller ++ Array(2.toByte),
     cdbvMapValMinus ++ Array(balanceMap.index, 2.toByte, 1.toByte),
-    cdbvMapValAdd ++ Array(channelCapacityMap.index, 0.toByte, 1.toByte)
+    cdbvMapValAdd ++ Array(accumulatedLoadMap.index, 0.toByte, 1.toByte)
   )
   lazy val chargeFunc: Array[Byte] = getFunctionBytes(chargeId, publicFuncType, nonReturnType, chargeDataType, chargeFunctionOpcs)
   val chargeTextualBytes: Array[Byte] = textualFunc("charge", Seq(), chargePara)
@@ -140,9 +140,9 @@ object ContractPaymentChannel {
     loadTimestamp ++ Array(2.toByte),
     basicConstantGet ++ DataEntry(Longs.toByteArray(48 * 3600 * 1000000000L), DataType.Timestamp).bytes ++ Array(3.toByte),
     basicAdd ++ Array(2.toByte, 3.toByte, 4.toByte),
-    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 5.toByte),
+    cdbvrMapGet ++ Array(channelExpirationTimeMap.index, 0.toByte, 5.toByte),
     basicMin ++ Array(4.toByte, 5.toByte, 6.toByte),
-    cdbvMapSet ++ Array(channelExpiredTimeMap.index, 0.toByte, 6.toByte),
+    cdbvMapSet ++ Array(channelExpirationTimeMap.index, 0.toByte, 6.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     cdbvMapSet ++ Array(channelStatusMap.index, 0.toByte, 7.toByte)
   )
@@ -158,13 +158,13 @@ object ContractPaymentChannel {
     cdbvrMapGet ++ Array(channelCreatorMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     loadTimestamp ++ Array(2.toByte),
-    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 3.toByte),
+    cdbvrMapGet ++ Array(channelExpirationTimeMap.index, 0.toByte, 3.toByte),
     compareGreater ++ Array(2.toByte, 3.toByte, 4.toByte),
     assertTrue ++ Array(4.toByte),
-    cdbvrMapGetOrDefault ++ Array(channelCapacityMap.index, 0.toByte, 5.toByte),
-    cdbvrMapGetOrDefault ++ Array(channelExecutedMap.index, 0.toByte, 6.toByte),
+    cdbvrMapGetOrDefault ++ Array(accumulatedLoadMap.index, 0.toByte, 5.toByte),
+    cdbvrMapGetOrDefault ++ Array(accumulatedPaymentMap.index, 0.toByte, 6.toByte),
     basicMinus ++ Array(5.toByte, 6.toByte, 7.toByte),
-    cdbvMapValAdd ++ Array(channelExecutedMap.index, 0.toByte, 7.toByte),
+    cdbvMapValAdd ++ Array(accumulatedPaymentMap.index, 0.toByte, 7.toByte),
     cdbvMapValAdd ++ Array(balanceMap.index, 1.toByte, 7.toByte)
   )
   lazy val executeWithdrawFunc: Array[Byte] = getFunctionBytes(executeWithdrawId, publicFuncType, nonReturnType,
@@ -181,20 +181,20 @@ object ContractPaymentChannel {
     cdbvrMapGet ++ Array(channelRecipientMap.index, 0.toByte, 3.toByte),
     assertCaller ++ Array(3.toByte),
     loadTimestamp ++ Array(4.toByte),
-    cdbvrMapGet ++ Array(channelExpiredTimeMap.index, 0.toByte, 5.toByte),
+    cdbvrMapGet ++ Array(channelExpirationTimeMap.index, 0.toByte, 5.toByte),
     compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
     assertTrue ++ Array(6.toByte),
     cdbvrMapGet ++ Array(channelCreatorPublicKeyMap.index, 0.toByte, 7.toByte),
     basicConcat ++ Array(0.toByte, 1.toByte, 8.toByte),
     assertSig ++ Array(8.toByte, 2.toByte, 7.toByte),
-    cdbvrMapGetOrDefault ++ Array(channelExecutedMap.index, 0.toByte, 9.toByte),
+    cdbvrMapGetOrDefault ++ Array(accumulatedPaymentMap.index, 0.toByte, 9.toByte),
     compareGreater ++ Array(1.toByte, 9.toByte, 10.toByte),
     assertTrue ++ Array(10.toByte),
-    cdbvrMapGetOrDefault ++ Array(channelCapacityMap.index, 0.toByte, 11.toByte),
+    cdbvrMapGetOrDefault ++ Array(accumulatedLoadMap.index, 0.toByte, 11.toByte),
     compareGreater ++ Array(11.toByte, 1.toByte, 12.toByte),
     assertTrue ++ Array(12.toByte),
     basicMinus ++ Array(1.toByte, 9.toByte, 13.toByte),
-    cdbvMapValAdd ++ Array(channelExecutedMap.index, 0.toByte, 13.toByte),
+    cdbvMapValAdd ++ Array(accumulatedPaymentMap.index, 0.toByte, 13.toByte),
     cdbvMapValAdd ++ Array(balanceMap.index, 3.toByte, 13.toByte)
   )
   lazy val executePaymentFunc: Array[Byte] = getFunctionBytes(executePaymentId, publicFuncType, nonReturnType,
