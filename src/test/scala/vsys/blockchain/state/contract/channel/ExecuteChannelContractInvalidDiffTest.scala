@@ -26,7 +26,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
   with PaymentChannelContractGen {
 
   val preconditionsAndPaymentChannelWithAmountInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, Long, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     genesis <- genesisPaymentChannelGen(master, ts)
@@ -40,22 +40,18 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     regContract <- registerPaymentChannelGen(master, contract, dataStack, description, fee, ts)
     contractId = regContract.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(100L))
+    depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(0L))
     depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
     depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
     createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(1000L), Longs.toByteArray(ts + 1000000000000L))
     createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
     invalidCreate <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
-    //signature = channelIdLength + channelId + Long
-    paymentSignatureBytes = EllipticCurveImpl.sign(master, Shorts.toByteArray(invalidCreate.id.arr.length.toShort) ++ invalidCreate.id.arr ++ Longs.toByteArray(50L))
-    executePaymentData = Seq(invalidCreate.id.arr, Longs.toByteArray(50L), paymentSignatureBytes)
-    executePaymentType = Seq(DataType.ShortBytes, DataType.Amount, DataType.ShortBytes)
-    executePayment <- executePaymentChannelGen(user, contractId, executePaymentData, executePaymentType, attach, fee, ts)
-  } yield (genesis, genesis2, regContract, depositVSYS, invalidCreate, executePayment, fee, ts)
+
+  } yield (genesis, genesis2, regContract, depositVSYS, invalidCreate, fee, ts)
 
   property("Create payment channel with insufficient amount") {
     forAll(preconditionsAndPaymentChannelWithAmountInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
-    deposit: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _, _) =>
+    deposit: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
         TestBlock.createWithTxStatus(invalidCreate.timestamp + 1, Seq(invalidCreate), TransactionStatus.ContractMapValueInsufficient)) { (blockDiff, newState) =>
         blockDiff.txsDiff.contractDB.isEmpty shouldBe true
@@ -67,11 +63,10 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
   }
 
   val preconditionsAndPaymentChannelWithAddressInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, Long, Long)] = for {
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     genesis <- genesisPaymentChannelGen(master, ts)
-    user <- byteArrayGen(48).map(seed => PrivateKeyAccount(seed))
+    user <- byteArrayGen(1).map(seed => PrivateKeyAccount(seed))
     genesis2 <- genesisPaymentChannelGen(user, ts)
     contract <- channelContract
     description <- validDescStringGen
@@ -84,28 +79,25 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(1000L))
     depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
     depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
-    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
-    createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
+    createData = Seq(ContractAccount.systemContractId.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000000L))
+    createType = Seq(DataType.ContractAccount, DataType.Amount, DataType.Timestamp)
     invalidCreate <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
-    //signature = channelIdLength + channelId + Long
-    paymentSignatureBytes = EllipticCurveImpl.sign(master, Shorts.toByteArray(invalidCreate.id.arr.length.toShort) ++ invalidCreate.id.arr ++ Longs.toByteArray(50L))
-    executePaymentData = Seq(invalidCreate.id.arr, Longs.toByteArray(50L), paymentSignatureBytes)
-    executePaymentType = Seq(DataType.ShortBytes, DataType.Amount, DataType.ShortBytes)
-    executePayment <- executePaymentChannelGen(user, contractId, executePaymentData, executePaymentType, attach, fee, ts)
-  } yield (genesis, genesis2, regContract, depositVSYS, invalidCreate, executePayment, fee, ts)
+  } yield (genesis, genesis2, regContract, depositVSYS, invalidCreate, fee, ts)
 
   property("Create payment channel with invalid recipient address") {
     forAll(preconditionsAndPaymentChannelWithAddressInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
-    deposit: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _, _) =>
+    deposit: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
-        TestBlock.createWithTxStatus(invalidCreate.timestamp + 1, Seq(invalidCreate), TransactionStatus.Success)) { (blockDiff, newState) =>
-
-        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+        TestBlock.createWithTxStatus(invalidCreate.timestamp + 1, Seq(invalidCreate), TransactionStatus.ContractDataTypeMismatch)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractDataTypeMismatch
       }
     }
   }
 
-  val preconditionsAndPaymentChannelWithTimeOrCallerInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
+  val preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
@@ -123,31 +115,47 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(1000L))
     depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
     depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
-    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts - 1000000000000L))
+    createData = Seq(user.toAddress.bytes.arr, Longs.toByteArray(100L), Longs.toByteArray(ts + 1000000000001L))
     createType = Seq(DataType.Address, DataType.Amount, DataType.Timestamp)
-    create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
-    chargeData = Seq(create.id.arr, Longs.toByteArray(100L))
+    create <- createChannelGen(master, contractId, createData, createType, attach, fee, ts + 2)
+    chargeData = Seq(create.id.arr, Longs.toByteArray(10000L))
     chargeType = Seq(DataType.ShortBytes, DataType.Amount)
-    charge <- chargeChannelGen(master, contractId, chargeData, chargeType, attach, fee, ts)
-    //signature = channelIdLength + channelId + Long
-    executeWithdraw <- executeWithdrawChannelGen(master, contractId, create.id.arr, attach, fee, ts)
-    invalidTerminateChannel <- terminateChannelGen(user, contractId, create.id.arr, attach, fee, ts)
-  } yield (genesis, genesis2, regContract, depositVSYS, create, charge, executeWithdraw, invalidTerminateChannel, fee, ts)
+    charge <- chargeChannelGen(master, contractId, chargeData, chargeType, attach, fee, ts+3)
+    updateTimeData = Seq(create.id.arr, Longs.toByteArray(ts + 1000000000000L))
+    updateTimeType = Seq(DataType.ShortBytes, DataType.Timestamp)
+    updateTime <- updateExpiredTimeChannelGen(master, contractId, updateTimeData, updateTimeType, attach, fee, ts + 3)
+    invalidTerminateChannel <- terminateChannelGen(user, contractId, create.id.arr, attach, fee, ts + 4)
+  } yield (genesis, genesis2, regContract, depositVSYS, create, charge, updateTime, invalidTerminateChannel, fee, ts)
 
-//  property("Create payment channel with invalid expired time") {
-//    forAll(preconditionsAndPaymentChannelWithTimeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
-//    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction, _, _, _) =>
-//      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
-//        TestBlock.createWithTxStatus(create.timestamp, Seq(create), TransactionStatus.Failed)) { (blockDiff, newState) =>
-//
-//        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
-//      }
-//    }
-//  }
+  property("Execute update expired time in token payment channel earlier than current one") {
+    forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
+    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, updateTime: ExecuteContractFunctionTransaction, _, _, _) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
+        TestBlock.createWithTxStatus(updateTime.timestamp, Seq(updateTime), TransactionStatus.Failed)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("Charge too much amount from token payment channel") {
+    forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
+    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, updateTime: ExecuteContractFunctionTransaction, _, _, _) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
+        TestBlock.createWithTxStatus(charge.timestamp, Seq(charge), TransactionStatus.ContractMapValueInsufficient)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
+      }
+    }
+  }
 
   property("Terminate the channel without the right") {
-    forAll(preconditionsAndPaymentChannelWithTimeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
-    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction,
+    forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
+    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, updateTime: ExecuteContractFunctionTransaction,
     invalidTerminateChannel: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
         TestBlock.createWithTxStatus(invalidTerminateChannel.timestamp + 1, Seq(invalidTerminateChannel), TransactionStatus.ContractInvalidCaller)) { (blockDiff, newState) =>
@@ -161,7 +169,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
 
   val preconditionsAndPaymentChannelWithWithdrawInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     genesis <- genesisPaymentChannelGen(master, ts)
     user <- accountGen
@@ -189,13 +197,11 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     executePaymentData = Seq(create.id.arr, Longs.toByteArray(10000L), paymentSignatureBytes)
     executePaymentType = Seq(DataType.ShortBytes, DataType.Amount, DataType.ShortBytes)
     executePayment <- executePaymentChannelGen(user, contractId, executePaymentData, executePaymentType, attach, fee, ts)
-    terminateChannel <- terminateChannelGen(master, contractId, create.id.arr, attach, fee, ts+5)
-  } yield (genesis, genesis2, regContract, depositVSYS, create, charge, executeWithdraw, terminateChannel, executePayment, fee, ts)
+  } yield (genesis, genesis2, regContract, depositVSYS, create, charge, executeWithdraw, executePayment, fee, ts)
 
   property("Withdraw the amount before terminating") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
-    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction,
-    terminateChannel: ExecuteContractFunctionTransaction, _, _, _) =>
+    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction, _, _, _) =>
 
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
 
@@ -211,10 +217,8 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
   property("Execute the insufficient payment amount from the channel") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction,
-    terminateChannel: ExecuteContractFunctionTransaction, executePayment: ExecuteContractFunctionTransaction, _, _) =>
-
+    executePayment: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
-
         TestBlock.createWithTxStatus(executePayment.timestamp + 1, Seq(executePayment), TransactionStatus.Failed)) { (blockDiff, newState) =>
         blockDiff.txsDiff.contractDB.isEmpty shouldBe true
         blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
