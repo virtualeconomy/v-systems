@@ -15,7 +15,7 @@ import vsys.blockchain.state.opcdiffs.TDBAOpcDiff.TDBAType
 import vsys.blockchain.state.opcdiffs.TDBAROpcDiff.TDBARType
 import vsys.blockchain.state.opcdiffs.TDBOpcDiff.TDBType
 import vsys.blockchain.state.opcdiffs.TDBROpcDiff.TDBRType
-import vsys.blockchain.state.systemdiffs.SystemTransferDiff.TransferType
+import vsys.blockchain.state.opcdiffs.SystemTransferDiff.TransferType
 import vsys.utils.serialization.Deser
 
 import scala.util.{Failure, Success, Try}
@@ -25,7 +25,6 @@ object ContractTranslator extends App {
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
-  println(bytes.length)
 
   val languageCode = bytes.slice(0, LanguageCodeByteLength)
   val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)
