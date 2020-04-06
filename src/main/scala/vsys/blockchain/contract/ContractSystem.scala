@@ -2,15 +2,16 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractSystem {
-  lazy val contract: Contract = getContract(Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
+  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(),
     Seq(sysSendFunc, sysDepositFunc, sysWithdrawFunc, sysTransferFunc),
     Seq(), Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ))
+  ).explicitGet()
 
   //sysSend
   val sysSendId: Short = 0

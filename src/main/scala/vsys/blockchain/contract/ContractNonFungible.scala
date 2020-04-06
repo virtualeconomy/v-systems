@@ -2,16 +2,17 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractNonFungible {
-  lazy val contract: Contract = getContract(Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
+  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, sendFunc, transferFunc, depositFunc, withdrawFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ))
+  ).explicitGet()
 
   // StateVar
   val stateVarName = List("issuer", "maker")

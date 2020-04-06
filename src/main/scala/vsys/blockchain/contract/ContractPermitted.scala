@@ -2,17 +2,18 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractPermitted {
-  lazy val contract: Contract = getContract(Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
+  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, destroyFunc, splitFunc, sendFunc, transferFunc, depositFunc, withdrawFunc,
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ))
+  ).explicitGet()
 
   lazy val contractWithoutSplit: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initFunc),

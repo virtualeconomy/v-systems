@@ -2,17 +2,18 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractPaymentChannel {
-  lazy val contract: Contract = getContract(Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
+  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger),
     Seq(createAndLoadFunc, extendExpirationTimeFunc, loadFunc, abortFunc, unloadFunc, collectPaymentFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
       accumulatedLoadMap.arr, accumulatedPaymentMap.arr, channelExpirationTimeMap.arr, channelStatusMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
-  ))
+  ).explicitGet()
 
   // State Var
   val stateVarName = List("maker", "tokenId")
