@@ -5,10 +5,10 @@ import vsys.blockchain.contract.ContractGen._
 import vsys.utils.serialization.Deser
 
 object ContractDepositWithdrawProductive {
-  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
+  lazy val contract: Contract = getContract(Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(),
     Seq(makerStateVar.arr, tokenIdStateVar.arr), Seq(), Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ).right.get
+  ))
 
   //statevar
   val stateVarName = List("maker", "tokenId")

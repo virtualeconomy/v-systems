@@ -1,6 +1,7 @@
 package vsys.blockchain.contract
 
 import com.google.common.primitives.{Bytes, Shorts}
+import vsys.blockchain.transaction.ValidationError
 import vsys.utils.serialization.Deser
 
 object ContractGen {
@@ -85,6 +86,10 @@ object ContractGen {
     val retByte = Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x))))
     val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
     Bytes.concat(funcByte, retByte, paraByte)
+  }
+
+  def getContract(e: Either[ValidationError, Contract]): Contract = {
+    e.right.get
   }
 
   val nonReturnType: Array[Byte] = Array[Byte]()

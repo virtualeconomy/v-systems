@@ -25,6 +25,7 @@ object ContractTranslator extends App {
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
+  println(bytes.length)
 
   val languageCode = bytes.slice(0, LanguageCodeByteLength)
   val languageVersion = bytes.slice(LanguageCodeByteLength, LanguageCodeByteLength + LanguageVersionByteLength)

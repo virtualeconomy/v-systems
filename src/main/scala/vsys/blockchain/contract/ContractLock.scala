@@ -5,12 +5,12 @@ import vsys.blockchain.contract.ContractGen._
 import vsys.utils.serialization.Deser
 
 object ContractLock {
-  lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
+  lazy val contract: Contract = getContract(Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(lockFunc),
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, lockTimeMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
-  ).right.get
+  ))
 
   // State Var
   val stateVarName = List("maker", "tokenId")
