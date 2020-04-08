@@ -165,7 +165,6 @@ linuxScriptReplacements += "detect-loader" ->
     |""".stripMargin
 
 inConfig(Debian)(Seq(
-  debianPackageDependencies += "java8-runtime-headless",
   serviceAutostart := false,
   maintainerScripts := maintainerScriptsFromDirectory(packageSource.value / "debian", Seq("preinst", "postinst", "postrm", "prerm"))
 ))
