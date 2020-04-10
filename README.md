@@ -1,6 +1,6 @@
-# v.systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master)
+# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master)
 
-[v.systems](https://v.systems) is a public blockchain that brings real-world businesses into the virtual economy. 
+[V Systems](https://v.systems) is a public blockchain that brings real-world businesses into the virtual economy. 
 
 ## Status
 
