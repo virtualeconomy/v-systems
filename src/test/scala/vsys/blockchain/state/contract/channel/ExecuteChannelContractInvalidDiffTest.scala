@@ -34,8 +34,15 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     invalidCreate <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
   } yield (genesis, genesis2, regContract, depositVSYS, create, invalidCreate, fee, ts)
 
-  // invalid
   property("Create payment channel with insufficient amount") {
+    forAll(preconditionsAndPaymentChannelWithAmountInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
+    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
+        TestBlock.createWithTxStatus(create.timestamp + 1, Seq(create), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+
     forAll(preconditionsAndPaymentChannelWithAmountInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
@@ -44,17 +51,6 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
         blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
-      }
-    }
-  }
-
-  // valid
-  property("Create payment channel with sufficient amount") {
-    forAll(preconditionsAndPaymentChannelWithAmountInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
-    deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
-      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
-        TestBlock.createWithTxStatus(create.timestamp + 1, Seq(create), TransactionStatus.Success)) { (blockDiff, newState) =>
-        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
   }
@@ -69,8 +65,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     invalidCreate <- createChannelGen(master, contractId, createData, createType, attach, fee, ts)
   } yield (genesis, genesis2, regContract, depositVSYS, create, invalidCreate, fee, ts)
 
-  // valid
-  property("Create payment channel with valid recipient address") {
+  property("Create payment channel with invalid recipient address") {
     forAll(preconditionsAndPaymentChannelWithAddressInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
@@ -78,10 +73,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
-  }
 
-  // invalid
-  property("Create payment channel with invalid recipient address") {
     forAll(preconditionsAndPaymentChannelWithAddressInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, invalidCreate: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
@@ -119,8 +111,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
 
   } yield (genesis, genesis2, regContract, depositVSYS, create, charge, invalidCharge, updateTime, invalidUpdateTime, terminateChannel, invalidTerminateChannel, fee, ts)
 
-  // valid
-  property("Execute update expired time in token payment channel later than current one") {
+  property("Execute update expired time in token payment channel earlier than current one") {
     forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, _, updateTime: ExecuteContractFunctionTransaction, invalidUpdateTime: ExecuteContractFunctionTransaction, _, _, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
@@ -128,10 +119,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
-  }
 
-  // invalid
-  property("Execute update expired time in token payment channel earlier than current one") {
     forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, _, updateTime: ExecuteContractFunctionTransaction, invalidUpdateTime: ExecuteContractFunctionTransaction, _, _, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
@@ -144,8 +132,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     }
   }
 
-  // valid
-  property("Charge amount from token payment channel") {
+  property("Charge too much amount from token payment channel") {
     forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, _, _, invalidUpdateTime: ExecuteContractFunctionTransaction, _, _, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
@@ -153,10 +140,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
-  }
 
-  // invalid
-  property("Charge too much amount from token payment channel") {
     forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, _, invalidCharge: ExecuteContractFunctionTransaction, _, invalidUpdateTime: ExecuteContractFunctionTransaction, _, _, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create))),
@@ -169,8 +153,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     }
   }
 
-  // valid
-  property("Terminate the channel with the right") {
+  property("Terminate the channel without the right") {
     forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, _, _, invalidUpdateTime: ExecuteContractFunctionTransaction,
     terminateChannel: ExecuteContractFunctionTransaction, _, _, _) =>
@@ -179,10 +162,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
-  }
 
-  // invalid
-  property("Terminate the channel without the right") {
     forAll(preconditionsAndPaymentChannelWithTimeOrChargeOrCallerInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, _, _, invalidUpdateTime: ExecuteContractFunctionTransaction,
     _, invalidTerminateChannel: ExecuteContractFunctionTransaction, _, _) =>
@@ -222,8 +202,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     terminateChannel <- terminateChannelGen(master, contractId, create.id.arr, attach, fee, ts + 4)
   } yield (genesis, genesis2, regContract, depositVSYS, create, charge, executeWithdraw, executePayment, invalidExecutePayment, invalidSignatureExecutePayment, terminateChannel, fee, ts)
 
-  // valid
-  property("Withdraw the amount after terminating") {
+  property("Withdraw the amount before terminating") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction, _, _, _, terminateChannel: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create, charge, terminateChannel))),
@@ -231,10 +210,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
-  }
 
-  // invalid
-  property("Withdraw the amount before terminating") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction, _, _, _, terminateChannel: ExecuteContractFunctionTransaction, _, _) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, create, charge))),
@@ -247,7 +223,6 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     }
   }
 
-  // invalid
   property("Withdraw the amount immediately after terminating") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction, _, _, _, terminateChannel: ExecuteContractFunctionTransaction, _, _) =>
@@ -261,8 +236,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     }
   }
 
-  // valid
-  property("Collect the payment amount from the channel") {
+  property("Collect the insufficient payment amount from the channel") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction,
     executePayment: ExecuteContractFunctionTransaction, invalidExecutePayment: ExecuteContractFunctionTransaction, _, _, _, _) =>
@@ -271,10 +245,7 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
     }
-  }
 
-  // invalid
-  property("Collect the insufficient payment amount from the channel") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction,
     executePayment: ExecuteContractFunctionTransaction, invalidExecutePayment: ExecuteContractFunctionTransaction, _, _, _, _) =>
@@ -288,7 +259,6 @@ class ExecuteChannelContractInvalidDiffTest extends PropSpec
     }
   }
 
-  // invalid
   property("Collect the payment amount from the channel with wrong signature") {
     forAll(preconditionsAndPaymentChannelWithWithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, create: ExecuteContractFunctionTransaction, charge: ExecuteContractFunctionTransaction, executeWithdraw: ExecuteContractFunctionTransaction,
