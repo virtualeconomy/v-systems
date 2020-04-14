@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractPaymentChannel {
@@ -12,7 +13,7 @@ object ContractPaymentChannel {
     Seq(balanceMap.arr, channelCreatorMap.arr, channelCreatorPublicKeyMap.arr, channelRecipientMap.arr,
       accumulatedLoadMap.arr, accumulatedPaymentMap.arr, channelExpirationTimeMap.arr, channelStatusMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
-  ).right.get
+  ).explicitGet()
 
   // State Var
   val stateVarName = List("maker", "tokenId")

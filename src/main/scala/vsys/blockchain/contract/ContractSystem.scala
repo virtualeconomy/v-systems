@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractSystem {
@@ -10,7 +11,7 @@ object ContractSystem {
     Seq(sysSendFunc, sysDepositFunc, sysWithdrawFunc, sysTransferFunc),
     Seq(), Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ).right.get
+  ).explicitGet()
 
   //sysSend
   val sysSendId: Short = 0

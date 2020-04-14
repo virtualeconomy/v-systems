@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractPermitted {
@@ -12,7 +13,7 @@ object ContractPermitted {
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ).right.get
+  ).explicitGet()
 
   lazy val contractWithoutSplit: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initFunc),

@@ -2,13 +2,14 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractDepositWithdrawProductive {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(1),
     Seq(initTrigger, depositTrigger, withdrawTrigger), Seq(),
     Seq(makerStateVar.arr, tokenIdStateVar.arr), Seq(), Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ).right.get
+  ).explicitGet()
 
   //statevar
   val stateVarName = List("maker", "tokenId")

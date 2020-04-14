@@ -190,8 +190,9 @@ object Contract extends ScorexLogging {
   }
 
   private def checkTextual(textual: (Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])): Boolean = {
-    textual._1.flatten.forall(x => identifierCheck(x)) && textual._2.flatten.forall(x => identifierCheck(x)) &&
-      textual._3.forall(x => identifierCheck(x)) && textual._4.forall(x => identifierCheck(x))
+    val (trigger, descriptor, stateVariable, stateMap) = textual
+    trigger.flatten.forall(x => identifierCheck(x)) && descriptor.flatten.forall(x => identifierCheck(x)) &&
+      stateVariable.forall(x => identifierCheck(x)) && stateMap.forall(x => identifierCheck(x))
   }
 
   private def identifierCheck(str: String): Boolean = {

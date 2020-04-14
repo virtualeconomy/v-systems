@@ -59,10 +59,9 @@ object ExecutionContext {
       }
     } else {
       s.contractContent(tx.contractId.bytes) match {
-        case Some(c) if tx.funcIdx >=0 && tx.funcIdx < c._3.descriptor.length =>
-          Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp,
-                                 height, tx, contractId, c._3.descriptor(tx.funcIdx),
-                                 c._3.stateVar, c._3.stateMap, description, 0))
+        case Some((_, _, contract)) if tx.funcIdx >=0 && tx.funcIdx < contract.descriptor.length =>
+          Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp, height, tx, contractId,
+            contract.descriptor(tx.funcIdx), contract.stateVar, contract.stateMap, description, 0))
         case Some(_) => Left(InvalidFunctionIndex)
         case _ => Left(InvalidContractAddress)
       }
@@ -80,20 +79,20 @@ object ExecutionContext {
       Left(GenericError("stack overflow"))
     }
     state.contractContent(contractId.bytes) match {
-      case Some(contract) => if (callType == CallType.Trigger) {
-        val opcFunc = contract._3.trigger.find(a => (a.length > 2) && (a(2) == callIndex.toByte))
+      case Some((_, _, contract)) => if (callType == CallType.Trigger) {
+        val opcFunc = contract.trigger.find(a => (a.length > 2) && (a(2) == callIndex.toByte))
         if (opcFunc.isDefined) {
           Right(ExecutionContext(c.signers, state, c.prevBlockTimestamp, c.currentBlockTimestamp,
                                  c.height, c.transaction, contractId, opcFunc.get,
-                                 contract._3.stateVar, contract._3.stateMap, c.description, c.depth + 1))
+                                 contract.stateVar, contract.stateMap, c.description, c.depth + 1))
         } else {
           Left(GenericError("no such trigger"))
         }
       } else if (callType == CallType.Function) {
-        if (callIndex >= 0 && callIndex < contract._3.descriptor.length) {
+        if (callIndex >= 0 && callIndex < contract.descriptor.length) {
           Right(ExecutionContext(c.signers, state, c.prevBlockTimestamp, c.currentBlockTimestamp,
-                                 c.height, c.transaction, contractId, contract._3.descriptor(callIndex),
-                                 contract._3.stateVar, contract._3.stateMap, c.description, c.depth + 1))
+                                 c.height, c.transaction, contractId, contract.descriptor(callIndex),
+                                 contract.stateVar, contract.stateMap, c.description, c.depth + 1))
         } else {
           Left(GenericError("invalid contract function index"))
         }

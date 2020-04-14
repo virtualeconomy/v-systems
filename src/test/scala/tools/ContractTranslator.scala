@@ -15,7 +15,7 @@ import vsys.blockchain.state.opcdiffs.TDBAOpcDiff.TDBAType
 import vsys.blockchain.state.opcdiffs.TDBAROpcDiff.TDBARType
 import vsys.blockchain.state.opcdiffs.TDBOpcDiff.TDBType
 import vsys.blockchain.state.opcdiffs.TDBROpcDiff.TDBRType
-import vsys.blockchain.state.systemdiffs.SystemTransferDiff.TransferType
+import vsys.blockchain.state.opcdiffs.SystemTransferDiff.TransferType
 import vsys.utils.serialization.Deser
 
 import scala.util.{Failure, Success, Try}
@@ -171,17 +171,18 @@ object ContractTranslator extends App {
     if (t.isFailure) println("Invalid Texture")
     else {
       val r = t.get
+      val (trig, desc, stav, stam) = r
       println("Trigger Functions:")
-      printSeqSeqString(r._1)
+      printSeqSeqString(trig)
       println("Descriptor Functions:")
-      printSeqSeqString(r._2)
+      printSeqSeqString(desc)
       println("State Variables:")
-      List.range(0, r._3.size).foreach { i =>
-        println("%02d".format(i) + " | " + r._3(i) + ": " + dataTypeList(stateVar(i)(1) - 1))
+      List.range(0, stav.size).foreach { i =>
+        println("%02d".format(i) + " | " + stav(i) + ": " + dataTypeList(stateVar(i)(1) - 1))
       }
       println("State Maps:")
-      List.range(0, r._4.size).foreach { i =>
-        println("%02d".format(i) + " | " + r._4(i) + ": Map[" + dataTypeList(stateMap(i)(1) - 1) + ", " + dataTypeList(stateMap(i)(2) - 1) + "]")
+      List.range(0, stam.size).foreach { i =>
+        println("%02d".format(i) + " | " + stam(i) + ": Map[" + dataTypeList(stateMap(i)(1) - 1) + ", " + dataTypeList(stateMap(i)(2) - 1) + "]")
       }
     }
   }
@@ -250,8 +251,7 @@ object ContractTranslator extends App {
   def opcToName(data: Array[Byte], nameList: Seq[String]): String = {
     val x = data(0)
     val y = data(1)
-    val stateNameList = textualStr.get._3
-    val stateMapList = textualStr.get._4
+    val (_, _, stateNameList, stateMapList) = textualStr.get
     x match {
       case opcType: Byte if opcType == OpcType.SystemOpc.id =>
         y match {

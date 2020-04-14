@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractLock {
@@ -10,7 +11,7 @@ object ContractLock {
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, lockTimeMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
-  ).right.get
+  ).explicitGet()
 
   // State Var
   val stateVarName = List("maker", "tokenId")

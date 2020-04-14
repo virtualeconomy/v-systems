@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractNonFungible {
@@ -11,7 +12,7 @@ object ContractNonFungible {
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ).right.get
+  ).explicitGet()
 
   // StateVar
   val stateVarName = List("issuer", "maker")
