@@ -145,50 +145,6 @@ object TDBAOpcDiff extends OpcDiffer {
     }
   }
 
-  def transfer(context: ExecutionContext)
-              (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
-               tokenIndex: DataEntry = defaultTokenIndex): Either[ValidationError, OpcDiff] = {
-
-    if (sender.dataType == DataType.ContractAccount) {
-      Left(ContractUnsupportedWithdraw)
-    } else if (recipient.dataType == DataType.ContractAccount) {
-      Left(ContractUnsupportedDeposit)
-    } else if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address) ||
-      (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
-      Left(ContractDataTypeMismatch)
-    } else {
-      val contractTokens = context.state.contractTokens(context.contractId.bytes)
-      val tokenNumber = Ints.fromByteArray(tokenIndex.data)
-      val transferAmount = Longs.fromByteArray(amount.data)
-      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
-      val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
-      val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
-      val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))
-      val recipientCurrentBalance = context.state.tokenAccountBalance(recipientBalanceKey)
-      if (tokenNumber >= contractTokens || tokenNumber < 0) {
-        Left(ContractInvalidTokenIndex)
-      } else if (transferAmount > senderCurrentBalance) {
-        Left(ContractTokenBalanceInsufficient)
-      } else if (Try(Math.addExact(transferAmount, recipientCurrentBalance)).isFailure) {
-        Left(ValidationError.OverflowError)
-      } else if (transferAmount < 0) {
-        Left(ContractInvalidAmount)
-      } else {
-        val s = Address.fromBytes(sender.data).explicitGet()
-        val r = Address.fromBytes(recipient.data).explicitGet()
-        if (sender.bytes sameElements recipient.bytes) {
-          Right(OpcDiff(relatedAddress = Map(s -> true, r -> true)
-          ))
-        } else {
-          Right(OpcDiff(relatedAddress = Map(s -> true, r -> true),
-            tokenAccountBalance = Map(senderBalanceKey -> -transferAmount,
-              recipientBalanceKey -> transferAmount)
-          ))
-        }
-      }
-    }
-  }
-
   object TDBAType extends Enumeration {
     sealed case class TDBATypeVal(
       tdbaType: Int,
