@@ -24,11 +24,11 @@ class RegisterPaymentChannelContractDiffTest extends PropSpec
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  val ChannelContract: Gen[Contract] = paymentChannelContractGen()
+  val paymentChannelContract: Gen[Contract] = paymentChannelContractGen()
 
   val preconditionsAndChannelContractTest: Gen[(GenesisTransaction, RegisterContractTransaction, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
-    contract <- ChannelContract
+    contract <- paymentChannelContract
     description <- validDescStringGen
     tokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     dataStack <- initPaymentChannelContractDataStackGen(tokenId.arr)
