@@ -18,7 +18,7 @@ We maintain an extensive [Wiki](https://github.com/virtualeconomy/v-systems/wiki
 
 ## Compiling Packages from source
 
-We've written a [guide](https://github.com/virtualeconomy/v-systems/wiki/Compile-v.systems-from-source-code) that covers compiling and installing v.systems on Ubuntu 18.04.  
+We've written a [guide](https://github.com/virtualeconomy/v-systems/wiki/Compile-v.systems-from-source-code) that covers compiling and installing V Systems on Ubuntu 18.04.  
 
 ## Community
 
