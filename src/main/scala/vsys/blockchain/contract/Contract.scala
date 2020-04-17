@@ -190,8 +190,8 @@ object Contract extends ScorexLogging {
   }
 
   private def stateMapFromBytes(bytes: Array[Byte]): Seq[Seq[String]] = {
-    val stateMapBytes = Deser.parseArrays(bytes)
-    stateMapBytes.foldLeft(Seq.empty[Seq[String]]) {case (e, b) => {
+    val stateMapBytesList = Deser.parseArrays(bytes)
+    stateMapBytesList.foldLeft(Seq.empty[Seq[String]]) {case (e, b) => {
       val stm: Seq[String] = Deser.parseArrays(b).map(x => Deser.deserilizeString(x))
       e :+ stm
     }}
