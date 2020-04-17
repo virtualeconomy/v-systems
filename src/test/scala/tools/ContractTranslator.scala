@@ -167,7 +167,7 @@ object ContractTranslator extends App {
     }
   }
 
-  def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])]): Unit = {
+  def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[Seq[String]])]): Unit = {
     if (t.isFailure) println("Invalid Texture")
     else {
       val r = t.get
@@ -182,7 +182,7 @@ object ContractTranslator extends App {
       }
       println("State Maps:")
       List.range(0, stam.size).foreach { i =>
-        println("%02d".format(i) + " | " + stam(i) + ": Map[" + dataTypeList(stateMap(i)(1) - 1) + ", " + dataTypeList(stateMap(i)(2) - 1) + "]")
+        println("%02d".format(i) + " | " + stam(i).head + " | " + stam(i)(1) + " -> " + stam(i)(2) + " | Map[" + dataTypeList(stateMap(i)(1) - 1) + ", " + dataTypeList(stateMap(i)(2) - 1) + "]")
       }
     }
   }
@@ -206,13 +206,13 @@ object ContractTranslator extends App {
     res
   }
 
-  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])] = Try {
+  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[Seq[String]])] = Try {
     val initializerFuncBytes = Deser.parseArrays(bs.head)
     val initializerFunc = funcFromBytes(initializerFuncBytes)
     val descriptorFuncBytes = Deser.parseArrays(bs(1))
     val descriptorFunc = funcFromBytes(descriptorFuncBytes)
     val stateVar = paraFromBytes(bs(2))
-    val stateMap = if (bs.length == 4) paraFromBytes(bs(3)) else Seq()
+    val stateMap = if (bs.length == 4) stateMapFromBytes(bs(3)) else Seq()
     (initializerFunc, descriptorFunc, stateVar, stateMap)
   }
 
@@ -236,6 +236,14 @@ object ContractTranslator extends App {
       e :+ paraName
     }
     }
+  }
+
+  private def stateMapFromBytes(bytes: Array[Byte]): Seq[Seq[String]] = {
+    val stateMapBytes = Deser.parseArrays(bytes)
+    stateMapBytes.foldLeft(Seq.empty[Seq[String]]) {case (e, b) => {
+      val stm: Seq[String] = Deser.parseArrays(b).map(x => Deser.deserilizeString(x))
+      e :+ stm
+    }}
   }
 
   private def opcFromBytes(bytes: Array[Byte]): Try[(Short, Byte, Array[Byte], Array[Byte], Seq[Array[Byte]])] = Try {
