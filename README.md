@@ -23,8 +23,11 @@ We've written a [guide](https://github.com/virtualeconomy/v-systems/wiki/Compile
 ## Community
 
 [Forum](https://forum.v.systems/)
+
 [Twitter](https://twitter.com/VSYSCoin)
+
 [Telegram](https://t.me/VSYSOfficialGroup)
+
 [Medium](https://medium.com/vsystems)
 
 
