@@ -7,7 +7,6 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, TransactionGen}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 
 class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -23,13 +22,14 @@ class PaymentTransactionDiffTest extends PropSpec with PropertyChecks with Gener
 
 
   property("Diff doesn't break invariant") {
-    forAll(preconditionsAndPayment) { case ((genesis, payment, feePayment)) =>
+    forAll(preconditionsAndPayment) { case ((genesis, payment:PaymentTransaction, feePayment: Long)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(payment))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
-        val sender = EllipticCurve25519Proof.fromBytes(payment.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val sender = payment.proofs.firstCurveProof.explicitGet().publicKey
         totalPortfolioDiff.balance shouldBe -feePayment
         totalPortfolioDiff.effectiveBalance shouldBe -feePayment
-        newState.accountTransactionIds(sender.toAddress, 2, 0)._2.size shouldBe 2 // genesis and payment
+        val (_, senderTxs) = newState.accountTransactionIds(sender.toAddress, 2, 0)
+        senderTxs.size shouldBe 2 // genesis and payment
       }
     }
   }
