@@ -87,6 +87,10 @@ object ContractGen {
     Bytes.concat(funcByte, retByte, paraByte)
   }
 
+  def textualStateMap(a: Seq[Seq[String]]): Array[Byte] = {
+    Deser.serializeArrays(a.map(x => Deser.serializeArrays(x.map(y => Deser.serilizeString(y)))))
+  }
+
   val nonReturnType: Array[Byte] = Array[Byte]()
   val onInitTriggerType: Byte = 0
   val onDepositTriggerType: Byte = 1

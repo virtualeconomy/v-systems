@@ -22,7 +22,14 @@ object ContractPaymentChannel {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
-  val stateMapName = List("balance", "channelCreator", "channelCreatorPublicKey", "channelRecipient", "accumulatedLoad", "accumulatedPayment", "channelExpirationTime", "channelStatus")
+  val stateMapBalance = List("contractBalance", "userAddress", "balance")
+  val stateMapCreator = List("channelCreator", "channelId", "creator")
+  val stateMapCreatorPublicKey = List("channelCreatorPublicKey", "channelId", "creatorPublicKey")
+  val stateMapRecipient = List("channelRecipient", "channelId", "recipient")
+  val stateMapAccumulatedLoad = List("channelAccumulatedLoad", "channelId", "accumulatedLoad")
+  val stateMapAccumulatedPayment = List("channelAccumulatedPayment", "channelId", "accumulatedPayment")
+  val stateMapExpirationTime = List("channelExpirationTime", "channelId", "expirationTime")
+  val stateMapStatus = List("channelStatus", "channelId", "status")
   val balanceMap: StateMap                   = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val channelCreatorMap: StateMap            = StateMap(1.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
   val channelCreatorPublicKeyMap: StateMap   = StateMap(2.toByte, DataType.ShortBytes.id.toByte, DataType.PublicKey.id.toByte)
@@ -31,7 +38,8 @@ object ContractPaymentChannel {
   val accumulatedPaymentMap: StateMap        = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
   val channelExpirationTimeMap: StateMap     = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
   val channelStatusMap: StateMap             = StateMap(7.toByte, DataType.ShortBytes.id.toByte, DataType.Boolean.id.toByte)
-  lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
+  lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBalance, stateMapCreator, stateMapCreatorPublicKey, stateMapRecipient,
+    stateMapAccumulatedLoad, stateMapAccumulatedPayment, stateMapExpirationTime, stateMapStatus))
 
   // Initialization Trigger
   val initId: Short = 0
