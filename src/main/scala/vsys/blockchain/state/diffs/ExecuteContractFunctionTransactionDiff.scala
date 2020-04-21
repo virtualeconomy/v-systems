@@ -8,13 +8,15 @@ import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
 import vsys.blockchain.transaction.ValidationError._
+import vsys.settings.FunctionalitySettings
 
 object ExecuteContractFunctionTransactionDiff {
-  def apply(s: StateReader, height: Int, prevBlockTimestamp: Option[Long], currentBlockTimestamp: Long)(tx: ExecuteContractFunctionTransaction): Either[ValidationError, Diff] = {
+  def apply(s: StateReader, settings: FunctionalitySettings, height: Int, prevBlockTimestamp: Option[Long],
+            currentBlockTimestamp: Long)(tx: ExecuteContractFunctionTransaction): Either[ValidationError, Diff] = {
     tx.proofs.firstCurveProof.flatMap( proof => {
       val senderAddress = proof.publicKey.toAddress
       ( for {
-        exContext <- ExecutionContext.fromExeConTx(s, prevBlockTimestamp, currentBlockTimestamp, height, tx)
+        exContext <- ExecutionContext.fromExeConTx(s, settings, prevBlockTimestamp, currentBlockTimestamp, height, tx)
         diff <- OpcFuncDiffer(exContext)(tx.data)
       } yield Diff(
         height = height,
