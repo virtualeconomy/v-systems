@@ -7,10 +7,12 @@ import vsys.blockchain.transaction.ValidationError.{GenericError, InvalidContrac
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
 import vsys.blockchain.state.opcdiffs.OpcDiff
+import vsys.settings.FunctionalitySettings
 import vsys.utils.serialization.Deser
 
 case class ExecutionContext(signers: Seq[PublicKeyAccount],
                             state: StateReader,
+                            settings: FunctionalitySettings,
                             prevBlockTimestamp: Option[Long],
                             currentBlockTimestamp: Long,
                             height: Int,
@@ -27,6 +29,7 @@ case class ExecutionContext(signers: Seq[PublicKeyAccount],
 object ExecutionContext {
 
   def fromRegConTx(s: StateReader,
+                   settings: FunctionalitySettings,
                    prevBlockTimestamp: Option[Long],
                    currentBlockTimestamp: Long,
                    height: Int,
@@ -37,11 +40,12 @@ object ExecutionContext {
     val stateVar = tx.contract.stateVar
     val stateMap = tx.contract.stateMap
     val description = Deser.serilizeString(tx.description)
-    Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp, height,
+    Right(ExecutionContext(signers, s, settings, prevBlockTimestamp, currentBlockTimestamp, height,
                            tx, contractId, opcFunc, stateVar, stateMap, description, 0))
   }
 
   def fromExeConTx(s: StateReader,
+                   settings: FunctionalitySettings,
                    prevBlockTimestamp: Option[Long],
                    currentBlockTimestamp: Long,
                    height: Int,
@@ -51,7 +55,7 @@ object ExecutionContext {
     val description = tx.attachment
     if (contractId.bytes.arr sameElements ContractAccount.systemContractId.bytes.arr) {
       if (tx.funcIdx >= 0 && tx.funcIdx < ContractSystem.contract.descriptor.length) {
-        Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp,
+        Right(ExecutionContext(signers, s, settings, prevBlockTimestamp, currentBlockTimestamp,
                                height, tx, contractId, ContractSystem.contract.descriptor(tx.funcIdx),
                                ContractSystem.contract.stateVar, ContractSystem.contract.stateMap, description, 0))
       } else {
@@ -60,7 +64,7 @@ object ExecutionContext {
     } else {
       s.contractContent(tx.contractId.bytes) match {
         case Some((_, _, contract)) if tx.funcIdx >=0 && tx.funcIdx < contract.descriptor.length =>
-          Right(ExecutionContext(signers, s, prevBlockTimestamp, currentBlockTimestamp, height, tx, contractId,
+          Right(ExecutionContext(signers, s, settings, prevBlockTimestamp, currentBlockTimestamp, height, tx, contractId,
             contract.descriptor(tx.funcIdx), contract.stateVar, contract.stateMap, description, 0))
         case Some(_) => Left(InvalidFunctionIndex)
         case _ => Left(InvalidContractAddress)
@@ -82,7 +86,7 @@ object ExecutionContext {
       case Some((_, _, contract)) => if (callType == CallType.Trigger) {
         val opcFunc = contract.trigger.find(a => (a.length > 2) && (a(2) == callIndex.toByte))
         if (opcFunc.isDefined) {
-          Right(ExecutionContext(c.signers, state, c.prevBlockTimestamp, c.currentBlockTimestamp,
+          Right(ExecutionContext(c.signers, state, c.settings, c.prevBlockTimestamp, c.currentBlockTimestamp,
                                  c.height, c.transaction, contractId, opcFunc.get,
                                  contract.stateVar, contract.stateMap, c.description, c.depth + 1))
         } else {
@@ -90,7 +94,7 @@ object ExecutionContext {
         }
       } else if (callType == CallType.Function) {
         if (callIndex >= 0 && callIndex < contract.descriptor.length) {
-          Right(ExecutionContext(c.signers, state, c.prevBlockTimestamp, c.currentBlockTimestamp,
+          Right(ExecutionContext(c.signers, state, c.settings, c.prevBlockTimestamp, c.currentBlockTimestamp,
                                  c.height, c.transaction, contractId, contract.descriptor(callIndex),
                                  contract.stateVar, contract.stateMap, c.description, c.depth + 1))
         } else {
