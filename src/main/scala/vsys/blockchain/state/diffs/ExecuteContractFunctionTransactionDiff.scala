@@ -3,7 +3,7 @@ package vsys.blockchain.state.diffs
 import cats.implicits._
 import vsys.blockchain.contract.ExecutionContext
 import vsys.blockchain.state.opcdiffs.OpcFuncDiffer
-import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.state.reader.{CompositeStateReader, StateReader}
 import vsys.blockchain.state.{Diff, LeaseInfo, Portfolio}
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
@@ -18,6 +18,8 @@ object ExecuteContractFunctionTransactionDiff {
       ( for {
         exContext <- ExecutionContext.fromExeConTx(s, settings, prevBlockTimestamp, currentBlockTimestamp, height, tx)
         diff <- OpcFuncDiffer(exContext)(tx.data)
+        newState = new CompositeStateReader(s, diff.asBlockDiff(height, tx))
+        _ <- Either.cond(newState.accountPortfolio(senderAddress).balance >= tx.transactionFee, (), ValidationError.ContractVSYSBalanceInsufficient)
       } yield Diff(
         height = height,
         tx = tx,
