@@ -34,13 +34,13 @@ class CommonValidationContractTest extends PropSpec
     description <- validDescStringGen
     genesis <- genesisTokenGen(master, ts)
     recipient <- accountGen
-    transfer: PaymentTransaction <- paymentGeneratorP(master, recipient)
-    regTokenContract <- registerTokenGen(master, contract, dataStack, description, fee + 10000000000L, ts + 1)
+    transfer: PaymentTransaction <- paymentGeneratorP(ts + 1, master, recipient)
+    regTokenContract <- registerTokenGen(master, contract, dataStack, description, fee + 10000000000L, ts + 2)
     pContract <- paymentChannelContract
     sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     dataForPaymentChannel: Seq[DataEntry] <- initPaymentChannelContractDataStackGen(sysTokenId.arr)
     // Register a payment channel that supports VSYS
-    regPaymentChannel <- registerPaymentChannelGen(master, pContract, dataForPaymentChannel, description, fee + 10000000000L, ts + 2)
+    regPaymentChannel <- registerPaymentChannelGen(master, pContract, dataForPaymentChannel, description, fee + 10000000000L, ts + 3)
   } yield (genesis, transfer, regTokenContract, regPaymentChannel)
 
   property("disallows contract related tx before allowed height") {

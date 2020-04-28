@@ -33,7 +33,7 @@ object OpcDiff {
            tokenDB             = d.tokenDB,
            tokenAccountBalance = d.tokenAccountBalance,
            relatedAddress      = d.relatedAddress,
-           portfolios = d.portfolios
+           portfolios          = d.portfolios
       )
 
     def asBlockDiff(height: Int, tx: Transaction): BlockDiff =

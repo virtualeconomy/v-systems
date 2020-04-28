@@ -104,6 +104,9 @@ object ValidationError {
   case object ContractInvalidSignature extends ContractValidationError {
     override val transactionStatus = TransactionStatus.ContractInvalidSignature
   }
+  case object ContractVSYSBalanceInsufficient extends ContractValidationError {
+    override val transactionStatus = TransactionStatus.ContractVSYSBalanceInsufficient
+  }
   case object EmptyProofs extends ValidationError
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError
   case class AccountBalanceError(errs: Map[Account, String]) extends ValidationError
