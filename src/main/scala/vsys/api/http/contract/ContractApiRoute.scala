@@ -15,7 +15,7 @@ import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction._
 import vsys.blockchain.UtxPool
-import vsys.blockchain.contract.{ContractDepositWithdraw, ContractPermitted, ContractSystem}
+import vsys.blockchain.contract._
 import vsys.settings.RestAPISettings
 import vsys.utils.serialization.Deser
 import vsys.utils.Time
@@ -134,7 +134,11 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       case ContractPermitted.contract.bytes => "TokenContractWithSplit"
       case ContractPermitted.contractWithoutSplit.bytes => "TokenContract"
       case ContractDepositWithdraw.contract.bytes => "DepositWithdrawContract"
+      case ContractDepositWithdrawProductive.contract.bytes => "ProductiveDepositWithdrawContract"
       case ContractSystem.contract.bytes => "SystemContract"
+      case ContractLock.contract.bytes => "LockContract"
+      case ContractNonFungible.contract.bytes => "NonFungibleContract"
+      case ContractPaymentChannel.contract.bytes => "PaymentChannelContract"
       case _ => "GeneralContract"
     }
 
@@ -193,7 +197,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
           case Some(x) => (for {
             acc <- Account.fromString(address)
           } yield Json.obj(
-            "address/contract" -> acc.bytes.base58,
+            "address/contractId" -> acc.bytes.base58,
             "height" -> height,
             "tokenId" -> tokenIdStr,
             "balance" -> state.tokenAccountBalance(ByteStr(tokenId.arr ++ acc.bytes.arr)),
