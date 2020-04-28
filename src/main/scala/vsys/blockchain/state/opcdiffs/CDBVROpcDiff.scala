@@ -48,16 +48,12 @@ object CDBVROpcDiff extends OpcDiffer {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
       val combinedKey = context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes
-      if (DataType(stateMap(2)) == DataType.Amount) { // amount balance map
-        val getVal = context.state.contractNumInfo(ByteStr(combinedKey))
-        Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(getVal), DataType.Amount)), 1))
-      } else if (DataType(stateMap(2)) == DataType.Timestamp) { // timestamp
-        context.state.contractInfo(ByteStr(combinedKey)) match {
-          case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
-          case _ => Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(0L), DataType.Timestamp)), 1))
-        }
-      } else {
-        Left(ContractStateMapNotDefined)
+      context.state.contractInfo(ByteStr(combinedKey)) match {
+        case Some(v) => Right(dataStack.patch(pointer, Seq(v), 1))
+        case _ if (DataType(stateMap(2)) == DataType.Timestamp) => Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(0L), DataType.Timestamp)), 1))
+        case _ if (DataType(stateMap(2)) == DataType.Amount) => Right(dataStack.patch(pointer,
+          Seq(DataEntry(Longs.toByteArray(context.state.contractNumInfo(ByteStr(combinedKey))), DataType.Amount)), 1))
+        case _ => Left(ContractStateMapNotDefined)
       }
     }
   }

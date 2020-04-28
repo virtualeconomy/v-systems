@@ -17,7 +17,7 @@ object ContractGen {
   val loadSigner               = Array(2.toByte, 1.toByte)
   val loadCaller               = Array(2.toByte, 2.toByte)
   val loadTimestamp            = Array(2.toByte, 3.toByte)
-  val loadTokenNum             = Array(2.toByte, 4.toByte)
+  val loadLastTokenIndex       = Array(2.toByte, 4.toByte)
   val loadTransactionId        = Array(2.toByte, 5.toByte)
   val loadPublicKey            = Array(2.toByte, 6.toByte)
 

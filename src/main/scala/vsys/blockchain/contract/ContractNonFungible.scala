@@ -55,7 +55,7 @@ object ContractNonFungible {
     assertCaller ++ Array(1.toByte),
     basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(2.toByte),
     tdbNewToken ++ Array(2.toByte, 2.toByte, 0.toByte),
-    loadTokenNum ++ Array(3.toByte),
+    loadLastTokenIndex ++ Array(3.toByte),
     tdbaDeposit ++ Array(1.toByte, 2.toByte, 3.toByte))
   lazy val issueFunc: Array[Byte] = getFunctionBytes(issueId, publicFuncType, nonReturnType, issueDataType, issueOpcs)
   val issueFuncBytes: Array[Byte] = textualFunc("issue", Seq(), issuePara)

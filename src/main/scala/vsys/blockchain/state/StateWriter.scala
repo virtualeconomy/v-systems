@@ -103,7 +103,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
 
     measureSizeLog("contractNumDB")(blockDiff.txsDiff.contractNumDB) {
       _.foreach { case (id, dValue) =>
-        val updatedNum = contractNumInfo(id) + dValue
+        val updatedNum = safeSum(contractNumInfo(id), dValue)
         sp().contractNumDB.put(id, updatedNum)
       }
     }
