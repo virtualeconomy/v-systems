@@ -94,7 +94,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.numOfSlots should be (60)
     settings.functionalitySettings.mintingSpeed should be (1)
     settings.functionalitySettings.allowContractTransactionAfterHeight should be (4236000) // same as the setting
-    settings.functionalitySettings.allowDepositWithdrawContractAfterHeight should be (Int.MaxValue)
+    settings.functionalitySettings.allowDepositWithdrawContractAfterHeight should be (12550000)
     settings.genesisSettings.blockTimestamp should be(1535356447650226656L)
     settings.genesisSettings.timestamp should be(1535356447650226656L)
     settings.genesisSettings.averageBlockDelay should be(60.seconds)
