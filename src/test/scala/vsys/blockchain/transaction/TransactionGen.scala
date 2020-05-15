@@ -95,7 +95,7 @@ trait TransactionGen {
   } yield contentStr.mkString
 
   val contractGen: Gen[Contract] = Gen.oneOf(ContractPermitted.contract, ContractPermitted.contractWithoutSplit,
-    ContractDepositWithdraw.contract, ContractDepositWithdrawProductive.contract, ContractLock.contract)
+    ContractLock.contract, ContractNonFungible.contract, ContractPaymentChannel.contract)
 
   val timestampGen: Gen[Long] = Gen.choose(1, Long.MaxValue - 100)
 
