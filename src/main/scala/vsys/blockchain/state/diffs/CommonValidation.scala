@@ -43,9 +43,7 @@ object CommonValidation {
     if (h <= settings.allowContractTransactionAfterHeight)
       Left(GenericError(s"must not appear before height=${settings.allowContractTransactionAfterHeight}"))
     else if (h <= settings.allowDepositWithdrawContractAfterHeight &&
-       (c == ContractDepositWithdraw.contract ||
-        c == ContractDepositWithdrawProductive.contract ||
-        c == ContractLock.contract ||
+       (c == ContractLock.contract ||
         c == ContractNonFungible.contract ||
         c == ContractPaymentChannel.contract))
       Left(GenericError(s"deposit withdraw contracts must not appear before height=${settings.allowDepositWithdrawContractAfterHeight}"))

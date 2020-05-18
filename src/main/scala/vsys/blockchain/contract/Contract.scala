@@ -142,8 +142,6 @@ object Contract extends ScorexLogging {
     val textualStr = textualFromBytes(textual)
     if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
       !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) &&
-      !(bytes sameElements ContractDepositWithdraw.contract.bytes.arr) &&
-      !(bytes sameElements ContractDepositWithdrawProductive.contract.bytes.arr) &&
       !(bytes sameElements ContractLock.contract.bytes.arr) &&
       !(bytes sameElements ContractNonFungible.contract.bytes.arr) &&
       !(bytes sameElements ContractPaymentChannel.contract.bytes.arr)) {

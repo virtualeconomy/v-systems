@@ -4,7 +4,7 @@ import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Matchers, PropSpec}
+import org.scalatest._
 import vsys.account.ContractAccount
 import vsys.blockchain.block.TestBlock
 import vsys.utils.serialization.Deser
@@ -17,6 +17,7 @@ import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen}
 import vsys.blockchain.transaction.contract._
 
+@Ignore
 class ExecuteDepositWithdrawContractDiffTest extends PropSpec
   with PropertyChecks
   with GeneratorDrivenPropertyChecks
