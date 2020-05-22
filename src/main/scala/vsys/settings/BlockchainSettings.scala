@@ -25,7 +25,7 @@ object FunctionalitySettings {
     //TODO
     //set the value
     allowContractTransactionAfterHeight = 4236000,
-    allowDepositWithdrawContractAfterHeight = Int.MaxValue)
+    allowDepositWithdrawContractAfterHeight = 12550000)
 
   val configPath = "vsys.blockchain.custom.functionality"
 }
