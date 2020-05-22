@@ -1,8 +1,8 @@
 package vsys.blockchain.state
 
 import com.google.common.primitives.Ints
+import vsys.account.Account
 import org.iq80.leveldb.{DB, WriteBatch}
-import vsys.account.Address
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.db.{Storage, SubStorage}
 import vsys.db.StateMap
@@ -71,6 +71,8 @@ class StateStorage private(db: DB) extends Storage(db){
 
   val contractDB: StateMap[ByteStr, Array[Byte]] = new StateMap(db, "contractDB", keyType=DataTypes.byteStr)
 
+  val contractNumDB: StateMap[ByteStr, Long] = new StateMap(db, "contractNumDB", keyType=DataTypes.byteStr)
+
   val contractTokens: StateMap[ByteStr, Int] = new StateMap(db, "contractTokens", keyType=DataTypes.byteStr)
 
   val tokenDB: StateMap[ByteStr, Array[Byte]] = new StateMap(db, "tokenDB", keyType=DataTypes.byteStr)
@@ -118,8 +120,8 @@ object StateStorage {
   type txTypeAccKey = Array[Byte]
   type txTypeAccIdxKey = Array[Byte]
 
-  def accountIndexKey(acc: Address, index: Int): AccountIdxKey = acc.bytes.arr ++ Ints.toByteArray(index)
-  def txTypeAccKey(txType: TransactionType.Value, acc: Address): txTypeAccKey = Ints.toByteArray(txType.id) ++ acc.bytes.arr
-  def txTypeAccIndexKey(txType: TransactionType.Value, acc: Address, index: Int): txTypeAccKey =
+  def accountIndexKey(acc: Account, index: Int): AccountIdxKey = acc.bytes.arr ++ Ints.toByteArray(index)
+  def txTypeAccKey(txType: TransactionType.Value, acc: Account): txTypeAccKey = Ints.toByteArray(txType.id) ++ acc.bytes.arr
+  def txTypeAccIndexKey(txType: TransactionType.Value, acc: Account, index: Int): txTypeAccKey =
     Ints.toByteArray(txType.id) ++ acc.bytes.arr ++ Ints.toByteArray(index)
 }

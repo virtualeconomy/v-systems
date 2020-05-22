@@ -1,16 +1,25 @@
 package vsys.blockchain.state.opcdiffs
 
+import scorex.crypto.hash.Sha256
 import com.google.common.primitives.Longs
-import vsys.account.Address
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
-import vsys.utils.crypto.hash.FastCryptographicHash
+import vsys.utils.crypto.EllipticCurveImpl
 
 import scala.util.{Left, Right, Try}
 
 object AssertOpcDiff extends OpcDiffer {
+
+  def assertTrue(v: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (v.dataType != DataType.Boolean)
+      Left(ContractDataTypeMismatch)
+    else if (v.data sameElements Array(1.toByte))
+      Right(OpcDiff.empty)
+    else
+      Left(GenericError(s"Invalid Assert (Boolean True): Value False"))
+  }
 
   def gtEq0(v: DataEntry): Either[ValidationError, OpcDiff] = {
     if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) >= 0)
@@ -42,11 +51,7 @@ object AssertOpcDiff extends OpcDiffer {
   }
 
   def equal(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (add1.dataType == DataType.Address && add2.dataType == DataType.Address
-      && Address.fromBytes(add1.data) == Address.fromBytes(add2.data))
-      Right(OpcDiff.empty)
-    else if (add1.dataType == DataType.Amount && add2.dataType == DataType.Amount
-      && Longs.fromByteArray(add1.data) == Longs.fromByteArray(add2.data))
+    if (add1.bytes sameElements add2.bytes)
       Right(OpcDiff.empty)
     else
       Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.data} is not equal to ${add2.data}"))
@@ -73,11 +78,19 @@ object AssertOpcDiff extends OpcDiffer {
   }
 
   def checkHash(hashValue: DataEntry, hashKey: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (hashValue.dataType != DataType.ShortText || hashKey.dataType != DataType.ShortText)
+    if (hashValue.dataType != DataType.ShortBytes || hashKey.dataType != DataType.ShortBytes)
       Left(ContractDataTypeMismatch)
     else {
-      val hashResult = ByteStr(FastCryptographicHash(hashKey.data))
-      Either.cond(hashResult.equals(ByteStr(hashValue.data)), OpcDiff.empty, ContractInvalidHash)
+      val hashResult = ByteStr(Sha256(hashKey.data.tail.tail))
+      Either.cond(hashResult.equals(ByteStr(hashValue.data.tail.tail)), OpcDiff.empty, ContractInvalidHash)
+    }
+  }
+
+  def verifySig(toSign: DataEntry, sig: DataEntry, pub: DataEntry): Either[ValidationError, OpcDiff] = {
+    if (toSign.dataType != DataType.ShortBytes || sig.dataType != DataType.ShortBytes || pub.dataType != DataType.PublicKey)
+      Left(ContractDataTypeMismatch)
+    else {
+      Either.cond(EllipticCurveImpl.verify(sig.data.tail.tail, toSign.data.tail.tail, pub.data), OpcDiff.empty, ContractInvalidSignature)
     }
   }
 
@@ -88,13 +101,16 @@ object AssertOpcDiff extends OpcDiffer {
       differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, OpcDiff])
     extends Val(assertType) { def *(n: Int): Int = n * assertType }
 
-    val GteqZeroAssert       = AssertTypeVal(1, 1, (c, b, d) => gtEq0(d(b(1))))
-    val LteqAssert           = AssertTypeVal(2, 2, (c, b, d) => ltEq(d(b(1)), d(b(2))))
-    val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d) => ltInt64(d(b(1))))
-    val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d) => gt0(d(b(1))))
-    val EqAssert             = AssertTypeVal(5, 2, (c, b, d) => equal(d(b(1)), d(b(2))))
-    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d) => isCallerOrigin(c)(d(b(1))))
-    val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d) => isSignerOrigin(c)(d(b(1))))
+    val GteqZeroAssert       = AssertTypeVal(1, 1, (c, b, d)  => gtEq0(d(b(1))))
+    val LteqAssert           = AssertTypeVal(2, 2, (c, b, d)  => ltEq(d(b(1)), d(b(2))))
+    val LtInt64Assert        = AssertTypeVal(3, 1, (c, b, d)  => ltInt64(d(b(1))))
+    val GtZeroAssert         = AssertTypeVal(4, 1, (c, b, d)  => gt0(d(b(1))))
+    val EqAssert             = AssertTypeVal(5, 2, (c, b, d)  => equal(d(b(1)), d(b(2))))
+    val IsCallerOriginAssert = AssertTypeVal(6, 1, (c, b, d)  => isCallerOrigin(c)(d(b(1))))
+    val IsSignerOriginAssert = AssertTypeVal(7, 1, (c, b, d)  => isSignerOrigin(c)(d(b(1))))
+    val BooleanTrueAssert    = AssertTypeVal(8, 1, (c, b, d)  => assertTrue(d(b(1))))
+    val HashCheckAssert      = AssertTypeVal(9, 2, (c, b, d)  => checkHash(d(b(1)), d(b(2))))
+    val SigVerifyAssert      = AssertTypeVal(10, 3, (c, b, d) => verifySig(d(b(1)), d(b(2)), d(b(3))))
 
     def fromByte(b: Byte): Option[AssertTypeVal] = Try(AssertType(b).asInstanceOf[AssertTypeVal]).toOption
   }

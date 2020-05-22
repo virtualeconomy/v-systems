@@ -5,6 +5,7 @@ import cats.implicits._
 import vsys.settings.FunctionalitySettings
 import vsys.blockchain.state._
 import vsys.blockchain.state.reader.StateReader
+import vsys.account.Account
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.GenericError
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
@@ -23,10 +24,14 @@ object LeaseTransactionsDiff {
         Left(GenericError(
           s"Cannot lease more than own: Balance:${ap.balance}, already leased: ${ap.leaseInfo.leaseOut}"
         ))
-      } else Right(Map(
-        senderAddr -> Portfolio(-tx.transactionFee, LeaseInfo(0, tx.amount), Map.empty),
-        tx.recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
-      ))
+      } else {
+        val recipient = tx.recipient
+        val portDiff: Map[Account, Portfolio] = Map(
+          senderAddr -> Portfolio(-tx.transactionFee, LeaseInfo(0, tx.amount), Map.empty),
+          recipient -> Portfolio(0, LeaseInfo(tx.amount, 0), Map.empty)
+        )
+        Right(portDiff)
+      }
     } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(tx.id -> true), chargedFee = tx.transactionFee)
   }
 
@@ -46,10 +51,11 @@ object LeaseTransactionsDiff {
       leaseSender = leaseProof.publicKey
       proof <- tx.proofs.firstCurveProof
       canceller = proof.publicKey
+      preDiff: Map[Account, Portfolio] = Monoid.combine(
+        Map(canceller.toAddress -> Portfolio(-tx.transactionFee, LeaseInfo(0, -lease.amount), Map.empty)),
+        Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty)))
       portfolioDiff <- if (canceller == leaseSender) {
-        Right(Monoid.combine(
-          Map(canceller.toAddress -> Portfolio(-tx.transactionFee, LeaseInfo(0, -lease.amount), Map.empty)),
-          Map(recipient -> Portfolio(0, LeaseInfo(-lease.amount, 0), Map.empty))))
+        Right(preDiff)
       } else Left(GenericError(s"LeaseTransaction was leased by other sender"))
 
     } yield Diff(height = height, tx = tx, portfolios = portfolioDiff, leaseState = Map(lease.id -> false), chargedFee = tx.transactionFee)

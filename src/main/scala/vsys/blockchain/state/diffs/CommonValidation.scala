@@ -1,5 +1,6 @@
 package vsys.blockchain.state.diffs
 
+import vsys.blockchain.contract._
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.ValidationError.{GenericError, Mistiming}
 import vsys.blockchain.transaction._
@@ -38,11 +39,23 @@ object CommonValidation {
     else Right(tx)
   }
 
+  private def disallowInvalidContractTxs[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T, c: Contract): Either[ValidationError, T] = {
+    if (h <= settings.allowContractTransactionAfterHeight)
+      Left(GenericError(s"must not appear before height=${settings.allowContractTransactionAfterHeight}"))
+    else if (h <= settings.allowDepositWithdrawContractAfterHeight &&
+       (c == ContractDepositWithdraw.contract ||
+        c == ContractDepositWithdrawProductive.contract ||
+        c == ContractLock.contract ||
+        c == ContractNonFungible.contract ||
+        c == ContractPaymentChannel.contract))
+      Left(GenericError(s"deposit withdraw contracts must not appear before height=${settings.allowDepositWithdrawContractAfterHeight}"))
+    else Right(tx)
+  }
+
   def disallowBeforeActivationHeight[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T): Either[ValidationError, T] =
     tx match {
-      case tx: RegisterContractTransaction if h <= settings.allowContractTransactionAfterHeight =>
-        Left(GenericError(s"must not appear before height=${settings.allowContractTransactionAfterHeight}"))
-      case tx: ExecuteContractFunctionTransaction if h <= settings.allowContractTransactionAfterHeight =>
+      case t: RegisterContractTransaction => disallowInvalidContractTxs(settings, h, tx, t.contract)
+      case _: ExecuteContractFunctionTransaction if h <= settings.allowContractTransactionAfterHeight =>
         Left(GenericError(s"must not appear before time=${settings.allowContractTransactionAfterHeight}"))
       case _: GenesisTransaction => Right(tx)
       case _: PaymentTransaction => Right(tx)
@@ -51,7 +64,6 @@ object CommonValidation {
       case _: MintingTransaction => Right(tx)
       case _: ContendSlotsTransaction => Right(tx)
       case _: ReleaseSlotsTransaction => Right(tx)
-      case _: RegisterContractTransaction => Right(tx)
       case _: ExecuteContractFunctionTransaction => Right(tx)
       case _: DbPutTransaction => Right(tx)
       case _ => Left(GenericError("Unknown transaction must be explicitly registered within ActivatedValidator"))

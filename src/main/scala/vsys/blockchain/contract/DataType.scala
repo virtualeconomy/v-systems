@@ -8,9 +8,14 @@ object DataType extends Enumeration {
   val ShortText = Value(5)
   val ContractAccount = Value(6)
   val Account = Value(7)
+  val TokenId = Value(8)
+  val Timestamp = Value(9)
+  val Boolean = Value(10)
+  val ShortBytes = Value(11)
+  val Balance = Value(12)
 
   def fromByte(b: Byte): Option[DataType.Value] = {
-    if (b < DataType.PublicKey.id || b > DataType.Account.id)
+    if (b < DataType.PublicKey.id || b > DataType.ShortBytes.id)
       None
     else
       Some(DataType(b))

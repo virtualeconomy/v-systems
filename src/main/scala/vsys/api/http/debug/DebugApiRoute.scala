@@ -17,8 +17,7 @@ import vsys.api.http._
 import vsys.blockchain.history.History
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.state.{ByteStr, LeaseInfo, Portfolio}
-import vsys.blockchain.BlockchainUpdater
-import vsys.blockchain.UtxPool
+import vsys.blockchain.{BlockchainUpdater, UtxPool}
 import vsys.network._
 import vsys.settings.RestAPISettings
 import vsys.utils.crypto.hash.FastCryptographicHash
@@ -75,7 +74,7 @@ case class DebugApiRoute(settings: RestAPISettings,
   def state: Route = (path("state") & get & withAuth) {
     complete(stateReader.accountPortfolios
       .map { case (k, v) =>
-        k.address -> v.balance
+        k.bytes.base58 -> v.balance
       }
     )
   }

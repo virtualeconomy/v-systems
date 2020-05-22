@@ -1,7 +1,7 @@
 package vsys.api.http.contract
 
 import org.scalatest.{FunSuite, Matchers}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsSuccess, Json}
 
 class ContractRequestsTests extends FunSuite with Matchers {
 
@@ -18,9 +18,9 @@ class ContractRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[RegisterContractRequest].get
+    val req = Json.parse(json).validate[RegisterContractRequest]
 
-    req shouldBe RegisterContractRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", "vsys test", "vsys test dataStack", Option("vsys test description"), 20000000L, 100)
+    req shouldBe JsSuccess(RegisterContractRequest("3MwKzMxUKaDaS4CXM8KNowCJJUnTSHDFGMb", "vsys test", "vsys test dataStack", Option("vsys test description"), 20000000L, 100))
   }
 
   test("ExecuteContractFunctionRequest") {
@@ -37,9 +37,9 @@ class ContractRequestsTests extends FunSuite with Matchers {
         }
       """
 
-    val req = Json.parse(json).validate[ExecuteContractFunctionRequest].get
+    val req = Json.parse(json).validate[ExecuteContractFunctionRequest]
 
-    req shouldBe ExecuteContractFunctionRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", "vsys test id", 0, "vsys test dataStack", Option("vsys test description"), 10000000L, 100)
+    req shouldBe JsSuccess(ExecuteContractFunctionRequest("3Myss6gmMckKYtka3cKCM563TBJofnxvfD7", "vsys test id", 0, "vsys test dataStack", Option("vsys test description"), 10000000L, 100))
   }
 
   test("SignedRegisterContractRequest") {
@@ -57,10 +57,10 @@ class ContractRequestsTests extends FunSuite with Matchers {
          }
       """
 
-    val req = Json.parse(json).validate[SignedRegisterContractRequest].get
+    val req = Json.parse(json).validate[SignedRegisterContractRequest]
 
-    req shouldBe SignedRegisterContractRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw", "vsys test", "vsys test dataStack", Option("vsys test description"), 20000000L,
-      100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+    req shouldBe JsSuccess(SignedRegisterContractRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw", "vsys test", "vsys test dataStack", Option("vsys test description"), 20000000L,
+      100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"))
   }
 
   test("SignedExecuteContractFunctionRequest") {
@@ -79,10 +79,10 @@ class ContractRequestsTests extends FunSuite with Matchers {
          }
       """
 
-    val req = Json.parse(json).validate[SignedExecuteContractFunctionRequest].get
+    val req = Json.parse(json).validate[SignedExecuteContractFunctionRequest]
 
-    req shouldBe SignedExecuteContractFunctionRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
+    req shouldBe JsSuccess(SignedExecuteContractFunctionRequest("CRxqEuxhdZBEHX42MU4FfyJxuHmbDBTaHMhM3Uki7pLw",
       "vsys test id", 0, "vsys test dataStack", Option("vsys test description"),
-      10000000L, 100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC")
+      10000000L, 100, 0L, "4VPg4piLZGQz3vBqCPbjTfAR4cDErMi57rDvyith5XrQJDLryU2w2JsL3p4ejEqTPpctZ5YekpQwZPTtYiGo5yPC"))
   }
 }

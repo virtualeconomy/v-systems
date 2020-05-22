@@ -36,15 +36,18 @@ object OpcDiffer {
                                  opcDiffer: OpcDiffer) extends Val(opcType) {
       def *(n: Int): Int = n * opcType
     }
-    val AssertOpc = OpcTypeVal(1, AssertOpcDiff)
-    val LoadOpc   = OpcTypeVal(2, LoadOpcDiff)
-    val CDBVOpc   = OpcTypeVal(3, CDBVOpcDiff)
-    val CDBVROpc  = OpcTypeVal(4, CDBVROpcDiff)
-    val TDBOpc    = OpcTypeVal(5, TDBOpcDiff)
-    val TDBROpc   = OpcTypeVal(6, TDBROpcDiff)
-    val TDBAOpc   = OpcTypeVal(7, TDBAOpcDiff)
-    val TDBAROpc  = OpcTypeVal(8, TDBAROpcDiff)
-    val ReturnOpc = OpcTypeVal(9, ReturnOpcDiff)
+    val SystemOpc  = OpcTypeVal(0, SystemTransferDiff)
+    val AssertOpc  = OpcTypeVal(1, AssertOpcDiff)
+    val LoadOpc    = OpcTypeVal(2, LoadOpcDiff)
+    val CDBVOpc    = OpcTypeVal(3, CDBVOpcDiff)
+    val CDBVROpc   = OpcTypeVal(4, CDBVROpcDiff)
+    val TDBOpc     = OpcTypeVal(5, TDBOpcDiff)
+    val TDBROpc    = OpcTypeVal(6, TDBROpcDiff)
+    val TDBAOpc    = OpcTypeVal(7, TDBAOpcDiff)
+    val TDBAROpc   = OpcTypeVal(8, TDBAROpcDiff)
+    val ReturnOpc  = OpcTypeVal(9, ReturnOpcDiff)
+    val CompareOpc = OpcTypeVal(10, CompareOpcDiff)
+    val BasicOpc   = OpcTypeVal(11, BasicOpcDiff)
 
     def fromByte(implicit b: Byte): Option[OpcTypeVal] =
       Try(OpcType(b).asInstanceOf[OpcTypeVal]).toOption

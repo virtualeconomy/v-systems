@@ -4,7 +4,8 @@ import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import play.api.libs.json.JsError
-import vsys.account.Address
+import vsys.account.{Account, PrivateKeyAccount}
+import vsys.blockchain.contract.Contract
 import vsys.blockchain.transaction.{ValidationError, TransactionGen}
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.database.Entry
@@ -20,10 +21,10 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
   }
 
   property("AccountBalanceError should get err which value is err message list"){
-    forAll(accountGen, accountGen) { (account1, account2) => 
+    forAll(accountGen, accountGen) { (account1: PrivateKeyAccount, account2: PrivateKeyAccount) =>
       val addr1 = account1.toAddress
       val addr2 = account2.toAddress
-      val errs: Map[Address, String] = Map(addr1 -> "No enough money for output", addr2 -> "Account is locked")
+      val errs: Map[Account, String] = Map(addr1 -> "No enough money for output", addr2 -> "Account is locked")
       val err = ValidationError.AccountBalanceError(errs)
       val result = ApiError.fromValidationError(err)
       result.id should be(CustomValidationError(result.message).id)
@@ -42,7 +43,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
 
   property("DbDataTypeError should cause error which id is 504 and specified message ") {
     val dbDataType = "SuperNode"
-    val err = ValidationError.DbDataTypeError(dbDataType) 
+    val err = ValidationError.DbDataTypeError(dbDataType)
     val result = ApiError.fromValidationError(err)
     result.id should be(InvalidDbDataType(dbDataType).id)
     result.code should be(StatusCodes.BadRequest)
@@ -85,7 +86,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
     val intMax = java.lang.Integer.MAX_VALUE
     val shortMax = java.lang.Short.MAX_VALUE.toInt
     val actualLength = randomGen.nextInt(intMax - shortMax) + shortMax
-    val err = ValidationError.TooLongDbEntry(actualLength, maxLength) 
+    val err = ValidationError.TooLongDbEntry(actualLength, maxLength)
     val result = ApiError.fromValidationError(err)
     result.id should be(TooLongDbEntry(actualLength, maxLength).id)
     result.code should be(StatusCodes.BadRequest)
@@ -94,7 +95,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
     
   }
   property("InvalidUTF8String") {
-    val err = ValidationError.InvalidUTF8String("contractDescription") 
+    val err = ValidationError.InvalidUTF8String("contractDescription")
     val result = ApiError.fromValidationError(err)
     result.id should be(InvalidUTF8String("contractDescription").id)
     result.code should be(StatusCodes.BadRequest)
@@ -150,7 +151,7 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
 
   property("test api error id, message and code type") {
     val errors = List(
-      InvalidNotNumber, 
+      InvalidNotNumber,
       InvalidMessage,
       InvalidName,
       OverflowError,
@@ -183,36 +184,36 @@ class ApiErrorSpecification extends PropSpec with PropertyChecks with GeneratorD
     )
 
     errors.map((err) => {
-      err.id shouldBe a [Integer]
-      err.message shouldBe a [String]
-      err.code shouldBe a [StatusCode]
+      err.id shouldBe a[Integer]
+      err.message shouldBe a[String]
+      err.code shouldBe a[StatusCode]
     })
   }
 
   property("StateCheckFailed shouldBe error id, code and message with specific type") {
     forAll (randomProvenTransactionGen) { (transaction) => 
-      val err = ValidationError.InvalidProofType 
+      val err = ValidationError.InvalidProofType
       val invalidTransacErr = TransactionValidationError(err, transaction)
       val result = ApiError.fromValidationError(invalidTransacErr)
       result.id shouldBe StateCheckFailed(transaction, ApiError.fromValidationError(err).message).id
-      result.message shouldBe a [String]
+      result.message shouldBe a[String]
       result.code shouldBe StatusCodes.BadRequest
     }
   }
 
    property("ContractAlreadyDisabled shouldBe error id, code and message with specific type") {
-    forAll (contractGen) { (contract) => 
+    forAll (contractGen) { (contract: Contract) =>
       val err = ContractAlreadyDisabled(contract.toString)
-      err.id shouldBe a [Integer]
-      err.message shouldBe a [String]
-      err.code shouldBe a [StatusCode]
+      err.id shouldBe a[Integer]
+      err.message shouldBe a[String]
+      err.code shouldBe a[StatusCode]
     }
   }
 
   property("WrongTransactionJson") {
     val err = WrongTransactionJson (JsError("Expected JsString"))
-    err.id shouldBe a [Integer]
-    err.message shouldBe a [String]
-    err.code shouldBe a [StatusCode]
+    err.id shouldBe a[Integer]
+    err.message shouldBe a[String]
+    err.code shouldBe a[StatusCode]
   }
 }

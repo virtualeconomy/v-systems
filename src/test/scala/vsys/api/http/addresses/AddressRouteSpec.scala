@@ -1,10 +1,11 @@
 package vsys.api.http.addresses
 
-import org.scalacheck.Gen
+import org.scalacheck.{Gen, Shrink}
 import org.scalamock.scalatest.PathMockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import scorex.crypto.encode.Base58
+import vsys.account.PrivateKeyAccount
 import vsys.api.http._
 import vsys.api.http.ApiMarshallers._
 import vsys.blockchain.state.reader.StateReader
@@ -19,7 +20,6 @@ class AddressRouteSpec
     with PropertyChecks
     with RestAPISettingsHelper
     with TestWallet {
-  import org.scalacheck.Shrink
 
   implicit val noShrink: Shrink[String] = Shrink.shrinkAny
 
@@ -89,7 +89,7 @@ class AddressRouteSpec
   }
 
   private def testSign(path: String, encode: Boolean): Unit =
-    forAll(generatedMessages) { case (account, message) =>
+    forAll(generatedMessages) { case (account: PrivateKeyAccount, message: String) =>
       val uri = routePath(s"/$path/${account.address}")
       Post(uri, message) ~> route should produce(ApiKeyNotValid)
       Post(uri, message) ~> api_key(apiKey) ~> route ~> check {
@@ -108,7 +108,7 @@ class AddressRouteSpec
 
   private def testVerify(path: String, encode: Boolean): Unit = {
 
-    forAll(generatedMessages) { case (account, message) =>
+    forAll(generatedMessages) { case (account: PrivateKeyAccount, message: String) =>
       val uri = routePath(s"/$path/${account.address}")
       val messageBytes = message.getBytes()
       val signature = EllipticCurveImpl.sign(account, messageBytes)
