@@ -41,6 +41,7 @@ object TransactionDiffer {
         case _ => Left(UnsupportedTransactionType)
       }
       positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp)(diff)
-    } yield positiveDiff
+      positiveTokenDiff <- TokenBalanceDiffValidation(s, currentBlockTimestamp)(positiveDiff)
+    } yield positiveTokenDiff
   }.left.map(TransactionValidationError(_, tx))
 }
