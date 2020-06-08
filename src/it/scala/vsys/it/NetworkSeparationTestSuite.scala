@@ -29,6 +29,8 @@ class NetworkSeparationTestSuite extends FreeSpec with Matchers with BeforeAndAf
     all(targetBlocks1) shouldEqual targetBlocks1.head
   }
 
+  // TODO
+  // block per min equal to number of nodes
   "node should grow up to 60 blocks together" in {
     val richestNode = nodes.maxBy(n => Await.result(n.balance(n.address), 1.minute).balance)
     Await.result(richestNode.waitForHeight(60), 5.minutes)
