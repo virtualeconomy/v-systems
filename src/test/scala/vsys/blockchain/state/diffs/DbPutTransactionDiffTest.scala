@@ -6,6 +6,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.block.TestBlock
+import vsys.blockchain.state._
 import vsys.blockchain.state.diffs.TransactionDiffer.TransactionValidationError
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, ValidationError}
 import vsys.blockchain.transaction.database.DbPutTransaction
@@ -77,7 +78,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
   val preconditionsAndDbPut: Gen[(GenesisTransaction, DbPutTransaction)] = for {
     master <- accountGen
     ts <- positiveLongGen
-    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).right.get
+    genesis: GenesisTransaction = GenesisTransaction.create(master, ENOUGH_AMT, -1, ts).explicitGet()
     ts2 <- positiveLongGen
     dbKey <- invalidLengthDbKeyStringGen
     entry <- entryGen
@@ -93,7 +94,7 @@ class DbPutTransactionDiffTest extends PropSpec with PropertyChecks with Generat
       Longs.toByteArray(ts2))
 
     proof = EllipticCurve25519Proof.createProof(toSign, master)
-    proofs: Proofs = Proofs.create(List(proof.bytes)).right.get
+    proofs: Proofs = Proofs.create(List(proof.bytes)).explicitGet()
     dbPut: DbPutTransaction = DbPutTransaction(dbKey, entry, fee, feeScale, ts2, proofs)
   } yield (genesis, dbPut)
 

@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractNonFungible {
@@ -11,7 +12,7 @@ object ContractNonFungible {
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(),
     Seq(triggerTextual, descriptorTextual, stateVarTextual)
-  ).right.get
+  ).explicitGet()
 
   // StateVar
   val stateVarName = List("issuer", "maker")
@@ -52,9 +53,9 @@ object ContractNonFungible {
   val issueOpcs: Seq[Array[Byte]] = Seq(
     cdbvrGet ++ Array(issuerStateVar.index, 1.toByte),
     assertCaller ++ Array(1.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(2.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(2.toByte),
     tdbNewToken ++ Array(2.toByte, 2.toByte, 0.toByte),
-    loadTokenNum ++ Array(3.toByte),
+    loadLastTokenIndex ++ Array(3.toByte),
     tdbaDeposit ++ Array(1.toByte, 2.toByte, 3.toByte))
   lazy val issueFunc: Array[Byte] = getFunctionBytes(issueId, publicFuncType, nonReturnType, issueDataType, issueOpcs)
   val issueFuncBytes: Array[Byte] = textualFunc("issue", Seq(), issuePara)
@@ -66,7 +67,7 @@ object ContractNonFungible {
   val sendDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Int32.id.toByte)
   val sendOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(2.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
     tdbaTransfer ++ Array(2.toByte, 0.toByte, 3.toByte, 1.toByte))
   lazy val sendFunc: Array[Byte] = getFunctionBytes(sendId, publicFuncType, nonReturnType, sendDataType, sendOpcs)
   val sendFuncBytes: Array[Byte] = textualFunc("send", Seq(), sendPara)
@@ -78,7 +79,7 @@ object ContractNonFungible {
   val transferDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Int32.id.toByte)
   val transferOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte))
   lazy val transferFunc: Array[Byte] = getFunctionBytes(transferId, publicFuncType, nonReturnType, transferDataType, transferOpcs)
   val transferFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
@@ -90,7 +91,7 @@ object ContractNonFungible {
   val depositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Int32.id.toByte)
   val depositOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte))
   lazy val depositFunc: Array[Byte] = getFunctionBytes(depositId, publicFuncType, nonReturnType, depositDataType, depositOpcs)
   val depositFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
@@ -102,7 +103,7 @@ object ContractNonFungible {
   val withdrawDataType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Int32.id.toByte)
   val withdrawOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(1.toByte),
-    cdbvrConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte),
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte))
   lazy val withdrawFunc: Array[Byte] = getFunctionBytes(withdrawId, publicFuncType, nonReturnType, withdrawDataType, withdrawOpcs)
   val withdrawFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)

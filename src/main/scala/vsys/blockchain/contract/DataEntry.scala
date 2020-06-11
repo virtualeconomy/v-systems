@@ -101,7 +101,7 @@ object DataEntry {
         Right((DataEntry(bytes.slice(position + 1, position + 1 + TimestampLength), DataType.Timestamp), position + 1 + TimestampLength))
       case Some(DataType.Boolean) if checkDataType(bytes.slice(position + 1, position + 1 + 1), DataType.Boolean) =>
         Right((DataEntry(bytes.slice(position + 1, position + 1 + 1), DataType.Boolean), position + 1 + 1))
-      case Some(DataType.ShortText) if checkDataType(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortBytes) =>
+      case Some(DataType.ShortBytes) if checkDataType(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortBytes) =>
         Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortBytes), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
       case _ => Left(InvalidDataEntry)
     }

@@ -4,7 +4,7 @@ import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
-import org.scalatest.{Matchers, PropSpec}
+import org.scalatest._
 import vsys.blockchain.block.TestBlock
 import vsys.utils.serialization.Deser
 import vsys.account.ContractAccount.tokenIdFromBytes
@@ -241,7 +241,7 @@ class ExecuteNonFungibleContractDiffTest extends PropSpec
   } yield (genesis, genesis2, regContract, registerNonFungibleContract, executeContractIssue, executeContractDeposit,
     executeContractWithdraw, executeContractDeposit2, fee)
 
-  property("execute deposit withdraw interact with non-fungible contract functions doesn't break invariant") {
+  ignore("execute deposit withdraw interact with non-fungible contract functions doesn't break invariant") {
     forAll(preconditionsAndDepositWithdrawContractTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction,
     reg: RegisterContractTransaction, regToken: RegisterContractTransaction, issue, deposit,
     withdraw: ExecuteContractFunctionTransaction, deposit2, fee: Long) =>

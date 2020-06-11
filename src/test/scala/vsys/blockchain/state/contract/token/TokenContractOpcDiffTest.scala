@@ -11,6 +11,7 @@ import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, Co
 import vsys.blockchain.contract._
 import vsys.blockchain.contract.token.{TokenContractGen, TokenFunction}
 import vsys.blockchain.transaction.contract._
+import vsys.settings.TestFunctionalitySettings
 
 
 class TokenContractOpcDiffTest extends PropSpec
@@ -38,7 +39,7 @@ class TokenContractOpcDiffTest extends PropSpec
 
   property("register contract transaction pass OpcFunDiff"){
     forAll(preconditionsAndRegContract) { case (genesis, create) =>
-      assertOpcFuncDifferEi(2, None, create) { opcFunDiffEi =>
+      assertOpcFuncDifferEi(2, None, create, TestFunctionalitySettings.ContractDisabled) { opcFunDiffEi =>
         opcFunDiffEi shouldBe an[Right[_, _]]
       }
       assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.createWithTxStatus(Seq(create), TransactionStatus.Success)) { blockDiffEi =>
@@ -61,7 +62,7 @@ class TokenContractOpcDiffTest extends PropSpec
 
   property("token contract transaction cannot pass due to wrong list of parameters"){
     forAll(preconditionsAndRegContractWrongPara) { case create =>
-      assertOpcFuncDifferEi(2, None, create) { opcFunDiffEi =>
+      assertOpcFuncDifferEi(2, None, create, TestFunctionalitySettings.ContractDisabled) { opcFunDiffEi =>
         opcFunDiffEi shouldBe Left(ContractDataTypeMismatch)
       }
     }
@@ -81,7 +82,7 @@ class TokenContractOpcDiffTest extends PropSpec
 
   property("register contract transaction cannot pass due to wrong opcode"){
     forAll(preconditionsAndRegContractWrongFun) { case create =>
-      assertOpcFuncDifferEi(2, None, create) { opcFunDiffEi =>
+      assertOpcFuncDifferEi(2, None, create, TestFunctionalitySettings.ContractDisabled) { opcFunDiffEi =>
         opcFunDiffEi shouldBe Left(ContractInvalidOPCData)
       }
     }

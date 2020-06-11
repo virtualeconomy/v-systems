@@ -142,28 +142,26 @@ object Contract extends ScorexLogging {
     val textualStr = textualFromBytes(textual)
     if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
       !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) &&
-      !(bytes sameElements ContractDepositWithdraw.contract.bytes.arr) &&
-      !(bytes sameElements ContractDepositWithdrawProductive.contract.bytes.arr) &&
       !(bytes sameElements ContractLock.contract.bytes.arr) &&
       !(bytes sameElements ContractNonFungible.contract.bytes.arr) &&
       !(bytes sameElements ContractPaymentChannel.contract.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||
-      !checkTextual(textualStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String], Seq.empty[String])))) {
+      !checkTextual(textualStr.getOrElse((Seq.empty[Seq[String]], Seq.empty[Seq[String]], Seq.empty[String], Seq.empty[Seq[String]])))) {
       log.warn(s"Illegal textual ${textual.mkString(" ")}")
       false
     } else true
   }
 
-  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])] = Try {
+  private def textualFromBytes(bs: Seq[Array[Byte]]): Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[Seq[String]])] = Try {
     val triggerFuncBytes = Deser.parseArrays(bs.head)
     val triggerFunc = funcFromBytes(triggerFuncBytes)
     val descriptorFuncBytes = Deser.parseArrays(bs(1))
     val descriptorFunc = funcFromBytes(descriptorFuncBytes)
     val stateVar = paraFromBytes(bs(2))
     val stateMap = if (bs.length == 3) Seq()
-                   else paraFromBytes(bs(3))
+                   else stateMapFromBytes(bs(3))
     (triggerFunc, descriptorFunc, stateVar, stateMap)
   }
 
@@ -189,9 +187,18 @@ object Contract extends ScorexLogging {
     }
   }
 
-  private def checkTextual(textual: (Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[String])): Boolean = {
-    textual._1.flatten.forall(x => identifierCheck(x)) && textual._2.flatten.forall(x => identifierCheck(x)) &&
-      textual._3.forall(x => identifierCheck(x)) && textual._4.forall(x => identifierCheck(x))
+  private def stateMapFromBytes(bytes: Array[Byte]): Seq[Seq[String]] = {
+    val stateMapBytesList = Deser.parseArrays(bytes)
+    stateMapBytesList.foldLeft(Seq.empty[Seq[String]]) {case (e, b) => {
+      val stm: Seq[String] = Deser.parseArrays(b).map(x => Deser.deserilizeString(x))
+      e :+ stm
+    }}
+  }
+
+  private def checkTextual(textual: (Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[Seq[String]])): Boolean = {
+    val (trigger, descriptor, stateVariable, stateMap) = textual
+    trigger.flatten.forall(x => identifierCheck(x)) && descriptor.flatten.forall(x => identifierCheck(x)) &&
+      stateVariable.forall(x => identifierCheck(x)) && stateMap.flatten.forall(x => identifierCheck(x))
   }
 
   private def identifierCheck(str: String): Boolean = {

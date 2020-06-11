@@ -64,7 +64,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
       (lease, unlease) <- leaseAndCancelGeneratorP(master, recipient)
     } yield (genesis, lease, unlease, lease.transactionFee, unlease.transactionFee)
 
-    forAll(sunnyDayLeaseLeaseCancel) { case ((genesis, lease, leaseCancel, feeLease, feeLeaseCancel)) =>
+    forAll(sunnyDayLeaseLeaseCancel) { case ((genesis, lease: LeaseTransaction, leaseCancel: LeaseCancelTransaction, feeLease: Long, feeLeaseCancel: Long)) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(lease))) { case (totalDiff, newState) =>
         val totalPortfolioDiff = Monoid.combineAll(totalDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -feeLease
@@ -84,7 +84,7 @@ class LeaseTransactionsDiffTest extends PropSpec with PropertyChecks with Genera
 
         totalDiff.snapshots(lease.recipient.asInstanceOf[Address]) shouldBe Map(2 -> Snapshot(1, 0, 0, 0))
 
-        newState.accountPortfolio(EllipticCurve25519Proof.fromBytes(lease.proofs.proofs.head.bytes.arr).toOption.get.publicKey).leaseInfo shouldBe LeaseInfo.empty
+        newState.accountPortfolio(lease.proofs.firstCurveProof.explicitGet().publicKey).leaseInfo shouldBe LeaseInfo.empty
         newState.accountPortfolio(lease.recipient.asInstanceOf[Address]).leaseInfo shouldBe LeaseInfo.empty
       }
     }

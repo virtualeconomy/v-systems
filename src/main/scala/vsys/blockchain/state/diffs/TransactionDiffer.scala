@@ -33,14 +33,15 @@ object TransactionDiffer {
         case ltx: LeaseTransaction => LeaseTransactionsDiff.lease(s, currentBlockHeight)(ltx)
         case ltx: LeaseCancelTransaction => LeaseTransactionsDiff.leaseCancel(s, settings, currentBlockTimestamp, currentBlockHeight)(ltx)
         case mtx: MintingTransaction => MintingTransactionDiff(s, currentBlockHeight, settings, currentBlockTimestamp)(mtx)
-        case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s,settings, currentBlockHeight)(cstx)
-        case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s,settings, currentBlockHeight)(rstx)
-        case rctx: RegisterContractTransaction => RegisterContractTransactionDiff(s, currentBlockHeight, prevBlockTimestamp, currentBlockTimestamp)(rctx)
-        case ectx: ExecuteContractFunctionTransaction => ExecuteContractFunctionTransactionDiff(s, currentBlockHeight, prevBlockTimestamp, currentBlockTimestamp)(ectx)
+        case cstx: ContendSlotsTransaction => ContendSlotsTransactionDiff(s, settings, currentBlockHeight)(cstx)
+        case rstx: ReleaseSlotsTransaction => ReleaseSlotsTransactionDiff(s, settings, currentBlockHeight)(rstx)
+        case rctx: RegisterContractTransaction => RegisterContractTransactionDiff(s, settings, currentBlockHeight, prevBlockTimestamp, currentBlockTimestamp)(rctx)
+        case ectx: ExecuteContractFunctionTransaction => ExecuteContractFunctionTransactionDiff(s, settings, currentBlockHeight, prevBlockTimestamp, currentBlockTimestamp)(ectx)
         case dptx: DbPutTransaction => DbTransactionDiff(s, currentBlockHeight)(dptx)
         case _ => Left(UnsupportedTransactionType)
       }
       positiveDiff <- BalanceDiffValidation(s, currentBlockTimestamp)(diff)
-    } yield positiveDiff
+      positiveTokenDiff <- TokenBalanceDiffValidation(s, currentBlockTimestamp)(positiveDiff)
+    } yield positiveTokenDiff
   }.left.map(TransactionValidationError(_, tx))
 }

@@ -17,7 +17,7 @@ object ContractGen {
   val loadSigner               = Array(2.toByte, 1.toByte)
   val loadCaller               = Array(2.toByte, 2.toByte)
   val loadTimestamp            = Array(2.toByte, 3.toByte)
-  val loadTokenNum             = Array(2.toByte, 4.toByte)
+  val loadLastTokenIndex       = Array(2.toByte, 4.toByte)
   val loadTransactionId        = Array(2.toByte, 5.toByte)
   val loadPublicKey            = Array(2.toByte, 6.toByte)
 
@@ -28,8 +28,7 @@ object ContractGen {
 
   val cdbvrGet                 = Array(4.toByte, 1.toByte)
   val cdbvrMapGetOrDefault     = Array(4.toByte, 2.toByte)
-  val cdbvrConstantGet         = Array(4.toByte, 3.toByte)
-  val cdbvrMapGet              = Array(4.toByte, 4.toByte)
+  val cdbvrMapGet              = Array(4.toByte, 3.toByte)
 
   val tdbNewToken              = Array(5.toByte, 1.toByte)
   val tdbSplit                 = Array(5.toByte, 2.toByte)
@@ -54,6 +53,7 @@ object ContractGen {
   val basicMin                 = Array(11.toByte, 5.toByte)
   val basicMax                 = Array(11.toByte, 6.toByte)
   val basicConcat              = Array(11.toByte, 7.toByte)
+  val basicConstantGet         = Array(11.toByte, 8.toByte)
 
   sealed case class StateVar(index: Byte, dataType: Byte) {
     lazy val arr: Array[Byte] = Array(index, dataType)
@@ -85,6 +85,10 @@ object ContractGen {
     val retByte = Deser.serializeArray(Deser.serializeArrays(ret.map(x => Deser.serilizeString(x))))
     val paraByte = Deser.serializeArrays(para.map(x => Deser.serilizeString(x)))
     Bytes.concat(funcByte, retByte, paraByte)
+  }
+
+  def textualStateMap(a: Seq[Seq[String]]): Array[Byte] = {
+    Deser.serializeArrays(a.map(x => Deser.serializeArrays(x.map(y => Deser.serilizeString(y)))))
   }
 
   val nonReturnType: Array[Byte] = Array[Byte]()

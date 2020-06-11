@@ -2,6 +2,7 @@ package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.contract.ContractGen._
+import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractLock {
@@ -10,7 +11,7 @@ object ContractLock {
     Seq(makerStateVar.arr, tokenIdStateVar.arr),
     Seq(balanceMap.arr, lockTimeMap.arr),
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)
-  ).right.get
+  ).explicitGet()
 
   // State Var
   val stateVarName = List("maker", "tokenId")
@@ -19,10 +20,11 @@ object ContractLock {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
-  val stateMapName = List("balance", "lockTime")
+  val stateMapBalance = List("contractBalance", "userAddress", "balance")
+  val stateMapLockTime = List("contractLockTime", "userAddress", "lockTime")
   val balanceMap = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val lockTimeMap = StateMap(1.toByte, DataType.Address.id.toByte, DataType.Timestamp.id.toByte)
-  lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
+  lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBalance, stateMapLockTime))
 
   // Initialization Trigger
   val initId: Short = 0

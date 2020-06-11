@@ -267,16 +267,17 @@ class ExecuteTokenContractDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndExecuteContractSystemSend: Gen[(GenesisTransaction, ExecuteContractFunctionTransaction, Long, Address)] = for {
+  val preconditionsAndExecuteContractSystemSend: Gen[(GenesisTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long, Address)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     genesis <- genesisTokenGen(master, ts)
     recipient <- mintingAddressGen
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     executeContractSystemSend <- sendVSYSGen(master, recipient, 100000L, description, fee, ts)
-  } yield (genesis, executeContractSystemSend, fee, recipient)
+    executeContractSystemSend2 <- sendVSYSGen(master, recipient, ENOUGH_AMT, description, fee, ts)
+  } yield (genesis, executeContractSystemSend, executeContractSystemSend2, fee, recipient)
 
   property("execute contract transaction systemSend successfully") {
-    forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend: ExecuteContractFunctionTransaction, fee: Long, recipient) =>
+    forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, executeContractSystemSend: ExecuteContractFunctionTransaction, _, fee: Long, recipient) =>
       assertDiffAndState(Seq(TestBlock.create(Seq(genesis))), TestBlock.create(Seq(executeContractSystemSend))) { (blockDiff, newState) =>
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         val sender = executeContractSystemSend.proofs.firstCurveProof.explicitGet().publicKey
@@ -288,6 +289,19 @@ class ExecuteTokenContractDiffTest extends PropSpec
         senderPortfolio shouldBe Portfolio(ENOUGH_AMT - 100000L - fee, LeaseInfo.empty, Map.empty)
         val (_, senderTxs) = newState.accountTransactionIds(sender.toAddress, 2, 0)
         senderTxs.size shouldBe 2 // genesis and send
+      }
+    }
+  }
+
+  property("execute contract transaction systemSend failed dual to insufficient VSYS") {
+    forAll(preconditionsAndExecuteContractSystemSend) { case (genesis, _, executeContractSystemSend2: ExecuteContractFunctionTransaction, fee: Long, recipient) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis))), TestBlock.createWithTxStatus(Seq(executeContractSystemSend2), TransactionStatus.ContractVSYSBalanceInsufficient)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiffEi.explicitGet().txsDiff.portfolios.values)
+        totalPortfolioDiff.balance shouldBe -fee
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractVSYSBalanceInsufficient
       }
     }
   }

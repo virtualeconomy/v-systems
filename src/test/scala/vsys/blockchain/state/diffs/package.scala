@@ -80,13 +80,14 @@ package object diffs {
 
   def produce(errorMessage: String): ProduceError = new ProduceError(errorMessage)
 
-  def assertOpcFuncDifferEi(height: Int, preconditions: Option[RegisterContractTransaction], tx: Transaction)(assertion: Either[ValidationError, OpcDiff] => Unit): Unit = {
+  def assertOpcFuncDifferEi(height: Int, preconditions: Option[RegisterContractTransaction], tx: Transaction,
+                            fs: FunctionalitySettings = TestFunctionalitySettings.Enabled)(assertion: Either[ValidationError, OpcDiff] => Unit): Unit = {
 
     val state = newState()
     if (preconditions.isDefined) {
       val bf = preconditions match {
         case Some(tx) =>
-          val txDiffer = RegisterContractTransactionDiff(state, height, Option(0L), 1L)(tx).explicitGet()
+          val txDiffer = RegisterContractTransactionDiff(state, fs, height, Option(0L), 1L)(tx).explicitGet()
           BlockDiff(txDiffer, 1, Map.empty)
         case _ => BlockDiff.empty
       }
@@ -95,14 +96,14 @@ package object diffs {
 
     tx match {
       case tx: RegisterContractTransaction
-      => assertion(OpcFuncDiffer(ExecutionContext.fromRegConTx(state, Option(0L), 1L, height, tx).right.get)(tx.data))
+      => assertion(OpcFuncDiffer(ExecutionContext.fromRegConTx(state, fs, Option(0L), 1L, height, tx).right.get)(tx.data))
       case tx: ExecuteContractFunctionTransaction
       => {
         val signers = tx.proofs.proofs.map(x => EllipticCurve25519Proof.fromBytes(x.bytes.arr).explicitGet().publicKey)
         val contractId = tx.contractId
         val description = tx.attachment
         val c = preconditions.get.contract
-        assertion(OpcFuncDiffer(ExecutionContext(signers, state, Option(0L), 1L, height, tx, contractId, c.descriptor(tx.funcIdx), c.stateVar, c.stateMap, description, 0))(tx.data))
+        assertion(OpcFuncDiffer(ExecutionContext(signers, state, fs, Option(0L), 1L, height, tx, contractId, c.descriptor(tx.funcIdx), c.stateVar, c.stateMap, description, 0))(tx.data))
       }
     }
   }

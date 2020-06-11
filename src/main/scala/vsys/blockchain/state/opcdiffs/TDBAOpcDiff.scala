@@ -112,7 +112,7 @@ object TDBAOpcDiff extends OpcDiffer {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenIndexNumber = Ints.fromByteArray(tokenIndex.data)
       val transferAmount = Longs.fromByteArray(amount.data)
-      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).explicitGet()
       val tokenIdDataEntry = DataEntry(tokenID.arr, DataType.TokenId)
       val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
       val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
@@ -145,22 +145,23 @@ object TDBAOpcDiff extends OpcDiffer {
     }
   }
 
-  def transfer(context: ExecutionContext)
-              (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
-               tokenIndex: DataEntry = defaultTokenIndex): Either[ValidationError, OpcDiff] = {
+  def basicTransfer(context: ExecutionContext)
+                   (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+                    tokenIndex: DataEntry = defaultTokenIndex): Either[ValidationError, OpcDiff] = {
 
+    val dType = Array(amount.dataType.id.toByte, tokenIndex.dataType.id.toByte, sender.dataType.id.toByte, recipient.dataType.id.toByte)
+    val rType = Array(DataType.Amount.id.toByte, DataType.Int32.id.toByte, DataType.Address.id.toByte, DataType.Address.id.toByte)
     if (sender.dataType == DataType.ContractAccount) {
       Left(ContractUnsupportedWithdraw)
     } else if (recipient.dataType == DataType.ContractAccount) {
       Left(ContractUnsupportedDeposit)
-    } else if ((sender.dataType != DataType.Address) || (recipient.dataType != DataType.Address) ||
-      (amount.dataType !=  DataType.Amount) || (tokenIndex.dataType != DataType.Int32)) {
+    } else if (!DataType.checkTypes(dType, rType)) {
       Left(ContractDataTypeMismatch)
     } else {
       val contractTokens = context.state.contractTokens(context.contractId.bytes)
       val tokenNumber = Ints.fromByteArray(tokenIndex.data)
       val transferAmount = Longs.fromByteArray(amount.data)
-      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).right.get
+      val tokenID: ByteStr = tokenIdFromBytes(context.contractId.bytes.arr, tokenIndex.data).explicitGet()
       val senderBalanceKey = ByteStr(Bytes.concat(tokenID.arr, sender.data))
       val senderCurrentBalance = context.state.tokenAccountBalance(senderBalanceKey)
       val recipientBalanceKey = ByteStr(Bytes.concat(tokenID.arr, recipient.data))
@@ -189,6 +190,14 @@ object TDBAOpcDiff extends OpcDiffer {
     }
   }
 
+  def transfer(context: ExecutionContext)
+              (sender: DataEntry, recipient: DataEntry, amount: DataEntry,
+               tokenIndex: DataEntry = defaultTokenIndex): Either[ValidationError, OpcDiff] = {
+    if (context.height <= context.settings.allowDepositWithdrawContractAfterHeight)
+      basicTransfer(context)(sender, recipient, amount, tokenIndex)
+    else contractTransfer(context)(sender, recipient, amount, tokenIndex)
+  }
+
   object TDBAType extends Enumeration {
     sealed case class TDBATypeVal(
       tdbaType: Int,
@@ -198,7 +207,7 @@ object TDBAOpcDiff extends OpcDiffer {
 
     val DepositTDBA  = TDBATypeVal(1, 3, (c, b, d) => deposit(c)(d(b(1)), d(b(2)), tokenIndex(b, d, 3)))
     val WithdrawTDBA = TDBATypeVal(2, 3, (c, b, d) => withdraw(c)(d(b(1)), d(b(2)), tokenIndex(b, d, 3)))
-    val TransferTDBA = TDBATypeVal(3, 4, (c, b, d) => contractTransfer(c)(d(b(1)), d(b(2)), d(b(3)), tokenIndex(b, d, 4)))
+    val TransferTDBA = TDBATypeVal(3, 4, (c, b, d) => transfer(c)(d(b(1)), d(b(2)), d(b(3)), tokenIndex(b, d, 4)))
 
     def fromByte(implicit b: Byte): Option[TDBAType.TDBATypeVal] = Try(TDBAType(b).asInstanceOf[TDBATypeVal]).toOption
 
