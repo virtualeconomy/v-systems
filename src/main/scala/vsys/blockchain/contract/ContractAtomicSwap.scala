@@ -86,7 +86,7 @@ object ContractAtomicSwap {
     cdbvMapSet ++ Array(swapPuzzleMap.index, 5.toByte, 2.toByte),
     cdbvMapSet ++ Array(swapAmountMap.index, 5.toByte, 0.toByte),
     cdbvMapSet ++ Array(swapExpiredTimeMap.index, 5.toByte, 3.toByte),
-    cdbvrConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
     cdbvMapSet ++ Array(swapStatusMap.index, 5.toByte, 6.toByte)
   )
   lazy val lockFunc: Array[Byte] = getFunctionBytes(lockId, publicFuncType, nonReturnType, lockDataType, lockFunctionOpcs)
@@ -109,7 +109,7 @@ object ContractAtomicSwap {
     cdbvrMapGet ++ Array(swapPuzzleMap.index, 0.toByte, 7.toByte),
     assertHash ++ Array(7.toByte, 1.toByte),
     cdbvrMapGet ++ Array(swapAmountMap.index, 0.toByte, 8.toByte),
-    cdbvrConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(9.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(9.toByte),
     cdbvMapSet ++ Array(swapStatusMap.index, 0.toByte, 9.toByte),
     cdbvMapValAdd ++ Array(balanceMap.index, 3.toByte, 8.toByte)
   )
@@ -131,7 +131,7 @@ object ContractAtomicSwap {
     compareGreater ++ Array(3.toByte, 4.toByte, 5.toByte),
     assertTrue  ++ Array(5.toByte),
     cdbvrMapGet ++ Array(swapAmountMap.index, 0.toByte, 6.toByte),
-    cdbvrConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     cdbvMapSet ++ Array(swapStatusMap.index, 0.toByte, 7.toByte),
     cdbvMapValAdd ++ Array(balanceMap.index, 2.toByte, 6.toByte)
   )
