@@ -21,7 +21,13 @@ object ContractAtomicSwap {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
-  val stateMapName = List("balance", "swapOwner", "swapRecipient", "swapPuzzle", "swapAmount", "swapExpiredTime", "swapStatus")
+  val stateMapBalance = List("contractBalance", "userAddress", "balance")
+  val stateMapOwner = List("swapOwner", "swapId", "owner")
+  val stateMapRecipient = List("swapRecipient", "swapId", "recipient")
+  val stateMapPuzzle = List("swapPuzzle", "swapId", "puzzle")
+  val stateMapAmount = List("swapAmount", "swapId", "amount")
+  val stateMapExpiredTime = List("swapExpiredTime", "swapId", "expiredTime")
+  val stateMapStatus = List("swapStatus", "swapId", "status")
   val balanceMap: StateMap                = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val swapOwnerMap: StateMap              = StateMap(1.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
   val swapRecipientMap: StateMap          = StateMap(2.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
@@ -29,7 +35,8 @@ object ContractAtomicSwap {
   val swapAmountMap: StateMap             = StateMap(4.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
   val swapExpiredTimeMap: StateMap        = StateMap(5.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
   val swapStatusMap: StateMap             = StateMap(6.toByte, DataType.ShortText.id.toByte, DataType.Boolean.id.toByte)
-  lazy val stateMapTextual: Array[Byte] = Deser.serializeArrays(stateMapName.map(x => Deser.serilizeString(x)))
+  lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBalance, stateMapOwner, stateMapRecipient, stateMapPuzzle,
+                                                              stateMapAmount, stateMapExpiredTime, stateMapStatus))
 
   // Initialization Trigger
   val initId: Short = 0
