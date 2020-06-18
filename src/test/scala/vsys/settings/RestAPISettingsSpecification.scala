@@ -14,6 +14,7 @@ class RestAPISettingsSpecification extends FlatSpec with Matchers {
         |    port: 9922
         |    api-key-hash: "BASE58APIKEYHASH"
         |    cors: yes
+        |    limited-pool-threads = 2
         |    custom-api {
         |      # Routes with "/transactions"
         |      transactions {
@@ -53,6 +54,7 @@ class RestAPISettingsSpecification extends FlatSpec with Matchers {
     settings.cors should be(true)
     settings.customApiSettings.transactionsApiSettings.addressTransactionCount should be(false)
     settings.customApiSettings.transactionsApiSettings.addressTransactionList should be(true)
+    settings.limitedPoolThreads shouldBe 2
   }
 
 }

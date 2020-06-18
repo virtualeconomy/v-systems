@@ -1,6 +1,7 @@
 package vsys.api.http.payment
 
 import io.netty.channel.group.ChannelGroup
+import io.netty.util.HashedWheelTimer
 import org.scalacheck.Shrink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
@@ -12,8 +13,10 @@ import vsys.account.PrivateKeyAccount
 import vsys.blockchain.state._
 import vsys.blockchain.UtxPool
 import vsys.blockchain.transaction.{PaymentTransaction, Transaction, TransactionGen}
-import vsys.utils.Time
+import vsys.utils.{Schedulers, Time}
 import vsys.wallet.TestWallet
+
+import scala.concurrent.duration._
 
 class PaymentRouteSpec extends RouteSpec("/vsys/payment")
   with MockFactory with PropertyChecks with RestAPISettingsHelper with TestWallet with TransactionGen {
@@ -34,7 +37,13 @@ class PaymentRouteSpec extends RouteSpec("/vsys/payment")
         val sender = testWallet.privateKeyAccounts(0)
         val tx = PaymentTransaction.create(sender, recipient, amount, fee, feeScale, timestamp, attachment).explicitGet()
 
-        val route = PaymentApiRoute(restAPISettings, testWallet, utx, allChannels, time).route
+        val route = PaymentApiRoute(restAPISettings, testWallet, utx, allChannels, time,
+          Schedulers.timeBoundedFixedPool(
+            new HashedWheelTimer(),
+            5.seconds,
+            1,
+            "rest-time-limited"
+          )).route
 
         val req = Json.obj("sender" -> sender.address, "recipient" -> recipient.stringRepr, "amount" -> amount, "fee" -> fee, "feeScale" -> feeScale, "attachment" -> Base58.encode(attachment))
 
