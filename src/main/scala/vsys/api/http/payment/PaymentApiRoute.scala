@@ -5,6 +5,7 @@ import javax.ws.rs.Path
 import akka.http.scaladsl.server.Route
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
+import monix.execution.Scheduler
 import vsys.api.http._
 import vsys.blockchain.transaction.TransactionFactory
 import vsys.blockchain.UtxPool
@@ -14,7 +15,7 @@ import vsys.wallet.Wallet
 
 @Path("/vsys")
 @Api(value = "/vsys")
-case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time)
+case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time, limitedScheduler: Scheduler)
   extends ApiRoute with BroadcastRoute {
 
   override lazy val route = pathPrefix("vsys") {
@@ -64,7 +65,7 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
   def broadcastPayment: Route = (path("broadcast" / "payment") & post) {
     json[SignedPaymentRequest] { payment =>
-      doBroadcast(payment.toTx)
+      doBroadcastWithLimit(payment.toTx, limitedScheduler)
     }
   }
 }
