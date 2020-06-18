@@ -63,7 +63,8 @@ object CustomAPISettings {
   }
 }
 
-case class RestAPISettings(enable: Boolean, bindAddress: String, port: Int, apiKeyHash: String, cors: Boolean, customApiSettings: CustomAPISettings)
+case class RestAPISettings(enable: Boolean, bindAddress: String, port: Int, apiKeyHash: String, cors: Boolean, customApiSettings: CustomAPISettings,
+                           limitedPoolThreads: Int)
 
 object RestAPISettings {
   val configPath: String = "vsys.rest-api"
@@ -75,7 +76,8 @@ object RestAPISettings {
     val apiKeyHash = config.as[String](s"$configPath.api-key-hash")
     val cors = config.as[Boolean](s"$configPath.cors")
     val customApi = CustomAPISettings.fromConfig(config)
+    val limitedPoolThreads  = config.as[Int](s"$configPath.limited-pool-threads")
 
-    RestAPISettings(enable, bindAddress, port, apiKeyHash, cors, customApi)
+    RestAPISettings(enable, bindAddress, port, apiKeyHash, cors, customApi, limitedPoolThreads)
   }
 }
