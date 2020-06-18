@@ -13,6 +13,7 @@ import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.netty.channel.Channel
 import io.netty.channel.group.DefaultChannelGroup
+import io.netty.util.HashedWheelTimer
 import io.netty.util.concurrent.GlobalEventExecutor
 import kamon.Kamon
 import vsys.account.AddressScheme
@@ -33,12 +34,11 @@ import vsys.blockchain.transaction._
 import vsys.db.openDB
 import vsys.network.{NetworkServer, PeerDatabaseImpl, PeerInfo, UPnP}
 import vsys.settings._
-import vsys.utils.{ScorexLogging, Time, TimeImpl, forceStopApplication}
+import vsys.utils._
 import vsys.wallet.Wallet
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.reflect.runtime.universe._
 import scala.util.{DynamicVariable, Try}
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
@@ -85,12 +85,21 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
 
     miner.lastBlockChanged()
 
+    val limitedScheduler =
+      Schedulers.timeBoundedFixedPool(
+        new HashedWheelTimer(),
+        1.seconds,
+        settings.restAPISettings.limitedPoolThreads,
+        "rest-time-limited",
+        reporter = log.trace("Uncaught exception in time limited pool", _)
+      )
+
     val apiRoutes = Seq(
       BlocksApiRoute(settings.restAPISettings, settings.checkpointsSettings, history, allChannels, checkpointService, blockchainUpdater),
       TransactionsApiRoute(settings.restAPISettings, settings.blockchainSettings.stateSettings, stateReader, history, utxStorage),
       SposConsensusApiRoute(settings.restAPISettings, stateReader, history, settings.blockchainSettings.functionalitySettings),
       WalletApiRoute(settings.restAPISettings, wallet),
-      PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time),
+      PaymentApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, limitedScheduler),
       UtilsApiRoute(time, settings.restAPISettings),
       PeersApiRoute(settings.restAPISettings, network.connect, peerDatabase, establishedConnections),
       AddressApiRoute(settings.restAPISettings, wallet, stateReader, settings.blockchainSettings.functionalitySettings),
