@@ -141,7 +141,7 @@ class Miner(
   def lastBlockChanged(): Unit = if (settings.minerSettings.enable) {
     log.debug("Miner notified of new block, restarting all mining tasks")
     scheduledAttempts := CompositeCancelable.fromSet(
-      wallet.privateKeyAccounts.map(generateBlockTask).map(_.runAsync).toSet)
+      wallet.privateKeyAccounts.map(generateBlockTask).map(_.runAsyncLogErr).toSet)
   } else {
     log.debug("Miner is disabled, ignoring last block change")
   }
