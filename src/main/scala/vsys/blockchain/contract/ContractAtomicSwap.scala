@@ -29,12 +29,12 @@ object ContractAtomicSwap {
   val stateMapExpiredTime = List("swapExpiredTime", "swapId", "expiredTime")
   val stateMapStatus = List("swapStatus", "swapId", "status")
   val balanceMap: StateMap                = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
-  val swapOwnerMap: StateMap              = StateMap(1.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
-  val swapRecipientMap: StateMap          = StateMap(2.toByte, DataType.ShortText.id.toByte, DataType.Address.id.toByte)
-  val swapPuzzleMap: StateMap             = StateMap(3.toByte, DataType.ShortText.id.toByte, DataType.ShortText.id.toByte)
-  val swapAmountMap: StateMap             = StateMap(4.toByte, DataType.ShortText.id.toByte, DataType.Amount.id.toByte)
-  val swapExpiredTimeMap: StateMap        = StateMap(5.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
-  val swapStatusMap: StateMap             = StateMap(6.toByte, DataType.ShortText.id.toByte, DataType.Boolean.id.toByte)
+  val swapOwnerMap: StateMap              = StateMap(1.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
+  val swapRecipientMap: StateMap          = StateMap(2.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
+  val swapPuzzleMap: StateMap             = StateMap(3.toByte, DataType.ShortBytes.id.toByte, DataType.ShortBytes.id.toByte)
+  val swapAmountMap: StateMap             = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val swapExpiredTimeMap: StateMap        = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
+  val swapStatusMap: StateMap             = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Boolean.id.toByte)
   lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBalance, stateMapOwner, stateMapRecipient, stateMapPuzzle,
                                                               stateMapAmount, stateMapExpiredTime, stateMapStatus))
 
@@ -83,7 +83,7 @@ object ContractAtomicSwap {
   val lockId: Short = 0
   val lockPara: Seq[String] = Seq("amount", "recipient", "puzzle", "expiredTime",
                                   "caller", "txId", "valueTrue")
-  val lockDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Address.id.toByte, DataType.ShortText.id.toByte, DataType.Timestamp.id.toByte)
+  val lockDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Address.id.toByte, DataType.ShortBytes.id.toByte, DataType.Timestamp.id.toByte)
   val lockFunctionOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(4.toByte),
     cdbvMapValMinus ++ Array(balanceMap.index, 4.toByte, 0.toByte),
@@ -103,7 +103,7 @@ object ContractAtomicSwap {
   val solvePuzzleId: Short = 1
   val solvePuzzlePara: Seq[String] = Seq("txId", "key",
                                          "status", "recipient", "currentTime", "expiredTime", "res", "puzzle", "amount", "valueFalse")
-  val solvePuzzleDataType: Array[Byte] = Array(DataType.ShortText.id.toByte, DataType.ShortText.id.toByte)
+  val solvePuzzleDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.ShortBytes.id.toByte)
   val solvePuzzleFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(swapStatusMap.index, 0.toByte, 2.toByte),
     assertTrue ++ Array(2.toByte),
@@ -127,7 +127,7 @@ object ContractAtomicSwap {
   val expireWithdrawId: Short = 2
   val expireWithdrawPara: Seq[String] = Seq("txId",
                                             "status", "owner", "currentTime", "expiredTime", "res", "amount", "valueFalse")
-  val expireWithdrawDataType: Array[Byte] = Array(DataType.ShortText.id.toByte)
+  val expireWithdrawDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val expireWithdrawFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(swapStatusMap.index, 0.toByte, 1.toByte),
     assertTrue ++ Array(1.toByte),
