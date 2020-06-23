@@ -144,7 +144,8 @@ object Contract extends ScorexLogging {
       !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) &&
       !(bytes sameElements ContractLock.contract.bytes.arr) &&
       !(bytes sameElements ContractNonFungible.contract.bytes.arr) &&
-      !(bytes sameElements ContractPaymentChannel.contract.bytes.arr)) {
+      !(bytes sameElements ContractPaymentChannel.contract.bytes.arr) &&
+      !(bytes sameElements ContractAtomicSwap.contract.bytes.arr)){
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||
