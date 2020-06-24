@@ -6,7 +6,6 @@ import scorex.crypto.encode.Base58
 import vsys.account.{Address, AddressScheme, ContractAccount, PublicKeyAccount}
 import vsys.account.ContractAccount.ChecksumLength
 import vsys.blockchain.state.ByteStr
-import vsys.blockchain.transaction.TransactionParser.{AmountLength, KeyLength, TimestampLength}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
 import vsys.utils.crypto.hash.SecureCryptographicHash._
@@ -14,7 +13,7 @@ import vsys.utils.crypto.hash.SecureCryptographicHash._
 import scala.util.Success
 
 case class DataEntry(data: Array[Byte],
-                     dataType: DataType.Value) {
+                     dataType: DataType.DataTypeVal) {
 
   lazy val bytes: Array[Byte] = Array(dataType.id.asInstanceOf[Byte]) ++ data
 
@@ -23,7 +22,7 @@ case class DataEntry(data: Array[Byte],
     "type" -> dataType
   )
 
-  private def toJson(d: Array[Byte], t: DataType.Value): JsValue = {
+  private def toJson(d: Array[Byte], t: DataType.DataTypeVal): JsValue = {
     t match {
       case DataType.PublicKey => Json.toJson(PublicKeyAccount(d).address)
       case DataType.Address => Json.toJson(Address.fromBytes(d).right.get.address)
@@ -35,6 +34,8 @@ case class DataEntry(data: Array[Byte],
       case DataType.Timestamp => Json.toJson(Longs.fromByteArray(d))
       case DataType.Boolean => Json.toJson(if (d(0) == 1.toByte) "True" else "False")
       case DataType.ShortBytes => Json.toJson(Base58.encode(d))
+      case DataType.OpcBlock => Json.toJson("Internal code block")
+      case _ => Json.toJson("Unsupported data type")
     }
   }
 
@@ -51,10 +52,7 @@ object DataEntry {
 
   private lazy val scheme = AddressScheme.current.value
 
-  val maxShortTextLength = 140
-  val maxShortBytesLength = 255
-
-  def create(data: Array[Byte], dataType: DataType.Value): Either[ValidationError, DataEntry] = {
+  def create(data: Array[Byte], dataType: DataType.DataTypeVal): Either[ValidationError, DataEntry] = {
     dataType match {
       case DataType.ShortText if checkDataType(Shorts.toByteArray(data.length.toShort) ++ data, dataType) => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
       case DataType.ShortBytes if checkDataType(Shorts.toByteArray(data.length.toShort) ++ data, dataType) => Right(DataEntry(Shorts.toByteArray(data.length.toShort) ++ data, dataType))
@@ -68,9 +66,9 @@ object DataEntry {
       Left(InvalidDataEntry)
     else
       DataType.fromByte(bytes(0)) match {
-        case Some(DataType.ShortText) => create(bytes.slice(3, bytes.length), DataType(bytes(0)))
-        case Some(DataType.ShortBytes) => create(bytes.slice(3, bytes.length), DataType(bytes(0)))
-        case _ => create(bytes.tail, DataType(bytes(0)))
+        case Some(DataType.ShortText) => create(bytes.drop(3), DataType.ShortText)
+        case Some(DataType.ShortBytes) => create(bytes.drop(3), DataType.ShortBytes)
+        case _ => create(bytes.tail, DataType(bytes(0)).asInstanceOf[DataType.DataTypeVal])
       }
   }
 
@@ -81,28 +79,12 @@ object DataEntry {
     }
   }
 
-  def parseArraySize(bytes: Array[Byte], position: Int): Either[ValidationError, (DataEntry, Int)] = {
-    DataType.fromByte(bytes(position)) match {
-      case Some(DataType.PublicKey) if checkDataType(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKey) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + KeyLength), DataType.PublicKey), position + 1 + KeyLength))
-      case Some(DataType.Address) if checkDataType(bytes.slice(position + 1, position + 1 + Address.AddressLength), DataType.Address) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + Address.AddressLength), DataType.Address), position + 1 + Address.AddressLength))
-      case Some(DataType.Amount) if checkDataType(bytes.slice(position + 1, position + 1 + AmountLength), DataType.Amount) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + AmountLength), DataType.Amount), position + 1 + AmountLength))
-      case Some(DataType.Int32) if checkDataType(bytes.slice(position + 1, position + 1 + 4), DataType.Int32) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + 4), DataType.Int32), position + 1 + 4))
-      case Some(DataType.ShortText) if checkDataType(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortText), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
-      case Some(DataType.ContractAccount) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.AddressLength), DataType.ContractAccount), position + 1 + ContractAccount.AddressLength))
-      case Some(DataType.TokenId) if checkDataType(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + ContractAccount.TokenAddressLength), DataType.TokenId), position + 1 + ContractAccount.TokenAddressLength))
-      case Some(DataType.Timestamp) if checkDataType(bytes.slice(position + 1, position + 1 + TimestampLength), DataType.Timestamp) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + TimestampLength), DataType.Timestamp), position + 1 + TimestampLength))
-      case Some(DataType.Boolean) if checkDataType(bytes.slice(position + 1, position + 1 + 1), DataType.Boolean) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 1 + 1), DataType.Boolean), position + 1 + 1))
-      case Some(DataType.ShortBytes) if checkDataType(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortBytes) =>
-        Right((DataEntry(bytes.slice(position + 1, position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))), DataType.ShortBytes), position + 3 + Shorts.fromByteArray(bytes.slice(position + 1, position + 3))))
+  private def parseArray(bytes: Array[Byte]): Either[ValidationError, (DataEntry, Array[Byte])] = {
+    DataType.fromByte(bytes(0)) match {
+      case Some(dt: DataType.DataTypeVal) if (dt.lenFixed && checkDataType(bytes.drop(1).take(dt.maxLen), dt)) =>
+        Right((DataEntry(bytes.drop(1).take(dt.maxLen), dt), bytes.drop(1 + dt.maxLen)))
+      case Some(dt: DataType.DataTypeVal) if (dt.maxLen <= Short.MaxValue && checkDataType(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt)) =>
+        Right((DataEntry(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt), bytes.drop(3 + Shorts.fromByteArray(bytes.drop(1).take(2)))))
       case _ => Left(InvalidDataEntry)
     }
   }
@@ -111,35 +93,32 @@ object DataEntry {
     Shorts.toByteArray(ds.length.toShort) ++ Bytes.concat(ds.map(_.bytes): _*)
   }
 
-  def right(structure: (Seq[DataEntry], Int)): Either[ValidationError, (Seq[DataEntry], Int)] = Right(structure)
-
   def parseArrays(bytes: Array[Byte]): Either[ValidationError, Seq[DataEntry]] = {
-    val length = Shorts.fromByteArray(bytes.slice(0, 2))
-    (0 until length).foldLeft(right((Seq.empty[DataEntry], 2))) {
-      case (accPos, _) => accPos.flatMap(ap => parseArraySize(bytes, ap._2) match {
+    val length = Shorts.fromByteArray(bytes.take(2))
+    (0 until length).foldLeft(Right((Seq.empty[DataEntry], bytes.drop(2))): Either[ValidationError, (Seq[DataEntry], Array[Byte])]) {
+      case (accPos, _) => accPos.flatMap(ap => parseArray(ap._2) match {
         case Right((arr, nextPos)) => Right((ap._1 :+ arr, nextPos))
         case Left(l) => Left(l)
       })
-
     } match {
       case Right((acc, _)) => Right(acc)
       case Left(l) => Left(l)
     }
   }
 
-  private def checkDataType(data: Array[Byte], dataType: DataType.Value): Boolean = dataType match {
-      case DataType.PublicKey => data.length == KeyLength
+  private def checkDataType(data: Array[Byte], dataType: DataType.DataTypeVal): Boolean =
+    ((dataType.lenFixed && data.length == dataType.maxLen)
+      || (!dataType.lenFixed && Shorts.fromByteArray(data.take(2)) == data.drop(2).length && data.drop(2).length <= dataType.maxLen)) &&
+    (dataType match {
       case DataType.Address => Address.fromBytes(data).isRight
-      case DataType.Amount => data.length == AmountLength && Longs.fromByteArray(data) >= 0
-      case DataType.Int32 => data.length == 4 && Ints.fromByteArray(data) >= 0
-      case DataType.ShortText => Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length && data.length <= 2 + maxShortTextLength
+      case DataType.Amount => Longs.fromByteArray(data) >= 0
+      case DataType.Int32 => Ints.fromByteArray(data) >= 0
       case DataType.ContractAccount => ContractAccount.fromBytes(data).isRight
       case DataType.TokenId => isTokenIdValid(data)
-      case DataType.Timestamp => data.length == TimestampLength
-      case DataType.Boolean => data.length == 1 && (data(0) == 1.toByte || data(0) == 0.toByte)
-      case DataType.ShortBytes => Shorts.fromByteArray(data.slice(0, 2)) + 2 == data.length && data.length <= 2 + maxShortBytesLength
+      case DataType.Boolean => (data(0) == 1.toByte || data(0) == 0.toByte)
+      case DataType.PublicKey | DataType.ShortText | DataType.Timestamp | DataType.ShortBytes | DataType.OpcBlock  => true
       case _ => false
-  }
+    })
 
   private def isTokenIdValid(addressBytes: Array[Byte]): Boolean = {
     val version = addressBytes.head
