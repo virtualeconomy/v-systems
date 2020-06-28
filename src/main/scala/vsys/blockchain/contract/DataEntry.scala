@@ -80,13 +80,19 @@ object DataEntry {
   }
 
   private def parseArray(bytes: Array[Byte]): Either[ValidationError, (DataEntry, Array[Byte])] = {
-    DataType.fromByte(bytes(0)) match {
-      case Some(dt: DataType.DataTypeVal) if (dt.lenFixed && checkDataType(bytes.drop(1).take(dt.maxLen), dt)) =>
-        Right((DataEntry(bytes.drop(1).take(dt.maxLen), dt), bytes.drop(1 + dt.maxLen)))
-      case Some(dt: DataType.DataTypeVal) if (dt.maxLen <= Short.MaxValue && checkDataType(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt)) =>
-        Right((DataEntry(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt), bytes.drop(3 + Shorts.fromByteArray(bytes.drop(1).take(2)))))
-      case _ => Left(InvalidDataEntry)
+    bytes.headOption match {
+      case Some(b) =>
+        DataType.fromByte(b) match {
+          case Some(dt: DataType.DataTypeVal) if (dt.lenFixed && checkDataType(bytes.drop(1).take(dt.maxLen), dt)) =>
+            Right((DataEntry(bytes.drop(1).take(dt.maxLen), dt), bytes.drop(1 + dt.maxLen)))
+          case Some(dt: DataType.DataTypeVal) if (!dt.lenFixed && dt.maxLen <= Short.MaxValue && checkDataType(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt)) =>
+            Right((DataEntry(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt), bytes.drop(3 + Shorts.fromByteArray(bytes.drop(1).take(2)))))
+          case _ => Left(InvalidDataEntry)
+        }
+      case _ =>
+        Left(InvalidDataEntry)
     }
+    
   }
 
   def serializeArrays(ds: Seq[DataEntry]): Array[Byte] = {
@@ -97,7 +103,7 @@ object DataEntry {
     val length = Shorts.fromByteArray(bytes.take(2))
     (0 until length).foldLeft(Right((Seq.empty[DataEntry], bytes.drop(2))): Either[ValidationError, (Seq[DataEntry], Array[Byte])]) {
       case (accPos, _) => accPos.flatMap(ap => parseArray(ap._2) match {
-        case Right((arr, nextPos)) => Right((ap._1 :+ arr, nextPos))
+        case Right((arr, suffix)) => Right((ap._1 :+ arr, suffix))
         case Left(l) => Left(l)
       })
     } match {
