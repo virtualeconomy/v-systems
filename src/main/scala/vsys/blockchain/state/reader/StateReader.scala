@@ -1,6 +1,7 @@
 package vsys.blockchain.state.reader
 
-import vsys.account.Address
+
+import vsys.account.Account
 import vsys.blockchain.contract.{Contract, DataEntry}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction._
@@ -13,13 +14,13 @@ import scala.reflect.ClassTag
 
 trait StateReader extends Synchronized {
 
-  def accountPortfolios: Map[Address, Portfolio]
+  def accountPortfolios: Map[Account, Portfolio]
 
   def transactionInfo(id: ByteStr): Option[(Int, ProcessedTransaction)]
 
   def containsTransaction(id: ByteStr): Boolean
 
-  def accountPortfolio(a: Address): Portfolio
+  def accountPortfolio(a: Account): Portfolio
 
   def height: Int
 
@@ -29,17 +30,19 @@ trait StateReader extends Synchronized {
 
   def effectiveSlotAddressSize: Int
 
-  def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr])
+  def accountTransactionIds(a: Account, limit: Int, offset: Int): (Int, Seq[ByteStr])
 
-  def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr])
+  def txTypeAccountTxIds(txType: TransactionType.Value, a: Account, limit: Int, offset: Int): (Int, Seq[ByteStr])
 
-  def accountTransactionsLengths(a: Address): Int
+  def accountTransactionsLengths(a: Account): Int
 
-  def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int
+  def txTypeAccTxLengths(txType: TransactionType.Value, a: Account): Int
 
   def contractContent(id: ByteStr): Option[(Int, ByteStr, Contract)]
 
   def contractInfo(id: ByteStr): Option[DataEntry]
+
+  def contractNumInfo(id: ByteStr): Long
 
   def contractTokens(id: ByteStr): Int
 
@@ -53,17 +56,18 @@ trait StateReader extends Synchronized {
 
   def activeLeases(): Seq[ByteStr]
 
-  def lastUpdateHeight(acc: Address): Option[Int]
+  def lastUpdateHeight(acc: Account): Option[Int]
 
-  def lastUpdateWeightedBalance(acc: Address): Option[Long]
+  def lastUpdateWeightedBalance(acc: Account): Option[Long]
 
-  def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot]
+  def snapshotAtHeight(acc: Account, h: Int): Option[Snapshot]
+
 }
 
 object StateReader {
 
   implicit class StateReaderExt(s: StateReader) extends ScorexLogging {
-    def assetDistribution(assetId: ByteStr): Map[Address, Long] =
+    def assetDistribution(assetId: ByteStr): Map[Account, Long] =
       s.accountPortfolios
         .mapValues(portfolio => portfolio.assets.get(assetId))
         .collect { case (acc, Some(amt)) => acc -> amt }
@@ -78,25 +82,25 @@ object StateReader {
 
     def included(signature: ByteStr): Option[Int] = s.transactionInfo(signature).map(_._1)
 
-    def accountTransactions(account: Address, limit: Int, offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
+    def accountTransactions(account: Account, limit: Int, offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
       val res = s.accountTransactionIds(account, limit, offset)
       (res._1, res._2.flatMap(s.transactionInfo))
     }
 
     def txTypeAccountTransactions(
       txType: TransactionType.Value,
-      account: Address,
+      account: Account,
       limit: Int,
       offset: Int): (Int, Seq[(Int, _ <: ProcessedTransaction)]) = s.read { _ =>
       val res = s.txTypeAccountTxIds(txType, account, limit, offset)
       (res._1, res._2.flatMap(s.transactionInfo))
     }
 
-    def balance(account: Address): Long = s.accountPortfolio(account).balance
+    def balance(account: Account): Long = s.accountPortfolio(account).balance
 
-    def effectiveBalance(account: Address): Long = s.accountPortfolio(account).effectiveBalance
+    def effectiveBalance(account: Account): Long = s.accountPortfolio(account).effectiveBalance
 
-    private def minBySnapshot(acc: Address, atHeight: Int, confirmations: Int)(extractor: Snapshot => Long): Long = s.read { _ =>
+    private def minBySnapshot(acc: Account, atHeight: Int, confirmations: Int)(extractor: Snapshot => Long): Long = s.read { _ =>
       val bottomNotIncluded = atHeight - confirmations
 
       @tailrec
@@ -138,16 +142,16 @@ object StateReader {
       snapshots.map(extractor).min
     }
 
-    def effectiveBalanceAtHeightWithConfirmations(acc: Address, atHeight: Int, confirmations: Int): Long =
+    def effectiveBalanceAtHeightWithConfirmations(acc: Account, atHeight: Int, confirmations: Int): Long =
       minBySnapshot(acc, atHeight, confirmations)(_.effectiveBalance)
 
-    def balanceWithConfirmations(acc: Address, confirmations: Int): Long =
+    def balanceWithConfirmations(acc: Account, confirmations: Int): Long =
       minBySnapshot(acc, s.height, confirmations)(_.balance)
 
-    def weightedBalanceWithConfirmations(acc: Address, confirmations: Int): Long =
+    def weightedBalanceWithConfirmations(acc: Account, confirmations: Int): Long =
       minBySnapshot(acc, s.height, confirmations)(_.weightedBalance)
 
-    def balanceAtHeight(acc: Address, height: Int): Long = s.read { _ =>
+    def balanceAtHeight(acc: Account, height: Int): Long = s.read { _ =>
 
       @tailrec
       def loop(lookupHeight: Int): Long = s.snapshotAtHeight(acc, lookupHeight) match {
@@ -162,7 +166,7 @@ object StateReader {
       loop(s.lastUpdateHeight(acc).getOrElse(0))
     }
 
-    def weightedBalanceAtHeight(acc: Address, height: Int): Long = s.read { _ =>
+    def weightedBalanceAtHeight(acc: Account, height: Int): Long = s.read { _ =>
 
       @tailrec
       def loop(lookupHeight: Int): Long = s.snapshotAtHeight(acc, lookupHeight) match {

@@ -8,6 +8,7 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
+import vsys.account.Account
 import vsys.api.http.ApiMarshallers._
 import vsys.api.http._
 import vsys.blockchain.{BlockchainUpdater, UtxPool}
@@ -40,7 +41,7 @@ class DebugRouteSpec
     } yield a.toAddress -> Portfolio(b, LeaseInfo.empty, Map.empty)
 
     forAll(Gen.chooseNum(0, 20).flatMap(n => Gen.listOfN(n, portfolioGen))) { portfolios =>
-      val portfolioMap = portfolios.toMap
+      val portfolioMap: Map[Account, Portfolio] = portfolios.toMap
       (state.accountPortfolios _).expects().returning(portfolioMap).once()
 
       Get(routePath("/state")) ~> api_key(apiKey) ~> route ~> check {

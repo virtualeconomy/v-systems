@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import cats.implicits._
 import vsys.blockchain.state._
-import vsys.account.Address
+import vsys.account.{Account, Address}
 import vsys.blockchain.transaction.lease.LeaseTransaction
 import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.contract.{Contract, DataEntry}
@@ -20,7 +20,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     }
   }
 
-  override def accountPortfolio(a: Address): Portfolio = read { implicit l =>
+  override def accountPortfolio(a: Account): Portfolio = read { implicit l =>
     sp().portfolios.get(a.bytes).map { case (b, (i, o), as) => Portfolio(b, LeaseInfo(i, o), as.map { case (k, v) => ByteStr(k) -> v }) }.orEmpty
   }
   
@@ -32,7 +32,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def addressSlot(add: String): Option[Int] = read { implicit l => sp().getAddressSlot(add) }
 
-  override def accountTransactionIds(a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
+  override def accountTransactionIds(a: Account, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
     val totalRecords = accountTransactionsLengths(a)
     (totalRecords, sp().accountTransactionIds.rangeQuery(
       StateStorage.accountIndexKey(a, Math.max(0, totalRecords - limit - offset)),
@@ -40,7 +40,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .map(_._2).reverse)
   }
 
-  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Address, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
+  override def txTypeAccountTxIds(txType: TransactionType.Value, a: Account, limit: Int, offset: Int): (Int, Seq[ByteStr]) = read { implicit l =>
     val totalRecords = txTypeAccTxLengths(txType, a)
     (totalRecords, sp().txTypeAccountTxIds.rangeQuery(
       StateStorage.txTypeAccIndexKey(txType, a, Math.max(0, totalRecords - limit - offset)),
@@ -48,11 +48,11 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .map(_._2).reverse)
   }
 
-  override def accountTransactionsLengths(a: Address): Int = read { implicit l =>
+  override def accountTransactionsLengths(a: Account): Int = read { implicit l =>
     sp().accountTransactionsLengths.get(a.bytes).getOrElse(0)
   }
 
-  override def txTypeAccTxLengths(txType: TransactionType.Value, a: Address): Int = read { implicit l =>
+  override def txTypeAccTxLengths(txType: TransactionType.Value, a: Account): Int = read { implicit l =>
     sp().txTypeAccTxLengths.get(StateStorage.txTypeAccKey(txType, a)).getOrElse(0)
   }
 
@@ -64,6 +64,10 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
 
   override def contractInfo(id: ByteStr): Option[DataEntry] = read { implicit l =>
     sp().contractDB.get(id).map(bytes => DataEntry.fromBytes(bytes).explicitGet())
+  }
+
+  override def contractNumInfo(id: ByteStr): Long = read { implicit l =>
+    sp().contractNumDB.get(id).getOrElse(0L)
   }
 
   override def contractTokens(id: ByteStr): Int = read { implicit l =>
@@ -82,7 +86,7 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
     sp().dbEntries.get(key)
   }
 
-  override def accountPortfolios: Map[Address, Portfolio] = read { implicit l =>
+  override def accountPortfolios: Map[Account, Portfolio] = read { implicit l =>
     sp().portfolios.asScala.map {
       case (acc, (b, (i, o), as)) => Address.fromBytes(acc.arr).explicitGet() -> Portfolio(b, LeaseInfo(i, o), as.map {
         case (k, v) => ByteStr(k) -> v
@@ -101,15 +105,15 @@ class StateReaderImpl(p: StateStorage, val synchronizationToken: ReentrantReadWr
       .toSeq
   }
 
-  override def lastUpdateHeight(acc: Address): Option[Int] = read { implicit l =>
+  override def lastUpdateHeight(acc: Account): Option[Int] = read { implicit l =>
     sp().lastBalanceSnapshotHeight.get(acc.bytes)
   }
 
-  override def lastUpdateWeightedBalance(acc: Address): Option[Long] = read {implicit l =>
+  override def lastUpdateWeightedBalance(acc: Account): Option[Long] = read {implicit l =>
     sp().lastBalanceSnapshotWeightedBalance.get(acc.bytes)
   }
 
-  override def snapshotAtHeight(acc: Address, h: Int): Option[Snapshot] = read { implicit l =>
+  override def snapshotAtHeight(acc: Account, h: Int): Option[Snapshot] = read { implicit l =>
     sp().balanceSnapshots.get(StateStorage.accountIndexKey(acc, h))
       .map { case (ph, b, eb, wb) => Snapshot(ph, b, eb, wb) }
   }

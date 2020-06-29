@@ -7,7 +7,8 @@ import net.ceedubs.ficus.readers.EnumerationReader._
 
 case class FunctionalitySettings(numOfSlots: Int,
                                  mintingSpeed: Int,
-                                 allowContractTransactionAfterHeight: Int)
+                                 allowContractTransactionAfterHeight: Int,
+                                 allowDepositWithdrawContractAfterHeight: Int)
 
 object FunctionalitySettings {
   val MAINNET = FunctionalitySettings(
@@ -15,14 +16,16 @@ object FunctionalitySettings {
     mintingSpeed = 1,
     //TODO
     //set the value
-    allowContractTransactionAfterHeight = 6100000)
+    allowContractTransactionAfterHeight = 6100000,
+    allowDepositWithdrawContractAfterHeight = 12900000)
 
   val TESTNET = FunctionalitySettings(
     numOfSlots = 60,
     mintingSpeed = 1,
     //TODO
     //set the value
-    allowContractTransactionAfterHeight = 4236000)
+    allowContractTransactionAfterHeight = 4236000,
+    allowDepositWithdrawContractAfterHeight = 12550000)
 
   val configPath = "vsys.blockchain.custom.functionality"
 }

@@ -8,9 +8,11 @@ import vsys.blockchain.state.opcdiffs.OpcFuncDiffer
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.blockchain.transaction.{TransactionStatus, ValidationError}
 import vsys.blockchain.transaction.ValidationError._
+import vsys.settings.FunctionalitySettings
 
 object RegisterContractTransactionDiff {
-  def apply(s: StateReader, height: Int)(tx: RegisterContractTransaction): Either[ValidationError, Diff] = {
+  def apply(s: StateReader, settings: FunctionalitySettings, height: Int, prevBlockTimestamp: Option[Long],
+            currentBlockTimestamp: Long)(tx: RegisterContractTransaction): Either[ValidationError, Diff] = {
     /**
       no need to validate the name duplication coz that will create a duplicate transacion and
       will fail with duplicated transaction id
@@ -19,7 +21,7 @@ object RegisterContractTransactionDiff {
       val senderAddr: Address = proof.publicKey
       val contractInfo = (height, tx.id, tx.contract, Set(senderAddr))
       ( for {
-        exContext <- ExecutionContext.fromRegConTx(s, height, tx)
+        exContext <- ExecutionContext.fromRegConTx(s, settings, prevBlockTimestamp, currentBlockTimestamp, height, tx)
         diff <- OpcFuncDiffer(exContext)(tx.data)
       } yield Diff(
         height = height,
@@ -27,6 +29,8 @@ object RegisterContractTransactionDiff {
         portfolios = Map(senderAddr -> Portfolio(-tx.transactionFee, LeaseInfo.empty, Map.empty)),
         contracts = Map(tx.contractId.bytes -> contractInfo),
         contractDB = diff.contractDB,
+        contractNumDB = diff.contractNumDB,
+        contractStateDB = diff.contractStateDB,
         contractTokens = diff.contractTokens,
         tokenDB = diff.tokenDB,
         tokenAccountBalance = diff.tokenAccountBalance,

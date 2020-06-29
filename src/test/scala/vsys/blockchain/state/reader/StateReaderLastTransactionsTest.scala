@@ -6,9 +6,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.state.EitherExt2
-import vsys.blockchain.transaction.{GenesisTransaction, PaymentTransaction, Transaction}
-import vsys.blockchain.transaction.{ProcessedTransaction, TransactionGen, TransactionStatus}
-import vsys.blockchain.transaction.proof.EllipticCurve25519Proof
+import vsys.blockchain.transaction._
 
 class StateReaderLastTransactionsTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
@@ -30,16 +28,20 @@ class StateReaderLastTransactionsTest extends PropSpec with PropertyChecks with 
     ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)
 
   property("accountTransactions sort results by 'fresh head' rule") {
-    forAll(preconditionsAndPayment) { case ((pre, payment: PaymentTransaction)) =>
+    forAll(preconditionsAndPayment) { case ((pre: Seq[Transaction], payment: PaymentTransaction)) =>
       assertDiffAndState(Seq(TestBlock.create(pre)), TestBlock.create(Seq(payment))) { (blockDiff, newState) =>
 
-        val sender = EllipticCurve25519Proof.fromBytes(payment.proofs.proofs.head.bytes.arr).toOption.get.publicKey
+        val sender = payment.proofs.firstCurveProof.explicitGet().publicKey
         newState.accountTransactions(sender, 1, 0)._2.map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment))
-        val g = pre.head
+        val (_, txs) = newState.accountTransactions(sender, 1, 0)
+        txs shouldEqual Seq((2, txToProcessedTx(payment)))
+        val g = pre(0)
         val tx1 = pre(1)
         val tx2 = pre(2)
-        newState.accountTransactions(sender, 3, 0)._2.map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment), txToProcessedTx(tx2), txToProcessedTx(tx1))
-        newState.accountTransactions(sender, 10, 0)._2.map{case (h,tx) => tx} shouldBe Seq(txToProcessedTx(payment), txToProcessedTx(tx2), txToProcessedTx(tx1), txToProcessedTx(g))
+        val (_, txs1) = newState.accountTransactions(sender, 3, 0)
+        txs1 shouldEqual Seq((2, txToProcessedTx(payment)), (1, txToProcessedTx(tx2)), (1, txToProcessedTx(tx1)))
+        val (_, txs2) = newState.accountTransactions(sender, 10, 0)
+        txs2 shouldEqual Seq((2, txToProcessedTx(payment)), (1, txToProcessedTx(tx2)), (1, txToProcessedTx(tx1)), (1, txToProcessedTx(g)))
       }
     }
   }
