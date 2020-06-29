@@ -81,18 +81,18 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
         logHeights(s"Rollback to h=$height started")
         val discardedTransactions = Seq.newBuilder[Transaction]
 
-        while (historyWriter.height > height) {
-          val curBlock = historyWriter.lastBlock.get
-          val txs = curBlock.transactionData
-          val txsDiff = txs.foldLeft(Diff.empty) {(accum, pTx) => Monoid.combine(accum, Diff(historyWriter.height, pTx.transaction))}
-          val blockDiff = BlockDiff(txsDiff, -1, Map.empty)
-          eventTrigger.evokeWebhook(curBlock, blockDiff, currentPersistedBlocksState, "removeAfter")
+        // while (historyWriter.height > height) {
+        //   val curBlock = historyWriter.lastBlock.get
+        //   val txs = curBlock.transactionData
+        //   val txsDiff = txs.foldLeft(Diff.empty) {(accum, pTx) => Monoid.combine(accum, Diff(historyWriter.height, pTx.transaction))}
+        //   val blockDiff = BlockDiff(txsDiff, -1, Map.empty)
+        //   eventTrigger.evokeWebhook(curBlock, blockDiff, persisted, "removeAfter")
           
-          val transactions = historyWriter.discardBlock()
-          log.trace(s"Collecting ${transactions.size} discarded transactions: $transactions")
+        //   val transactions = historyWriter.discardBlock()
+        //   log.trace(s"Collecting ${transactions.size} discarded transactions: $transactions")
           
-          discardedTransactions ++= transactions
-        }
+        //   discardedTransactions ++= transactions
+        // }
 
         // if (fromHeight - height < 10) {
         //   blockSeq.result().foreach {case(b, d) => }
@@ -117,6 +117,19 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with StateReader,
                 bottomMemoryDiff.set(unsafeDiffByRange(persisted, persisted.height + 1, height + 1))
             }
           }
+        }
+
+        while (historyWriter.height > height) {
+          val curBlock = historyWriter.lastBlock.get
+          val txs = curBlock.transactionData
+          val txsDiff = txs.foldLeft(Diff.empty) {(accum, pTx) => Monoid.combine(accum, Diff(historyWriter.height, pTx.transaction))}
+          val blockDiff = BlockDiff(txsDiff, -1, Map.empty)
+          eventTrigger.evokeWebhook(curBlock, blockDiff, currentPersistedBlocksState, "removeAfter")
+          
+          val transactions = historyWriter.discardBlock()
+          log.trace(s"Collecting ${transactions.size} discarded transactions: $transactions")
+          
+          discardedTransactions ++= transactions
         }
         logHeights(s"Rollback to h=$height completed:")
         log.info(s"persisted.height=${persisted.height} history.height=${historyWriter.height}")

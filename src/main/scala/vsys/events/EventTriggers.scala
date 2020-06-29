@@ -88,103 +88,99 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
           case e: StateUpdatedEventSettings if (evokeFrom == "processBlock") =>
             val height = getHeight(blockDiff)
             val re = filterTxs(e.eventRules, block.timestamp, blockDiff, state)
-            val contractTxs = extractTxs(re, 9)
-            val normalTxs = Seq(2, 5).map(num => (num, extractTxs(re, num)))
-            val rulesJson = formRuleJson(e.eventRules)
-            val blockTxsJson = formTxJson(re)
-            val blockResultJson: JsObject = Json.obj(
-                "timestamp" -> blockJson("timestamp"),
-                "reference" -> blockJson("reference"),
-                "SposConsensus" -> Json.obj(
-                  "mintTime" -> block.consensusData.mintTime,
-                  "mintBalance" -> block.consensusData.mintBalance
-                ),
-              "merkleRoot" -> blockJson("TransactionMerkleRoot"),
-              "generator" -> blockJson("generator"),
-              "signature" -> blockJson("signature"),
-              "blocksize" -> blockJson("blocksize"),
-              "height" -> height,
-              "transactionCount" -> re.size,
-              "transactions" -> blockTxsJson
-            )
 
-            // check for contract txs
-            if (contractTxs.size > 0) {
-              packContractTxs(webhookSetting, maxSize, contractTxs, rulesJson, Some(blockResultJson), state)
-            }
+            if (re.size > 0) {
+              val contractTxs = extractTxs(re, 9)
+              val normalTxs = Seq(2, 5).map(num => (num, extractTxs(re, num)))
+              val rulesJson = formRuleJson(e.eventRules)
+              val blockTxsJson = formTxJson(re)
+              val blockResultJson: JsObject = Json.obj(
+                  "timestamp" -> blockJson("timestamp"),
+                  "reference" -> blockJson("reference"),
+                  "SposConsensus" -> Json.obj(
+                    "mintTime" -> block.consensusData.mintTime,
+                    "mintBalance" -> block.consensusData.mintBalance
+                  ),
+                "merkleRoot" -> blockJson("TransactionMerkleRoot"),
+                "generator" -> blockJson("generator"),
+                "signature" -> blockJson("signature"),
+                "blocksize" -> blockJson("blocksize"),
+                "height" -> height,
+                "transactionCount" -> re.size,
+                "transactions" -> blockTxsJson
+              )
 
-            // check for normal transactions
-            normalTxs.map {
-              case (txType, txTup) if txTup.size > 0 =>
-                packNormalTxs(webhookSetting, maxSize, e.eventRules, txTup, txType, rulesJson, Some(blockResultJson), state)
-              case _ => Unit
+              // check for contract txs
+              if (contractTxs.size > 0) {
+                packContractTxs(webhookSetting, maxSize, contractTxs, rulesJson, Some(blockResultJson), state)
+              }
+
+              // check for normal transactions
+              normalTxs.map {
+                case (txType, txTup) if txTup.size > 0 =>
+                  packNormalTxs(webhookSetting, maxSize, e.eventRules, txTup, txType, rulesJson, Some(blockResultJson), state)
+                case _ => Unit
+              }
             }
 
           case e: BlockRollbackEventSettings if (evokeFrom == "removeAfter")=>
             val height = getHeight(blockDiff)
-            println(height)
             val uuid = randomUUID
             val accRule = e.eventRules.filter(r => r.isInstanceOf[RelatedAccs])
             val withTxRule = e.eventRules.filter(r => r.isInstanceOf[WithTxsOfTypes] || r.isInstanceOf[WithTxsOfAccs])
             val withStateRule = e.eventRules.filter(r => r.isInstanceOf[WithStateOfAccs])
             val re = filterTxs(accRule, block.timestamp, blockDiff, state)
 
-            val ctTxs = extractTxs(re, 9)
-            val normalTxs = Seq(2, 5).map(num => (num, extractTxs(re, num)))
-            val robackTxs = filterTxs(withTxRule ++ accRule, block.timestamp, blockDiff, state)
-            val robackTxsJson = formTxJson(robackTxs)
-            
-            val (funcList, recvFuncs) = groupCtTxs(ctTxs, state)
-            val ctStateJson = formCtStateJson(funcList, recvFuncs, withStateRule, state)
-            val extraStateJson = recvFuncs match {
-              case Some(recvMap) => formCtStateJson(Seq(recvMap), None, withStateRule, state)
-              case None => Seq.empty[JsObject]
-            }
+            if (re.size > 0) {
+              val ctTxs = extractTxs(re, 9)
+              val normalTxs = Seq(2, 5).map(num => (num, extractTxs(re, num)))
+              val robackTxs = filterTxs(withTxRule ++ accRule, block.timestamp, blockDiff, state)
+              val robackTxsJson = formTxJson(robackTxs)
 
+              val (funcList, recvFuncs) = groupCtTxs(ctTxs, state)
+              val ctStateJson = formCtStateJson(funcList, recvFuncs, withStateRule, state)
+              val extraStateJson = recvFuncs match {
+                case Some(recvMap) => formCtStateJson(Seq(recvMap), None, withStateRule, state)
+                case None => Seq.empty[JsObject]
+              }
 
-            val normalTxStateJson = normalTxs.foldLeft(Seq[JsObject]()) {(accum, tup) =>
-              val (num, txTups) = tup
-              accum ++ formNormalStateJson(num, txTups, withStateRule, state)
-            }
+              val normalTxStateJson = normalTxs.foldLeft(Seq[JsObject]()) {(accum, tup) =>
+                val (num, txTups) = tup
+                accum ++ formNormalStateJson(num, txTups, withStateRule, state)
+              }
 
+              val rulesJson = formRuleJson(e.eventRules)
+              val toHeight = height + blockDiff.heightDiff
+              val robackPayload = if (robackTxs.nonEmpty) {
+                Json.obj("robackTxs" -> robackTxsJson)
+              } else {
+                JsObject.empty
+              }
 
-            val rulesJson = formRuleJson(e.eventRules)
-            val toHeight = height + blockDiff.heightDiff
-            val robackPayload = if (robackTxs.nonEmpty) {
-              Json.obj("robackTxs" -> robackTxsJson)
-            } else { 
-              JsObject.empty
-            }
+              val stateJson = normalTxStateJson ++ ctStateJson ++ extraStateJson
+              val statePayload = if (stateJson.nonEmpty) {
+                Json.obj("robackBalance" -> stateJson)
+              } else {
+                JsObject.empty
+              }
 
-            val stateJson = normalTxStateJson ++ ctStateJson ++ extraStateJson
-            val statePayload = if (stateJson.nonEmpty) {
-              Json.obj("robackBalance" -> stateJson)
-            } else {
-              JsObject.empty
-            }
+              val payload: JsObject = Json.obj(
+                "toHeight" -> toHeight,
+                "originHeight" -> height,
+                "diffHeight" -> blockDiff.heightDiff
+              ) ++ statePayload ++ robackPayload
 
-            val payload: JsObject = Json.obj(
-              "toHeight" -> toHeight,
-              "originHeight" -> height,
-              "diffHeight" -> blockDiff.heightDiff
-            ) ++ statePayload ++ robackPayload
+              val subscribeData: JsObject = Json.obj(
+                "type" -> 4,
+                "uuid" -> uuid,
+                "payload" -> payload,
+                "referringRules" -> rulesJson
+              )
 
-            val subscribeData: JsObject = Json.obj(
-              "type" -> 4,
-              "uuid" -> uuid,
-              "payload" -> payload,
-              "referringRules" -> rulesJson
-            )
-
-            if (re.nonEmpty) {
               eventWriter ! Event(url, scKey, enKey, maxSize, subscribeData)
             }
-           
 
-          case _ =>
-            if (evokeFrom == "invalidRollbackHeight") {
-              println("************** Too Many Block Rollbacks **************")
-            }
+          case _ => Unit
         }
       }
     }
@@ -272,8 +268,8 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
   }
 
   private def isValidToProceed(
-    pTx: ProcessedTransaction, 
-    accRule: Seq[WebhookEventRules], 
+    pTx: ProcessedTransaction,
+    accRule: Seq[WebhookEventRules],
     addrs: Seq[String]
   ): Boolean = {
     accRule.size == 0 || accRule.size > 0 && accRule(0).applyRule(0, 0, pTx, addrs)
@@ -286,14 +282,14 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
     val txFuncTupMap = contractTxs.map(tup => TransactionHelper.execTxsFuncDataParser(tup._2, state))
       .flatten
       .groupBy(_._2.funcName)
-    
+
     val funcList =  Seq("send", "issue", "destroy").flatMap(txFuncTupMap.get(_)).map {tups =>
       tups.groupBy{tup =>
         val (_, fd) = tup
         (fd.signer, fd.tokenId, fd.funcName)
       }
     }
-    
+
     val receiverFuncs = txFuncTupMap.get("send").map {tups =>
       tups.groupBy{tup =>
         val fd = tup._2.asInstanceOf[SendFuncData]
@@ -306,7 +302,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
   private def packContractTxs(
     webhookSetting: WebhookSettings,
     maxSize: Int,
-    contractTxs: List[(Long, ProcessedTransaction, Seq[String])], 
+    contractTxs: List[(Long, ProcessedTransaction, Seq[String])],
     rulesJson: JsObject,
     blockResultJson: Option[JsObject],
     state: StateReader
@@ -316,7 +312,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
     val enKey = webhookSetting.encryptKey
 
     val (funcList, receiverFuncs) = groupCtTxs(contractTxs, state)
-    
+
     val blockJson = blockResultJson match {
       case Some(data) => Json.obj("sourceBlocks" -> data)
       case None => JsObject.empty
@@ -369,8 +365,6 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
               "referringRules" -> rulesJson,
               "payload" -> (payload ++ load)
             )
-            println("#####  TYPE 3 !!!!!!")
-            println(subscribeData)
 
             eventWriter ! Event(url, scKey, enKey, maxSize, subscribeData)
         }
@@ -535,7 +529,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
     state: StateReader
   ): Seq[JsObject] = {
     val funcListJson = funcList.foldLeft(Seq[JsObject]())((allFuncs, funcs) =>
-      funcs.foldLeft(Seq.empty[JsObject]) {(sameFunc, tup) => 
+      funcs.foldLeft(Seq.empty[JsObject]) {(sameFunc, tup) =>
         val (key, tupList) = tup
         val (acc, tokenId, _) = key
         val (pTx, fd) = tupList(0)
@@ -583,8 +577,6 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
           val (pTx, fd) = tups(0)
           val (acc, tokenId, _) = key
           val ctId = fd.contractId
-          println(Seq(ctId, acc))
-          println(withStateRule)
 
           if (isValidToProceed(pTx, withStateRule, Seq(ctId, acc))) {
             val oldBalance = TransactionHelper.getTokenBalance(acc, tokenId, state)
@@ -676,6 +668,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
           val (addr, pTxs) = mint
           if (isValidToProceed(pTxs(0), withStateRule, Seq(addr))) {
             val oldBalance = TransactionHelper.getBalance(addr, state)
+            
             val (amtIn, _) = sumNormalDiff(pTxs, true)
             val balancePayload: JsObject = Json.obj(
               "balanceDiff" -> -amtIn,
@@ -689,7 +682,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
             accum
           }
         }
-        
+
       case _ => Seq.empty[JsObject]
     }
   }
