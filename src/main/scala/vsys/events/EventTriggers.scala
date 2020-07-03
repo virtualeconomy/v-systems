@@ -11,7 +11,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.block.Block
 import vsys.blockchain.contract.{FuncDataStruct, SendFuncData}
 import vsys.blockchain.contract.{IssueFuncData, DestroyFuncData}
-import vsys.account.Address
+import vsys.account.Account
 import vsys.settings.{RelatedAccs, WithTxsOfTypes, WithTxsOfAccs, WithStateOfAccs}
 
 import akka.actor.ActorRef
@@ -21,7 +21,7 @@ import java.util.UUID.randomUUID
 
 class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends ScorexLogging {
 
-  // TO DO: Should handle more webhook event settings
+  // TODO: Should handle more webhook event settings
   def evokeWebhook(block: Block, blockDiff: BlockDiff, state: StateReader, evokeFrom: String): Unit = {
     val webhookSettings = eventSetting.webhookSettings
     webhookSettings.map {webhookSetting =>
@@ -212,7 +212,7 @@ class EventTriggers(eventWriter: ActorRef, eventSetting: EventSettings) extends 
     }
   }
 
-  private def accToStr(accs: Set[Address]): Seq[String] = {
+  private def accToStr(accs: Set[Account]): Seq[String] = {
     accs.toSeq.map(_.toString)
   }
 
