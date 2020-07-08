@@ -7,19 +7,18 @@ import io.netty.channel.{ChannelDuplexHandler, ChannelHandlerContext, ChannelPro
 import vsys.utils.ScorexLogging
 
 import scala.concurrent.duration.FiniteDuration
-import scala.util.DynamicVariable
 
 class ExtensionSignaturesLoader(syncTimeout: FiniteDuration, peerDatabase: PeerDatabase)
   extends ChannelDuplexHandler with ScorexLogging {
 
-  private val currentTimeout = new DynamicVariable(Option.empty[ScheduledFuture[Unit]])
-  private val lastKnownSignatures = new DynamicVariable(Seq.empty[ByteStr])
+  private var currentTimeout = Option.empty[ScheduledFuture[Unit]]
+  private var lastKnownSignatures = Seq.empty[ByteStr]
 
   override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case s: Signatures =>
-      val (known, unknown) = s.signatures.span(id => lastKnownSignatures.value.contains(id))
-      currentTimeout.value.foreach(_.cancel(true))
-      currentTimeout.value = None
+      val (known, unknown) = s.signatures.span(id => lastKnownSignatures.contains(id))
+      currentTimeout.foreach(_.cancel(true))
+      currentTimeout = None
       known.lastOption.foreach { lastKnown =>
         log.debug(s"${id(ctx)} Got extension with ${known.length}/${s.signatures.length} known signatures")
         ctx.fireChannelRead(ExtensionIds(lastKnown, unknown))
@@ -28,18 +27,18 @@ class ExtensionSignaturesLoader(syncTimeout: FiniteDuration, peerDatabase: PeerD
   }
 
   override def channelInactive(ctx: ChannelHandlerContext): Unit = {
-    currentTimeout.value.foreach(_.cancel(false))
-    currentTimeout.value = None
+    currentTimeout.foreach(_.cancel(false))
+    currentTimeout = None
   }
 
   override def write(ctx: ChannelHandlerContext, msg: AnyRef, promise: ChannelPromise): Unit = msg match {
-    case LoadBlockchainExtension(sigs) if currentTimeout.value.isEmpty =>
-      lastKnownSignatures.value = sigs
+    case LoadBlockchainExtension(sigs) if currentTimeout.isEmpty =>
+      lastKnownSignatures = sigs
 
       log.debug(s"${id(ctx)} Loading extension, last ${sigs.length} are ${formatSignatures(sigs)}")
 
-      currentTimeout.value = Some(ctx.executor().schedule(syncTimeout) {
-        if (currentTimeout.value.nonEmpty && ctx.channel().isActive) {
+      currentTimeout = Some(ctx.executor().schedule(syncTimeout) {
+        if (currentTimeout.nonEmpty && ctx.channel().isActive) {
           peerDatabase.blacklistAndClose(ctx.channel(),"Timeout expired while loading extension")
         }
       })
