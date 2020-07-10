@@ -8,7 +8,6 @@ import monix.execution.Scheduler
 import monix.execution.schedulers.SchedulerService
 
 import scala.concurrent.duration.DurationInt
-import scala.util.DynamicVariable
 
 trait Time {
   def correctedTime(): Long
@@ -24,27 +23,27 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
 
   private implicit val scheduler: SchedulerService = Scheduler.singleThread(name = "time-impl")
 
-  private val cntTime = new DynamicVariable(0L)
+  private var cntTime = 0L
 
   def correctedTime(): Long = {
     //CALCULATE CORRECTED TIME
-    val cnt = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L + offset.value
-    cntTime.value = { if (cnt <= cntTime.value && cntTime.value - cnt <= 1000000L) cnt + 1000000L else cnt }
-    cntTime.value
+    val cnt = System.currentTimeMillis() * 1000000L + System.nanoTime() % 1000000L + offset
+    cntTime = { if (cnt <= cntTime && cntTime - cnt <= 1000000L) cnt + 1000000L else cnt }
+    cntTime
   }
 
-  private val txTime = new DynamicVariable(0L)
+  private var txTime = 0L
 
   def getTimestamp: Long = {
     //guarantee the cnt_SystemTime > last_Timestamp+1
-    txTime.value = Math.max(correctedTime(), txTime.value + 1)
-    txTime.value
+    txTime = Math.max(correctedTime(), txTime + 1)
+    txTime
   }
 
   private val client = new NTPUDPClient()
   client.setDefaultTimeout(ResponseTimeout.toMillis.toInt)
 
-  private val offset = new DynamicVariable(0L)
+  private var offset = 0L
   private val updateTask: Task[Unit] = {
     def newOffsetTask: Task[Option[(InetAddress, java.lang.Long)]] = Task {
       try {
@@ -69,7 +68,7 @@ class TimeImpl extends Time with ScorexLogging with AutoCloseable {
       case None if !scheduler.isShutdown => updateTask.delayExecution(RetryDelay)
       case Some((server, newOffset)) if !scheduler.isShutdown =>
         log.trace(s"Adjusting time with $newOffset nanoseconds, source: ${server.getHostAddress}.")
-        offset.value = newOffset
+        offset = newOffset
         val cntSysTime = correctedTime() / 1000000L
         val nextUpdateTime = (ExpirationTimeout - cntSysTime % ExpirationTimeout).toInt.milliseconds + 500.milliseconds
         // to avoid the miner mint time

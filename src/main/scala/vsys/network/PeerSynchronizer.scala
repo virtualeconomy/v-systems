@@ -6,17 +6,16 @@ import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
 import vsys.utils.ScorexLogging
 
 import scala.concurrent.duration.FiniteDuration
-import scala.util.DynamicVariable
 
 class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDuration)
   extends ChannelInboundHandlerAdapter with ScorexLogging {
 
-  private val peersRequested = new DynamicVariable(false)
-  private val declaredAddress = new DynamicVariable(Option.empty[InetSocketAddress])
+  private var peersRequested = false
+  private var declaredAddress = Option.empty[InetSocketAddress]
 
   def requestPeers(ctx: ChannelHandlerContext): Unit = if (ctx.channel().isActive) {
     log.trace(s"${id(ctx)} Requesting peers")
-    peersRequested.value = true
+    peersRequested = true
     ctx.writeAndFlush(GetPeers)
 
     ctx.executor().schedule(peerRequestInterval) {
@@ -25,14 +24,14 @@ class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDu
   }
 
   override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = {
-    declaredAddress.value.foreach(peerDatabase.touch)
+    declaredAddress.foreach(peerDatabase.touch)
     msg match {
       case hs: Handshake =>
         hs.declaredAddress.foreach { rda =>
           if (rda.getAddress == ctx.remoteAddress.getAddress) {
             log.trace(s"${id(ctx)} Touching declared address")
             peerDatabase.touch(rda)
-            declaredAddress.value = Some(rda)
+            declaredAddress = Some(rda)
           } else {
             log.debug(s"${id(ctx)} Declared address $rda does not match actual remote address")
           }
@@ -42,8 +41,8 @@ class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDu
       case GetPeers =>
         log.debug(s"${id(ctx)} Sending known peers: ${peerDatabase.knownPeers.mkString("[", ", ", "]")}")
         ctx.writeAndFlush(KnownPeers(peerDatabase.knownPeers.keys.toSeq))
-      case KnownPeers(peers) if peersRequested.value =>
-        peersRequested.value = false
+      case KnownPeers(peers) if peersRequested =>
+        peersRequested = false
         log.trace(s"${id(ctx)} Got known peers: ${peers.mkString("[", ", ", "]")}")
         peers.foreach(peerDatabase.addCandidate)
       case KnownPeers(peers) =>
