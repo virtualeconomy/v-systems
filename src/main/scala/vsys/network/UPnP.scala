@@ -7,14 +7,14 @@ import org.bitlet.weupnp.{GatewayDevice, GatewayDiscover}
 import vsys.utils.ScorexLogging
 
 import scala.collection.JavaConverters._
-import scala.util.{DynamicVariable, Try}
+import scala.util.Try
 
 class UPnP(settings:UPnPSettings) extends ScorexLogging {
 
-  private val gateway: DynamicVariable[Option[GatewayDevice]] = new DynamicVariable(None)
+  private var gateway: Option[GatewayDevice] = None
 
-  lazy val localAddress = gateway.value.map(_.getLocalAddress)
-  lazy val externalAddress = gateway.value.map(_.getExternalIPAddress).map(InetAddress.getByName)
+  lazy val localAddress = gateway.map(_.getLocalAddress)
+  lazy val externalAddress = gateway.map(_.getExternalIPAddress).map(InetAddress.getByName)
 
   Try {
     log.info("Looking for UPnP gateway device...")
@@ -34,7 +34,7 @@ class UPnP(settings:UPnPSettings) extends ScorexLogging {
       Option(discover.getValidGateway) match {
         case None => log.debug("There is no connected UPnP gateway device")
         case Some(device) =>
-          gateway.value = Some(device)
+          gateway = Some(device)
           log.debug("Using UPnP gateway device on " + localAddress.map(_.getHostAddress).getOrElse("err"))
           log.info("External IP address is " + externalAddress.map(_.getHostAddress).getOrElse("err"))
       }
@@ -44,7 +44,7 @@ class UPnP(settings:UPnPSettings) extends ScorexLogging {
   }
 
   def addPort(port: Int): Try[Unit] = Try {
-    if (gateway.value.get.addPortMapping(port, port, localAddress.get.getHostAddress, "TCP", "Scorex")) {
+    if (gateway.get.addPortMapping(port, port, localAddress.get.getHostAddress, "TCP", "Scorex")) {
       log.debug("Mapped port [" + externalAddress.get.getHostAddress + "]:" + port)
     } else {
       log.debug("Unable to map port " + port)
@@ -54,7 +54,7 @@ class UPnP(settings:UPnPSettings) extends ScorexLogging {
   }
 
   def deletePort(port: Int): Try[Unit] = Try {
-    if (gateway.value.get.deletePortMapping(port, "TCP")) {
+    if (gateway.get.deletePortMapping(port, "TCP")) {
       log.debug("Mapping deleted for port " + port)
     } else {
       log.debug("Unable to delete mapping for port " + port)
