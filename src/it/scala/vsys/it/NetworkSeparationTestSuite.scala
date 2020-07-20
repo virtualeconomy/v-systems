@@ -1,0 +1,72 @@
+package vsys.it
+
+import com.typesafe.config.{Config, ConfigFactory}
+import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
+
+import vsys.utils.VSYSSecureRandom.shuffle
+
+import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.Await.result
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future.traverse
+import scala.concurrent.duration._
+
+class NetworkSeparationTestSuite extends FreeSpec with Matchers with BeforeAndAfterAll with IntegrationNodesInitializationAndStopping {
+
+  import NetworkSeparationTestSuite._
+
+  override val docker = new Docker()
+  override val nodes = NodeConfigs.map(docker.startNode)
+
+  private def validateBlocks(nodes: Seq[Node]): Unit = {
+    val targetBlocks1 = result(for {
+      height <- traverse(nodes)(_.height).map(_.max)
+      _ <- traverse(nodes)(_.waitForHeight(height + 30))
+      _ <- traverse(nodes)(_.waitForHeight(height + 25))
+      blocks <- traverse(nodes)(_.blockAt(height + 25))
+    } yield blocks.map(_.signature), 5.minutes)
+    all(targetBlocks1) shouldEqual targetBlocks1.head
+  }
+
+  // TODO
+  // block per min equal to number of nodes
+  "node should grow up to 60 blocks together" in {
+    val richestNode = nodes.maxBy(n => Await.result(n.balance(n.address), 1.minute).balance)
+    Await.result(richestNode.waitForHeight(60), 5.minutes)
+    Await.result(richestNode.height, 1.minute) >= 60 shouldBe true
+  }
+
+  "then we disconnect nodes from the network" in {
+    nodes.foreach(docker.disconnectFromNetwork)
+  }
+
+  "and wait for another 20 blocks on one node" in {
+    val richestNode = nodes.maxBy(n => Await.result(n.balance(n.address), 1.minute).balance)
+    Await.result(richestNode.waitForHeight(80), 5.minutes)
+    Await.result(richestNode.height, 1.minute) >= 80 shouldBe true
+  }
+
+  "after that we connect nodes back to the network" in {
+    nodes.foreach(docker.connectToNetwork)
+  }
+
+  "nodes should sync" in {
+    validateBlocks(nodes)
+  }
+}
+
+object NetworkSeparationTestSuite {
+
+  private val generatingNodeConfig = ConfigFactory.parseString(
+    """
+      |vsys.miner.offline = yes
+    """.stripMargin)
+
+  private val configs = Docker.NodeConfigs.getConfigList("nodes").asScala
+
+  val NodesCount: Int = 4
+
+  val NodeConfigs: Seq[Config] = shuffle(configs).take(NodesCount).map(generatingNodeConfig.withFallback(_))
+
+}
