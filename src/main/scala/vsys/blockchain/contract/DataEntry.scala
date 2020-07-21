@@ -49,7 +49,7 @@ case class DataEntry(data: Array[Byte],
 
 object DataEntry {
 
-  private lazy val scheme = AddressScheme.current.value
+  private def scheme = AddressScheme.current
 
   val maxShortTextLength = 140
   val maxShortBytesLength = 255

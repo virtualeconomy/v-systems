@@ -10,7 +10,6 @@ import vsys.blockchain.history.History
 import vsys.utils.ScorexLogging
 
 import scala.concurrent.duration.FiniteDuration
-import scala.util.DynamicVariable
 
 
 @Sharable
@@ -19,7 +18,7 @@ class RemoteScoreObserver(scoreTtl: FiniteDuration, lastSignatures: => Seq[ByteS
 
   private val pinnedChannel = new AtomicReference[Channel]()
 
-  private val localScore = new DynamicVariable(initialLocalScore)
+  @volatile private var localScore = initialLocalScore
 
   private val scores = new ConcurrentHashMap[Channel, BigInt]
 
@@ -37,7 +36,7 @@ class RemoteScoreObserver(scoreTtl: FiniteDuration, lastSignatures: => Seq[ByteS
           // this channel had the highest score, so we should request extension from second-best channel, just in case
           channelWithHighestScore match {
             case Some((secondBestChannel, secondBestScore))
-              if secondBestScore > localScore.value && pinnedChannel.compareAndSet(bestChannel, secondBestChannel) =>
+              if secondBestScore > localScore && pinnedChannel.compareAndSet(bestChannel, secondBestChannel) =>
               log.debug(s"${id(ctx)} Switching to second best channel $pinnedChannelId")
               secondBestChannel.writeAndFlush(LoadBlockchainExtension(lastSignatures))
             case _ =>
@@ -56,7 +55,7 @@ class RemoteScoreObserver(scoreTtl: FiniteDuration, lastSignatures: => Seq[ByteS
         log.debug(s"${id(ctx)} ${pinnedChannelId}New local score: $newLocalScore")
       }
       // unconditionally update local score value and propagate this message downstream
-      localScore.value = newLocalScore
+      localScore = newLocalScore
       ctx.write(msg, promise)
 
       // if this is the channel with the highest score and its score is higher than local, request extension
@@ -87,10 +86,10 @@ class RemoteScoreObserver(scoreTtl: FiniteDuration, lastSignatures: => Seq[ByteS
         (ch, highScore) <- channelWithHighestScore
         if ch == ctx.channel() && // this is the channel with highest score
           (previousScore == null || previousScore < newScore) && // score has increased
-          highScore > localScore.value // remote score is higher than local
+          highScore > localScore // remote score is higher than local
       } if (pinnedChannel.compareAndSet(null, ch)) {
         // we've finished to download blocks from previous high score channel
-        log.debug(s"${id(ctx)} ${pinnedChannelId}New high score $highScore > $localScore.value, requesting extension")
+        log.debug(s"${id(ctx)} ${pinnedChannelId}New high score $highScore > $localScore, requesting extension")
         ctx.writeAndFlush(LoadBlockchainExtension(lastSignatures))
       } else {
         log.trace(s"${id(ctx)} New high score $highScore")

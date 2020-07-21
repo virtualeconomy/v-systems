@@ -41,7 +41,7 @@ import vsys.events.{EventTriggers, EventWriterActor, EventDispatchActor}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
-import scala.util.{DynamicVariable, Try}
+import scala.util.Try
 
 class Application(val actorSystem: ActorSystem, val settings: VsysSettings) extends ScorexLogging {
 
@@ -146,7 +146,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
     if (settings.restAPISettings.enable) {
       val combinedRoute: Route = CompositeHttpService(actorSystem, apiTypes, apiRoutes, settings.restAPISettings).compositeRoute
       val httpFuture = Http().bindAndHandle(combinedRoute, settings.restAPISettings.bindAddress, settings.restAPISettings.port)
-      serverBinding.value = Some(Await.result(httpFuture, 10.seconds))
+      serverBinding = Await.result(httpFuture, 10.seconds)
       log.info(s"REST API was bound on ${settings.restAPISettings.bindAddress}:${settings.restAPISettings.port}")
     }
 
@@ -168,16 +168,16 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
     log.info("Genesis block has been added to the state")
   }
 
-  val shutdownInProgress = new DynamicVariable(false)
-  val serverBinding: DynamicVariable[Option[ServerBinding]] = new DynamicVariable(None)
+  @volatile var shutdownInProgress = false
+  @volatile var serverBinding: ServerBinding = _
 
   def shutdown(): Unit = {
-    if (!shutdownInProgress.value) {
+    if (!shutdownInProgress) {
       log.info("Stopping network services")
-      shutdownInProgress.value = true
-      serverBinding.value.foreach(server =>
-        Try(Await.ready(server.unbind(), 60.seconds)).failed.map(e => log.error("Failed to unbind REST API port: " + e.getMessage))
-      )
+      shutdownInProgress = true
+      if (settings.restAPISettings.enable) {
+        Try(Await.ready(serverBinding.unbind(), 60.seconds)).failed.map(e => log.error("Failed to unbind REST API port: " + e.getMessage))
+      }
       for (addr <- settings.networkSettings.declaredAddress if settings.networkSettings.uPnPSettings.enable) {
         upnp.deletePort(addr.getPort)
       }
@@ -253,8 +253,8 @@ object Application extends ScorexLogging {
     RootActorSystem.start("vsys", config) { actorSystem =>
       configureLogging(settings)
 
-      // Initialize global dynamic val with actual address scheme
-      AddressScheme.current.value = new AddressScheme {
+      // Initialize global var with actual address scheme
+      AddressScheme.current = new AddressScheme {
         override val chainId: Byte = settings.blockchainSettings.addressSchemeCharacter.toByte
       }
 
