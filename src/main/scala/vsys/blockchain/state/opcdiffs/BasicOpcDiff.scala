@@ -9,8 +9,8 @@ import scala.util.{Left, Right, Try}
 
 object BasicOpcDiff extends OpcDiffer {
 
-  def add(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                     pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def add(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
       supportList.find(a => a == x.dataType) match {
@@ -40,8 +40,8 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
-  def minus(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                       pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def minus(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+            pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
       supportList.find(a => a == x.dataType) match {
@@ -71,8 +71,8 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
-  def multiply(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def multiply(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+               pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
       supportList.find(a => a == x.dataType) match {
@@ -102,8 +102,8 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
-  def divide(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                        pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def divide(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
       supportList.find(a => a == x.dataType) match {
@@ -133,7 +133,7 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
-  def minimum(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+  def minimum(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
                                          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
@@ -149,8 +149,8 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
-  def maximum(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def maximum(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+              pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
       supportList.find(a => a == x.dataType) match {
@@ -165,15 +165,15 @@ object BasicOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
   }
 
-  def concat(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                        pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def concat(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     for {
       res <- DataEntry.create(x.data ++ y.data, DataType.ShortBytes)
     } yield dataStack.patch(pointer, Seq(res), 1)
   }
 
-  def constantGet(context: ExecutionContext)(constant: Array[Byte], dataStack: Seq[DataEntry],
-                                             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def constantGet(constant: Array[Byte], dataStack: Seq[DataEntry],
+                  pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     DataEntry.fromBytes(constant) match {
       case Right(v) => Right(dataStack.patch(pointer, Seq(v), 1))
       case Left(e) => Left(e)
@@ -184,22 +184,22 @@ object BasicOpcDiff extends OpcDiffer {
     sealed case class basicTypeVal(
       basicType: Int,
       len: Int,
-      differ: (ExecutionContext, Array[Byte], Seq[DataEntry]) => Either[ValidationError, Seq[DataEntry]])
+      differ: (Array[Byte], Seq[DataEntry]) => Either[ValidationError, Seq[DataEntry]])
     extends Val(basicType) { def *(n: Int): Int = n * basicType }
 
-    val Add         = basicTypeVal(1, 4, (c, b, d) => add(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Minus       = basicTypeVal(2, 4, (c, b, d) => minus(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Multiply    = basicTypeVal(3, 4, (c, b, d) => multiply(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Divide      = basicTypeVal(4, 4, (c, b, d) => divide(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Minimum     = basicTypeVal(5, 4, (c, b, d) => minimum(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Maximum     = basicTypeVal(6, 4, (c, b, d) => maximum(c)(d(b(1)), d(b(2)), d, b(3)))
-    val Concat      = basicTypeVal(7, 4, (c, b, d) => concat(c)(d(b(1)), d(b(2)), d, b(3)))
-    val ConstantGet = basicTypeVal(8, 2, (c, b, d) => constantGet(c)(b.slice(1, b.length-1), d, b(b.length-1)))
+    val Add         = basicTypeVal(1, 4, (b, d) => add(d(b(1)), d(b(2)), d, b(3)))
+    val Minus       = basicTypeVal(2, 4, (b, d) => minus(d(b(1)), d(b(2)), d, b(3)))
+    val Multiply    = basicTypeVal(3, 4, (b, d) => multiply(d(b(1)), d(b(2)), d, b(3)))
+    val Divide      = basicTypeVal(4, 4, (b, d) => divide(d(b(1)), d(b(2)), d, b(3)))
+    val Minimum     = basicTypeVal(5, 4, (b, d) => minimum(d(b(1)), d(b(2)), d, b(3)))
+    val Maximum     = basicTypeVal(6, 4, (b, d) => maximum(d(b(1)), d(b(2)), d, b(3)))
+    val Concat      = basicTypeVal(7, 4, (b, d) => concat(d(b(1)), d(b(2)), d, b(3)))
+    val ConstantGet = basicTypeVal(8, 2, (b, d) => constantGet(b.slice(1, b.length-1), d, b(b.length-1)))
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(BasicType(f)).toOption) match {
-      case Some(t: BasicType.basicTypeVal) if checkBytesLength(bytes, t) => t.differ(context, bytes, data)
+      case Some(t: BasicType.basicTypeVal) if checkBytesLength(bytes, t) => t.differ(bytes, data)
       case _ => Left(ContractInvalidOPCData)
     }
 
