@@ -38,6 +38,10 @@ class NetworkServer(checkpointService: CheckpointService,
                     blockchainReadiness: AtomicBoolean
                    ) extends ScorexLogging {
 
+  private[this] val MaxFrameLength         = 100 * 1024 * 1024
+  private[this] val LengthFieldSize        = 4
+  private[this] val InitialBytesToStrip    = 4
+
   private val shutdownInitiated = new DynamicVariable(false)
 
   private val bossGroup = new NioEventLoopGroup()
@@ -54,12 +58,14 @@ class NetworkServer(checkpointService: CheckpointService,
   private val messageCodec = new MessageCodec(peerDatabase)
 
   private val excludedAddresses: Set[InetSocketAddress] = {
-    val localAddresses = if (settings.networkSettings.bindAddress.getAddress.isAnyLocalAddress) {
+    val bindAddress = settings.networkSettings.bindAddress
+    val isLocal = Option(bindAddress.getAddress).exists(_.isAnyLocalAddress)
+    val localAddresses = if (isLocal) {
       NetworkInterface.getNetworkInterfaces.asScala
         .flatMap(_.getInetAddresses.asScala
-          .map(a => new InetSocketAddress(a, settings.networkSettings.bindAddress.getPort)))
+          .map(a => new InetSocketAddress(a, bindAddress.getPort)))
         .toSet
-    } else Set(settings.networkSettings.bindAddress)
+    } else Set(bindAddress)
 
     localAddresses ++ settings.networkSettings.declaredAddress.toSet
   }
@@ -100,7 +106,7 @@ class NetworkServer(checkpointService: CheckpointService,
         new HandshakeTimeoutHandler(settings.networkSettings.handshakeTimeout),
         serverHandshakeHandler,
         lengthFieldPrepender,
-        new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4),
+        new LengthFieldBasedFrameDecoder(MaxFrameLength, 0, LengthFieldSize, 0, InitialBytesToStrip),
         new LegacyFrameCodec(peerDatabase),
         discardingHandler,
         messageCodec,
@@ -137,7 +143,7 @@ class NetworkServer(checkpointService: CheckpointService,
       new HandshakeTimeoutHandler(settings.networkSettings.handshakeTimeout),
       clientHandshakeHandler,
       lengthFieldPrepender,
-      new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4),
+      new LengthFieldBasedFrameDecoder(MaxFrameLength, 0, LengthFieldSize, 0, InitialBytesToStrip),
       new LegacyFrameCodec(peerDatabase),
       discardingHandler,
       messageCodec,
