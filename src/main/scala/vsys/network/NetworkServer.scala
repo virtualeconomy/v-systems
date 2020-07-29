@@ -22,7 +22,6 @@ import vsys.utils.{ScorexLogging, Time}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.util.DynamicVariable
 
 class NetworkServer(checkpointService: CheckpointService,
                     blockchainUpdater: BlockchainUpdater,
@@ -42,7 +41,7 @@ class NetworkServer(checkpointService: CheckpointService,
   private[this] val LengthFieldSize        = 4
   private[this] val InitialBytesToStrip    = 4
 
-  private val shutdownInitiated = new DynamicVariable(false)
+  private var shutdownInitiated = false
 
   private val bossGroup = new NioEventLoopGroup()
   private val workerGroup = new NioEventLoopGroup()
@@ -196,7 +195,7 @@ class NetworkServer(checkpointService: CheckpointService,
                 log.info(s"${id(closeFuture.channel)} Connection closed, $remainingCount outgoing channel(s) remaining")
                 allChannels.remove(closeFuture.channel())
                 outgoingChannels.remove(remoteAddress, closeFuture.channel())
-                if (!shutdownInitiated.value) peerDatabase.suspendAndClose(closeFuture.channel())
+                if (!shutdownInitiated) peerDatabase.suspendAndClose(closeFuture.channel())
               }
               allChannels.add(connFuture.channel())
             }
@@ -205,7 +204,7 @@ class NetworkServer(checkpointService: CheckpointService,
     })
 
   def shutdown(): Unit = try {
-    shutdownInitiated.value = true
+    shutdownInitiated = true
     connectTask.cancel(false)
     serverChannel.foreach(_.close().await())
     log.debug("Unbound server")

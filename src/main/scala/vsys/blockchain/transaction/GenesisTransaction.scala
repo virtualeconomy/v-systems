@@ -8,7 +8,7 @@ import vsys.utils.crypto.hash.FastCryptographicHash._
 import vsys.utils.crypto.hash.FastCryptographicHash
 import vsys.blockchain.transaction.TransactionParser._
 
-import scala.util.{DynamicVariable, Failure, Success, Try}
+import scala.util.{Failure, Success, Try}
 
 case class GenesisTransaction private(recipient: Address,
                                       amount: Long,
@@ -84,20 +84,19 @@ object GenesisTransaction extends TransactionParser {
     Try {
       require(data.length >= BASE_LENGTH, "Data does not match base length")
 
-      val positionVal = new DynamicVariable(0)
-      def position = positionVal.value
+      var position = 0
 
       val timestampBytes = java.util.Arrays.copyOfRange(data, position, position + TimestampLength)
       val timestamp = Longs.fromByteArray(timestampBytes)
-      positionVal.value = position + TimestampLength
+      position += TimestampLength
 
       val recipientBytes = java.util.Arrays.copyOfRange(data, position, position + RECIPIENT_LENGTH)
       val recipient = Address.fromBytes(recipientBytes).right.get
-      positionVal.value = position + RECIPIENT_LENGTH
+      position += RECIPIENT_LENGTH
 
       val amountBytes = java.util.Arrays.copyOfRange(data, position, position + AmountLength)
       val amount = Longs.fromByteArray(amountBytes)
-      positionVal.value = position + AmountLength
+      position += AmountLength
 
       val slotIdBytes = java.util.Arrays.copyOfRange(data, position, position + SlotIdLength)
       val slotId = Ints.fromByteArray(slotIdBytes)
