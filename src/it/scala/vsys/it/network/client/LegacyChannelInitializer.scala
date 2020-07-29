@@ -8,13 +8,16 @@ import io.netty.handler.codec.{LengthFieldBasedFrameDecoder, LengthFieldPrepende
 import scala.concurrent.duration._
 
 class LegacyChannelInitializer(handshakeHandler: HandshakeHandler) extends ChannelInitializer[SocketChannel] {
+  private val initialBytesToStrip = 4
+  private val maxFieldLength      = 1024 * 1024
+  private val lengthFieldLength   = 4
   override def initChannel(ch: SocketChannel): Unit =
   ch.pipeline()
     .addLast(
       new HandshakeDecoder(NopPeerDatabase),
       new HandshakeTimeoutHandler(30.seconds),
       handshakeHandler,
-      new LengthFieldPrepender(4),
-      new LengthFieldBasedFrameDecoder(1024*1024, 0, 4, 0, 4),
+      new LengthFieldPrepender(lengthFieldLength),
+      new LengthFieldBasedFrameDecoder(maxFieldLength, 0, lengthFieldLength, 0, initialBytesToStrip),
       new LegacyFrameCodec(NopPeerDatabase))
 }
