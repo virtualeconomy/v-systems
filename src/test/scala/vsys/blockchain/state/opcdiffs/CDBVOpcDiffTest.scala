@@ -101,4 +101,3 @@ class CDBVOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenP
         Longs.toByteArray(1), DataType.Int32)) should be (Left(ContractDataTypeMismatch))
   }
 }
-

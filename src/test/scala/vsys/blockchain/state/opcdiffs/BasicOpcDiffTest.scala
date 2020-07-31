@@ -124,4 +124,3 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       Seq.empty, 0) should be (Left(InvalidDataEntry))
   }
 }
-
