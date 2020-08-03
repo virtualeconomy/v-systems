@@ -1,14 +1,13 @@
 package vsys.blockchain.state.opcdiffs
 
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Ints, Longs}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.contract.{ContractPermitted, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.diffs.newState
 import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
-import vsys.blockchain.transaction.ValidationError.{ContractInvalidStateMap, ContractLocalVariableIndexOutOfRange,
-  ContractStateMapNotDefined, ContractStateVariableNotDefined}
+import vsys.blockchain.transaction.ValidationError.{ContractInvalidStateMap, ContractLocalVariableIndexOutOfRange, ContractStateMapNotDefined, ContractStateVariableNotDefined}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.settings.TestFunctionalitySettings
 
@@ -38,7 +37,7 @@ class CDBVROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
     CDBVROpcDiff.mapGet(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
       1L, 1, tx.right.get).right.get)(
       Array[Byte](0.toByte, 3.toByte, 3.toByte), DataEntry(
-        Longs.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
+        Ints.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
       Left(ContractInvalidStateMap))
     CDBVROpcDiff.mapGet(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
       1L, 1, tx.right.get).right.get)(
@@ -59,12 +58,12 @@ class CDBVROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
     CDBVROpcDiff.mapGetOrDefault(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
       1L, 1, tx.right.get).right.get)(
       Array[Byte](0.toByte, 3.toByte, 3.toByte), DataEntry(
-        Longs.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
+        Ints.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
       Left(ContractInvalidStateMap))
     CDBVROpcDiff.mapGetOrDefault(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
       1L, 1, tx.right.get).right.get)(
       Array[Byte](0.toByte, 4.toByte, 4.toByte), DataEntry(
-        Longs.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
+        Ints.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
       Left(ContractStateMapNotDefined))
     CDBVROpcDiff.mapGetOrDefault(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
       1L, 1, tx.right.get).right.get)(
