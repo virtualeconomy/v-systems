@@ -3,17 +3,15 @@ package vsys.blockchain.state.opcdiffs
 import com.google.common.primitives.{Ints, Longs}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
-import vsys.account.{ContractAccount, PrivateKeyAccount}
-import vsys.blockchain.contract.{CallType, ContractPermitted, DataEntry, DataType, ExecutionContext}
-import vsys.blockchain.state.ByteStr
+import vsys.account.PrivateKeyAccount
+import vsys.blockchain.contract.{ContractPermitted, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.diffs.newState
 import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidTokenIndex,
-  GenericError, InvalidContractAddress}
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidTokenIndex}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.settings.TestFunctionalitySettings
 
-import scala.util.{Left, Right}
+import scala.util.Left
 
 class TDBAROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
 
