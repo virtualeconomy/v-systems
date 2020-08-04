@@ -8,7 +8,8 @@ import vsys.blockchain.contract.{CallType, ContractPermitted, DataEntry, DataTyp
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.diffs.newState
 import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidTokenIndex, GenericError, InvalidContractAddress}
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidTokenIndex,
+  GenericError, InvalidContractAddress}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.settings.TestFunctionalitySettings
 
