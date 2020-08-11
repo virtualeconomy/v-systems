@@ -27,17 +27,20 @@ class LoadOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenP
     state, TestFunctionalitySettings.Enabled, Option(0L),
     1L, 1, tx).right.get
 
+  val account: Array[Byte] = PrivateKeyAccount(
+    Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr
+
   property("test load opcs") {
 
     LoadOpcDiff.signer(executionContext)(
       Seq.empty, 0) should be (Right(Seq(DataEntry(
-      PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr, DataType.Address))))
+      account, DataType.Address))))
     LoadOpcDiff.signer(executionContext)(
       Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
 
     LoadOpcDiff.caller(executionContext)(
       Seq.empty, 0) should be (Right(Seq(DataEntry(
-      PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr, DataType.Address))))
+      account, DataType.Address))))
     LoadOpcDiff.caller(executionContext)(
       Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
 

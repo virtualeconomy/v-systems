@@ -28,6 +28,12 @@ class AssertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrive
     state, TestFunctionalitySettings.Enabled, Option(0L),
     1L, 1, tx).right.get
 
+  val account: Array[Byte] = PrivateKeyAccount(
+    Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr
+
+  val account1: Array[Byte] = PrivateKeyAccount(
+    Array.fill(TransactionParser.KeyLength)(1)).toAddress.bytes.arr
+
   property("test assert opcs") {
     AssertOpcDiff.assertTrue(DataEntry(Array(1.toByte), DataType.Boolean)) should be (Right(OpcDiff.empty))
     AssertOpcDiff.assertTrue(DataEntry(Array(0.toByte), DataType.Boolean)) should be (
@@ -72,23 +78,17 @@ class AssertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrive
         s"is not equal to ${DataEntry(Ints.toByteArray(1), DataType.Int32).json}")))
 
     AssertOpcDiff.isCallerOrigin(executionContext)(
-      DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
-        DataType.Address)) should be (Right(OpcDiff.empty))
+      DataEntry(account, DataType.Address)) should be (Right(OpcDiff.empty))
     AssertOpcDiff.isCallerOrigin(executionContext)(
-      DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
-        DataType.ContractAccount)) should be (Left(ContractDataTypeMismatch))
+      DataEntry(account, DataType.ContractAccount)) should be (Left(ContractDataTypeMismatch))
     AssertOpcDiff.isCallerOrigin(executionContext)(
-      DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(1)).toAddress.bytes.arr,
-        DataType.Address)) should be (Left(ContractInvalidCaller))
+      DataEntry(account1, DataType.Address)) should be (Left(ContractInvalidCaller))
 
     AssertOpcDiff.isSignerOrigin(executionContext)(
-      DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
-        DataType.Address)) should be (Right(OpcDiff.empty))
+      DataEntry(account, DataType.Address)) should be (Right(OpcDiff.empty))
     AssertOpcDiff.isSignerOrigin(executionContext)(
-      DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
-        DataType.ContractAccount)) should be (Left(ContractDataTypeMismatch))
+      DataEntry(account, DataType.ContractAccount)) should be (Left(ContractDataTypeMismatch))
     AssertOpcDiff.isSignerOrigin(executionContext)(
-      DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(1)).toAddress.bytes.arr,
-        DataType.Address)) should be (Left(ContractInvalidSigner))
+      DataEntry(account1, DataType.Address)) should be (Left(ContractInvalidSigner))
   }
 }

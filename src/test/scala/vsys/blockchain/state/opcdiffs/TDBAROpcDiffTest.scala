@@ -27,20 +27,23 @@ class TDBAROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
     state, TestFunctionalitySettings.Enabled, Option(0L),
     1L, 1, tx).right.get
 
+  val account: Array[Byte] = PrivateKeyAccount(
+    Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr
+
   property("test TDBAR opcs") {
 
     TDBAROpcDiff.balance(executionContext)(DataEntry(
-      PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr, DataType.Address),
+      account, DataType.Address),
       DataEntry(Ints.toByteArray(0), DataType.Int32), Seq.empty, 0) should be (
       Left(ContractInvalidTokenIndex))
     TDBAROpcDiff.balance(executionContext)(DataEntry(
-      PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr, DataType.Address),
+      account, DataType.Address),
       DataEntry(Longs.toByteArray(0), DataType.Amount), Seq.empty, 0) should be (
       Left(ContractDataTypeMismatch))
 
     TDBAROpcDiff.balanceWithoutTokenIndex(
       executionContext)(DataEntry(
-      PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr, DataType.Address),
+      account, DataType.Address),
       Seq.empty, 0) should be (
       Left(ContractInvalidTokenIndex))
   }
