@@ -5,6 +5,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.contract.{ContractPermitted, DataEntry, DataType, ExecutionContext}
+import vsys.blockchain.state.StateWriterImpl
 import vsys.blockchain.state.diffs.newState
 import vsys.blockchain.transaction.TransactionParser
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidCaller,
@@ -16,7 +17,16 @@ import scala.util.{Left, Right}
 
 class AssertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
-  val state = newState()
+  val state: StateWriterImpl = newState()
+
+  val tx: RegisterContractTransaction = RegisterContractTransaction.create(
+    PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)),
+    ContractPermitted.contract, Seq(DataEntry(Longs.toByteArray(-1), DataType.Amount)),
+    "vsys", 10000L, 100, 1L).right.get
+
+  val executionContext: ExecutionContext = ExecutionContext.fromRegConTx(
+    state, TestFunctionalitySettings.Enabled, Option(0L),
+    1L, 1, tx).right.get
 
   property("test assert opcs") {
     AssertOpcDiff.assertTrue(DataEntry(Array(1.toByte), DataType.Boolean)) should be (Right(OpcDiff.empty))
@@ -61,33 +71,23 @@ class AssertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrive
         s"${DataEntry(Longs.toByteArray(1), DataType.Amount).json} " +
         s"is not equal to ${DataEntry(Ints.toByteArray(1), DataType.Int32).json}")))
 
-    val tx = RegisterContractTransaction.create(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)),
-      ContractPermitted.contract, Seq(DataEntry(Longs.toByteArray(-1), DataType.Amount)),
-      "vsys", 10000L, 100, 1L)
-
-    AssertOpcDiff.isCallerOrigin(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
-      1L, 1, tx.right.get).right.get)(
+    AssertOpcDiff.isCallerOrigin(executionContext)(
       DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
         DataType.Address)) should be (Right(OpcDiff.empty))
-    AssertOpcDiff.isCallerOrigin(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
-      1L, 1, tx.right.get).right.get)(
+    AssertOpcDiff.isCallerOrigin(executionContext)(
       DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
         DataType.ContractAccount)) should be (Left(ContractDataTypeMismatch))
-    AssertOpcDiff.isCallerOrigin(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
-      1L, 1, tx.right.get).right.get)(
+    AssertOpcDiff.isCallerOrigin(executionContext)(
       DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(1)).toAddress.bytes.arr,
         DataType.Address)) should be (Left(ContractInvalidCaller))
 
-    AssertOpcDiff.isSignerOrigin(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
-      1L, 1, tx.right.get).right.get)(
+    AssertOpcDiff.isSignerOrigin(executionContext)(
       DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
         DataType.Address)) should be (Right(OpcDiff.empty))
-    AssertOpcDiff.isSignerOrigin(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
-      1L, 1, tx.right.get).right.get)(
+    AssertOpcDiff.isSignerOrigin(executionContext)(
       DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(0)).toAddress.bytes.arr,
         DataType.ContractAccount)) should be (Left(ContractDataTypeMismatch))
-    AssertOpcDiff.isSignerOrigin(ExecutionContext.fromRegConTx(state, TestFunctionalitySettings.Enabled, Option(0L),
-      1L, 1, tx.right.get).right.get)(
+    AssertOpcDiff.isSignerOrigin(executionContext)(
       DataEntry(PrivateKeyAccount(Array.fill(TransactionParser.KeyLength)(1)).toAddress.bytes.arr,
         DataType.Address)) should be (Left(ContractInvalidSigner))
   }
