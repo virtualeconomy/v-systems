@@ -4,12 +4,11 @@ import com.google.common.primitives.{Ints, Longs}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.contract.{DataEntry, DataType}
-import vsys.blockchain.transaction.TransactionGen
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractUnsupportedOPC}
 
 import scala.util.{Left, Right}
 
-class CompareOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+class CompareOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   property("test compare opcs") {
     CompareOpcDiff.geq(DataEntry(Longs.toByteArray(1), DataType.Amount), DataEntry(

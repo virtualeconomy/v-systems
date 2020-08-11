@@ -6,14 +6,15 @@ import org.scalatest.{Matchers, PropSpec}
 import vsys.account.PrivateKeyAccount
 import vsys.blockchain.contract.{ContractPermitted, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.diffs.newState
-import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
-import vsys.blockchain.transaction.ValidationError.{ContractInvalidStateMap, ContractLocalVariableIndexOutOfRange, ContractStateMapNotDefined, ContractStateVariableNotDefined}
+import vsys.blockchain.transaction.TransactionParser
+import vsys.blockchain.transaction.ValidationError.{ContractInvalidStateMap, ContractLocalVariableIndexOutOfRange,
+  ContractStateMapNotDefined, ContractStateVariableNotDefined}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
 import vsys.settings.TestFunctionalitySettings
 
 import scala.util.Left
 
-class CDBVROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+class CDBVROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   val state = newState()
 

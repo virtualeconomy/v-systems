@@ -5,12 +5,13 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.DataEntry.maxShortBytesLength
-import vsys.blockchain.transaction.{TransactionGen, ValidationError}
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractUnsupportedOPC, InvalidDataEntry}
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractUnsupportedOPC,
+  InvalidDataEntry}
 
 import scala.util.{Left, Right}
 
-class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   property("test basic opcs") {
     BasicOpcDiff.add(

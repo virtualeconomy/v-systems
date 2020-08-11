@@ -7,7 +7,7 @@ import vsys.account.{ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.{CallType, ContractPermitted, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.diffs.newState
-import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
+import vsys.blockchain.transaction.TransactionParser
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidTokenIndex,
   GenericError, InvalidContractAddress}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
@@ -15,7 +15,7 @@ import vsys.settings.TestFunctionalitySettings
 
 import scala.util.{Left, Right}
 
-class TDBAOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+class TDBAOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   property("test TDBA opcs") {
 

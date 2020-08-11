@@ -7,7 +7,7 @@ import vsys.account.{ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.{CallType, ContractPermitted, DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.diffs.newState
-import vsys.blockchain.transaction.{TransactionGen, TransactionParser}
+import vsys.blockchain.transaction.TransactionParser
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractInvalidAmount,
   ContractTokenBalanceInsufficient, GenericError, InvalidContractAddress}
 import vsys.blockchain.transaction.contract.RegisterContractTransaction
@@ -15,7 +15,7 @@ import vsys.settings.TestFunctionalitySettings
 
 import scala.util.{Left, Right}
 
-class SystemTransferDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers with TransactionGen {
+class SystemTransferDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   val state = newState()
 
