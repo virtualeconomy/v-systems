@@ -70,12 +70,12 @@ trait AtomicSwapContractGen extends SystemContractGen
     sysTokenId = tokenIdFromBytes(ContractAccount.systemContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     dataStack <- initAtomicSwapContractDataStackGen(sysTokenId.arr)
     // Register an atomic swap contract that swaps VSYS
-    regContract <- registerAtomicSwapGen(master, contract, dataStack, description, fee, ts)
+    regContract <- registerAtomicSwapGen(master, contract, dataStack, description, fee, ts + 1)
     contractId = regContract.contractId
     attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     depositData = Seq(master.toAddress.bytes.arr, contractId.bytes.arr, Longs.toByteArray(depositValue))
     depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
-    depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 1)
+    depositVSYS <- depositVSYSGen(master, depositData, depositType, attach, fee, ts + 2)
   } yield (genesis, genesis2, master, user, regContract, depositVSYS, ts, fee, description, attach)
 
   val tokenContract: Gen[Contract] = tokenContractGen(false)

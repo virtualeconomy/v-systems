@@ -6,6 +6,7 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import scorex.crypto.hash.Sha256
+import vsys.account.ContractAccount
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
@@ -171,6 +172,43 @@ class AtomicSwapContractDiffTest extends PropSpec
          newState.contractNumInfo(userBalanceInContract2Key) shouldBe 10000L - 50L // deposited - locked
          newState.contractNumInfo(masterBalanceInContract2Key) shouldBe 50L // solving puzzle allocates the locked funds
 
+      }
+    }
+  }
+
+  val preconditionsAndWithdrawExpiredSwapVSYS: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, Long, Long)] = for {
+    (genesis, genesis2, master, user, regContract, depositVSYS, ts, fee, description, attach) <- createAndDepositVSYSAtomicSwapContractGen(1000L)
+    lockData = Seq(Longs.toByteArray(50L), user.toAddress.bytes.arr, Sha256(Longs.toByteArray(123L)), Longs.toByteArray(ts + 100))
+    lockType = Seq(DataType.Amount, DataType.Address, DataType.ShortBytes, DataType.Timestamp)
+    lock <- lockAtomicSwapContractDataStackGen(master, regContract.contractId, lockData, lockType, attach, fee, ts)
+    withdrawData = Seq(lock.id.arr)
+    withdrawType = Seq(DataType.ShortBytes)
+    withdraw <- expireWithdrawAtomicSwapContractDataStackGen(master, regContract.contractId, withdrawData, withdrawType, attach, fee, ts)
+    withdrawVSYSData = Seq(regContract.contractId.bytes.arr, master.toAddress.bytes.arr, Longs.toByteArray(1000L))
+    withdrawVSYSType = Seq(DataType.ContractAccount, DataType.Address, DataType.Amount)
+    withdrawVSYS <- withdrawVSYSGen(master, withdrawVSYSData, withdrawVSYSType, attach, fee, ts)
+  } yield (genesis, genesis2, regContract, depositVSYS, lock, withdraw, withdrawVSYS, ts, fee)
+
+  property("expired swap allows withdrawal") {
+    forAll(preconditionsAndWithdrawExpiredSwapVSYS) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
+    deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction,
+    withdrawVSYS: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
+        TestBlock.create(lock.timestamp + 101, Seq(lock, withdraw, withdrawVSYS))) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
+        totalPortfolioDiff.balance shouldBe -3 * fee
+        totalPortfolioDiff.effectiveBalance shouldBe -3 * fee
+
+        val masterBytes = genesis.recipient.bytes.arr
+        val contractId = reg.contractId.bytes
+
+        // StateMap Keys
+        val masterBalanceInContractKey = ByteStr(Bytes.concat(contractId.arr, Array(0.toByte), DataEntry(masterBytes, DataType.Address).bytes))
+
+        newState.contractNumInfo(masterBalanceInContractKey) shouldBe 0L
       }
     }
   }
