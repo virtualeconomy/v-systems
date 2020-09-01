@@ -9,7 +9,7 @@ jobs:
    runs-on: ubuntu-latest
    strategy:
     matrix:
-        java: [graalvm, zulu, zulu@1.08, zulu@1.11 openjdk@1.14, openjdk@1.13, openjdk@1.11, openjdk@1.8, openjdk@1.12]
+        java: [graalvm, zulu@1.08, zulu@1.11 openjdk@1.14, openjdk@1.13, openjdk@1.11, openjdk@1.8, openjdk@1.12]
   
   
    steps:
