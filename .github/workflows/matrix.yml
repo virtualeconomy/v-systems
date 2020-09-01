@@ -12,11 +12,11 @@ jobs:
         java: [graalvm, zulu, zulu@1.08, zulu@1.11 openjdk@1.14, openjdk@1.13, openjdk@1.11, openjdk@1.8, openjdk@1.12]
   
   
-  steps:
+   steps:
    - uses: actions/checkout@v1
    - uses: olafurpg/setup-scala@v5
      with:
-     java-version: ${{ matrix.java }}
+       java-version: ${{ matrix.java }}
    - name: Build and Package
      run: sbt packageAll
         
