@@ -7,6 +7,7 @@ on: [push]
 jobs:
   build:
    runs-on: ubuntu-latest
+   continue-on-error: true
    strategy:
     matrix:
         java: [graalvm, zulu@1.08, zulu@1.11, openjdk@1.14, openjdk@1.13, openjdk@1.11, openjdk@1.8, openjdk@1.12]
