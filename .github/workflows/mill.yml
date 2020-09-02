@@ -15,7 +15,7 @@ jobs:
       run: mill resolve _
         
     - name: Compile
-      run: mill packageAll
+      run: mill all
       
     - name: Test
       run: mill test
