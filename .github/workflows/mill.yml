@@ -16,6 +16,9 @@ jobs:
         
     - name: Compile
       run: mill resolve all
+    
+    - name: Compile
+      run: mill resolve _.compile
       
 #    - name: Test
 #      run: mill all.test
