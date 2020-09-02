@@ -38,6 +38,9 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
         TestBlock.createWithTxStatus(lock.timestamp + 1, Seq(lock), TransactionStatus.ContractMapValueInsufficient)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
       }
     }
@@ -59,6 +62,9 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, lock))),
         TestBlock.createWithTxStatus(lock.timestamp + 99, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
     }
@@ -77,6 +83,9 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
         TestBlock.createWithTxStatus(lock.timestamp + 1, Seq(lock), TransactionStatus.ContractMapValueInsufficient)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
       }
     }
@@ -98,6 +107,9 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, solvePuzzle: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, lock))),
         TestBlock.createWithTxStatus(lock.timestamp + 1, Seq(solvePuzzle), TransactionStatus.ContractInvalidCaller)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
       }
     }
@@ -119,6 +131,9 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, solvePuzzle: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, lock))),
         TestBlock.createWithTxStatus(lock.timestamp + 101, Seq(solvePuzzle), TransactionStatus.ContractInvalidCaller)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
       }
     }
@@ -140,6 +155,9 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, solvePuzzle: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit, lock))),
         TestBlock.createWithTxStatus(lock.timestamp + 1, Seq(solvePuzzle), TransactionStatus.ContractInvalidHash)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.contractDB.isEmpty shouldBe true
+        blockDiff.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiff.txsDiff.portfolios.isEmpty shouldBe false
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidHash
       }
     }
