@@ -5,14 +5,14 @@ on: [push, pull_request]
 
 jobs:
   mill:
-  runs-on: ubuntu-latest
-  steps:
-  - uses: jodersky/setup-mill@master
-  with:
-    mill-version: 0.5.1
-- name: Compile
-  run: mill packageAll
-# the server process is kept alive across steps,
-# so separate invocations of mill remain extremely fast!
-- name: Test
-  run: mill test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: jodersky/setup-mill@master
+      with:
+        mill-version: 0.5.1
+        
+    - name: Compile
+      run: mill packageAll
+      
+    - name: Test
+      run: mill test
