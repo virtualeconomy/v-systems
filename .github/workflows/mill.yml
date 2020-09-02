@@ -11,6 +11,9 @@ jobs:
       with:
         mill-version: 0.5.1
         
+    - name: resolve
+      run: mill resolve _
+        
     - name: Compile
       run: mill packageAll
       
