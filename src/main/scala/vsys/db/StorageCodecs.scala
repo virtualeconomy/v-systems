@@ -2,9 +2,8 @@ package vsys.db
 
 import com.google.common.base.Charsets
 import com.google.common.primitives.{Ints, Longs, Shorts}
-import com.wavesplatform.network.{BlockCheckpoint, Checkpoint}
-import com.wavesplatform.state2.ByteStr
-import scorex.transaction.AssetId
+import vsys.blockchain.state.ByteStr
+import vsys.network.{BlockCheckpoint, Checkpoint}
 
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
@@ -184,28 +183,6 @@ object StringSeqCodec extends Codec[Seq[String]] {
 
   override def decode(bytes: Array[Byte]): Either[CodecFailure, DecodeResult[Seq[String]]] = itemsCodec.decode(bytes)
 }
-
-object OrderToTxIdsCodec extends Codec[Set[String]] {
-  private val itemsCodec = SeqCodec(StringCodec)
-
-  override def encode(value: Set[String]): Array[Byte] = itemsCodec.encode(value.toSeq)
-
-  override def decode(bytes: Array[Byte]): Either[CodecFailure, DecodeResult[Set[String]]] =
-    itemsCodec.decode(bytes).right.map(r => DecodeResult(r.length, r.value.toSet))
-}
-
-object OrderIdsCodec extends Codec[Array[String]] {
-  private val itemsCodec = SeqCodec(StringCodec)
-
-  override def encode(value: Array[String]): Array[Byte] = itemsCodec.encode(value.toSeq)
-
-  override def decode(bytes: Array[Byte]): Either[CodecFailure, DecodeResult[Array[String]]] =
-    itemsCodec.decode(bytes).right.map(r => DecodeResult(r.length, r.value.toArray))
-}
-
-object AssetIdOrderIdCodec extends Tuple2Codec(OptionCodec[AssetId](ByteStrCodec), StringCodec)
-
-object AssetIdOrderIdSetCodec extends ColCodec[Set, (Option[AssetId], String)](AssetIdOrderIdCodec)
 
 object PortfolioItemCodec extends Codec[(String, Long)] {
   override def encode(value: (String, Long)): Array[Byte] = {

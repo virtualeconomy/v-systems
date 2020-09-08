@@ -3,15 +3,14 @@ package vsys.api.http.spos
 import javax.ws.rs.Path
 
 import akka.http.scaladsl.server.Route
-import com.wavesplatform.UtxPool
-import com.wavesplatform.settings.RestAPISettings
-import com.wavesplatform.state2.reader.StateReader
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
-import scorex.BroadcastRoute
-import scorex.api.http._
-import scorex.transaction._
-import scorex.utils.Time
+import vsys.api.http._
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.transaction._
+import vsys.blockchain.UtxPool
+import vsys.settings.RestAPISettings
+import vsys.utils.Time
 import vsys.wallet.Wallet
 
 @Path("/spos")
@@ -27,7 +26,8 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
   @ApiOperation(value = "Contend a slot",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
@@ -45,7 +45,8 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
   @ApiOperation(value = "Release a slot",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",

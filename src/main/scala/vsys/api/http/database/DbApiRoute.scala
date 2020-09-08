@@ -1,20 +1,20 @@
 package vsys.api.http.database
 
 import javax.ws.rs.Path
+
 import akka.http.scaladsl.server.Route
-import com.wavesplatform.UtxPool
-import com.wavesplatform.settings.RestAPISettings
-import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.state2.reader.StateReader
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
-import scorex.BroadcastRoute
-import scorex.account.Address
-import scorex.api.http._
-import vsys.database.Entry
-import scorex.transaction._
-import vsys.transaction.database.DbPutTransaction
-import scorex.utils.Time
+import vsys.account.Address
+import vsys.api.http._
+import vsys.blockchain.state.ByteStr
+import vsys.blockchain.state.reader.StateReader
+import vsys.blockchain.transaction.database.DbPutTransaction
+import vsys.blockchain.transaction._
+import vsys.blockchain.UtxPool
+import vsys.blockchain.database.Entry
+import vsys.settings.RestAPISettings
+import vsys.utils.Time
 import vsys.wallet.Wallet
 
 @Path("/database")
@@ -30,7 +30,8 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
   @ApiOperation(value = "create/modify a db entry",
     httpMethod = "POST",
     produces = "application/json",
-    consumes = "application/json")
+    consumes = "application/json",
+    authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",

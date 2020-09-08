@@ -1,13 +1,13 @@
 package tools
 
+import java.security.SecureRandom
+
 import vsys.settings.{GenesisSettings, GenesisTransactionSettings}
-import com.wavesplatform.state2.ByteStr
-import scorex.account.{Address, AddressScheme, PrivateKeyAccount}
-import scorex.block.Block
-import vsys.consensus.spos.SposConsensusBlockData
-import scorex.transaction.{GenesisTransaction, Transaction}
-import vsys.transaction.{TransactionStatus, ProcessedTransaction}
-import scorex.transaction.TransactionParser.SignatureLength
+import vsys.blockchain.state.ByteStr
+import vsys.account.{Address, AddressScheme, PrivateKeyAccount}
+import vsys.blockchain.block.{Block, SposConsensusBlockData}
+import vsys.blockchain.transaction._
+import vsys.blockchain.transaction.TransactionParser.SignatureLength
 import vsys.wallet.Wallet
 
 import scala.concurrent.duration._
@@ -30,7 +30,7 @@ object GenesisBlockGenerator extends App {
   )
 
   // add test use wallet address
-  val test_wallet_addresses = Array (
+  val testWalletAddresses = Array (
     "ATxpELPa3yhE5h4XELxtPrW9TfXPrmYE7ze",
     "ATtRykARbyJS1RwNsA6Rn1Um3S7FuVSovHK",
     "ATtchuwHVQmNTsRA8ba19juGK9m1gNsUS1V",
@@ -44,21 +44,21 @@ object GenesisBlockGenerator extends App {
   )
 
   def generateFullAddressInfo(n: Int) = {
-    println("n=" + n + ", address = " + test_wallet_addresses(n))
+    println("n=" + n + ", address = " + testWalletAddresses(n))
 
-    val seed = ByteStr(Array.fill(32)((scala.util.Random.nextInt(256)).toByte)).toString
+    val seed = ByteStr(Array.fill(32)(new SecureRandom().nextInt(256).toByte)).toString
     val acc = Wallet.generateNewAccount(seed, 0)
     val privateKey = ByteStr(acc.privateKey)
     val publicKey = ByteStr(acc.publicKey)
     // change address value for testnet
     //    val address = acc.toAddress
-    val address = Address.fromString(test_wallet_addresses(n)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
+    val address = Address.fromString(testWalletAddresses(n)).right.get  //ByteStr(Base58.decode(test_wallet_addresses(n)).get)
 
     (seed, ByteStr(acc.seed), privateKey, publicKey, address)
   }
 
   def generate(networkByte: Char, accountsTotal: Int, mintTime: Long, averageBlockDelay: FiniteDuration) = {
-    scorex.account.AddressScheme.current = new AddressScheme {
+    vsys.account.AddressScheme.current = new AddressScheme {
       override val chainId: Byte = networkByte.toByte
     }
 
@@ -71,7 +71,7 @@ object GenesisBlockGenerator extends App {
     val genesisTxs = accounts.map { case (n, (_, _, _, _, address)) => GenesisTransaction(address, distributions(accountsTotal)(n), n, timestamp, ByteStr.empty) }
 
     println(ByteStr(genesisTxs.head.bytes).base58)
-    // set the genesisblock's minting Balance to 0
+    // set the genesisBlock's minting Balance to 0
     val genesisBlock = Block.buildAndSign(1, timestamp, reference, SposConsensusBlockData(mt, 0L),
       genesisTxs.map{tx: Transaction => ProcessedTransaction(TransactionStatus.Success, tx.transactionFee, tx)}, genesisSigner)
     val signature = genesisBlock.signerData.signature

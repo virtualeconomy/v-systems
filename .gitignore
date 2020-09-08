@@ -40,8 +40,11 @@ native
 .DS_Store
 minter_target
 
-test
+test/data/*
+test/*/data/*
+
 !src/test
 !src/test/**
 src/test/**/.DS_Store
-test/*
+
+*.sublime-*

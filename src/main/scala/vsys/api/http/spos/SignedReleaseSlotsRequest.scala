@@ -2,11 +2,11 @@ package vsys.api.http.spos
 
 import io.swagger.annotations.ApiModelProperty
 import play.api.libs.json.{Format, Json}
-import scorex.account.PublicKeyAccount
-import scorex.api.http.BroadcastRequest
-import scorex.transaction.TransactionParser.SignatureStringLength
-import scorex.transaction.ValidationError
-import vsys.transaction.spos.ReleaseSlotsTransaction
+import vsys.account.PublicKeyAccount
+import vsys.api.http.BroadcastRequest
+import vsys.blockchain.transaction.TransactionParser.SignatureStringLength
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.spos.ReleaseSlotsTransaction
 
 case class SignedReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                     senderPublicKey: String,

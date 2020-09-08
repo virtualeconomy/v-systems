@@ -2,20 +2,19 @@ package vsys.wallet
 
 import java.io.File
 
-import scorex.crypto.hash.SecureCryptographicHash
-import com.wavesplatform.settings.WalletSettings
-import com.wavesplatform.state2.ByteStr
-import com.wavesplatform.Version
-import vsys.utils.JsonFileStorage
+import vsys.utils.crypto.hash.SecureCryptographicHash
+import vsys.settings.WalletSettings
+import vsys.blockchain.state.ByteStr
+import vsys.Version
 import play.api.libs.json._
-import scorex.account.{Address, PrivateKeyAccount, AddressScheme}
-import scorex.transaction.ValidationError
-import scorex.transaction.ValidationError.MissingSenderPrivateKey
-import scorex.utils.{ScorexLogging, randomBytes}
+import vsys.account.{Address, PrivateKeyAccount, AddressScheme}
+import vsys.blockchain.transaction.ValidationError
+import vsys.blockchain.transaction.ValidationError.MissingSenderPrivateKey
+import vsys.utils.{JsonFileStorage, ScorexLogging, randomBytes}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.LinkedHashSet
-import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 trait Wallet {
 
@@ -70,15 +69,19 @@ object Wallet extends ScorexLogging {
     private val key = JsonFileStorage.prepareKey(password)
 
     private def loadOrImport(f: File): Option[WalletData] =
-      try {
+      Try {
         Some(JsonFileStorage.load[WalletData](f.getCanonicalPath, Some(key)))
-      } catch {
-        case NonFatal(_) => None
+      } match {
+        case Success(w) => w
+        case Failure(t: Throwable) => {
+          log.error("Invalid Wallet error", t)
+          None
+        }
       }
 
     private lazy val actualSeed = maybeSeedFromConfig.getOrElse {
       val randomSeed = ByteStr(randomBytes(64)).toString
-      log.info(s"Your randomly generated seed is ${randomSeed}")
+      log.info(s"Your wallet seed is randomly generated")
       randomSeed
     }
 
