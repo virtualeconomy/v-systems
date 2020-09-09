@@ -11,6 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: olafurpg/setup-scala@v5
-      with: ${{ matrix.java }}
+      with: 
+        java-version: ${{ matrix.java }}
     - name: Compile
       run: sbt packageAll
