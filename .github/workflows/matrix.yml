@@ -4,16 +4,18 @@ on: [push, pull_request]
 
 jobs:
 build:
-  strategy:
-  matrix:
-    java: [graalvm@, openjdk@1.8, openjdk@1.11, openjdk@1.13, openjdk@1.14, zulu@1.11]
+
   runs-on: ubuntu-latest
   
 jobs:
+  strategy:
+  matrix:
+    java: [graalvm@, openjdk@1.8, openjdk@1.11, openjdk@1.13, openjdk@1.14, zulu@1.11]
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - uses: olafurpg/setup-scala@v5
+      with: ${{ matrix.java }}
     - name: Compile
       run: sbt packageAll
