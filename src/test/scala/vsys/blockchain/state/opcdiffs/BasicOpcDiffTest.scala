@@ -6,8 +6,8 @@ import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.DataEntry.maxShortBytesLength
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractUnsupportedOPC,
-  InvalidDataEntry}
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractLocalVariableIndexOutOfRange,
+  ContractUnsupportedOPC, InvalidDataEntry}
 
 import scala.util.{Left, Right}
 
@@ -18,6 +18,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(2), DataType.Amount))))
+    BasicOpcDiff.add(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
     BasicOpcDiff.add(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
@@ -35,6 +39,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Amount))))
+    BasicOpcDiff.minus(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
     BasicOpcDiff.minus(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
@@ -54,6 +62,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
     BasicOpcDiff.multiply(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.multiply(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
       Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
     BasicOpcDiff.multiply(
@@ -69,6 +81,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
+    BasicOpcDiff.divide(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
     BasicOpcDiff.divide(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
@@ -88,6 +104,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Amount))))
     BasicOpcDiff.minimum(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(0), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.minimum(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
       Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
     BasicOpcDiff.minimum(
@@ -99,6 +119,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(0), DataType.Amount),
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
+    BasicOpcDiff.maximum(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(0), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
     BasicOpcDiff.maximum(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
@@ -115,6 +139,10 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       Right(Seq(DataEntry.create(Longs.toByteArray(1) ++ Longs.toByteArray(1),
         DataType.ShortBytes).right.get)))
     BasicOpcDiff.concat(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.concat(
       DataEntry(Array.fill(maxShortBytesLength){0}, DataType.ShortBytes),
       DataEntry(Array.fill(1){0}, DataType.ShortBytes),
       Seq.empty, 0) should be (Left(InvalidDataEntry))
@@ -123,5 +151,7 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
     BasicOpcDiff.constantGet(Array(DataType.Amount.id.toByte) ++ Ints.toByteArray(1),
       Seq.empty, 0) should be (Left(InvalidDataEntry))
+    BasicOpcDiff.constantGet(Array(DataType.Amount.id.toByte) ++ Longs.toByteArray(1),
+      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
   }
 }
