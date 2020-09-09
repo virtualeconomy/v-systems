@@ -104,7 +104,7 @@ abstract class HandshakeHandler(
 
 object HandshakeHandler extends ScorexLogging {
   def versionIsSupported(remoteVersion: (Int, Int, Int)): Boolean =
-    remoteVersion._1 == 0 && remoteVersion._2 >= 0
+    remoteVersion._1 == 0 && remoteVersion._2 >= 3
 
   def removeHandshakeHandlers(ctx: ChannelHandlerContext, thisHandler: ChannelHandler): Unit = {
     ctx.pipeline().remove(classOf[HandshakeTimeoutHandler])
