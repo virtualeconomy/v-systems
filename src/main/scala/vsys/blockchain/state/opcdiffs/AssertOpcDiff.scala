@@ -18,43 +18,51 @@ object AssertOpcDiff extends OpcDiffer {
     else if (v.data sameElements Array(1.toByte))
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (Boolean True): Value False"))
+      Left(GenericError(s"Invalid Assert (Boolean True): Value ${v.json} is False"))
   }
 
   def gtEq0(v: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) >= 0)
+    if (v.dataType != DataType.Amount)
+      Left(ContractDataTypeMismatch)
+    else if (Longs.fromByteArray(v.data) >= 0)
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (gteq0): Value ${Longs.fromByteArray(v.data)} is negative"))
+      Left(GenericError(s"Invalid Assert (gteq0): Value ${v.json} is negative"))
   }
 
   def ltEq(v1: DataEntry, v2: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (v1.dataType == DataType.Amount && v2.dataType == DataType.Amount
-      && Longs.fromByteArray(v1.data) <= Longs.fromByteArray(v2.data))
+    if (v1.dataType != DataType.Amount || v2.dataType != DataType.Amount)
+      Left(ContractDataTypeMismatch)
+    else if (Longs.fromByteArray(v1.data) <= Longs.fromByteArray(v2.data))
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (lteq0): Value ${Longs.fromByteArray(v2.data)} is larger than $v1"))
+      Left(GenericError(s"Invalid Assert (lteq0): Value ${v1.json} " +
+        s"is larger than ${v2.json}"))
   }
 
   def ltInt64(m: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (m.dataType == DataType.Amount && Longs.fromByteArray(m.data) <= Long.MaxValue)
+    if (m.dataType != DataType.Amount)
+      Left(ContractDataTypeMismatch)
+    else if (Longs.fromByteArray(m.data) <= Long.MaxValue)
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (ltint64): Value ${Longs.fromByteArray(m.data)} is invalid"))
+      Left(GenericError(s"Invalid Assert (ltint64): Value ${m.json} is invalid"))
   }
 
   def gt0(v: DataEntry): Either[ValidationError, OpcDiff] = {
-    if (v.dataType == DataType.Amount && Longs.fromByteArray(v.data) > 0)
+    if (v.dataType != DataType.Amount)
+      Left(ContractDataTypeMismatch)
+    else if (Longs.fromByteArray(v.data) > 0)
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (gt0): Value $v is non-positive"))
+      Left(GenericError(s"Invalid Assert (gt0): Value ${v.json} is non-positive"))
   }
 
   def equal(add1: DataEntry, add2: DataEntry): Either[ValidationError, OpcDiff] = {
     if (add1.bytes sameElements add2.bytes)
       Right(OpcDiff.empty)
     else
-      Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.data} is not equal to ${add2.data}"))
+      Left(GenericError(s"Invalid Assert (eq): DataEntry ${add1.json} is not equal to ${add2.json}"))
   }
 
   def isCallerOrigin(context: ExecutionContext)(address: DataEntry): Either[ValidationError, OpcDiff] = {
