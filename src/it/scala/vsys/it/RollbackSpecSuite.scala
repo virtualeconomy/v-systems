@@ -1,0 +1,96 @@
+package vsys.it
+
+import com.typesafe.config.{Config, ConfigFactory}
+import vsys.it.RollbackSpecSuite._
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.{FreeSpec, Matchers}
+
+import vsys.utils.VSYSSecureRandom.shuffle
+
+import scala.collection.JavaConverters._
+import scala.concurrent.Await.result
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future.traverse
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
+class RollbackSpecSuite extends FreeSpec with ScalaFutures with IntegrationPatience
+  with Matchers with TransferSending with IntegrationNodesInitializationAndStopping {
+  override val docker = new Docker()
+  // there are nodes with big and small balances to reduce the number of forks
+  override val nodes: Seq[Node] = Configs.map(docker.startNode)
+
+  private val transactionsCount = 190
+
+  "Apply the same transfer transactions twice with return to UTX" in {
+    val waitBlocks = 10
+    result(for {
+      startHeight <- Future.traverse(nodes)(_.height).map(_.min)
+
+      b <- traverse(nodes)(balanceForNode).map(_.toMap)
+
+      requests = generateRequests(transactionsCount, b)
+      _ <- processRequests(requests)
+
+      hashAfterFirstTry <- traverse(nodes)(_.waitForDebugInfoAt(startHeight + waitBlocks).map(_.stateHash)).map(infos => {
+        all(infos) shouldEqual infos.head
+        infos.head
+      })
+      stateAfterFirstTry <- nodes.head.debugStateAt(startHeight + waitBlocks)
+
+      _ <- nodes.tail.head.rollback(1)
+      _ <- nodes.head.rollback(startHeight)
+
+      hashAfterSecondTry <- traverse(nodes)(_.waitForDebugInfoAt(startHeight + waitBlocks).map(_.stateHash)).map(infos => {
+        all(infos) shouldEqual infos.head
+        infos.head
+      })
+      stateAfterSecondTry <- nodes.head.debugStateAt(startHeight + waitBlocks)
+    } yield {
+      stateAfterFirstTry should contain theSameElementsAs stateAfterSecondTry
+      hashAfterFirstTry shouldBe hashAfterSecondTry
+    }, 5.minutes)
+  }
+
+  "Just rollback transactions" in {
+    val waitBlocks = 8
+    result(for {
+      startHeight <- Future.traverse(nodes)(_.height).map(_.min)
+
+      b <- traverse(nodes)(balanceForNode).map(_.toMap)
+      requests = generateRequests(transactionsCount, b)
+
+      hashBeforeApply <- traverse(nodes)(_.waitForDebugInfoAt(startHeight + waitBlocks).map(_.stateHash)).map(infos => {
+        all(infos) shouldEqual infos.head
+        infos.head
+      })
+
+      _ <- processRequests(requests)
+
+      _ <- traverse(nodes)(n => n.waitFor[Int](n.utxSize, _ == 0, 1.second))
+
+      _ <- traverse(nodes)(_.rollback(startHeight, returnToUTX = false))
+
+      _ <- traverse(nodes)(_.utx).map(utxs => {
+        all(utxs) shouldBe 'empty
+      })
+
+      hashAfterApply <- nodes.head.waitForDebugInfoAt(startHeight + waitBlocks).map(_.stateHash)
+    } yield {
+      hashBeforeApply shouldBe hashAfterApply
+    }, 5.minutes)
+  }
+}
+
+object RollbackSpecSuite {
+  private val dockerConfigs = Docker.NodeConfigs.getConfigList("nodes").asScala
+
+  private val nonGeneratingNodesConfig = ConfigFactory.parseString(
+    """
+      |vsys.miner.enable=no
+    """.stripMargin
+  )
+
+  val Configs: Seq[Config] = Seq(dockerConfigs.last) :+
+    nonGeneratingNodesConfig.withFallback(shuffle(dockerConfigs.init).head)
+}

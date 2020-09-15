@@ -27,7 +27,7 @@ object TransactionsGeneratorApp extends App {
   val generatorConfig = fromConfig(readConfig(args.headOption))
   import generatorConfig._
 
-  AddressScheme.current.value = new AddressScheme {
+  AddressScheme.current = new AddressScheme {
     override val chainId: Byte = generatorConfig.chainId.toByte
   }
 
