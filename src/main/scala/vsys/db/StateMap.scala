@@ -7,7 +7,6 @@ import org.h2.mvstore.WriteBuffer
 import org.iq80.leveldb.{DB, DBIterator, WriteBatch}
 
 import scala.collection.immutable.Stream
-import scala.util.DynamicVariable
 
 class StateMap[K, V](
   db: DB,
@@ -97,10 +96,10 @@ class StateMap[K, V](
   }
 
   private def invokeBatch(batchOpt: Option[WriteBatch], op: Option[WriteBatch] => Unit): Unit = {
-    val batch = new DynamicVariable(batchOpt)
-    if (batchOpt.isEmpty) batch.value = createBatch()
-    op(batch.value)
-    if (batchOpt.isEmpty) commit(batch.value)
+    var batch = batchOpt
+    if (batchOpt.isEmpty) batch = createBatch()
+    op(batch)
+    if (batchOpt.isEmpty) commit(batch)
   }
 
   def isEmpty(): Boolean = size() == 0

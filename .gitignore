@@ -48,3 +48,9 @@ test/*/data/*
 src/test/**/.DS_Store
 
 *.sublime-*
+
+# metals
+.metals/
+.bloop/
+.ammonite/
+project/metals.sbt

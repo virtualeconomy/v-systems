@@ -7,7 +7,7 @@ import vsys.network.{BlockCheckpoint, Checkpoint}
 
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
-import scala.util.{DynamicVariable, Try}
+import scala.util.Try
 
 case class CodecFailure(reason: String) {
   override def toString: String = s"codec failure: $reason"
@@ -121,20 +121,20 @@ case class ColCodec[Col[BB] <: TraversableOnce[BB], A](valueCodec: Codec[A])(imp
     if (n.isRight) {
       val expectedLength = n.right.get
       val builder        = cbf()
-      val i              = new DynamicVariable(Ints.BYTES)
-      val error          = new DynamicVariable(false)
-      while (i.value < bytes.length && !error.value) {
-        val r = valueCodec.decode(bytes.slice(i.value, bytes.length))
+      var i              = Ints.BYTES
+      var error          = false
+      while (i < bytes.length && !error) {
+        val r = valueCodec.decode(bytes.slice(i, bytes.length))
         if (r.isRight) {
           val rr = r.right.get
-          i.value = i.value + rr.length
+          i = i + rr.length
           builder.+=(rr.value)
         } else {
-          error.value = true
+          error = true
         }
       }
       val result = builder.result()
-      Either.cond(!error.value && expectedLength == result.size, DecodeResult(i.value, result), CodecFailure(s"failed to deserialize $expectedLength items"))
+      Either.cond(!error && expectedLength == result.size, DecodeResult(i, result), CodecFailure(s"failed to deserialize $expectedLength items"))
     } else Left(n.left.get)
   }
 }

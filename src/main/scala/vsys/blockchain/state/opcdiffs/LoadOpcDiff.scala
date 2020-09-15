@@ -60,7 +60,7 @@ object LoadOpcDiff extends OpcDiffer {
     if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
-      Right(dataStack.patch(pointer, Seq(DataEntry(Longs.toByteArray(context.height), DataType.Int32)), 1))
+      Right(dataStack.patch(pointer, Seq(DataEntry(Ints.toByteArray(context.height), DataType.Int32)), 1))
     }
   }
 

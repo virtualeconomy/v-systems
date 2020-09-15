@@ -9,8 +9,8 @@ import scala.util.{Left, Right, Try}
 
 object CompareOpcDiff extends OpcDiffer {
 
-  def geq(context: ExecutionContext)(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                     pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def geq(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (x.dataType == y.dataType) {
       val supportList = List(DataType.Amount, DataType.Timestamp)
       supportList.find(a => a == x.dataType) match {
@@ -34,7 +34,7 @@ object CompareOpcDiff extends OpcDiffer {
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(CompareType(f)).toOption) match {
-      case Some(CompareType.Geq) if bytes.length == 4 => geq(context)(data(bytes(1)), data(bytes(2)), data, bytes(3))
+      case Some(CompareType.Geq) if bytes.length == 4 => geq(data(bytes(1)), data(bytes(2)), data, bytes(3))
       case _ => Left(ContractInvalidOPCData)
     }
 }

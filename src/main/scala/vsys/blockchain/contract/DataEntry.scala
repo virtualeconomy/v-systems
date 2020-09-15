@@ -50,7 +50,7 @@ case class DataEntry(data: Array[Byte],
 
 object DataEntry {
 
-  private lazy val scheme = AddressScheme.current.value
+  private def scheme = AddressScheme.current
 
   def create(data: Array[Byte], dataType: DataType.DataTypeVal): Either[ValidationError, DataEntry] = {
     dataType match {
