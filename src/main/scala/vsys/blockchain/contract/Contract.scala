@@ -135,13 +135,13 @@ object Contract extends ScorexLogging {
   def checkStateVar(stateVar: Array[Byte]): Boolean =
     stateVar.length == 2
 
-  def checkStateVar(stateVar: Array[Byte], dataType: DataType.Value): Boolean =
+  def checkStateVar(stateVar: Array[Byte], dataType: DataType.DataTypeVal): Boolean =
     stateVar.length == 2 && dataType == DataType(stateVar(1))
 
   def checkStateMap(stateMap: Array[Byte], keyDataType: DataType.Value): Boolean =
     stateMap.length == 3 && keyDataType == DataType(stateMap(1))
 
-  def checkStateMap(stateMap: Array[Byte], keyDataType: DataType.Value, valueDataType: DataType.Value): Boolean =
+  def checkStateMap(stateMap: Array[Byte], keyDataType: DataType.DataTypeVal, valueDataType: DataType.DataTypeVal): Boolean =
     stateMap.length == 3 && keyDataType == DataType(stateMap(1)) && valueDataType == DataType(stateMap(2))
 
   private def isByteArrayValid(bytes: Array[Byte], textual: Seq[Array[Byte]]): Boolean = {
