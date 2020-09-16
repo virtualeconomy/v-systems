@@ -47,5 +47,38 @@ class IfOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPro
     IfOpcDiff.runCondition(
       DataEntry(Longs.toByteArray(1), DataType.Amount)
     ) should be (Left(ContractDataTypeMismatch))
+
+    IfOpcDiff.parseBytes(executionContext)(
+      Array[Byte](1.toByte, 0.toByte, 1.toByte),
+      Seq[DataEntry](DataEntry(Array(1.toByte), DataType.Boolean),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock))) should be (
+      Right((OpcDiff(Map(),Map(),Map(),Map(),Map(),Map(),Map(),Map()),
+        List(DataEntry(Array(1.toByte), DataType.Boolean),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock)))))
+    IfOpcDiff.parseBytes(executionContext)(
+      Array[Byte](1.toByte, 0.toByte, 1.toByte),
+      Seq[DataEntry](DataEntry(Array(0.toByte), DataType.Boolean),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock))) should be (
+      Right((OpcDiff(Map(),Map(),Map(),Map(),Map(),Map(),Map(),Map()),
+        List(DataEntry(Array(0.toByte), DataType.Boolean),
+          DataEntry(Shorts.toByteArray(0), DataType.OpcBlock)))))
+    IfOpcDiff.parseBytes(executionContext)(
+      Array[Byte](2.toByte, 0.toByte, 1.toByte, 2.toByte),
+      Seq[DataEntry](DataEntry(Array(1.toByte), DataType.Boolean),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock))) should be (
+      Right((OpcDiff(Map(),Map(),Map(),Map(),Map(),Map(),Map(),Map()),
+        List(DataEntry(Array(1.toByte), DataType.Boolean),
+          DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
+          DataEntry(Shorts.toByteArray(0), DataType.OpcBlock)))))
+    IfOpcDiff.parseBytes(executionContext)(
+      Array[Byte](2.toByte, 0.toByte, 1.toByte, 2.toByte),
+      Seq[DataEntry](DataEntry(Array(0.toByte), DataType.Boolean),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
+        DataEntry(Shorts.toByteArray(0), DataType.OpcBlock))) should be (
+      Right((OpcDiff(Map(),Map(),Map(),Map(),Map(),Map(),Map(),Map()),
+        List(DataEntry(Array(0.toByte), DataType.Boolean),
+          DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
+          DataEntry(Shorts.toByteArray(0), DataType.OpcBlock)))))
   }
 }
