@@ -33,68 +33,68 @@ object DataType extends Enumeration {
       && extValidator(data))
   }
 
-  val PublicKey       = DataTypeVal(1,
+  val PublicKey       = DataTypeVal[PublicKeyAccount](1,
     lenFixed          = true,
     maxLen            = KeyLength,
     deserializer      = PublicKeyAccount(_),
-    serializer        = (p: PublicKeyAccount) => p.publicKey,
-    jsonifier         = (p: PublicKeyAccount) => Json.toJson(p.address),
+    serializer        = p => p.publicKey,
+    jsonifier         = p => Json.toJson(p.address),
     extValidator      = _ => true)
 
-  val Address         = DataTypeVal(2,
+  val Address         = DataTypeVal[vsys.account.Address](2,
     lenFixed          = true,
     maxLen            = vsys.account.Address.AddressLength,
     deserializer      = vsys.account.Address.fromBytes(_).right.get,
-    serializer        = (a: vsys.account.Address) => a.bytes.arr,
-    jsonifier         = (a: vsys.account.Address) => Json.toJson(a.address),
+    serializer        = a => a.bytes.arr,
+    jsonifier         = a => Json.toJson(a.address),
     extValidator      = vsys.account.Address.fromBytes(_).isRight)
 
-  val Amount          = DataTypeVal(3,
+  val Amount          = DataTypeVal[Long](3,
     lenFixed          = true,
     maxLen            = AmountLength,
     deserializer      = Longs.fromByteArray(_),
     serializer        = Longs.toByteArray(_),
-    jsonifier         = (a: Long) => Json.toJson(a),
+    jsonifier         = Json.toJson(_),
     extValidator      = Longs.fromByteArray(_) >= 0)
 
-  val Int32           = DataTypeVal(4,
+  val Int32           = DataTypeVal[Int](4,
     lenFixed          = true,
     maxLen            = 4,
     deserializer      = Ints.fromByteArray(_),
     serializer        = Ints.toByteArray(_),
-    jsonifier         = (i: Int) => Json.toJson(i),
+    jsonifier         = Json.toJson(_),
     extValidator      = Ints.fromByteArray(_) >= 0)
 
-  val ShortText       = DataTypeVal(5,
+  val ShortText       = DataTypeVal[String](5,
     lenFixed          = false,
     maxLen            = MaxShortTextLength,
     deserializer      = b => new String(b.drop(2)),
-    serializer        = (s: String) => arrayShortLengthToByteArray(s.getBytes) ++ s.getBytes,
-    jsonifier         = (s: String) => Json.toJson(s),
+    serializer        = s => arrayShortLengthToByteArray(s.getBytes) ++ s.getBytes,
+    jsonifier         = Json.toJson(_),
     extValidator      = _ => true)
 
-  val ContractAccount = DataTypeVal(6,
+  val ContractAccount = DataTypeVal[vsys.account.ContractAccount](6,
     lenFixed          = true,
     maxLen            = vsys.account.ContractAccount.AddressLength,
     deserializer      = vsys.account.ContractAccount.fromBytes(_).right.get,
-    serializer        = (a: vsys.account.ContractAccount) => a.bytes.arr,
-    jsonifier         = (a: vsys.account.ContractAccount) => Json.toJson(a.address),
+    serializer        = a => a.bytes.arr,
+    jsonifier         = a => Json.toJson(a.address),
     extValidator      = vsys.account.ContractAccount.fromBytes(_).isRight)
 
-  val Account         = DataTypeVal(7,
+  val Account         = DataTypeVal[vsys.account.Account](7,
     lenFixed          = false,
     maxLen            = (vsys.account.Address.AddressLength).max(vsys.account.ContractAccount.AddressLength),
     deserializer      = vsys.account.Account.fromBytes(_, 0).right.get._1,
-    serializer        = (a: vsys.account.Account) => a.bytes.arr,
-    jsonifier         = (a: vsys.account.Account) => Json.toJson(a.bytes.arr),
+    serializer        = a => a.bytes.arr,
+    jsonifier         = a => Json.toJson(a.bytes.arr),
     extValidator      = vsys.account.Account.fromBytes(_, 0).isRight)
 
-  val TokenId         = DataTypeVal(8,
+  val TokenId         = DataTypeVal[ByteStr](8,
     lenFixed          = true,
     maxLen            = vsys.account.ContractAccount.TokenAddressLength,
     deserializer      = ByteStr(_),
-    serializer        = (b: ByteStr) => b.arr,
-    jsonifier         = (b: ByteStr) => Json.toJson(b.base58),
+    serializer        = b => b.arr,
+    jsonifier         = b => Json.toJson(b.base58),
     extValidator      = addressBytes => {
       // length is already ensured here
       def scheme    = AddressScheme.current
@@ -106,52 +106,52 @@ object DataType extends Enumeration {
       version == vsys.account.ContractAccount.TokenAddressVersion && network == scheme.chainId && checkSum1.sameElements(checkSum2)
     })
 
-  val Timestamp       = DataTypeVal(9,
+  val Timestamp       = DataTypeVal[Long](9,
     lenFixed          = true,
     maxLen            = TimestampLength,
     deserializer      = Longs.fromByteArray(_),
     serializer        = Longs.toByteArray(_),
-    jsonifier         = (t: Long) => Json.toJson(t),
+    jsonifier         = Json.toJson(_),
     extValidator      = Longs.fromByteArray(_) >= 0)
 
-  val Boolean         = DataTypeVal(10,
+  val Boolean         = DataTypeVal[Boolean](10,
     lenFixed          = true,
     maxLen            = 1,
     deserializer      = b => b.head == 1,
-    serializer        = (b: Boolean) => Array((if(b) 1 else 0).toByte),
-    jsonifier         = (b: Boolean) => Json.toJson(b.toString),
+    serializer        = b => Array((if(b) 1 else 0).toByte),
+    jsonifier         = b => Json.toJson(b.toString),
     extValidator      = b => (b(0) == 1 || b(0) == 0))
 
-  val ShortBytes      = DataTypeVal(11,
+  val ShortBytes      = DataTypeVal[Array[Byte]](11,
     lenFixed          = false,
     maxLen            = MaxShortBytesLength,
     deserializer      = b => b.drop(2),
-    serializer        = (b: Array[Byte]) => arrayShortLengthToByteArray(b) ++ b,
-    jsonifier         = (b: Array[Byte]) => Json.toJson(Base58.encode(b)),
+    serializer        = b => arrayShortLengthToByteArray(b) ++ b,
+    jsonifier         = b => Json.toJson(Base58.encode(b)),
     extValidator      = _ => true)
 
-  val Balance         = DataTypeVal(12,
+  val Balance         = DataTypeVal[Long](12,
     lenFixed          = true,
     maxLen            = AmountLength,
     deserializer      = Longs.fromByteArray(_),
     serializer        = Longs.toByteArray(_),
-    jsonifier         = (b: Long) => Json.toJson(b),
+    jsonifier         = Json.toJson(_),
     extValidator      = Longs.fromByteArray(_) >= 0)
 
-  val OpcBlock        = DataTypeVal(13,
+  val OpcBlock        = DataTypeVal[Array[Byte]](13,
     lenFixed          = false,
     maxLen            = MaxOpcBlockLength,
     deserializer      = b => b.drop(2),
-    serializer        = (b: Array[Byte]) => arrayShortLengthToByteArray(b) ++ b,
-    jsonifier         = (b: Array[Byte]) => Json.toJson(Base58.encode(b)),
+    serializer        = b => arrayShortLengthToByteArray(b) ++ b,
+    jsonifier         = b => Json.toJson(Base58.encode(b)),
     extValidator      = _ => true)
 
-  val BigInteger      = DataTypeVal(14,
+  val BigInteger      = DataTypeVal[BigInt](14,
     lenFixed          = false,
     maxLen            = MaxBigIntLength,
     deserializer      = b => BigInt(b.drop(2)),
-    serializer        = (i: BigInt) => arrayShortLengthToByteArray(i.toByteArray) ++ i.toByteArray,
-    jsonifier         = (i: BigInt) => Json.toJson(i.toString),
+    serializer        = i => arrayShortLengthToByteArray(i.toByteArray) ++ i.toByteArray,
+    jsonifier         = i => Json.toJson(i.toString),
     extValidator      = _ => true)
 
   def fromByte(b: Byte): Option[DataType.DataTypeVal[_]] = Try(DataType(b).asInstanceOf[DataTypeVal[_]]).toOption
@@ -165,11 +165,6 @@ object DataType extends Enumeration {
 
   def checkTypes(paraTypes: Array[Byte], dataTypes: Array[Byte]): Boolean = {
     paraTypes.length == dataTypes.length && (paraTypes, dataTypes).zipped.forall { case (a, b) => check(a, b) }
-  }
-
-  def sqrt(y: BigInt): BigInt = {
-    if (y > 3) Stream.iterate((y, (y >> 1) + 1)){ case (z, x) => (x, (y / x + x) >> 1) }.dropWhile{ case(z, x) => x < z }.head._1
-    else 1
   }
 
   def arrayShortLengthToByteArray(a: Array[_]) = Shorts.toByteArray(a.length.toShort)
