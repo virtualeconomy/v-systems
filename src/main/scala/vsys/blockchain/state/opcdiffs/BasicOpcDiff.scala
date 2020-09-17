@@ -1,197 +1,66 @@
 package vsys.blockchain.state.opcdiffs
 
-import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.blockchain.contract.DataType._
 
-import scala.util.{Left, Right, Try}
+import scala.util.{Left, Right, Try, Success, Failure}
 
 object BasicOpcDiff extends OpcDiffer {
 
-  def add(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      if (x.dataType == y.dataType) {
-        val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
-        supportList.find(a => a == x.dataType) match {
-          case Some(_) => {
-            if (x.dataType == DataType.Int32) {
-              val xValue = Ints.fromByteArray(x.data)
-              val yValue = Ints.fromByteArray(y.data)
-              if (Try(Math.addExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Ints.toByteArray(xValue + yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            } else {
-              val xValue = Longs.fromByteArray(x.data)
-              val yValue = Longs.fromByteArray(y.data)
-              if (Try(Math.addExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Longs.toByteArray(xValue + yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            }
-          }
-          case None => Left(ContractUnsupportedOPC)
+  case class BiOperator(int: (Int, Int) => Try[Int], long: (Long, Long) => Try[Long], bigInt: (BigInt, BigInt) => Try[BigInt])
+  val add      = BiOperator((x, y) => Try(Math.addExact(x, y)),      (x, y) => Try(Math.addExact(x, y)),      (x, y) => Success(x + y))
+  val minus    = BiOperator((x, y) => Try(Math.subtractExact(x, y)), (x, y) => Try(Math.subtractExact(x, y)), (x, y) => Success(x - y))
+  val multiply = BiOperator((x, y) => Try(Math.multiplyExact(x, y)), (x, y) => Try(Math.multiplyExact(x, y)), (x, y) => Success(x * y))
+  val divide   = BiOperator((x, y) => Try(Math.floorDiv(x, y)),      (x, y) => Try(Math.floorDiv(x, y)),      (x, y) => Try(x / y))
+  val minimum  = BiOperator((x, y) => Try(Math.min(x, y)),           (x, y) => Try(Math.min(x, y)),           (x, y) => Success(x.min(y)))
+  val maximum  = BiOperator((x, y) => Try(Math.max(x, y)),           (x, y) => Try(Math.max(x, y)),           (x, y) => Success(x.max(y)))
+
+  private def appendRes[T] (p: Byte, res: T, dt: DataType.DataTypeVal[T], ds: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = for {
+    _ <- if(dt.validator(dt.serializer(res))) Right(()) else Left(ValidationError.OverflowError) 
+    zDataEntry <- DataEntry.create(dt.serializer(res), dt)
+  } yield ds.patch(p, Seq(zDataEntry), 1)
+
+  def operation(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
+          pointer: Byte, operator: BiOperator): Either[ValidationError, Seq[DataEntry]] =
+    if (pointer > dataStack.length || pointer < 0) Left(ContractLocalVariableIndexOutOfRange)
+    else if (x.dataType == y.dataType) x.dataType match {
+      case Int32 => operator.int(Int32.deserializer(x.data), Int32.deserializer(y.data)) match {
+          case Failure(_) => Left(ValidationError.OverflowError)
+          case Success(res: Int) => appendRes[Int](pointer, res,  Int32, dataStack)
         }
-      } else Left(ContractDataTypeMismatch)
-    }
-  }
-
-
-  def minus(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-            pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      if (x.dataType == y.dataType) {
-        val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
-        supportList.find(a => a == x.dataType) match {
-          case Some(_) => {
-            if (x.dataType == DataType.Int32) {
-              val xValue = Ints.fromByteArray(x.data)
-              val yValue = Ints.fromByteArray(y.data)
-              if (Try(Math.subtractExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Ints.toByteArray(xValue - yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            } else {
-              val xValue = Longs.fromByteArray(x.data)
-              val yValue = Longs.fromByteArray(y.data)
-              if (Try(Math.subtractExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Longs.toByteArray(xValue - yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            }
-          }
-          case None => Left(ContractUnsupportedOPC)
+      case Amount => operator.long(Amount.deserializer(x.data), Amount.deserializer(y.data)) match {
+          case Failure(_) => Left(ValidationError.OverflowError)
+          case Success(res: Long) => appendRes[Long](pointer, res,  Amount, dataStack)
         }
-      } else Left(ContractDataTypeMismatch)
-    }
-  }
-
-  def multiply(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-               pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      if (x.dataType == y.dataType) {
-        val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
-        supportList.find(a => a == x.dataType) match {
-          case Some(_) => {
-            if (x.dataType == DataType.Int32) {
-              val xValue = Ints.fromByteArray(x.data)
-              val yValue = Ints.fromByteArray(y.data)
-              if (Try(Math.multiplyExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Ints.toByteArray(xValue * yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            } else {
-              val xValue = Longs.fromByteArray(x.data)
-              val yValue = Longs.fromByteArray(y.data)
-              if (Try(Math.multiplyExact(xValue, yValue)).isFailure) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Longs.toByteArray(xValue * yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            }
-          }
-          case None => Left(ContractUnsupportedOPC)
+      case Timestamp => operator.long(Timestamp.deserializer(x.data), Timestamp.deserializer(y.data)) match {
+          case Failure(_) => Left(ValidationError.OverflowError)
+          case Success(res: Long) => appendRes[Long](pointer, res,  Timestamp, dataStack)
         }
-      } else Left(ContractDataTypeMismatch)
-    }
-  }
-
-  def divide(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      if (x.dataType == y.dataType) {
-        val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
-        supportList.find(a => a == x.dataType) match {
-          case Some(_) => {
-            if (x.dataType == DataType.Int32) {
-              val xValue = Ints.fromByteArray(x.data)
-              val yValue = Ints.fromByteArray(y.data)
-              if (yValue == 0) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Ints.toByteArray(xValue / yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            } else {
-              val xValue = Longs.fromByteArray(x.data)
-              val yValue = Longs.fromByteArray(y.data)
-              if (yValue == 0) Left(ValidationError.OverflowError)
-              else {
-                for {
-                  zDataEntry <- DataEntry.create(Longs.toByteArray(xValue / yValue), x.dataType)
-                } yield dataStack.patch(pointer, Seq(zDataEntry), 1)
-              }
-            }
-          }
-          case None => Left(ContractUnsupportedOPC)
+      case BigInteger => operator.bigInt(BigInteger.deserializer(x.data), BigInteger.deserializer(y.data)) match {
+          case Failure(_) => Left(ValidationError.OverflowError)
+          case Success(res: BigInt) => appendRes[BigInt](pointer, res,  BigInteger, dataStack)
         }
-      } else Left(ContractDataTypeMismatch)
-    }
-  }
+      case _ => Left(ContractUnsupportedOPC)
+    } else Left(ContractDataTypeMismatch)
 
-  def minimum(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      if (x.dataType == y.dataType) {
-        val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
-        supportList.find(a => a == x.dataType) match {
-          case Some(_) => {
-            val xValue = if (x.dataType == DataType.Int32) Ints.fromByteArray(x.data) else Longs.fromByteArray(x.data)
-            val yValue = if (y.dataType == DataType.Int32) Ints.fromByteArray(y.data) else Longs.fromByteArray(y.data)
-            if (xValue > yValue) Right(dataStack.patch(pointer, Seq(y), 1))
-            else Right(dataStack.patch(pointer, Seq(x), 1))
-          }
-          case None => Left(ContractUnsupportedOPC)
-        }
-      } else Left(ContractDataTypeMismatch)
+  def sqrt(x: DataEntry, dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] =
+    if (pointer > dataStack.length || pointer < 0) Left(ContractLocalVariableIndexOutOfRange)
+    else x.dataType match {
+      case BigInteger => {
+        val value = BigInteger.deserializer(x.data)
+        if (value < 0) Left(ValidationError.OverflowError)
+        else appendRes[BigInt](pointer, sqrtBigInt(value),  BigInteger, dataStack)
+      }
+      case _ => Left(ContractUnsupportedOPC)
     }
-  }
 
-  def maximum(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-              pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (pointer > dataStack.length || pointer < 0) {
-      Left(ContractLocalVariableIndexOutOfRange)
-    } else {
-      if (x.dataType == y.dataType) {
-        val supportList = List(DataType.Amount, DataType.Timestamp, DataType.Int32)
-        supportList.find(a => a == x.dataType) match {
-          case Some(_) => {
-            val xValue = if (x.dataType == DataType.Int32) Ints.fromByteArray(x.data) else Longs.fromByteArray(x.data)
-            val yValue = if (y.dataType == DataType.Int32) Ints.fromByteArray(y.data) else Longs.fromByteArray(y.data)
-            if (xValue > yValue) Right(dataStack.patch(pointer, Seq(x), 1))
-            else Right(dataStack.patch(pointer, Seq(y), 1))
-          }
-          case None => Left(ContractUnsupportedOPC)
-        }
-      } else Left(ContractDataTypeMismatch)
-    }
+  def sqrtBigInt(y: BigInt): BigInt = {
+    if (y > 3) Stream.iterate((y, (y >> 1) + 1)){ case (z, x) => (x, (y / x + x) >> 1) }.dropWhile{ case(z, x) => x < z }.head._1
+    else if (y > 0) 1 else 0
   }
-
-  def concat(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-             pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def concat(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
@@ -201,8 +70,7 @@ object BasicOpcDiff extends OpcDiffer {
     }
   }
 
-  def constantGet(constant: Array[Byte], dataStack: Seq[DataEntry],
-                  pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
+  def constantGet(constant: Array[Byte], dataStack: Seq[DataEntry], pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
     if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
     } else {
@@ -220,14 +88,15 @@ object BasicOpcDiff extends OpcDiffer {
       differ: (Array[Byte], Seq[DataEntry]) => Either[ValidationError, Seq[DataEntry]])
     extends Val(basicType) { def *(n: Int): Int = n * basicType }
 
-    val Add         = basicTypeVal(1, 4, (b, d) => add(d(b(1)), d(b(2)), d, b(3)))
-    val Minus       = basicTypeVal(2, 4, (b, d) => minus(d(b(1)), d(b(2)), d, b(3)))
-    val Multiply    = basicTypeVal(3, 4, (b, d) => multiply(d(b(1)), d(b(2)), d, b(3)))
-    val Divide      = basicTypeVal(4, 4, (b, d) => divide(d(b(1)), d(b(2)), d, b(3)))
-    val Minimum     = basicTypeVal(5, 4, (b, d) => minimum(d(b(1)), d(b(2)), d, b(3)))
-    val Maximum     = basicTypeVal(6, 4, (b, d) => maximum(d(b(1)), d(b(2)), d, b(3)))
+    val Add         = basicTypeVal(1, 4, (b, d) => operation(d(b(1)), d(b(2)), d, b(3), add))
+    val Minus       = basicTypeVal(2, 4, (b, d) => operation(d(b(1)), d(b(2)), d, b(3), minus))
+    val Multiply    = basicTypeVal(3, 4, (b, d) => operation(d(b(1)), d(b(2)), d, b(3), multiply))
+    val Divide      = basicTypeVal(4, 4, (b, d) => operation(d(b(1)), d(b(2)), d, b(3), divide))
+    val Minimum     = basicTypeVal(5, 4, (b, d) => operation(d(b(1)), d(b(2)), d, b(3), minimum))
+    val Maximum     = basicTypeVal(6, 4, (b, d) => operation(d(b(1)), d(b(2)), d, b(3), maximum))
     val Concat      = basicTypeVal(7, 4, (b, d) => concat(d(b(1)), d(b(2)), d, b(3)))
     val ConstantGet = basicTypeVal(8, 2, (b, d) => constantGet(b.slice(1, b.length-1), d, b(b.length-1)))
+    val SqrtBigInt  = basicTypeVal(9, 3, (b, d) => sqrt(d(b(1)), d, b(2)))
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =

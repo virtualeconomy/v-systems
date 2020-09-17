@@ -13,123 +13,123 @@ import scala.util.{Left, Right}
 class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   property("test basic opcs") {
-    BasicOpcDiff.add(
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(2), DataType.Amount))))
-    BasicOpcDiff.add(
+      Seq.empty, 0, BasicOpcDiff.add) should be (Right(Seq(DataEntry(Longs.toByteArray(2), DataType.Amount))))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
-    BasicOpcDiff.add(
+      Seq.empty, 1, BasicOpcDiff.add) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
-      Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
-    BasicOpcDiff.add(
+      Seq.empty, 0, BasicOpcDiff.add) should be (Left(ContractDataTypeMismatch))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 0) should be (Left(ValidationError.OverflowError))
-    BasicOpcDiff.add(
+      Seq.empty, 0, BasicOpcDiff.add) should be (Left(ValidationError.OverflowError))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
-      Seq.empty, 0) should be (Left(ContractUnsupportedOPC))
+      Seq.empty, 0, BasicOpcDiff.add) should be (Left(ContractUnsupportedOPC))
 
-    BasicOpcDiff.minus(
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Amount))))
-    BasicOpcDiff.minus(
+      Seq.empty, 0, BasicOpcDiff.minus) should be (Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Amount))))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
-    BasicOpcDiff.minus(
+      Seq.empty, 1, BasicOpcDiff.minus) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
-      Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
-    BasicOpcDiff.minus(
+      Seq.empty, 0, BasicOpcDiff.minus) should be (Left(ContractDataTypeMismatch))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount),
       DataEntry(Longs.toByteArray(-1), DataType.Amount),
-      Seq.empty, 0) should be (Left(ValidationError.OverflowError))
-    BasicOpcDiff.minus(
+      Seq.empty, 0, BasicOpcDiff.minus) should be (Left(ValidationError.OverflowError))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
-      Seq.empty, 0) should be (Left(ContractUnsupportedOPC))
+      Seq.empty, 0, BasicOpcDiff.minus) should be (Left(ContractUnsupportedOPC))
 
-    BasicOpcDiff.multiply(
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
-    BasicOpcDiff.multiply(
+      Seq.empty, 0, BasicOpcDiff.multiply) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
-    BasicOpcDiff.multiply(
+      Seq.empty, 1, BasicOpcDiff.multiply) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
-      Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
-    BasicOpcDiff.multiply(
+      Seq.empty, 0, BasicOpcDiff.multiply) should be (Left(ContractDataTypeMismatch))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount),
       DataEntry(Longs.toByteArray(2), DataType.Amount),
-      Seq.empty, 0) should be (Left(ValidationError.OverflowError))
-    BasicOpcDiff.multiply(
+      Seq.empty, 0, BasicOpcDiff.multiply) should be (Left(ValidationError.OverflowError))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
-      Seq.empty, 0) should be (Left(ContractUnsupportedOPC))
+      Seq.empty, 0, BasicOpcDiff.multiply) should be (Left(ContractUnsupportedOPC))
 
-    BasicOpcDiff.divide(
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
-    BasicOpcDiff.divide(
+      Seq.empty, 0, BasicOpcDiff.divide) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Amount),
-      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
-    BasicOpcDiff.divide(
+      Seq.empty, 1, BasicOpcDiff.divide) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
-      Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
-    BasicOpcDiff.divide(
+      Seq.empty, 0, BasicOpcDiff.divide) should be (Left(ContractDataTypeMismatch))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(0), DataType.Amount),
-      Seq.empty, 0) should be (Left(ValidationError.OverflowError))
-    BasicOpcDiff.divide(
+      Seq.empty, 0, BasicOpcDiff.divide) should be (Left(ValidationError.OverflowError))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
-      Seq.empty, 0) should be (Left(ContractUnsupportedOPC))
+      Seq.empty, 0, BasicOpcDiff.divide) should be (Left(ContractUnsupportedOPC))
 
-    BasicOpcDiff.minimum(
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(0), DataType.Amount),
-      Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Amount))))
-    BasicOpcDiff.minimum(
+      Seq.empty, 0, BasicOpcDiff.minimum) should be (Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Amount))))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(0), DataType.Amount),
-      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
-    BasicOpcDiff.minimum(
+      Seq.empty, 1, BasicOpcDiff.minimum) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
-      Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
-    BasicOpcDiff.minimum(
+      Seq.empty, 0, BasicOpcDiff.minimum) should be (Left(ContractDataTypeMismatch))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
-      Seq.empty, 0) should be (Left(ContractUnsupportedOPC))
+      Seq.empty, 0, BasicOpcDiff.minimum) should be (Left(ContractUnsupportedOPC))
 
-    BasicOpcDiff.maximum(
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(0), DataType.Amount),
-      Seq.empty, 0) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
-    BasicOpcDiff.maximum(
+      Seq.empty, 0, BasicOpcDiff.maximum) should be (Right(Seq(DataEntry(Longs.toByteArray(1), DataType.Amount))))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(0), DataType.Amount),
-      Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
-    BasicOpcDiff.maximum(
+      Seq.empty, 1, BasicOpcDiff.maximum) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
-      Seq.empty, 0) should be (Left(ContractDataTypeMismatch))
-    BasicOpcDiff.maximum(
+      Seq.empty, 0, BasicOpcDiff.maximum) should be (Left(ContractDataTypeMismatch))
+    BasicOpcDiff.operation(
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
       DataEntry(Longs.toByteArray(1), DataType.ShortText),
-      Seq.empty, 0) should be (Left(ContractUnsupportedOPC))
+      Seq.empty, 0, BasicOpcDiff.maximum) should be (Left(ContractUnsupportedOPC))
 
     BasicOpcDiff.concat(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
