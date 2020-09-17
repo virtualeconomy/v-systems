@@ -56,6 +56,7 @@ object BasicOpcDiff extends OpcDiffer {
       case _ => Left(ContractUnsupportedOPC)
     }
 
+  // babylonian method
   def sqrtBigInt(y: BigInt): BigInt = {
     if (y > 3) Stream.iterate((y, (y >> 1) + 1)){ case (z, x) => (x, (y / x + x) >> 1) }.dropWhile{ case(z, x) => x < z }.head._1
     else if (y > 0) 1 else 0
