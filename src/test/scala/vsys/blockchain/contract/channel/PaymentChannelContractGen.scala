@@ -39,7 +39,7 @@ trait PaymentChannelContractGen extends SystemContractGen
                          description: String, fee: Long, ts: Long): Gen[RegisterContractTransaction] =
     RegisterContractTransaction.create(signer, contract, dataStack, description, fee, feeScale, ts).explicitGet()
 
-  def createChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal],
+  def createChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = createIndex.toShort
     for {
@@ -47,7 +47,7 @@ trait PaymentChannelContractGen extends SystemContractGen
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def updateExpiredTimeChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal],
+  def updateExpiredTimeChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                                   attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = updateExpiredTimeIndex.toShort
     for {
@@ -55,7 +55,7 @@ trait PaymentChannelContractGen extends SystemContractGen
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def chargeChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal],
+  def chargeChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = chargeIndex.toShort
     for {
@@ -79,7 +79,7 @@ trait PaymentChannelContractGen extends SystemContractGen
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def executePaymentChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal],
+  def executePaymentChannelGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                                attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = executePaymentIndex.toShort
     for {
