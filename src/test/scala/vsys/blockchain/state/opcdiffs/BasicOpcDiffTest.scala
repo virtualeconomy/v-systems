@@ -4,6 +4,7 @@ import com.google.common.primitives.{Ints, Longs}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.contract.{DataEntry, DataType}
+import vsys.blockchain.contract.DataType.MaxShortBytesLength
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractLocalVariableIndexOutOfRange,
   ContractUnsupportedOPC, InvalidDataEntry}
@@ -142,7 +143,7 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       DataEntry(Longs.toByteArray(1), DataType.Amount),
       Seq.empty, 1) should be (Left(ContractLocalVariableIndexOutOfRange))
     BasicOpcDiff.concat(
-      DataEntry(Array.fill(DataType.ShortBytes.maxLen){0}, DataType.ShortBytes),
+      DataEntry(Array.fill(MaxShortBytesLength){0}, DataType.ShortBytes),
       DataEntry(Array.fill(1){0}, DataType.ShortBytes),
       Seq.empty, 0) should be (Left(InvalidDataEntry))
 
