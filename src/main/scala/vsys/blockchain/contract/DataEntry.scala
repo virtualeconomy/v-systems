@@ -19,11 +19,11 @@ case class DataEntry(data: Array[Byte],
   )
 
   override def equals(obj: Any): Boolean = obj match {
-    case a: DataEntry => (bytes sameElements a.bytes) && DataType.check(dataType.id.toByte, a.dataType.id.toByte)
+    case a: DataEntry => (bytes sameElements a.bytes)
     case _ => false
   }
 
-  override def hashCode(): Int = java.util.Arrays.hashCode(Array(dataType.id.toByte) ++ bytes)
+  override def hashCode(): Int = java.util.Arrays.hashCode(bytes)
 
 }
 
