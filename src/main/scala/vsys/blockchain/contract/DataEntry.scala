@@ -19,7 +19,7 @@ case class DataEntry(data: Array[Byte],
   )
 
   override def equals(obj: Any): Boolean = obj match {
-    case a: DataEntry => (bytes sameElements a.bytes)
+    case a: DataEntry => bytes sameElements a.bytes
     case _ => false
   }
 
