@@ -29,7 +29,7 @@ object DataType extends Enumeration {
 
     // check length and other limits
     val validator: Array[Byte] => Boolean = data => (((lenFixed && data.length == maxLen)
-        || (!lenFixed && data.length > 2 && Shorts.fromByteArray(data.take(2)) == data.drop(2).length && data.drop(2).length <= maxLen))
+        || (!lenFixed && data.length >= 2 && Shorts.fromByteArray(data.take(2)) == data.drop(2).length && data.drop(2).length <= maxLen))
       && extValidator(data))
   }
 
@@ -87,7 +87,7 @@ object DataType extends Enumeration {
     deserializer      = vsys.account.Account.fromBytes(_, 0).right.get._1,
     serializer        = a => a.bytes.arr,
     jsonifier         = a => Json.toJson(a.bytes.arr),
-    extValidator      = vsys.account.Account.fromBytes(_, 0).isRight)
+    extValidator      = _ => false)  // unsupported type for now. vsys.account.Account.fromBytes(_, 0).isRight)
 
   val TokenId         = DataTypeVal[ByteStr](8,
     lenFixed          = true,
@@ -136,7 +136,7 @@ object DataType extends Enumeration {
     deserializer      = Longs.fromByteArray(_),
     serializer        = Longs.toByteArray(_),
     jsonifier         = Json.toJson(_),
-    extValidator      = Longs.fromByteArray(_) >= 0)
+    extValidator      = _ => false) // unsupported type for now. Longs.fromByteArray(_) >= 0)
 
   val OpcBlock        = DataTypeVal[Array[Byte]](13,
     lenFixed          = false,

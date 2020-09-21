@@ -58,7 +58,7 @@ object DataEntry {
         DataType.fromByte(b) match {
           case Some(dt: DataType.DataTypeVal[_]) if (dt.lenFixed && dt.validator(bytes.drop(1).take(dt.maxLen))) =>
             Right((DataEntry(bytes.drop(1).take(dt.maxLen), dt), bytes.drop(1 + dt.maxLen)))
-          case Some(dt: DataType.DataTypeVal[_]) if (!dt.lenFixed && dt.maxLen <= Short.MaxValue
+          case Some(dt: DataType.DataTypeVal[_]) if (!dt.lenFixed && dt.maxLen <= Short.MaxValue && bytes.length >= 3
             && dt.validator(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))))) =>
             Right((DataEntry(bytes.drop(1).take(2 + Shorts.fromByteArray(bytes.drop(1).take(2))), dt),
               bytes.drop(3 + Shorts.fromByteArray(bytes.drop(1).take(2)))))
