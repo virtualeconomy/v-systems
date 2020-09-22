@@ -13,7 +13,7 @@ object CDBVROpcDiff extends OpcDiffer {
 
   def get(context: ExecutionContext)(stateVar: Array[Byte], dataStack: Seq[DataEntry],
                                      pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (!checkStateVar(stateVar, DataType(stateVar(1)).asInstanceOf[DataType.DataTypeVal])) {
+    if (!checkStateVar(stateVar, DataType(stateVar(1)).asInstanceOf[DataType.DataTypeVal[_]])) {
       Left(ContractInvalidStateVariable)
     } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
@@ -27,7 +27,7 @@ object CDBVROpcDiff extends OpcDiffer {
 
   def mapGet(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                         pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)).asInstanceOf[DataType.DataTypeVal])) {
+    if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)).asInstanceOf[DataType.DataTypeVal[_]])) {
       Left(ContractInvalidStateMap)
     } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
@@ -42,7 +42,7 @@ object CDBVROpcDiff extends OpcDiffer {
 
   def mapGetOrDefault(context: ExecutionContext)(stateMap: Array[Byte], keyValue: DataEntry, dataStack: Seq[DataEntry],
                                                  pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)).asInstanceOf[DataType.DataTypeVal])) {
+    if (!checkStateMap(stateMap, keyValue.dataType, DataType(stateMap(2)).asInstanceOf[DataType.DataTypeVal[_]])) {
       Left(ContractInvalidStateMap)
     } else if (pointer > dataStack.length || pointer < 0) {
       Left(ContractLocalVariableIndexOutOfRange)
