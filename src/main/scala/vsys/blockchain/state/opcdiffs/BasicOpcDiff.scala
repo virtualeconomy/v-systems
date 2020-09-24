@@ -19,7 +19,7 @@ object BasicOpcDiff extends OpcDiffer {
 
   private def appendRes[T] (p: Byte, res: T, dt: DataType.DataTypeVal[T], ds: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] = for {
     _ <- if(dt.validator(dt.serializer(res))) Right(()) else Left(ValidationError.OverflowError) 
-    zDataEntry <- DataEntry.create(dt.serializer(res), dt)
+    zDataEntry <- DataEntry.doCreate(dt.serializer(res), dt)
   } yield ds.patch(p, Seq(zDataEntry), 1)
 
   def operation(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
