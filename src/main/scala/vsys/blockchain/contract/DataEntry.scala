@@ -34,7 +34,7 @@ object DataEntry {
     else doCreate(DataType.arrayShortLengthToByteArray(data) ++ data, dataType)
 
   // length unfixed data array should start with 2 bytes which indicates length of content of data
-  private def doCreate(data: Array[Byte], dataType: DataType.DataTypeVal[_]): Either[ValidationError, DataEntry] =
+  def doCreate(data: Array[Byte], dataType: DataType.DataTypeVal[_]): Either[ValidationError, DataEntry] =
     if (dataType.validator(data)) Right(DataEntry(data, dataType)) else Left(InvalidDataEntry)
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, DataEntry] = {
