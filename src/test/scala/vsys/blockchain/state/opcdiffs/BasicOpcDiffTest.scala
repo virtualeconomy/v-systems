@@ -6,7 +6,8 @@ import org.scalatest.{Matchers, PropSpec}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.DataType.MaxShortBytesLength
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractLocalVariableIndexOutOfRange, ContractUnsupportedOPC, InvalidDataEntry}
+import vsys.blockchain.transaction.ValidationError.{ContractDataTypeMismatch, ContractLocalVariableIndexOutOfRange,
+  ContractUnsupportedOPC, InvalidDataEntry}
 
 import scala.util.{Left, Right}
 
@@ -222,6 +223,29 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       DataEntry(Shorts.toByteArray(BigInt(0).toByteArray.length.toShort) ++ BigInt(0).toByteArray, DataType.BigInteger),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
       Seq.empty, 0, BasicOpcDiff.maximum) should be (Left(ContractDataTypeMismatch))
+
+    BasicOpcDiff.sqrt(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
+      Seq.empty,
+      0) should be (Left(ContractUnsupportedOPC))
+    BasicOpcDiff.sqrt(
+      DataEntry(Shorts.toByteArray(BigInt(1).toByteArray.length.toShort) ++ BigInt(1).toByteArray, DataType.BigInteger),
+      Seq.empty,
+      1) should be (Left(ContractLocalVariableIndexOutOfRange))
+    BasicOpcDiff.sqrt(
+      DataEntry(Shorts.toByteArray(BigInt(-1).toByteArray.length.toShort) ++ BigInt(-1).toByteArray, DataType.BigInteger),
+      Seq.empty,
+      0) should be (Left(ValidationError.OverflowError))
+    BasicOpcDiff.sqrt(
+      DataEntry(Shorts.toByteArray(BigInt(2).toByteArray.length.toShort) ++ BigInt(2).toByteArray, DataType.BigInteger),
+      Seq.empty,
+      0) should be (Right(Seq(DataEntry(
+      Shorts.toByteArray(BigInt(1).toByteArray.length.toShort) ++ BigInt(1).toByteArray, DataType.BigInteger))))
+    BasicOpcDiff.sqrt(
+      DataEntry(Shorts.toByteArray(BigInt(4).toByteArray.length.toShort) ++ BigInt(4).toByteArray, DataType.BigInteger),
+      Seq.empty,
+      0) should be (Right(Seq(DataEntry(
+      Shorts.toByteArray(BigInt(2).toByteArray.length.toShort) ++ BigInt(2).toByteArray, DataType.BigInteger))))
 
     BasicOpcDiff.concat(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
