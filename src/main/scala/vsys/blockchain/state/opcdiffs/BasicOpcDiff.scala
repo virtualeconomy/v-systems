@@ -4,6 +4,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.DataType._
+import vsys.blockchain.state.opcdiffs.OpcDiffer._
 
 import scala.language.implicitConversions
 import scala.util.{Left, Try}
@@ -36,16 +37,6 @@ object BasicOpcDiff extends OpcDiffer {
   val bXor = BoolByteBiOperator(_ ^ _)
 
   val bNot: Byte => Byte = x => ~x & 1
-
-  implicit def int2Byte(x:Int): Byte = x.toByte
-
-  implicit def dataEntry2Int(x: DataEntry): Int = Int32.deserializer(x.data)
-
-  implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
-
-  implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
-
-  private implicit def dataEntry2Long(x: DataEntry): Long = Amount.deserializer(x.data)
 
   private implicit def try2Either(t: Try[Either[ValidationError, DataEntry]]): Either[ValidationError, DataEntry] =
     t.recover({ case _ => Left(OverflowError) }).get
@@ -104,34 +95,28 @@ object BasicOpcDiff extends OpcDiffer {
     DataEntry.fromBytes(constant)
 
   object BasicType extends Enumeration {
-    sealed case class basicTypeVal(
+    sealed case class BasicTypeVal(
       basicType: Int,
       len: Int,
       indexes: Seq[Int],
       op: (Array[Byte], Seq[DataEntry]) => Either[ValidationError, DataEntry])
     extends Val(basicType) { def *(n: Int): Int = n * basicType }
 
-    val Add         = basicTypeVal(1,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), add))
-    val Minus       = basicTypeVal(2,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), minus))
-    val Multiply    = basicTypeVal(3,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), multiply))
-    val Divide      = basicTypeVal(4,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), divide))
-    val Minimum     = basicTypeVal(5,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), minimum))
-    val Maximum     = basicTypeVal(6,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), maximum))
-    val Concat      = basicTypeVal(7,  4, Seq(1, 2), (b, d) => concat(d(b(1)), d(b(2))))
-    val ConstantGet = basicTypeVal(8,  2, Seq(),     (b, d) => constantGet(b.slice(1, b.length-1)))
-    val SqrtBigInt  = basicTypeVal(9,  3, Seq(1),    (b, d) => sqrt(d(b(1))))
-    val Convert     = basicTypeVal(10, 4, Seq(1, 2), (b, d) => convertion(d(b(1)), d(b(2))))
-    val And         = basicTypeVal(11, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bAnd))
-    val Or          = basicTypeVal(12, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bOr))
-    val Xor         = basicTypeVal(13, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bXor))
-    val Not         = basicTypeVal(14, 3, Seq(1),    (b, d) => not(d(b(1))))
+    val Add         = BasicTypeVal(1,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), add))
+    val Minus       = BasicTypeVal(2,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), minus))
+    val Multiply    = BasicTypeVal(3,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), multiply))
+    val Divide      = BasicTypeVal(4,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), divide))
+    val Minimum     = BasicTypeVal(5,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), minimum))
+    val Maximum     = BasicTypeVal(6,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), maximum))
+    val Concat      = BasicTypeVal(7,  4, Seq(1, 2), (b, d) => concat(d(b(1)), d(b(2))))
+    val ConstantGet = BasicTypeVal(8,  2, Seq(),     (b, d) => constantGet(b.slice(1, b.length-1)))
+    val SqrtBigInt  = BasicTypeVal(9,  3, Seq(1),    (b, d) => sqrt(d(b(1))))
+    val Convert     = BasicTypeVal(10, 4, Seq(1, 2), (b, d) => convertion(d(b(1)), d(b(2))))
+    val And         = BasicTypeVal(11, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bAnd))
+    val Or          = BasicTypeVal(12, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bOr))
+    val Xor         = BasicTypeVal(13, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bXor))
+    val Not         = BasicTypeVal(14, 3, Seq(1),    (b, d) => not(d(b(1))))
   }
-
-  // res is call-by-name
-  private def updateStack(dataStack: Seq[DataEntry], pointer: Byte,
-    res: => Either[ValidationError, DataEntry]): Either[ValidationError, Seq[DataEntry]] =
-    if (pointer > dataStack.length || pointer < 0) Left(ContractLocalVariableIndexOutOfRange)
-    else res.map(r => dataStack.patch(pointer, Seq(r), 1))
 
   private def formatRes[T] (res: T, dt: DataTypeVal[T]): Either[ValidationError, DataEntry] =
     formatResB[T](dt.serializer(res), dt)
@@ -139,19 +124,16 @@ object BasicOpcDiff extends OpcDiffer {
   private def formatResB[T] (res: Array[Byte], dt: DataTypeVal[T]): Either[ValidationError, DataEntry] =
     DataEntry.create(res, dt).left.map(_ => ValidationError.OverflowError)
 
-  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: BasicType.basicTypeVal) = updateStack(data, bytes.last, t.op(bytes, data))
+  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: BasicType.BasicTypeVal) = updateStack(data, bytes.last, t.op(bytes, data))
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(BasicType(f)).toOption) match {
-      case Some(t: BasicType.basicTypeVal) if checkBytesLength(bytes, t) && checkIndex(bytes, data, t) => differ(bytes, data, t)
+      case Some(t: BasicType.BasicTypeVal) if checkBytesLength(bytes, t) && checkIndexes(bytes, data, t.indexes) => differ(bytes, data, t)
       case _ => Left(ContractInvalidOPCData)
     }
 
-  private def checkBytesLength(bytes: Array[Byte], t: BasicType.basicTypeVal): Boolean = {
+  private def checkBytesLength(bytes: Array[Byte], t: BasicType.BasicTypeVal): Boolean = {
     (t == BasicType.ConstantGet && bytes.length > t.len) || (bytes.length == t.len)
   }
-
-  private def checkIndex(bytes: Array[Byte], dataStack: Seq[DataEntry], t: BasicType.basicTypeVal): Boolean =
-    t.indexes.map(bytes(_)).filterNot(idx =>  idx < dataStack.length && idx >= 0).isEmpty
 
 }

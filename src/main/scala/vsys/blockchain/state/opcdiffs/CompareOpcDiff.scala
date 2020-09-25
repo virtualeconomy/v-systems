@@ -1,40 +1,50 @@
 package vsys.blockchain.state.opcdiffs
 
-import com.google.common.primitives.Longs
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
+import vsys.blockchain.contract.DataType._
+import vsys.blockchain.state.opcdiffs.OpcDiffer._
 
+import scala.language.implicitConversions
 import scala.util.{Left, Right, Try}
 
 object CompareOpcDiff extends OpcDiffer {
 
-  def geq(x: DataEntry, y: DataEntry, dataStack: Seq[DataEntry],
-          pointer: Byte): Either[ValidationError, Seq[DataEntry]] = {
-    if (x.dataType == y.dataType) {
-      val supportList = List(DataType.Amount, DataType.Timestamp)
-      supportList.find(a => a == x.dataType) match {
-        case Some(_) => {
-          val xValue = Longs.fromByteArray(x.data)
-          val yValue = Longs.fromByteArray(y.data)
-          if (xValue >= yValue) {
-            Right(dataStack.patch(pointer, Seq(DataEntry(Array(1.toByte), DataType.Boolean)), 1))
-          } else {
-            Right(dataStack.patch(pointer, Seq(DataEntry(Array(0.toByte), DataType.Boolean)), 1))
-          }
-        }
-        case None => Left(ContractUnsupportedOPC)
-      }
+  case class NumComparator(int: (Int, Int) => Boolean, long: (Long, Long) => Boolean, bigInt: (BigInt, BigInt) => Boolean)
+
+  val ge  = NumComparator(_ >= _, _ >= _, _ >= _)
+  val gt  = NumComparator(_ >  _, _ >  _, _ >  _)
+  val le  = NumComparator(_ <= _, _ <= _, _ <= _)
+  val lt  = NumComparator(_ <  _, _ <  _, _ <  _)
+  val _eq = NumComparator(_ == _, _ == _, _ == _)
+  val _ne = NumComparator(_ != _, _ != _, _ != _)
+
+  implicit def booleanToDataEntry(b: Boolean): DataEntry = DataEntry(Array((if(b) 1 else 0).toByte), DataType.Boolean)
+
+  def numBiComparation(x: DataEntry, y: DataEntry, comparator: NumComparator): Either[ValidationError, DataEntry] =
+    if (x.dataType == y.dataType) x.dataType match {
+      case Int32      => Right(comparator.int(x, y))
+      case Amount     => Right(comparator.long(x, y))
+      case Timestamp  => Right(comparator.long(x, y))
+      case BigInteger => Right(comparator.bigInt(x, y))
+      case _ => Left(ContractUnsupportedOPC)
     } else Left(ContractDataTypeMismatch)
-  }
 
   object CompareType extends Enumeration {
-    val Geq = Value(1)
+    sealed case class CompareTypeVal(compareType: Int, op: NumComparator) extends Val(compareType) { def *(n: Int): Int = n * compareType }
+    val Ge = CompareTypeVal(1, ge)
+    val Gt = CompareTypeVal(2, gt)
+    val Le = CompareTypeVal(3, le)
+    val Lt = CompareTypeVal(4, lt)
+    val Eq = CompareTypeVal(5, _eq)
+    val Ne = CompareTypeVal(6, _ne)
   }
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(CompareType(f)).toOption) match {
-      case Some(CompareType.Geq) if bytes.length == 4 => geq(data(bytes(1)), data(bytes(2)), data, bytes(3))
+      case Some(t: CompareType.CompareTypeVal) if bytes.length == 4 && checkIndexes(bytes, data, Seq(1, 2)) =>
+        updateStack(data, bytes.last, numBiComparation(data(bytes(1)), data(bytes(2)), t.op))
       case _ => Left(ContractInvalidOPCData)
     }
 }
