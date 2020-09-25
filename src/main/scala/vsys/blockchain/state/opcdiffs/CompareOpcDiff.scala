@@ -41,10 +41,12 @@ object CompareOpcDiff extends OpcDiffer {
     val Ne = CompareTypeVal(6, _ne)
   }
 
+  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: CompareType.CompareTypeVal) =
+    updateStack(data, bytes.last, numBiComparation(data(bytes(1)), data(bytes(2)), t.op))
+
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(CompareType(f)).toOption) match {
-      case Some(t: CompareType.CompareTypeVal) if bytes.length == 4 && checkIndexes(bytes, data, Seq(1, 2)) =>
-        updateStack(data, bytes.last, numBiComparation(data(bytes(1)), data(bytes(2)), t.op))
+      case Some(t: CompareType.CompareTypeVal) if bytes.length == 4 && checkIndexes(bytes, data, Seq(1, 2)) => differ(bytes, data, t)
       case _ => Left(ContractInvalidOPCData)
     }
 }
