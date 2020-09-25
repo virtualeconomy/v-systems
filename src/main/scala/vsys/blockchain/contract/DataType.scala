@@ -161,7 +161,7 @@ object DataType extends Enumeration {
     deserializer      = b => BigInt(b.drop(2)),
     serializer        = i => i.toByteArray,
     jsonifier         = i => Json.toJson(i.toString),
-    extValidator      = _ => true)
+    extValidator      = b => b.length > 2)
 
   def fromByte(b: Byte): Option[DataTypeVal[_]] = Try(DataType(b).asInstanceOf[DataTypeVal[_]]).toOption
   
