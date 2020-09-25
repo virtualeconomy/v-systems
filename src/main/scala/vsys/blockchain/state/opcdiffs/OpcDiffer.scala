@@ -4,9 +4,7 @@ import com.google.common.primitives.Ints
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
-import vsys.blockchain.contract.DataType._
 
-import scala.language.implicitConversions
 import scala.util.Try
 
 trait OpcDiffer {
@@ -57,16 +55,6 @@ object OpcDiffer {
 
   def apply(context: ExecutionContext)(opc: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
     opc.headOption.flatMap(OpcType.fromByte(_)).toRight(ContractUnsupportedOPC).flatMap(_.opcDiffer.parseBytes(context)(opc.tail, data))
-
-  implicit def int2Byte(x:Int): Byte = x.toByte
-
-  implicit def dataEntry2Int(x: DataEntry): Int = Int32.deserializer(x.data)
-
-  implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
-
-  implicit def dataEntry2Long(x: DataEntry): Long = Amount.deserializer(x.data)  // same as timestamp
-
-  implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
 
   // res is call-by-name
   def updateStack(dataStack: Seq[DataEntry], pointer: Byte, res: => Either[ValidationError, DataEntry]): Either[ValidationError, Seq[DataEntry]] =

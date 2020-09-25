@@ -4,6 +4,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.DataType._
+import vsys.blockchain.contract.DataEntry.ConvertHelper._
 import vsys.blockchain.state.opcdiffs.OpcDiffer._
 
 import scala.language.implicitConversions
@@ -20,7 +21,7 @@ object CompareOpcDiff extends OpcDiffer {
   val _eq = NumComparator(_ == _, _ == _, _ == _)
   val _ne = NumComparator(_ != _, _ != _, _ != _)
 
-  implicit def booleanToDataEntry(b: Boolean): DataEntry = DataEntry(Array((if(b) 1 else 0).toByte), DataType.Boolean)
+  private implicit def booleanToDataEntry(b: Boolean): DataEntry = DataEntry(Array((if(b) 1 else 0).toByte), DataType.Boolean)
 
   def numBiComparation(x: DataEntry, y: DataEntry, comparator: NumComparator): Either[ValidationError, DataEntry] =
     if (x.dataType == y.dataType) x.dataType match {

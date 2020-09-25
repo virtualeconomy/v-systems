@@ -4,6 +4,7 @@ import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 import vsys.blockchain.contract.DataType._
+import vsys.blockchain.contract.DataEntry.ConvertHelper._
 import vsys.blockchain.state.opcdiffs.OpcDiffer._
 
 import scala.language.implicitConversions

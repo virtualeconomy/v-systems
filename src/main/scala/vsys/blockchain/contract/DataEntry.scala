@@ -5,7 +5,9 @@ import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
+import vsys.blockchain.contract.DataType._
 
+import scala.language.implicitConversions
 import scala.util.Success
 
 case class DataEntry(data: Array[Byte],
@@ -84,5 +86,18 @@ object DataEntry {
       case Right((acc, _)) => Right(acc)
       case Left(l) => Left(l)
     }
+  }
+
+  object ConvertHelper {
+
+    implicit def int2Byte(x:Int): Byte = x.toByte
+
+    implicit def dataEntry2Int(x: DataEntry): Int = Int32.deserializer(x.data)
+
+    implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
+
+    implicit def dataEntry2Long(x: DataEntry): Long = Amount.deserializer(x.data)  // same as timestamp
+
+    implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
   }
 }
