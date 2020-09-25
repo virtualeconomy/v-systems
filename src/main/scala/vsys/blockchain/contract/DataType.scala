@@ -18,8 +18,8 @@ object DataType extends Enumeration {
   val MaxBigIntLength = 255       // less than 1024 bits
 
   sealed case class DataTypeVal[T](dataType: Int, lenFixed: Boolean, maxLen: Int,
-                                   deserializer: Array[Byte] => T,
-                                   serializer: T => Array[Byte], // WITHOUT length prefix
+                                   deserializer: Array[Byte] => T,  // take bytes WITH length prefix if length not fixed
+                                   serializer: T => Array[Byte], // returns WITHOUT length prefix
                                    jsonifier: T => JsValue,
                                    private val extValidator: Array[Byte] => Boolean) extends Val(dataType) {
 
@@ -78,7 +78,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxShortTextLength,
     deserializer      = b => new String(b.drop(2)),
-    serializer        = s => arrayShortLengthToByteArray(s.getBytes) ++ s.getBytes,
+    serializer        = s => s.getBytes,
     jsonifier         = Json.toJson(_),
     extValidator      = _ => true)
 
@@ -135,7 +135,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxShortBytesLength,
     deserializer      = b => b.drop(2),
-    serializer        = b => arrayShortLengthToByteArray(b) ++ b,
+    serializer        = b => b,
     jsonifier         = b => Json.toJson(Base58.encode(b)),
     extValidator      = _ => true)
 
@@ -151,7 +151,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxOpcBlockLength,
     deserializer      = b => b.drop(2),
-    serializer        = b => arrayShortLengthToByteArray(b) ++ b,
+    serializer        = b => b,
     jsonifier         = b => Json.toJson(Base58.encode(b)),
     extValidator      = _ => true)
 
@@ -159,7 +159,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxBigIntLength,
     deserializer      = b => BigInt(b.drop(2)),
-    serializer        = i => arrayShortLengthToByteArray(i.toByteArray) ++ i.toByteArray,
+    serializer        = i => i.toByteArray,
     jsonifier         = i => Json.toJson(i.toString),
     extValidator      = _ => true)
 

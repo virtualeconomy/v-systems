@@ -10,28 +10,47 @@ import scala.util.{Left, Try}
 
 object BasicOpcDiff extends OpcDiffer {
 
-  case class BiOperator(int$1: (Int, Int) => Int, long$1: (Long, Long) => Long, bigInt$1: (BigInt, BigInt) => BigInt) {
+  case class NumBiOperator(int$1: (Int, Int) => Int, long$1: (Long, Long) => Long, bigInt$1: (BigInt, BigInt) => BigInt) {
     val int: (Int, Int) => Try[Int] = (x, y) => Try(int$1(x, y))
     val long: (Long, Long) => Try[Long] = (x, y) => Try(long$1(x, y))
     val bigInt: (BigInt, BigInt) => Try[BigInt] = (x, y) => Try(bigInt$1(x, y))
   }
-  val add      = BiOperator(Math.addExact,      Math.addExact,      _ + _)
-  val minus    = BiOperator(Math.subtractExact, Math.subtractExact, _ - _)
-  val multiply = BiOperator(Math.multiplyExact, Math.multiplyExact, _ * _)
-  val divide   = BiOperator(Math.floorDiv,      Math.floorDiv,      _ / _)
-  val minimum  = BiOperator(Math.min,           Math.min,           (x, y) => x.min(y))
-  val maximum  = BiOperator(Math.max,           Math.max,           (x, y) => x.max(y))
+  val add      = NumBiOperator(Math.addExact,      Math.addExact,      _ + _)
+  val minus    = NumBiOperator(Math.subtractExact, Math.subtractExact, _ - _)
+  val multiply = NumBiOperator(Math.multiplyExact, Math.multiplyExact, _ * _)
+  val divide   = NumBiOperator(Math.floorDiv,      Math.floorDiv,      _ / _)
+  val minimum  = NumBiOperator(Math.min,           Math.min,           (x, y) => x.min(y))
+  val maximum  = NumBiOperator(Math.max,           Math.max,           (x, y) => x.max(y))
 
-  private implicit def dataEntry2Int(x: DataEntry): Int = Int32.deserializer(x.data)
+  // babylonian method
+  def sqrtBigInt(y: BigInt): BigInt = {
+    if (y > 3) Stream.iterate((y, (y >> 1) + 1)){ case (z, x) => (x, (y / x + x) >> 1) }.dropWhile{ case(z, x) => x < z }.head._1
+    else if (y > 0) 1 else 0
+  }
+
+  // not converting byte to boolean
+  case class BoolByteBiOperator(val op: (Byte, Byte) => Byte)
+
+  val bAnd = BoolByteBiOperator(_ & _)
+  val bOr  = BoolByteBiOperator(_ | _)
+  val bXor = BoolByteBiOperator(_ ^ _)
+
+  val bNot: Byte => Byte = x => ~x & 1
+
+  implicit def int2Byte(x:Int): Byte = x.toByte
+
+  implicit def dataEntry2Int(x: DataEntry): Int = Int32.deserializer(x.data)
+
+  implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
+
+  implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
 
   private implicit def dataEntry2Long(x: DataEntry): Long = Amount.deserializer(x.data)
-
-  private implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
 
   private implicit def try2Either(t: Try[Either[ValidationError, DataEntry]]): Either[ValidationError, DataEntry] =
     t.recover({ case _ => Left(OverflowError) }).get
 
-  def operation(x: DataEntry, y: DataEntry, operator: BiOperator): Either[ValidationError, DataEntry] =
+  def numBiOperation(x: DataEntry, y: DataEntry, operator: NumBiOperator): Either[ValidationError, DataEntry] =
     if (x.dataType == y.dataType) x.dataType match {
       case Int32      => operator.int(x, y).map(formatRes[Int](_, Int32))
       case Amount     => operator.long(x, y).map(formatRes[Long](_, Amount))
@@ -50,11 +69,15 @@ object BasicOpcDiff extends OpcDiffer {
       case _ => Left(ContractUnsupportedOPC)
     }
 
-  // babylonian method
-  def sqrtBigInt(y: BigInt): BigInt = {
-    if (y > 3) Stream.iterate((y, (y >> 1) + 1)){ case (z, x) => (x, (y / x + x) >> 1) }.dropWhile{ case(z, x) => x < z }.head._1
-    else if (y > 0) 1 else 0
-  }
+  def boolBiOperation(x: DataEntry, y: DataEntry, operator: BoolByteBiOperator): Either[ValidationError, DataEntry] =
+    if (x.dataType == y.dataType && x.dataType == Boolean) formatResB[Boolean](Array(operator.op(x, y)), Boolean)
+    else Left(ContractInvalidOPCData)
+
+  def not(x: DataEntry): Either[ValidationError, DataEntry] =
+    x.dataType match {
+      case Boolean => formatResB[Boolean](Array(bNot(x)), Boolean)
+      case _ => Left(ContractUnsupportedOPC)
+    }
 
   def convertion(x: DataEntry, t: DataEntry): Either[ValidationError, DataEntry] =
     t.dataType match {
@@ -74,7 +97,6 @@ object BasicOpcDiff extends OpcDiffer {
       case _ => Left(ContractInvalidOPCData)
     }
 
-
   def concat(x: DataEntry, y: DataEntry): Either[ValidationError, DataEntry] =
     DataEntry.create(x.data ++ y.data, DataType.ShortBytes)
 
@@ -89,16 +111,20 @@ object BasicOpcDiff extends OpcDiffer {
       op: (Array[Byte], Seq[DataEntry]) => Either[ValidationError, DataEntry])
     extends Val(basicType) { def *(n: Int): Int = n * basicType }
 
-    val Add         = basicTypeVal(1,  4, Seq(1, 2), (b, d) => operation(d(b(1)), d(b(2)), add))
-    val Minus       = basicTypeVal(2,  4, Seq(1, 2), (b, d) => operation(d(b(1)), d(b(2)), minus))
-    val Multiply    = basicTypeVal(3,  4, Seq(1, 2), (b, d) => operation(d(b(1)), d(b(2)), multiply))
-    val Divide      = basicTypeVal(4,  4, Seq(1, 2), (b, d) => operation(d(b(1)), d(b(2)), divide))
-    val Minimum     = basicTypeVal(5,  4, Seq(1, 2), (b, d) => operation(d(b(1)), d(b(2)), minimum))
-    val Maximum     = basicTypeVal(6,  4, Seq(1, 2), (b, d) => operation(d(b(1)), d(b(2)), maximum))
+    val Add         = basicTypeVal(1,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), add))
+    val Minus       = basicTypeVal(2,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), minus))
+    val Multiply    = basicTypeVal(3,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), multiply))
+    val Divide      = basicTypeVal(4,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), divide))
+    val Minimum     = basicTypeVal(5,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), minimum))
+    val Maximum     = basicTypeVal(6,  4, Seq(1, 2), (b, d) => numBiOperation(d(b(1)), d(b(2)), maximum))
     val Concat      = basicTypeVal(7,  4, Seq(1, 2), (b, d) => concat(d(b(1)), d(b(2))))
     val ConstantGet = basicTypeVal(8,  2, Seq(),     (b, d) => constantGet(b.slice(1, b.length-1)))
     val SqrtBigInt  = basicTypeVal(9,  3, Seq(1),    (b, d) => sqrt(d(b(1))))
-    val Convert     = basicTypeVal(10, 3, Seq(1, 2), (b, d) => convertion(d(b(1)), d(b(1))))
+    val Convert     = basicTypeVal(10, 4, Seq(1, 2), (b, d) => convertion(d(b(1)), d(b(2))))
+    val And         = basicTypeVal(11, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bAnd))
+    val Or          = basicTypeVal(12, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bOr))
+    val Xor         = basicTypeVal(13, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bXor))
+    val Not         = basicTypeVal(14, 3, Seq(1),    (b, d) => not(d(b(1))))
   }
 
   // res is call-by-name
