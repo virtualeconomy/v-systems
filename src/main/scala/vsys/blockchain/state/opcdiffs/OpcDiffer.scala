@@ -69,12 +69,11 @@ object OpcDiffer {
   implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
 
   // res is call-by-name
-  def updateStack(dataStack: Seq[DataEntry], pointer: Byte,
-    res: => Either[ValidationError, DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+  def updateStack(dataStack: Seq[DataEntry], pointer: Byte, res: => Either[ValidationError, DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     if (pointer > dataStack.length || pointer < 0) Left(ContractLocalVariableIndexOutOfRange)
     else res.map(r => dataStack.patch(pointer, Seq(r), 1))
 
-  // indexes.max < bytes.length is ensured before calling this
+  // indexes.max < bytes.length should be ensured before calling this
   def checkIndexes(bytes: Array[Byte], dataStack: Seq[DataEntry], indexes: Seq[Int]): Boolean =
     indexes.map(bytes(_)).filterNot(idx =>  idx < dataStack.length && idx >= 0).isEmpty
 }
