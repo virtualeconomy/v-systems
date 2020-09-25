@@ -19,7 +19,7 @@ object DataType extends Enumeration {
 
   sealed case class DataTypeVal[T](dataType: Int, lenFixed: Boolean, maxLen: Int,
                                    deserializer: Array[Byte] => T,
-                                   serializer: T => Array[Byte],
+                                   serializer: T => Array[Byte], // WITHOUT length prefix
                                    jsonifier: T => JsValue,
                                    private val extValidator: Array[Byte] => Boolean) extends Val(dataType) {
 
@@ -32,6 +32,15 @@ object DataType extends Enumeration {
         || (!lenFixed && data.length >= 2 && Shorts.fromByteArray(data.take(2)) == data.drop(2).length && data.drop(2).length <= maxLen))
       && extValidator(data))
   }
+
+
+  val DataTypeObj     = DataTypeVal[DataTypeVal[_]](0,
+    lenFixed          = true,
+    maxLen            = 1,
+    deserializer      = x => fromByte(x(1)).get,
+    serializer        = v => Array(v.id.toByte),
+    jsonifier         = v => Json.toJson(v.toString),
+    extValidator      = x => fromByte(x(1)).nonEmpty)
 
   val PublicKey       = DataTypeVal[PublicKeyAccount](1,
     lenFixed          = true,
@@ -154,7 +163,7 @@ object DataType extends Enumeration {
     jsonifier         = i => Json.toJson(i.toString),
     extValidator      = _ => true)
 
-  def fromByte(b: Byte): Option[DataType.DataTypeVal[_]] = Try(DataType(b).asInstanceOf[DataTypeVal[_]]).toOption
+  def fromByte(b: Byte): Option[DataTypeVal[_]] = Try(DataType(b).asInstanceOf[DataTypeVal[_]]).toOption
   
   def check(a: Byte, b: Byte): Boolean = {
     if (a == b) true
