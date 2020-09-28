@@ -80,6 +80,7 @@ trait TransactionGen {
   val feeScaleGen: Gen[Short] = Gen.const(100)
   val slotidGen: Gen[Int] = Gen.choose(0, TestFunctionalitySettings.Enabled.numOfSlots - 1)
   val attachmentGen: Gen[Array[Byte]] = genBoundedBytes(0, PaymentTransaction.MaxAttachmentSize)
+  val bigIntGen: Gen[Array[Byte]] = genBoundedBytes(1, PaymentTransaction.MaxAttachmentSize)
   val entryGen: Gen[Entry] = for {
     data: String <- entryDataStringGen
   } yield Entry.buildEntry(data, DatabaseDataType.ByteArray).explicitGet()

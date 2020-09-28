@@ -37,10 +37,10 @@ object DataType extends Enumeration {
   val DataTypeObj     = DataTypeVal[DataTypeVal[_]](0,
     lenFixed          = true,
     maxLen            = 1,
-    deserializer      = x => fromByte(x(1)).get,
+    deserializer      = x => fromByte(x(0)).get,
     serializer        = v => Array(v.id.toByte),
     jsonifier         = v => Json.toJson(v.toString),
-    extValidator      = x => fromByte(x(1)).nonEmpty)
+    extValidator      = x => fromByte(x(0)).nonEmpty)
 
   val PublicKey       = DataTypeVal[PublicKeyAccount](1,
     lenFixed          = true,
