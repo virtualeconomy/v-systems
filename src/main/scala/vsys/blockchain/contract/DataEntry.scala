@@ -1,6 +1,6 @@
 package vsys.blockchain.contract
 
-import com.google.common.primitives.{Shorts, Bytes}
+import com.google.common.primitives.{Shorts, Bytes, Longs, Ints}
 import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.ValidationError
@@ -96,7 +96,7 @@ object DataEntry {
 
     implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
 
-    implicit def dataEntry2Long(x: DataEntry): Long = Longs.fromByteArray(x.data)  // same as timestamp
+    implicit def dataEntry2Long(x: DataEntry): Long = Longs.fromByteArray(x.data)
 
     implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
   }
