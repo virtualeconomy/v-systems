@@ -92,11 +92,11 @@ object DataEntry {
 
     implicit def int2Byte(x:Int): Byte = x.toByte
 
-    implicit def dataEntry2Int(x: DataEntry): Int = Int32.deserializer(x.data)
+    implicit def dataEntry2Int(x: DataEntry): Int = Ints.fromByteArray(x.data)
 
     implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
 
-    implicit def dataEntry2Long(x: DataEntry): Long = Amount.deserializer(x.data)  // same as timestamp
+    implicit def dataEntry2Long(x: DataEntry): Long = Longs.fromByteArray(x.data)  // same as timestamp
 
     implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
   }

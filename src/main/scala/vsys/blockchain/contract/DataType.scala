@@ -15,7 +15,7 @@ object DataType extends Enumeration {
   val MaxShortTextLength = 140
   val MaxShortBytesLength = 255
   val MaxOpcBlockLength = 255
-  val MaxBigIntLength = 255       // less than 1024 bits
+  val MaxBigIntLength = 255       // less than 2048 bits
 
   sealed case class DataTypeVal[T](dataType: Int, lenFixed: Boolean, maxLen: Int,
                                    deserializer: Array[Byte] => T,  // take bytes WITH length prefix if length not fixed
