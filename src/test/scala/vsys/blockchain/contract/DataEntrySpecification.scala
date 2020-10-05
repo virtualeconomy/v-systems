@@ -52,7 +52,7 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
   } yield DataEntry(data, DataType.OpcBlock)
 
   val validBigIntegerEntryGen: Gen[DataEntry] = for {
-    data <- attachmentGen.map(Deser.serializeArray)
+    data <- bigIntGen.map(Deser.serializeArray)
   } yield DataEntry(data, DataType.BigInteger)
 
   property("convert entry to bytes and convert back") {
@@ -126,6 +126,8 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
 
   property("report invalid and valid data type") {
     val byteArray1 = Array[Byte](0, 118, 97, 108, 117, 101, 49)
+    val byteArray1_1 = Array[Byte](0, 1)
+    val byteArray1_2 = Array[Byte](0, 20)
     val byteArray2 = Array[Byte](4, 118, 97, 108, 117, 101, 49)
     val byteArray3 = Array.fill[Byte](1 + 32)(1)
     val byteArray4 = Array.fill[Byte](1 + 26)(2)
@@ -140,7 +142,10 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
     val byteArray13 = Array[Byte](12, 118, 97, 108, 117, 101, 49)
     val byteArray14 = Array[Byte](13, 0, 0)
     val byteArray15 = Array[Byte](14, 0, 0)
+    val byteArray15_1 = Array[Byte](14, 0, 1, 100)
     DataEntry.fromBytes(byteArray1) should be (Left(InvalidDataEntry))
+    DataEntry.fromBytes(byteArray1_1).map(_.dataType) should be (Right(DataType.DataTypeObj))
+    DataEntry.fromBytes(byteArray1_2) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray2) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray3).map(_.dataType) should be (Right(DataType.PublicKey))
     DataEntry.fromBytes(byteArray4).map(_.dataType) should be (Left(InvalidDataEntry))
@@ -154,7 +159,9 @@ class DataEntrySpecification extends PropSpec with PropertyChecks with Generator
     DataEntry.fromBytes(byteArray12).map(_.dataType) should be (Right(DataType.ShortBytes))
     DataEntry.fromBytes(byteArray13).map(_.dataType) should be (Left(InvalidDataEntry))
     DataEntry.fromBytes(byteArray14).map(_.dataType) should be (Right(DataType.OpcBlock))
-    DataEntry.fromBytes(byteArray15).map(_.dataType) should be (Right(DataType.BigInteger))
+    DataEntry.fromBytes(byteArray15).map(_.dataType) should be (Left(InvalidDataEntry))
+    DataEntry.fromBytes(byteArray15_1).map(_.dataType) should be (Right(DataType.BigInteger))
+
   }
 
   private def assertEys(first: DataEntry, second: DataEntry): Unit = {

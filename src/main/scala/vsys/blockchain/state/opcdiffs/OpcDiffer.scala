@@ -2,7 +2,7 @@ package vsys.blockchain.state.opcdiffs
 
 import com.google.common.primitives.Ints
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.ContractUnsupportedOPC
+import vsys.blockchain.transaction.ValidationError._
 import vsys.blockchain.contract.{DataEntry, DataType, ExecutionContext}
 
 import scala.util.Try
@@ -56,4 +56,12 @@ object OpcDiffer {
   def apply(context: ExecutionContext)(opc: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] =
     opc.headOption.flatMap(OpcType.fromByte(_)).toRight(ContractUnsupportedOPC).flatMap(_.opcDiffer.parseBytes(context)(opc.tail, data))
 
+  // res is call-by-name
+  def updateStack(dataStack: Seq[DataEntry], pointer: Byte, res: => Either[ValidationError, DataEntry]): Either[ValidationError, Seq[DataEntry]] =
+    if (pointer > dataStack.length || pointer < 0) Left(ContractLocalVariableIndexOutOfRange)
+    else res.map(r => dataStack.patch(pointer, Seq(r), 1))
+
+  // indexes.max < bytes.length should be ensured before calling this
+  def checkIndexes(bytes: Array[Byte], dataStack: Seq[DataEntry], indexes: Seq[Int]): Boolean =
+    indexes.map(bytes(_)).filterNot(idx =>  idx < dataStack.length && idx >= 0).isEmpty
 }

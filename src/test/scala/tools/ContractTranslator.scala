@@ -342,7 +342,7 @@ object ContractTranslator extends App {
 
       case opcType: Byte if opcType == OpcType.CompareOpc.id =>
         y match {
-          case opcType: Byte if opcType == CompareType.Geq.id => nameList(data(4)) + " = operation.compare.greater(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CompareType.Ge.id => nameList(data(4)) + " = operation.compare.greater(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
 

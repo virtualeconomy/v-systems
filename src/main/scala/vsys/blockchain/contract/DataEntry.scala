@@ -1,11 +1,13 @@
 package vsys.blockchain.contract
 
-import com.google.common.primitives.{Shorts, Bytes}
+import com.google.common.primitives.{Shorts, Bytes, Longs, Ints}
 import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError.InvalidDataEntry
+import vsys.blockchain.contract.DataType._
 
+import scala.language.implicitConversions
 import scala.util.Success
 
 case class DataEntry(data: Array[Byte],
@@ -34,7 +36,7 @@ object DataEntry {
     else doCreate(DataType.arrayShortLengthToByteArray(data) ++ data, dataType)
 
   // length unfixed data array should start with 2 bytes which indicates length of content of data
-  def doCreate(data: Array[Byte], dataType: DataType.DataTypeVal[_]): Either[ValidationError, DataEntry] =
+  private def doCreate(data: Array[Byte], dataType: DataType.DataTypeVal[_]): Either[ValidationError, DataEntry] =
     if (dataType.validator(data)) Right(DataEntry(data, dataType)) else Left(InvalidDataEntry)
 
   def fromBytes(bytes: Array[Byte]): Either[ValidationError, DataEntry] = {
@@ -84,5 +86,18 @@ object DataEntry {
       case Right((acc, _)) => Right(acc)
       case Left(l) => Left(l)
     }
+  }
+
+  object ConvertHelper {
+
+    implicit def int2Byte(x:Int): Byte = x.toByte
+
+    implicit def dataEntry2Int(x: DataEntry): Int = Ints.fromByteArray(x.data)
+
+    implicit def dataEntry2BigInt(x: DataEntry): BigInt = BigInteger.deserializer(x.data)
+
+    implicit def dataEntry2Long(x: DataEntry): Long = Longs.fromByteArray(x.data)
+
+    implicit def boolDataEntry2Byte(x: DataEntry): Byte = x.data(0)
   }
 }

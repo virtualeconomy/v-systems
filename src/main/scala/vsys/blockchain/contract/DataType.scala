@@ -15,11 +15,11 @@ object DataType extends Enumeration {
   val MaxShortTextLength = 140
   val MaxShortBytesLength = 255
   val MaxOpcBlockLength = 255
-  val MaxBigIntLength = 255       // less than 1024 bits
+  val MaxBigIntLength = 255       // less than 2048 bits
 
   sealed case class DataTypeVal[T](dataType: Int, lenFixed: Boolean, maxLen: Int,
-                                   deserializer: Array[Byte] => T,
-                                   serializer: T => Array[Byte],
+                                   deserializer: Array[Byte] => T,  // take bytes WITH length prefix if length not fixed
+                                   serializer: T => Array[Byte], // returns WITHOUT length prefix
                                    jsonifier: T => JsValue,
                                    private val extValidator: Array[Byte] => Boolean) extends Val(dataType) {
 
@@ -32,6 +32,15 @@ object DataType extends Enumeration {
         || (!lenFixed && data.length >= 2 && Shorts.fromByteArray(data.take(2)) == data.drop(2).length && data.drop(2).length <= maxLen))
       && extValidator(data))
   }
+
+
+  val DataTypeObj     = DataTypeVal[DataTypeVal[_]](0,
+    lenFixed          = true,
+    maxLen            = 1,
+    deserializer      = x => fromByte(x(0)).get,
+    serializer        = v => Array(v.id.toByte),
+    jsonifier         = v => Json.toJson(v.toString),
+    extValidator      = x => fromByte(x(0)).nonEmpty)
 
   val PublicKey       = DataTypeVal[PublicKeyAccount](1,
     lenFixed          = true,
@@ -69,7 +78,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxShortTextLength,
     deserializer      = b => new String(b.drop(2)),
-    serializer        = s => arrayShortLengthToByteArray(s.getBytes) ++ s.getBytes,
+    serializer        = s => s.getBytes,
     jsonifier         = Json.toJson(_),
     extValidator      = _ => true)
 
@@ -126,7 +135,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxShortBytesLength,
     deserializer      = b => b.drop(2),
-    serializer        = b => arrayShortLengthToByteArray(b) ++ b,
+    serializer        = b => b,
     jsonifier         = b => Json.toJson(Base58.encode(b)),
     extValidator      = _ => true)
 
@@ -142,7 +151,7 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxOpcBlockLength,
     deserializer      = b => b.drop(2),
-    serializer        = b => arrayShortLengthToByteArray(b) ++ b,
+    serializer        = b => b,
     jsonifier         = b => Json.toJson(Base58.encode(b)),
     extValidator      = _ => true)
 
@@ -150,11 +159,11 @@ object DataType extends Enumeration {
     lenFixed          = false,
     maxLen            = MaxBigIntLength,
     deserializer      = b => BigInt(b.drop(2)),
-    serializer        = i => arrayShortLengthToByteArray(i.toByteArray) ++ i.toByteArray,
+    serializer        = i => i.toByteArray,
     jsonifier         = i => Json.toJson(i.toString),
-    extValidator      = _ => true)
+    extValidator      = b => b.length > 2)
 
-  def fromByte(b: Byte): Option[DataType.DataTypeVal[_]] = Try(DataType(b).asInstanceOf[DataTypeVal[_]]).toOption
+  def fromByte(b: Byte): Option[DataTypeVal[_]] = Try(DataType(b).asInstanceOf[DataTypeVal[_]]).toOption
   
   def check(a: Byte, b: Byte): Boolean = {
     if (a == b) true

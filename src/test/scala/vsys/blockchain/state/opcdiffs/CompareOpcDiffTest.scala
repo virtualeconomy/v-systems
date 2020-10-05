@@ -11,17 +11,17 @@ import scala.util.{Left, Right}
 class CompareOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   property("test compare opcs") {
-    CompareOpcDiff.geq(DataEntry(Longs.toByteArray(1), DataType.Amount), DataEntry(
-      Longs.toByteArray(1), DataType.Amount), Seq.empty, 0) should be (
-      Right(Seq(DataEntry(Array(1.toByte), DataType.Boolean))))
-    CompareOpcDiff.geq(DataEntry(Longs.toByteArray(0), DataType.Amount), DataEntry(
-      Longs.toByteArray(1), DataType.Amount), Seq.empty, 0) should be (
-      Right(Seq(DataEntry(Array(0.toByte), DataType.Boolean))))
-    CompareOpcDiff.geq(DataEntry(Ints.toByteArray(0), DataType.Int32), DataEntry(
-      Ints.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
+    CompareOpcDiff.numBiComparation(DataEntry(Longs.toByteArray(1), DataType.Amount), DataEntry(
+      Longs.toByteArray(1), DataType.Amount), CompareOpcDiff.ge) should be (
+      Right(DataEntry(Array(1.toByte), DataType.Boolean)))
+    CompareOpcDiff.numBiComparation(DataEntry(Longs.toByteArray(0), DataType.Amount), DataEntry(
+      Longs.toByteArray(1), DataType.Amount), CompareOpcDiff.ge) should be (
+      Right(DataEntry(Array(0.toByte), DataType.Boolean)))
+    CompareOpcDiff.numBiComparation(DataEntry(Ints.toByteArray(0), DataType.Balance), DataEntry(
+      Ints.toByteArray(1), DataType.Balance), CompareOpcDiff.ge) should be (
       Left(ContractUnsupportedOPC))
-    CompareOpcDiff.geq(DataEntry(Longs.toByteArray(0), DataType.Amount), DataEntry(
-      Ints.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
+    CompareOpcDiff.numBiComparation(DataEntry(Longs.toByteArray(0), DataType.Amount), DataEntry(
+      Ints.toByteArray(1), DataType.Int32), CompareOpcDiff.ge) should be (
       Left(ContractDataTypeMismatch))
   }
 }
