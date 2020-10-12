@@ -91,5 +91,36 @@ class CDBVOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenP
       Array[Byte](0.toByte, 3.toByte, 4.toByte), DataEntry(
         Longs.toByteArray(1), DataType.Amount), DataEntry(
         Longs.toByteArray(1), DataType.Int32)) should be (Left(ContractDataTypeMismatch))
+
+    CDBVOpcDiff.valueAdd(executionContext)(
+      Array[Byte](0.toByte, 3.toByte), DataEntry(
+        Longs.toByteArray(0), DataType.Amount)).right.get.contractNumDB(
+      ByteStr(tx.contractId.bytes.arr ++ Array[Byte](0.toByte))) shouldEqual 0
+    CDBVOpcDiff.valueAdd(executionContext)(
+      Array[Byte](0.toByte, 2.toByte), DataEntry(
+        Longs.toByteArray(0), DataType.ShortBytes)) should be (Left(ContractInvalidStateVariable))
+    CDBVOpcDiff.valueAdd(executionContext)(
+      Array[Byte](0.toByte, 3.toByte), DataEntry(
+        Longs.toByteArray(-1), DataType.Amount)) should be (Left(InvalidDataEntry))
+    CDBVOpcDiff.valueAdd(executionContext)(
+      Array[Byte](0.toByte, 4.toByte), DataEntry(
+        Longs.toByteArray(1), DataType.Int32)) should be (Left(ContractDataTypeMismatch))
+
+    CDBVOpcDiff.valueMinus(executionContext)(
+      Array[Byte](0.toByte, 3.toByte), DataEntry(
+        Longs.toByteArray(0), DataType.Amount)).right.get.contractNumDB(
+      ByteStr(tx.contractId.bytes.arr ++ Array[Byte](0.toByte))) shouldEqual 0
+    CDBVOpcDiff.valueMinus(executionContext)(
+      Array[Byte](0.toByte, 2.toByte), DataEntry(
+        Longs.toByteArray(0), DataType.ShortBytes)) should be (Left(ContractInvalidStateVariable))
+    CDBVOpcDiff.valueMinus(executionContext)(
+      Array[Byte](0.toByte, 3.toByte), DataEntry(
+        Longs.toByteArray(-1), DataType.Amount)) should be (Left(InvalidDataEntry))
+    CDBVOpcDiff.valueMinus(executionContext)(
+      Array[Byte](0.toByte, 3.toByte), DataEntry(
+        Longs.toByteArray(1), DataType.Amount)) should be (Left(ContractMapValueInsufficient))
+    CDBVOpcDiff.valueMinus(executionContext)(
+      Array[Byte](0.toByte, 4.toByte), DataEntry(
+        Longs.toByteArray(1), DataType.Int32)) should be (Left(ContractDataTypeMismatch))
   }
 }
