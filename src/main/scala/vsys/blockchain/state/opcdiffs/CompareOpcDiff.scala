@@ -12,8 +12,6 @@ import scala.util.{Left, Right, Try}
 
 object CompareOpcDiff extends OpcDiffer {
 
-
-
   case class NumComparator(int: (Int, Int) => Boolean, long: (Long, Long) => Boolean, bigInt: (BigInt, BigInt) => Boolean)
 
   val ge  = NumComparator(_ >= _, _ >= _, _ >= _)
