@@ -33,21 +33,30 @@ object CompareOpcDiff extends OpcDiffer {
     } else Left(ContractDataTypeMismatch)
 
   object CompareType extends Enumeration {
-    sealed case class CompareTypeVal(compareType: Int, op: NumComparator) extends Val(compareType) { def *(n: Int): Int = n * compareType }
-    val Ge = CompareTypeVal(1, ge)
-    val Gt = CompareTypeVal(2, gt)
-    val Le = CompareTypeVal(3, le)
-    val Lt = CompareTypeVal(4, lt)
-    val Eq = CompareTypeVal(5, _eq)
-    val Ne = CompareTypeVal(6, _ne)
+    class CompareTypeVal(compareType: Int) extends Val(compareType) { def *(n: Int): Int = n * compareType }
+    sealed case class NumCompareTypeVal(compareType: Int, op: NumComparator) extends CompareTypeVal(compareType)
+    sealed case class BytesCompareTypeVal(compareType: Int, op: (DataEntry, DataEntry) => Boolean) extends CompareTypeVal(compareType)
+    val Ge  = NumCompareTypeVal(1, ge)
+    val Gt  = NumCompareTypeVal(2, gt)
+    val Le  = NumCompareTypeVal(3, le)
+    val Lt  = NumCompareTypeVal(4, lt)
+    val Eq  = NumCompareTypeVal(5, _eq)
+    val Ne  = NumCompareTypeVal(6, _ne)
+    val Beq = BytesCompareTypeVal(7, _ == _)
+    val Bne = BytesCompareTypeVal(8, _ != _)
   }
 
-  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: CompareType.CompareTypeVal) =
+  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: CompareType.NumCompareTypeVal) =
     updateStack(data, bytes.last, numBiComparation(data(bytes(1)), data(bytes(2)), t.op))
 
+  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: CompareType.BytesCompareTypeVal) =
+    updateStack(data, bytes.last, Right(t.op(data(bytes(1)), data(bytes(2)))))
+
+  private val ensured = (b: Array[Byte], d: Seq[DataEntry]) => b.length == 4 && checkIndexes(b, d, Seq(1, 2))
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(CompareType(f)).toOption) match {
-      case Some(t: CompareType.CompareTypeVal) if bytes.length == 4 && checkIndexes(bytes, data, Seq(1, 2)) => differ(bytes, data, t)
+      case Some(t: CompareType.NumCompareTypeVal) if ensured(bytes, data) => differ(bytes, data, t)
+      case Some(t: CompareType.BytesCompareTypeVal) if ensured(bytes, data) => differ(bytes, data, t)
       case _ => Left(ContractInvalidOPCData)
     }
 }
