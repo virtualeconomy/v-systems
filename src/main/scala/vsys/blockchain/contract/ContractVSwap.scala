@@ -10,7 +10,7 @@ object ContractVSwap {
     Seq(), // Triggers
     Seq(), // Functions
     stateVarSeq, // StateVars
-    Seq(), // StateMaps
+    stateMapSeq, // StateMaps
     Seq()  // Textual
   ).explicitGet()
 
@@ -33,6 +33,14 @@ object ContractVSwap {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
+  val stateMapTokenABalance         = List("tokenABalance", "userAddress", "balance")
+  val stateMapTokenBBalance         = List("tokenBBalance", "userAddress", "balance")
+  val stateMapLiquidityBalance      = List("liquidityBalance", "userAddress", "balance")
+  val tokenABalanceMap: StateMap    = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val tokenBBalanceMap: StateMap    = StateMap(1.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val liquidityBalanceMap: StateMap = StateMap(2.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  lazy val stateMapSeq = Seq(tokenABalanceMap.arr, tokenBBalanceMap.arr, liquidityBalanceMap.arr)
+  lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapTokenABalance, stateMapTokenBBalance, stateMapLiquidityBalance))
 
   // Initialization Trigger
 
