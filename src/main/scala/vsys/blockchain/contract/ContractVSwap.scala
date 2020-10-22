@@ -49,6 +49,19 @@ object ContractVSwap {
   // WithDraw Trigger
 
   // Functions
+  // Supersede
+  val supersedeId: Short = 0
+  val supersedeIdWithoutSplit: Short = 0
+  val supersedePara: Seq[String] = Seq("newOwner",
+    "maker")
+  val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val supersedeOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrGet ++ Array(makerStateVar.index, 1.toByte),
+    assertSigner ++ Array(1.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 0.toByte))
+  lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
+  lazy val supersedeFuncWithoutSplit: Array[Byte] = getFunctionBytes(supersedeIdWithoutSplit, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
+  val supersedeFuncBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
   // Textual
 
