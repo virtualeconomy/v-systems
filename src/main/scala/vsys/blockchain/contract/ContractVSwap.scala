@@ -63,8 +63,8 @@ object ContractVSwap {
 
   // Set Swap
   val setSwapId: Short = 1
-  val setSwapPara: Seq[String] = Seq("amountADesired", "amountBDesired",
-                                     "maker", "swapStatus", "valueFalse", "amountZero", "isValidAmountADesired", "isValidAmountBDesired",
+  val setSwapPara: Seq[String] = Seq("amountADesired", "amountBDesired") ++
+                                 Seq("maker", "swapStatus", "valueFalse", "amountZero", "isValidAmountADesired", "isValidAmountBDesired",
                                      "bigIntType", "amountADesiredBigInt", "amountBDesiredBigInt", "valueK", "initLiquidityBigInt",
                                      "amountType", "initLiquidity", "minimumLiquidity", "isValidInitLiquidity", "liquidity",
                                      "maxLiquidity", "isValidLiquidity", "liquidityLeft", "valueTrue")
@@ -108,6 +108,73 @@ object ContractVSwap {
   )
   lazy val setSwapFunc: Array[Byte] = getFunctionBytes(setSwapId, publicFuncType, nonReturnType, setSwapDataType, setSwapFunctionOpcs)
   val setSwapTextualBytes: Array[Byte] = textualFunc("setSwap", Seq(), setSwapPara)
+
+  // Add Liquidity
+  val addLiquidityId: Short = 2
+  val addLiquidityPara: Seq[String] = Seq("amountADesired", "amountBDesired", "amountAMin", "amountBMin", "deadline") ++
+                                      Seq("caller", "swapStatus", "currentTime", "isValidTime", "amountZero",
+                                          "reserveA", "isValidReserveA", "reserveB", "isValidReserveB",
+                                          "bigIntType", "reserveABigInt", "reserveBBigInt", "amountADesiredBigInt", "amountBDesiredBigInt",
+                                          "mulA", "amountBGet", "mulB", "amountAGet", "amountType", "amountABigInt", "amountA", "isValidAmountA",
+                                          "amountBBigInt", "amountB", "isValidAmountB", "totalSupply", "totalSupplyBigInt",
+                                          "mulSupplyA", "mulSupplyB", "liquidityABigInt", "liquidityBBigInt", "liquidityBigInt",
+                                          "liquidity", "liquidityLeft", "isValidLiquidity")
+  val addLiquidityDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte,
+                                                DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
+  val addLiquidityFunctionOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(5.toByte),
+    cdbvrGet ++ Array(swapStatusStateVar.index, 6.toByte),
+    assertTrue ++ Array(6.toByte),
+    loadTimestamp ++ Array(7.toByte),
+    compareGreaterEqual ++ Array(4.toByte, 7.toByte, 8.toByte),
+    assertTrue ++ Array(8.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(9.toByte),
+    cdbvrGetOrDefault ++ Array(tokenAReservedStateVar.index, 10.toByte),
+    compareGreater ++ Array(10.toByte, 9.toByte, 11.toByte),
+    assertTrue ++ Array(11.toByte),
+    cdbvrGetOrDefault ++ Array(tokenBReservedStateVar.index, 12.toByte),
+    compareGreater ++ Array(12.toByte, 9.toByte, 13.toByte),
+    assertTrue ++ Array(13.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.BigInteger.id.toByte), DataType.DataTypeObj).bytes ++ Array(14.toByte),
+    basicConvert ++ Array(10.toByte, 14.toByte, 15.toByte),
+    basicConvert ++ Array(12.toByte, 14.toByte, 16.toByte),
+    basicConvert ++ Array(0.toByte, 14.toByte, 17.toByte),
+    basicConvert ++ Array(1.toByte, 14.toByte, 18.toByte),
+    basicMultiply ++ Array(17.toByte, 16.toByte, 19.toByte),
+    basicDivide ++ Array(19.toByte, 15.toByte, 20.toByte),
+    basicMultiply ++ Array(18.toByte, 15.toByte, 21.toByte),
+    basicDivide ++ Array(21.toByte, 16.toByte, 22.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(23.toByte),
+    basicMin ++ Array(20.toByte, 17.toByte, 24.toByte),
+    basicConvert ++ Array(24.toByte, 23.toByte, 25.toByte),
+    compareGreaterEqual ++ Array(25.toByte, 2.toByte, 26.toByte),
+    assertTrue ++ Array(26.toByte),
+    basicMin ++ Array(22.toByte, 18.toByte, 27.toByte),
+    basicConvert ++ Array(27.toByte, 23.toByte, 28.toByte),
+    compareGreaterEqual ++ Array(28.toByte, 3.toByte, 29.toByte),
+    assertTrue ++ Array(29.toByte),
+    cdbvMapValMinus ++ Array(tokenABalanceMap.index, 5.toByte, 25.toByte),
+    cdbvMapValMinus ++ Array(tokenBBalanceMap.index, 5.toByte, 28.toByte),
+    cdbvrGetOrDefault ++ Array(totalSupplyStateVar.index, 30.toByte),
+    basicConvert ++ Array(30.toByte, 14.toByte, 31.toByte),
+    basicMultiply ++ Array(24.toByte, 31.toByte, 32.toByte),
+    basicMultiply ++ Array(27.toByte, 31.toByte, 33.toByte),
+    basicDivide ++ Array(32.toByte, 15.toByte, 34.toByte),
+    basicDivide ++ Array(33.toByte, 16.toByte, 35.toByte),
+    basicMin ++ Array(34.toByte, 35.toByte, 36.toByte),
+    basicConvert ++ Array(36.toByte, 23.toByte, 37.toByte),
+    cdbvrGetOrDefault ++ Array(liquidityTokenLeftStateVar.index, 38.toByte),
+    compareGreaterEqual ++ Array(38.toByte, 37.toByte, 39.toByte),
+    assertTrue ++ Array(39.toByte),
+    cdbvStateValMinus ++ Array(liquidityTokenLeftStateVar.index, 37.toByte),
+    cdbvStateValAdd ++ Array(totalSupplyStateVar.index, 37.toByte),
+    cdbvStateValAdd ++ Array(tokenAReservedStateVar.index, 25.toByte),
+    cdbvStateValAdd ++ Array(tokenBReservedStateVar.index, 28.toByte),
+    cdbvMapValAdd ++ Array(liquidityBalanceMap.index, 5.toByte, 37.toByte)
+  )
+  lazy val addLiquidityFunc: Array[Byte] = getFunctionBytes(addLiquidityId, publicFuncType, nonReturnType,
+                                                            addLiquidityDataType, addLiquidityFunctionOpcs)
+  val addLiquidityTextualBytes: Array[Byte] = textualFunc("addLiquidity", Seq(), addLiquidityPara)
 
   // Textual
 

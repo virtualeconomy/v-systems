@@ -31,6 +31,7 @@ object ContractGen {
   val cdbvrGet                 = Array(4.toByte, 1.toByte)
   val cdbvrMapGetOrDefault     = Array(4.toByte, 2.toByte)
   val cdbvrMapGet              = Array(4.toByte, 3.toByte)
+  val cdbvrGetOrDefault        = Array(4.toByte, 4.toByte)
 
   val tdbNewToken              = Array(5.toByte, 1.toByte)
   val tdbSplit                 = Array(5.toByte, 2.toByte)
