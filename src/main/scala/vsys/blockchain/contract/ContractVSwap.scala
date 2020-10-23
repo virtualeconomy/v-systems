@@ -227,6 +227,18 @@ object ContractVSwap {
                                                                removeLiquidityDataType, removeLiquidityFunctionOpcs)
   val removeLiquidityTextualBytes: Array[Byte] = textualFunc("removeLiquidity", Seq(), removeLiquidityPara)
 
+  // Common Swap Code
+  val commonSwapPara: Seq[String] = Seq("caller", "swapStatus", "currentTime", "isValidTime")
+  val swapDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
+  val commonSwapFunctionOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(3.toByte),
+    cdbvrGet ++ Array(swapStatusStateVar.index, 4.toByte),
+    assertTrue ++ Array(4.toByte),
+    loadTimestamp ++ Array(5.toByte),
+    compareGreaterEqual ++ Array(2.toByte, 5.toByte, 6.toByte),
+    assertTrue ++ Array(6.toByte),
+  )
+
   // Textual
 
 }
