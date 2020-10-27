@@ -247,8 +247,7 @@ object ContractVSwap {
                                                         "value1000", "mulValue", "numerator", "value997", "subValue", "denominator",
                                                         "valueOne", "amountInBigIntPre", "amountInBigInt", "amountType",
                                                         "amountIn", "isValidAmountIn", "updatedReserveA", "amountInWithOutFee",
-                                                        "updatedReserveB", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK"
-                                                    )
+                                                        "updatedReserveB", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
   val swapTokenForExactBaseTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ Seq(
     basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(7.toByte),
     compareGreater ++ Array(0.toByte, 7.toByte, 8.toByte),
@@ -270,7 +269,7 @@ object ContractVSwap {
     basicAdd ++ Array(22.toByte, 21.toByte, 23.toByte),
     basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(24.toByte),
     basicConvert ++ Array(23.toByte, 24.toByte, 25.toByte),
-    compareGreaterEqual ++ Array(25.toByte, 1.toByte, 26.toByte),
+    compareGreaterEqual ++ Array(1.toByte, 25.toByte, 26.toByte),
     assertTrue ++ Array(26.toByte),
     basicMultiply ++ Array(19.toByte, 15.toByte, 27.toByte),
     basicMultiply ++ Array(23.toByte, 18.toByte, 28.toByte),
@@ -285,13 +284,60 @@ object ContractVSwap {
     cdbvStateValMinus ++ Array(tokenAReservedStateVar.index, 0.toByte),
     cdbvMapValMinus ++ Array(tokenBBalanceMap.index, 3.toByte, 25.toByte),
     cdbvStateValAdd ++ Array(tokenBReservedStateVar.index, 25.toByte),
-    cdbvMapValAdd ++ Array(tokenBBalanceMap.index, 3.toByte, 0.toByte)
+    cdbvMapValAdd ++ Array(tokenABalanceMap.index, 3.toByte, 0.toByte)
   )
   lazy val swapTokenForExactBaseTokenFunc: Array[Byte] = getFunctionBytes(swapTokenForExactBaseTokenId, publicFuncType, nonReturnType,
                                                                           swapDataType, swapTokenForExactBaseTokenFunctionOpcs)
   val swapTokenForExactBaseTokenTextualBytes: Array[Byte] = textualFunc("swapTokenForExactBaseToken", Seq(), swapTokenForExactBaseTokenPara)
 
-  
+  val swapExactTokenForBaseTokenId: Short = 4
+  val swapExactTokenForBaseTokenPara: Seq[String] = Seq("amountOutMin", "amountIn", "deadline") ++
+                                                    commonSwapPara ++
+                                                    Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
+                                                        "bigIntType", "amountInBigInt", "reserveABigInt", "reserveBBigInt",
+                                                        "value997", "amountInWithOutFee", "value1000", "mulValue",
+                                                        "numerator", "denominator", "amountOutBigInt", "amountType", "amountOut",
+                                                        "isValidAmountOut", "subValue", "updatedReserveA", "updatedReserveB",
+                                                        "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
+  val swapExactTokenForBaseTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ Seq(
+    basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(7.toByte),
+    compareGreater ++ Array(1.toByte, 7.toByte, 8.toByte),
+    assertTrue ++ Array(8.toByte),
+    cdbvrGetOrDefault ++ Array(tokenAReservedStateVar.index, 9.toByte),
+    cdbvrGetOrDefault ++ Array(tokenBReservedStateVar.index, 10.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.BigInteger.id.toByte), DataType.DataTypeObj).bytes ++ Array(11.toByte),
+    basicConvert ++ Array(1.toByte, 11.toByte, 12.toByte),
+    basicConvert ++ Array(9.toByte, 11.toByte, 13.toByte),
+    basicConvert ++ Array(10.toByte, 11.toByte, 14.toByte),
+    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicMultiply ++ Array(12.toByte, 15.toByte, 16.toByte),
+    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(17.toByte),
+    basicMultiply ++ Array(14.toByte, 17.toByte, 18.toByte),
+    basicMultiply ++ Array(13.toByte, 16.toByte, 19.toByte),
+    basicAdd ++ Array(18.toByte, 16.toByte, 20.toByte),
+    basicDivide ++ Array(19.toByte, 20.toByte, 21.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(22.toByte),
+    basicConvert ++ Array(21.toByte, 22.toByte, 23.toByte),
+    compareGreaterEqual ++ Array(23.toByte, 0.toByte, 24.toByte),
+    assertTrue ++ Array(24.toByte),
+    basicMinus ++ Array(13.toByte, 21.toByte, 25.toByte),
+    basicMultiply ++ Array(25.toByte, 17.toByte, 26.toByte),
+    basicAdd ++ Array(18.toByte, 16.toByte, 27.toByte),
+    basicMultiply ++ Array(26.toByte, 27.toByte, 28.toByte),
+    basicMultiply ++ Array(13.toByte, 14.toByte, 29.toByte),
+    basicMultiply ++ Array(17.toByte, 17.toByte, 30.toByte),
+    basicMultiply ++ Array(29.toByte, 30.toByte, 31.toByte),
+    compareGreaterEqual ++ Array(28.toByte, 31.toByte, 32.toByte),
+    assertTrue ++ Array(32.toByte),
+    cdbvStateValMinus ++ Array(tokenAReservedStateVar.index, 23.toByte),
+    cdbvMapValMinus ++ Array(tokenBBalanceMap.index, 3.toByte, 1.toByte),
+    cdbvStateValAdd ++ Array(tokenBReservedStateVar.index, 1.toByte),
+    cdbvMapValAdd ++ Array(tokenABalanceMap.index, 3.toByte, 23.toByte)
+  )
+  lazy val swapExactTokenForBaseTokenFunc: Array[Byte] = getFunctionBytes(swapExactTokenForBaseTokenId, publicFuncType, nonReturnType,
+                                                                          swapDataType, swapExactTokenForBaseTokenFunctionOpcs)
+  val swapExactTokenForBaseTokenTextualBytes: Array[Byte] = textualFunc("swapExactTokenForBaseToken", Seq(), swapExactTokenForBaseTokenPara)
+
   // Textual
 
 }
