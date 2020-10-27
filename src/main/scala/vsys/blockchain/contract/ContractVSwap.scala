@@ -239,6 +239,32 @@ object ContractVSwap {
     assertTrue ++ Array(6.toByte),
   )
 
+  private def commonSwapLoaded(checkIndex: Byte): Seq[Array[Byte]] = {
+    Seq(
+      basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(7.toByte),
+      compareGreater ++ Array(checkIndex, 7.toByte, 8.toByte),
+      assertTrue ++ Array(8.toByte),
+      cdbvrGetOrDefault ++ Array(tokenAReservedStateVar.index, 9.toByte),
+      cdbvrGetOrDefault ++ Array(tokenBReservedStateVar.index, 10.toByte),
+      basicConstantGet ++ DataEntry(Array(DataType.BigInteger.id.toByte), DataType.DataTypeObj).bytes ++ Array(11.toByte),
+      basicConvert ++ Array(checkIndex, 11.toByte, 12.toByte),
+      basicConvert ++ Array(9.toByte, 11.toByte, 13.toByte),
+      basicConvert ++ Array(10.toByte, 11.toByte, 14.toByte),
+    )
+  }
+
+  private def swapKValueCheck(updatedReserveA: Byte, updatedReserveB: Byte, value1000: Byte,
+                              reservedABigInt: Byte, reservedBBigInt: Byte, updateK: Byte): Seq[Array[Byte]] = {
+    Seq(
+      basicMultiply ++ Array(updatedReserveA, updatedReserveA, updateK),
+      basicMultiply ++ Array(reservedABigInt, reservedBBigInt, (updateK + 1).toByte),
+      basicMultiply ++ Array(value1000, value1000, (updateK + 2).toByte),
+      basicMultiply ++ Array((updateK + 1).toByte, (updateK + 1).toByte, (updateK + 3).toByte),
+      compareGreaterEqual ++ Array(updateK, (updateK + 3).toByte, (updateK + 4).toByte),
+      assertTrue ++ Array((updateK + 4).toByte),
+    )
+  }
+
   val swapTokenForExactBaseTokenId: Short = 3
   val swapTokenForExactBaseTokenPara: Seq[String] = Seq("amountOut", "amountInMax", "deadline") ++
                                                     commonSwapPara ++
