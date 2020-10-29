@@ -43,6 +43,22 @@ object ContractVSwap {
   lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapTokenABalance, stateMapTokenBBalance, stateMapLiquidityBalance))
 
   // Initialization Trigger
+  val initId: Short = 0
+  val initPara: Seq[String] = Seq("tokenAId", "tokenBId", "liquidityTokenId", "minimumLiquidity") ++
+                              Seq("signer", "swapStatus")
+  val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte, DataType.TokenId.id.toByte, DataType.TokenId.id.toByte, DataType.Amount.id.toByte)
+  val initTriggerOpcs: Seq[Array[Byte]] = Seq(
+    loadSigner ++ Array(4.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 4.toByte),
+    cdbvSet ++ Array(tokenAIdStateVar.index, 0.toByte),
+    cdbvSet ++ Array(tokenBIdStateVar.index, 1.toByte),
+    cdbvSet ++ Array(tokenLiquidityIdStateVar.index, 2.toByte),
+    cdbvSet ++ Array(minimumLiquidityStateVar.index, 3.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+    cdbvSet ++ Array(swapStatusStateVar.index, 5.toByte)
+  )
+  lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
+  val initTextualBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Deposit Trigger
   val depositId: Short = 1
