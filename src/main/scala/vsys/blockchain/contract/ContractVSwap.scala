@@ -87,6 +87,46 @@ object ContractVSwap {
   val depositTextualBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   // WithDraw Trigger
+  val withdrawId: Short = 2
+  val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId") ++
+                                  Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
+                                      "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
+                                      "isTokenLiquidity", "tokenLiquidityIfBlock")
+  val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
+  val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(tokenAIdStateVar.index, 3.toByte),
+    cdbvrGet ++ Array(tokenBIdStateVar.index, 4.toByte),
+    cdbvrGet ++ Array(tokenLiquidityIdStateVar.index, 5.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+    compareBytesEqual ++ Array(2.toByte, 3.toByte, 7.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValMinus ++ Array(tokenABalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(8.toByte),
+    compareBytesEqual ++ Array(2.toByte, 4.toByte, 9.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValMinus ++ Array(tokenBBalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(10.toByte),
+    compareBytesEqual ++ Array(2.toByte, 5.toByte, 11.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValMinus ++ Array(liquidityBalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(12.toByte),
+    conditionIf ++ Array(7.toByte, 8.toByte),
+    conditionIf ++ Array(9.toByte, 10.toByte),
+    conditionIf ++ Array(11.toByte, 12.toByte),
+    assertTrue ++ Array(6.toByte)
+  )
+  lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
+  val withdrawTextualBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Functions
   // Supersede
