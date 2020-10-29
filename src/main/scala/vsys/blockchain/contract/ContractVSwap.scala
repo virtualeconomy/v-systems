@@ -155,7 +155,7 @@ object ContractVSwap {
     assertSigner ++ Array(1.toByte),
     cdbvSet ++ Array(makerStateVar.index, 0.toByte))
   lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
-  val supersedeFuncBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
+  val supersedeTextualBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
   // Set Swap
   val setSwapId: Short = 1
@@ -504,5 +504,8 @@ object ContractVSwap {
   val swapExactTokenForTargetTokenTextualBytes: Array[Byte] = textualFunc("swapExactTokenForTargetToken", Seq(), swapExactTokenForTargetTokenPara)
 
   // Textual
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initTextualBytes, depositTextualBytes, withdrawTextualBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeTextualBytes, setSwapTextualBytes, addLiquidityTextualBytes, removeLiquidityTextualBytes,
+    swapTokenForExactBaseTokenTextualBytes, swapExactTokenForBaseTokenTextualBytes, swapTokenForExactTargetTokenTextualBytes, swapExactTokenForTargetTokenTextualBytes))
 
 }
