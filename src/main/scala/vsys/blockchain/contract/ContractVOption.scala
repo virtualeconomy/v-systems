@@ -10,7 +10,7 @@ object ContractVOption {
     Seq(), // Triggers
     Seq(), // Functions
     stateVarSeq, // StateVars
-    Seq(), // StateMaps
+    stateMapSeq, // StateMaps
     Seq()  // Textual
   ).explicitGet()
 
@@ -41,6 +41,18 @@ object ContractVOption {
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
+  val stateMapBaseTokenBalance         = List("baseTokenBalance", "userAddress", "balance")
+  val stateMapTargetTokenBalance       = List("targetTokenBalance", "userAddress", "balance")
+  val stateMapOptionTokenBalance       = List("optionTokenBalance", "userAddress", "balance")
+  val stateMapProofTokenBalance        = List("proofTokenBalance", "userAddress", "balance")
+  val baseTokenBalanceMap: StateMap    = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val targetTokenBalanceMap: StateMap  = StateMap(1.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val optionTokenBalanceMap: StateMap  = StateMap(2.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val proofTokenBalanceMap: StateMap   = StateMap(3.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+
+  lazy val stateMapSeq = Seq(baseTokenBalanceMap.arr, targetTokenBalanceMap.arr, optionTokenBalanceMap.arr, proofTokenBalanceMap.arr)
+  lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBaseTokenBalance, stateMapTargetTokenBalance,
+                                                              stateMapOptionTokenBalance, stateMapProofTokenBalance))
 
   // Initialization Trigger
 
