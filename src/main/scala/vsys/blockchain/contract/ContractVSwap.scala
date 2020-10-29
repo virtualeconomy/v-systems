@@ -373,6 +373,40 @@ object ContractVSwap {
                                                                             swapDataType, swapTokenForExactTargetTokenFunctionOpcs)
   val swapTokenForExactTargetTokenTextualBytes: Array[Byte] = textualFunc("swapTokenForExactTargetToken", Seq(), swapTokenForExactTargetTokenPara)
 
+  val swapExactTokenForTargetTokenId: Short = 6
+  val swapExactTokenForTargetTokenPara: Seq[String] = Seq("amountOutMin", "amountIn", "deadline") ++
+                                                      commonSwapPara ++
+                                                      Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
+                                                          "bigIntType", "amountInBigInt", "reserveABigInt", "reserveBBigInt",
+                                                          "value997", "amountInWithOutFee", "value1000", "mulValue",
+                                                          "numerator", "denominator", "amountOutBigInt", "amountType", "amountOut",
+                                                          "isValidAmountOut", "subValue", "updatedReserveB", "updatedReserveA",
+                                                          "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
+  val swapExactTokenForTargetTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(1.toByte) ++ Seq(
+    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicMultiply ++ Array(12.toByte, 15.toByte, 16.toByte),
+    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(17.toByte),
+    basicMultiply ++ Array(13.toByte, 17.toByte, 18.toByte),
+    basicMultiply ++ Array(14.toByte, 16.toByte, 19.toByte),
+    basicAdd ++ Array(18.toByte, 16.toByte, 20.toByte),
+    basicDivide ++ Array(19.toByte, 20.toByte, 21.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(22.toByte),
+    basicConvert ++ Array(21.toByte, 22.toByte, 23.toByte),
+    compareGreaterEqual ++ Array(23.toByte, 0.toByte, 24.toByte),
+    assertTrue ++ Array(24.toByte),
+    basicMinus ++ Array(14.toByte, 21.toByte, 25.toByte),
+    basicMultiply ++ Array(25.toByte, 17.toByte, 26.toByte),
+    basicAdd ++ Array(18.toByte, 16.toByte, 27.toByte)) ++
+    swapKValueCheck(27.toByte, 26.toByte, 15.toByte, 13.toByte, 14.toByte, 28.toByte) ++ Seq(
+    cdbvStateValMinus ++ Array(tokenBReservedStateVar.index, 23.toByte),
+    cdbvMapValMinus ++ Array(tokenABalanceMap.index, 3.toByte, 1.toByte),
+    cdbvStateValAdd ++ Array(tokenAReservedStateVar.index, 1.toByte),
+    cdbvMapValAdd ++ Array(tokenBBalanceMap.index, 3.toByte, 23.toByte)
+  )
+  lazy val swapExactTokenForTargetTokenFunc: Array[Byte] = getFunctionBytes(swapExactTokenForTargetTokenId, publicFuncType, nonReturnType,
+                                                                            swapDataType, swapExactTokenForTargetTokenFunctionOpcs)
+  val swapExactTokenForTargetTokenTextualBytes: Array[Byte] = textualFunc("swapExactTokenForTargetToken", Seq(), swapExactTokenForTargetTokenPara)
+
   // Textual
 
 }
