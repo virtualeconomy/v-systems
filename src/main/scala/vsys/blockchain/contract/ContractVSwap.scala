@@ -19,7 +19,7 @@ object ContractVSwap {
                           "tokenAReserved", "tokenBReserved", "totalSupply", "liquidityTokenLeft")
   val makerStateVar: StateVar               = StateVar(0.toByte, DataType.Address.id.toByte)
   val tokenAIdStateVar: StateVar            = StateVar(1.toByte, DataType.TokenId.id.toByte)
-  val tokeBIdStateVar: StateVar             = StateVar(2.toByte, DataType.TokenId.id.toByte)
+  val tokenBIdStateVar: StateVar             = StateVar(2.toByte, DataType.TokenId.id.toByte)
   val tokenLiquidityIdStateVar: StateVar    = StateVar(3.toByte, DataType.TokenId.id.toByte)
   val swapStatusStateVar: StateVar          = StateVar(4.toByte, DataType.Boolean.id.toByte)
   val minimumLiquidityStateVar: StateVar    = StateVar(5.toByte, DataType.Amount.id.toByte)
@@ -27,7 +27,7 @@ object ContractVSwap {
   val tokenBReservedStateVar: StateVar      = StateVar(7.toByte, DataType.Amount.id.toByte)
   val totalSupplyStateVar: StateVar         = StateVar(8.toByte, DataType.Amount.id.toByte)
   val liquidityTokenLeftStateVar: StateVar  = StateVar(9.toByte, DataType.Amount.id.toByte)
-  lazy val stateVarSeq = Seq(makerStateVar.arr, tokenAIdStateVar.arr, tokeBIdStateVar.arr, tokenLiquidityIdStateVar.arr,
+  lazy val stateVarSeq = Seq(makerStateVar.arr, tokenAIdStateVar.arr, tokenBIdStateVar.arr, tokenLiquidityIdStateVar.arr,
                              swapStatusStateVar.arr, minimumLiquidityStateVar.arr, tokenAReservedStateVar.arr,
                              tokenBReservedStateVar.arr, totalSupplyStateVar.arr, liquidityTokenLeftStateVar.arr)
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
@@ -45,6 +45,46 @@ object ContractVSwap {
   // Initialization Trigger
 
   // Deposit Trigger
+  val depositId: Short = 1
+  val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId") ++
+                                 Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
+                                     "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
+                                     "isTokenLiquidity", "tokenLiquidityIfBlock")
+  val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
+  val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(tokenAIdStateVar.index, 3.toByte),
+    cdbvrGet ++ Array(tokenBIdStateVar.index, 4.toByte),
+    cdbvrGet ++ Array(tokenLiquidityIdStateVar.index, 5.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+    compareBytesEqual ++ Array(2.toByte, 3.toByte, 7.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValAdd ++ Array(tokenABalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(8.toByte),
+    compareBytesEqual ++ Array(2.toByte, 4.toByte, 9.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValAdd ++ Array(tokenBBalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(10.toByte),
+    compareBytesEqual ++ Array(2.toByte, 5.toByte, 11.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValAdd ++ Array(liquidityBalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(12.toByte),
+    conditionIf ++ Array(7.toByte, 8.toByte),
+    conditionIf ++ Array(9.toByte, 10.toByte),
+    conditionIf ++ Array(11.toByte, 12.toByte),
+    assertTrue ++ Array(6.toByte)
+  )
+  lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
+  val depositTextualBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   // WithDraw Trigger
 

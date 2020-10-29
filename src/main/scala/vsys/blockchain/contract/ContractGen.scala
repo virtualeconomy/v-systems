@@ -49,6 +49,12 @@ object ContractGen {
 
   val compareGreaterEqual      = Array(10.toByte, 1.toByte)
   val compareGreater           = Array(10.toByte, 2.toByte)
+  val compareLessEqual         = Array(10.toByte, 3.toByte)
+  val compareLess              = Array(10.toByte, 4.toByte)
+  val compareNumEqual          = Array(10.toByte, 5.toByte)
+  val compareNumNotEqual       = Array(10.toByte, 6.toByte)
+  val compareBytesEqual        = Array(10.toByte, 7.toByte)
+  val compareBytesNotEqual     = Array(10.toByte, 8.toByte)
 
   val basicAdd                 = Array(11.toByte, 1.toByte)
   val basicMinus               = Array(11.toByte, 2.toByte)
@@ -60,6 +66,9 @@ object ContractGen {
   val basicConstantGet         = Array(11.toByte, 8.toByte)
   val basicSqrtBigint          = Array(11.toByte, 9.toByte)
   val basicConvert             = Array(11.toByte, 10.toByte)
+
+  val conditionIf             = Array(12.toByte, 1.toByte)
+  val conditionIfElse         = Array(12.toByte, 1.toByte)
 
   sealed case class StateVar(index: Byte, dataType: Byte) {
     lazy val arr: Array[Byte] = Array(index, dataType)
