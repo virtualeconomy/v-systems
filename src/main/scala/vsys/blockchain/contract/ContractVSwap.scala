@@ -7,11 +7,12 @@ import vsys.utils.serialization.Deser
 
 object ContractVSwap {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
-    Seq(), // Triggers
-    Seq(), // Functions
+    Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
+    Seq(supersedeFunc, setSwapFunc, addLiquidityFunc, removeLiquidityFunc, swapTokenForExactBaseTokenFunc,
+        swapExactTokenForBaseTokenFunc, swapTokenForExactTargetTokenFunc, swapExactTokenForTargetTokenFunc), // Functions
     stateVarSeq, // StateVars
     stateMapSeq, // StateMaps
-    Seq()  // Textual
+    Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)  // Textual
   ).explicitGet()
 
   // State Var
