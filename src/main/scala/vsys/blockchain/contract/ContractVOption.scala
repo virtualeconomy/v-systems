@@ -55,6 +55,25 @@ object ContractVOption {
                                                               stateMapOptionTokenBalance, stateMapProofTokenBalance))
 
   // Initialization Trigger
+  val initId: Short = 0
+  val initPara: Seq[String] = Seq("baseTokenId", "targetTokenId", "optionTokenId", "proofTokenId", "executeTime", "executeDeadline") ++
+                              Seq("signer", "optionStatus")
+  val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte, DataType.TokenId.id.toByte,DataType.TokenId.id.toByte,
+                                        DataType.TokenId.id.toByte, DataType.Timestamp.id.toByte, DataType.Timestamp.id.toByte)
+  val initTriggerOpcs: Seq[Array[Byte]] = Seq(
+    loadSigner ++ Array(6.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 6.toByte),
+    cdbvSet ++ Array(baseTokenIdStateVar.index, 0.toByte),
+    cdbvSet ++ Array(targetTokenIdStateVar.index, 1.toByte),
+    cdbvSet ++ Array(optionTokenIdStateVar.index, 2.toByte),
+    cdbvSet ++ Array(proofTokenIdStateVar.index, 3.toByte),
+    cdbvSet ++ Array(executeTimeStateVar.index, 4.toByte),
+    cdbvSet ++ Array(executeDeadlineStateVar.index, 5.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+    cdbvSet ++ Array(optionStatusStateVar.index, 5.toByte)
+  )
+  lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
+  val initTextualBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Deposit Trigger
 
