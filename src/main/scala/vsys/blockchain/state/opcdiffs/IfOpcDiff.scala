@@ -14,7 +14,7 @@ object IfOpcDiff extends OpcDiffer {
   def executeOpcBlock(context: ExecutionContext, opcBlock: DataEntry, dataStack: Seq[DataEntry]): Either[ValidationError, (OpcDiff, Seq[DataEntry])] = {
     opcBlock.dataType match {
       case DataType.OpcBlock => {
-        Try(Deser.parseArrays(DataEntry.OpcBlock.deserializer(opcBlock.data))) match {
+        Try(Deser.parseArrays(DataType.OpcBlock.deserializer(opcBlock.data))) match {
           case Success(opclines) => {
             opclines.foldLeft(Right((OpcDiff.empty, dataStack)): Either[ValidationError, (OpcDiff, Seq[DataEntry])]) {
               case (acc, opc) => acc.flatMap { case (oldDiff, oldData) => {
