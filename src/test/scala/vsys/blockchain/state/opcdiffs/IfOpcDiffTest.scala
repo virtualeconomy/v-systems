@@ -33,7 +33,7 @@ class IfOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPro
       Seq.empty) should be (Left(ContractDataTypeMismatch))
     IfOpcDiff.executeOpcBlock(executionContext,
       DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
-      Seq.empty) should be (Right((OpcDiff(Map(),Map(),Map(),Map(),Map(),Map(),Map(),Map()),List())))
+      Seq.empty) should be (Left(ContractInvalidOPCData))
     IfOpcDiff.executeOpcBlock(executionContext,
       DataEntry(Shorts.toByteArray(1), DataType.OpcBlock),
       Seq.empty) should be (Left(ContractInvalidOPCData))
