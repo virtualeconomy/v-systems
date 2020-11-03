@@ -241,7 +241,7 @@ object ContractVOption {
   val mintId: Short = 2
   val mintPara: Seq[String] = commonOptionPara ++
                               Seq("executeTime", "isValidTime")
-  val mintOpcs: Seq[Array[Byte]] = Seq(
+  val mintOpcs: Seq[Array[Byte]] = commonOptionOpcs ++ Seq(
     cdbvrGet ++ Array(executeTimeStateVar.index, 4.toByte),
     compareGreater ++ Array(4.toByte, 3.toByte, 5.toByte),
     assertTrue ++ Array(5.toByte),
@@ -253,8 +253,25 @@ object ContractVOption {
     cdbvMapValAdd ++ Array(proofTokenBalanceMap.index, 1.toByte, 0.toByte)
   )
   lazy val mintFunc: Array[Byte] = getFunctionBytes( mintId, publicFuncType, nonReturnType, commonOptionDataType, mintOpcs)
-  val mintTextualBytes: Array[Byte] = textualFunc("Mint", Seq(), mintPara)
+  val mintTextualBytes: Array[Byte] = textualFunc("mint", Seq(), mintPara)
 
+  // Unlock Option
+  val unlockId: Short = 3
+  val unlockPara: Seq[String] = commonOptionPara ++
+                                Seq("executeDeadline", "isValidTime")
+  val unlockOpcs: Seq[Array[Byte]] = commonOptionOpcs ++ Seq(
+    cdbvrGet ++ Array(executeDeadlineStateVar.index, 4.toByte),
+    compareGreater ++ Array(4.toByte, 3.toByte, 5.toByte),
+    assertTrue ++ Array(5.toByte),
+    cdbvMapValMinus ++ Array(optionTokenBalanceMap.index, 1.toByte, 0.toByte),
+    cdbvMapValMinus ++ Array(proofTokenBalanceMap.index, 1.toByte, 0.toByte),
+    cdbvStateValAdd ++ Array(reservedOptionStateVar.index, 0.toByte),
+    cdbvStateValAdd ++ Array(reservedProofStateVar.index, 0.toByte),
+    cdbvStateValMinus ++ Array(tokenLockedStateVar.index, 0.toByte),
+    cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 1.toByte, 0.toByte)
+  )
+  lazy val unlockFunc: Array[Byte] = getFunctionBytes( unlockId, publicFuncType, nonReturnType, commonOptionDataType, unlockOpcs)
+  val unlockTextualBytes: Array[Byte] = textualFunc("unlock", Seq(), unlockPara)
 
   // Textual
 }
