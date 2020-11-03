@@ -237,5 +237,24 @@ object ContractVOption {
     loadTimestamp ++ Array(3.toByte)
   )
 
+  // Mint Option
+  val mintId: Short = 2
+  val mintPara: Seq[String] = commonOptionPara ++
+                              Seq("executeTime", "isValidTime")
+  val mintOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrGet ++ Array(executeTimeStateVar.index, 4.toByte),
+    compareGreater ++ Array(4.toByte, 3.toByte, 5.toByte),
+    assertTrue ++ Array(5.toByte),
+    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 1.toByte, 0.toByte),
+    cdbvStateValMinus ++ Array(reservedOptionStateVar.index, 0.toByte),
+    cdbvStateValMinus ++ Array(reservedProofStateVar.index, 0.toByte),
+    cdbvStateValAdd ++ Array(tokenLockedStateVar.index, 0.toByte),
+    cdbvMapValAdd ++ Array(optionTokenBalanceMap.index, 1.toByte, 0.toByte),
+    cdbvMapValAdd ++ Array(proofTokenBalanceMap.index, 1.toByte, 0.toByte)
+  )
+  lazy val mintFunc: Array[Byte] = getFunctionBytes( mintId, publicFuncType, nonReturnType, commonOptionDataType, mintOpcs)
+  val mintTextualBytes: Array[Byte] = textualFunc("Mint", Seq(), mintPara)
+
+
   // Textual
 }
