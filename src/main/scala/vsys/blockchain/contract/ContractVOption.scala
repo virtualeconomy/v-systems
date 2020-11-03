@@ -226,5 +226,16 @@ object ContractVOption {
   lazy val activateFunc: Array[Byte] = getFunctionBytes(activateId, publicFuncType, nonReturnType, activateDataType, activateOpcs)
   val activateTextualBytes: Array[Byte] = textualFunc("activate", Seq(), activatePara)
 
+  // Common Option Code
+  val commonOptionPara: Seq[String] = Seq("amount") ++
+                                      Seq("caller", "OptionStatus", "currentTime")
+  val commonOptionDataType: Array[Byte] = Array(DataType.Amount.id.toByte)
+  val commonOptionOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(1.toByte),
+    cdbvrGet ++ Array(optionStatusStateVar.index, 2.toByte),
+    assertTrue ++ Array(2.toByte),
+    loadTimestamp ++ Array(3.toByte)
+  )
+
   // Textual
 }
