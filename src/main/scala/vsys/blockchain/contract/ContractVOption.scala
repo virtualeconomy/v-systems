@@ -190,5 +190,41 @@ object ContractVOption {
   lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
   val supersedeTextualBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
+  // Activate Option
+  val activateId: Short = 1
+  val activatePara: Seq[String] = Seq("maxIssueNum", "price", "priceUnit") ++
+                                  Seq("maker", "optionStatus", "valueFalse", "amountZero", "isValidIssueNum",
+                                      "isValidPrice", "isValidPriceUnit", "optionTokenNum", "proofTokenNum", "valueTrue")
+  val activateDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
+  val activateOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrGet ++ Array(makerStateVar.index, 3.toByte),
+    assertCaller ++ Array(3.toByte),
+    cdbvrGet ++ Array(optionStatusStateVar.index, 4.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+    assertEqual ++ Array(4.toByte, 5.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(6.toByte),
+    compareGreater ++ Array(0.toByte, 6.toByte, 7.toByte),
+    assertTrue ++ Array(7.toByte),
+    compareGreater ++ Array(1.toByte, 6.toByte, 8.toByte),
+    assertTrue ++ Array(8.toByte),
+    compareGreater ++ Array(2.toByte, 6.toByte, 9.toByte),
+    assertTrue ++ Array(9.toByte),
+    cdbvrMapGetOrDefault ++ Array(optionTokenBalanceMap.index, 3.toByte, 10.toByte),
+    cdbvrMapGetOrDefault ++ Array(proofTokenBalanceMap.index, 3.toByte, 11.toByte),
+    assertEqual ++ Array(10.toByte, 0.toByte),
+    assertEqual ++ Array(11.toByte, 0.toByte),
+    cdbvMapValMinus ++ Array(optionTokenBalanceMap.index, 3.toByte, 0.toByte),
+    cdbvMapValMinus ++ Array(proofTokenBalanceMap.index, 3.toByte, 0.toByte),
+    cdbvSet ++ Array(maxIssueNumStateVar.index, 0.toByte),
+    cdbvStateValAdd ++ Array(reservedOptionStateVar.index, 0.toByte),
+    cdbvStateValAdd ++ Array(reservedProofStateVar.index, 0.toByte),
+    cdbvSet ++ Array(priceStateVar.index, 1.toByte),
+    cdbvSet ++ Array(priceUnitStateVar.index, 2.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(12.toByte),
+    cdbvSet ++ Array(optionStatusStateVar.index, 12.toByte)
+  )
+  lazy val activateFunc: Array[Byte] = getFunctionBytes(activateId, publicFuncType, nonReturnType, activateDataType, activateOpcs)
+  val activateTextualBytes: Array[Byte] = textualFunc("activate", Seq(), activatePara)
+
   // Textual
 }
