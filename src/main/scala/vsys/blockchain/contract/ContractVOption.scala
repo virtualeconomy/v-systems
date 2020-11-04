@@ -273,5 +273,41 @@ object ContractVOption {
   lazy val unlockFunc: Array[Byte] = getFunctionBytes( unlockId, publicFuncType, nonReturnType, commonOptionDataType, unlockOpcs)
   val unlockTextualBytes: Array[Byte] = textualFunc("unlock", Seq(), unlockPara)
 
+  // Execute Option
+  val executeId: Short = 4
+  val executePara: Seq[String] = commonOptionPara ++
+                                 Seq("executeDeadline", "isBeforeDeadline", "executeTime", "isValidToExecute",
+                                     "price", "priceUnit", "bigIntType", "amountBigInt", "priceBigInt", "priceUnitBigInt",
+                                     "costWithUnitBigInt", "costBigInt", "amountType", "cost", "amountOne", "fixedCost")
+  val executeOpcs: Seq[Array[Byte]] = commonOptionOpcs ++ Seq(
+    cdbvrGet ++ Array(executeDeadlineStateVar.index, 4.toByte),
+    compareGreater ++ Array(4.toByte, 3.toByte, 5.toByte),
+    assertTrue ++ Array(5.toByte),
+    cdbvrGet ++ Array(executeTimeStateVar.index, 6.toByte),
+    compareGreaterEqual ++ Array(3.toByte, 6.toByte, 7.toByte),
+    assertTrue ++ Array(7.toByte),
+    cdbvMapValMinus ++ Array(optionTokenBalanceMap.index, 1.toByte, 0.toByte),
+    cdbvStateValAdd ++ Array(reservedOptionStateVar.index, 0.toByte),
+    cdbvrGet ++ Array(priceStateVar.index, 8.toByte),
+    cdbvrGet ++ Array(priceUnitStateVar.index, 9.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.BigInteger.id.toByte), DataType.DataTypeObj).bytes ++ Array(10.toByte),
+    basicConvert ++ Array(0.toByte, 10.toByte, 11.toByte),
+    basicConvert ++ Array(8.toByte, 10.toByte, 12.toByte),
+    basicConvert ++ Array(9.toByte, 10.toByte, 13.toByte),
+    basicMultiply ++ Array(11.toByte, 12.toByte, 14.toByte),
+    basicDivide ++ Array(14.toByte, 13.toByte, 15.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(16.toByte),
+    basicConvert ++ Array(15.toByte, 16.toByte, 17.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1L), DataType.Amount).bytes ++ Array(18.toByte),
+    basicAdd ++ Array(17.toByte, 18.toByte, 19.toByte),
+    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 1.toByte, 19.toByte),
+    cdbvStateValAdd ++ Array(tokenCollectedStateVar.index, 19.toByte),
+    cdbvStateValMinus ++ Array(tokenLockedStateVar.index, 0.toByte),
+    cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 1.toByte, 0.toByte)
+  )
+  lazy val executeFunc: Array[Byte] = getFunctionBytes( executeId, publicFuncType, nonReturnType, commonOptionDataType, executeOpcs)
+  val executeTextualBytes: Array[Byte] = textualFunc("execute", Seq(), executePara)
+
+
   // Textual
 }
