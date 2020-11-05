@@ -347,6 +347,9 @@ object ContractVOption {
   lazy val collectFunc: Array[Byte] = getFunctionBytes( collectId, publicFuncType, nonReturnType, commonOptionDataType, collectOpcs)
   val collectTextualBytes: Array[Byte] = textualFunc("collect", Seq(), collectPara)
 
-
   // Textual
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initTextualBytes, depositTextualBytes, withdrawTextualBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeTextualBytes, activateTextualBytes, mintTextualBytes,
+    unlockTextualBytes, executeTextualBytes, collectTextualBytes))
+
 }
