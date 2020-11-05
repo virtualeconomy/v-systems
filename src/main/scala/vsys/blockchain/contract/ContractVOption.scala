@@ -8,10 +8,10 @@ import vsys.utils.serialization.Deser
 object ContractVOption {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
-    Seq(), // Functions
+    Seq(supersedeFunc, activateFunc, mintFunc, unlockFunc, executeFunc, collectFunc), // Functions
     stateVarSeq, // StateVars
     stateMapSeq, // StateMaps
-    Seq()  // Textual
+    Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)  // Textual
   ).explicitGet()
 
   // State Var
