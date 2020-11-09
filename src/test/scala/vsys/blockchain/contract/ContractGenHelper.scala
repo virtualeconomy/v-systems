@@ -42,7 +42,7 @@ object ContractGenHelper extends TransactionGen {
 
   val returnValue              = Array(9.toByte, 1.toByte)
 
-  val compareGreater           = Array(10.toByte, 1.toByte)
+  val compareGreaterEqual           = Array(10.toByte, 1.toByte)
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 

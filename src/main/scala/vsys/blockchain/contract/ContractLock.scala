@@ -64,7 +64,7 @@ object ContractLock {
     assertEqual ++ Array(2.toByte, 3.toByte),
     loadTimestamp ++ Array(4.toByte),
     cdbvrMapGetOrDefault ++ Array(lockTimeMap.index, 0.toByte, 5.toByte),
-    compareGreater ++ Array(4.toByte, 5.toByte, 6.toByte),
+    compareGreaterEqual ++ Array(4.toByte, 5.toByte, 6.toByte),
     assertTrue ++ Array(6.toByte),
     cdbvMapValMinus ++ Array(balanceMap.index, 0.toByte, 1.toByte)
   )
@@ -79,7 +79,7 @@ object ContractLock {
   val lockFunctionOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(1.toByte),
     cdbvrMapGetOrDefault ++ Array(lockTimeMap.index, 1.toByte, 2.toByte),
-    compareGreater ++ Array(0.toByte, 2.toByte, 3.toByte),
+    compareGreaterEqual ++ Array(0.toByte, 2.toByte, 3.toByte),
     assertTrue ++ Array(3.toByte),
     cdbvMapSet ++ Array(lockTimeMap.index, 1.toByte, 0.toByte)
   )

@@ -16,7 +16,7 @@ trait LockFunction {
   val lockFunctionOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(1.toByte),
     cdbvrMapGetOrDefault ++ Array(lockTimeMap.index, 1.toByte, 2.toByte),
-    compareGreater ++ Array(0.toByte, 2.toByte, 3.toByte),
+    compareGreaterEqual ++ Array(0.toByte, 2.toByte, 3.toByte),
     assertTrue ++ Array(3.toByte),
     cdbvMapSet ++ Array(lockTimeMap.index, 1.toByte, 0.toByte)
   )
@@ -24,7 +24,7 @@ trait LockFunction {
   val lockWrongFunctionOpcs: Seq[Array[Byte]] = Seq(
     Array(2.toByte, 0.toByte) ++ Array(1.toByte),
     cdbvrMapGetOrDefault ++ Array(lockTimeMap.index, 1.toByte, 2.toByte),
-    compareGreater ++ Array(0.toByte, 2.toByte, 3.toByte),
+    compareGreaterEqual ++ Array(0.toByte, 2.toByte, 3.toByte),
     assertTrue ++ Array(3.toByte),
     cdbvMapSet ++ Array(lockTimeMap.index, 1.toByte, 0.toByte)
   )
