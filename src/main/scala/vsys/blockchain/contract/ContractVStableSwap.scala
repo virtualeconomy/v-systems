@@ -91,6 +91,36 @@ object ContractVStableSwap {
   val depositTextualBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   // Withdraw Trigger
+  val withdrawId: Short = 2
+  val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId") ++
+                                  Seq("baseTokenId", "targetTokenId", "isValidTokenId",
+                                      "isBaseToken", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
+  val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
+  val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(baseTokenIdStateVar.index, 3.toByte),
+    cdbvrGet ++ Array(targetTokenIdStateVar.index, 4.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+    compareBytesEqual ++ Array(2.toByte, 3.toByte, 6.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(7.toByte),
+    compareBytesEqual ++ Array(2.toByte, 4.toByte, 8.toByte),
+    basicConstantGet ++ DataEntry(genFunctionOpcs(
+      Seq(
+        cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
+        basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+      )
+    ), DataType.OpcBlock).bytes ++ Array(11.toByte),
+    conditionIf ++ Array(6.toByte, 7.toByte),
+    conditionIf ++ Array(8.toByte, 10.toByte),
+    assertTrue ++ Array(5.toByte)
+  )
+  lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
+  val withdrawTextualBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Functions
 
