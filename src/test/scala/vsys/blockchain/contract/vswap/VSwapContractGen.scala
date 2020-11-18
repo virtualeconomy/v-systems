@@ -16,6 +16,9 @@ trait VSwapContractGen {
   val addLiquidityIndex: Short = 2
   val removeLiquidityIndex: Short = 3
   val swapTokenForExactBaseTokenIndex: Short = 4
+  val swapExactTokenForBaseTokenIndex: Short = 5
+  val swapTokenForExactTargetTokenIndex: Short = 6
+  val swapExactTokenForTargetTokenIndex: Short = 7
 
   def vSwapContractGen(): Gen[Contract] = ContractVSwap.contract
 
@@ -58,6 +61,30 @@ trait VSwapContractGen {
     amountInMax <- Gen.const(DataEntry(Longs.toByteArray(amountInMax), DataType.Amount))
     deadline <- Gen.const(DataEntry(Longs.toByteArray(deadline), DataType.Timestamp))
   } yield Seq(amountOut, amountInMax, deadline)
+
+  def swapExactTokenForBaseTokenDataStackGen(amountOutMin: Long,
+                                             amountIn: Long,
+                                             deadline: Long): Gen[Seq[DataEntry]] = for {
+    amountOutMin <- Gen.const(DataEntry(Longs.toByteArray(amountOutMin), DataType.Amount))
+    amountIn <- Gen.const(DataEntry(Longs.toByteArray(amountIn), DataType.Amount))
+    deadline <- Gen.const(DataEntry(Longs.toByteArray(deadline), DataType.Timestamp))
+  } yield Seq(amountOutMin, amountIn, deadline)
+
+  def swapTokenForExactTargetTokenDataStackGen(amountOut: Long,
+                                               amountInMax: Long,
+                                               deadline: Long): Gen[Seq[DataEntry]] = for {
+    amountOut <- Gen.const(DataEntry(Longs.toByteArray(amountOut), DataType.Amount))
+    amountInMax <- Gen.const(DataEntry(Longs.toByteArray(amountInMax), DataType.Amount))
+    deadline <- Gen.const(DataEntry(Longs.toByteArray(deadline), DataType.Timestamp))
+  } yield Seq(amountOut, amountInMax, deadline)
+
+  def swapExactTokenForTargetTokenDataStackGen(amountOutMin: Long,
+                                               amountIn: Long,
+                                               deadline: Long): Gen[Seq[DataEntry]] = for {
+    amountOutMin <- Gen.const(DataEntry(Longs.toByteArray(amountOutMin), DataType.Amount))
+    amountIn <- Gen.const(DataEntry(Longs.toByteArray(amountIn), DataType.Amount))
+    deadline <- Gen.const(DataEntry(Longs.toByteArray(deadline), DataType.Timestamp))
+  } yield Seq(amountOutMin, amountIn, deadline)
 
   def initVSwapDataStackGen(tokenAId: Array[Byte],
                             tokenBId: Array[Byte],
@@ -140,6 +167,51 @@ trait VSwapContractGen {
     val id: Short = swapTokenForExactBaseTokenIndex
     for {
       data: Seq[DataEntry] <- swapTokenForExactBaseTokenDataStackGen(amountOut, amountInMax, deadline)
+    } yield ExecuteContractFunctionTransaction.create(sender, contractId, id,
+      data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def swapExactTokenForBaseTokenVSwapGen(sender: PrivateKeyAccount,
+                                         contractId: ContractAccount,
+                                         amountOutMin: Long,
+                                         amountIn: Long,
+                                         deadline: Long,
+                                         attachment: Array[Byte],
+                                         fee: Long,
+                                         ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    val id: Short = swapExactTokenForBaseTokenIndex
+    for {
+      data: Seq[DataEntry] <- swapExactTokenForBaseTokenDataStackGen(amountOutMin, amountIn, deadline)
+    } yield ExecuteContractFunctionTransaction.create(sender, contractId, id,
+      data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def swapTokenForExactTargetTokenVSwapGen(sender: PrivateKeyAccount,
+                                           contractId: ContractAccount,
+                                           amountOut: Long,
+                                           amountInMax: Long,
+                                           deadline: Long,
+                                           attachment: Array[Byte],
+                                           fee: Long,
+                                           ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    val id: Short = swapTokenForExactTargetTokenIndex
+    for {
+      data: Seq[DataEntry] <- swapTokenForExactTargetTokenDataStackGen(amountOut, amountInMax, deadline)
+    } yield ExecuteContractFunctionTransaction.create(sender, contractId, id,
+      data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def swapExactTokenForTargetTokenVSwapGen(sender: PrivateKeyAccount,
+                                           contractId: ContractAccount,
+                                           amountOutMin: Long,
+                                           amountIn: Long,
+                                           deadline: Long,
+                                           attachment: Array[Byte],
+                                           fee: Long,
+                                           ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    val id: Short = swapExactTokenForTargetTokenIndex
+    for {
+      data: Seq[DataEntry] <- swapExactTokenForTargetTokenDataStackGen(amountOutMin, amountIn, deadline)
     } yield ExecuteContractFunctionTransaction.create(sender, contractId, id,
       data, attachment, fee, feeScale, ts).explicitGet()
   }
