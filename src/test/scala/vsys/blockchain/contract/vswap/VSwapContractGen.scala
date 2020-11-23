@@ -6,7 +6,8 @@ import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.{Contract, ContractVSwap, DataEntry, DataType}
 import vsys.blockchain.contract.ContractGenHelper._
 import vsys.blockchain.state._
-import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
+import vsys.blockchain.transaction.GenesisTransaction
+import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
 
 trait VSwapContractGen {
@@ -21,6 +22,18 @@ trait VSwapContractGen {
   val swapExactTokenForTargetTokenIndex: Short = 7
 
   def vSwapContractGen(): Gen[Contract] = ContractVSwap.contract
+
+  def genesisVSwapGen(rep: PrivateKeyAccount,
+                      ts: Long): Gen[GenesisTransaction] =
+    GenesisTransaction.create(rep, ENOUGH_AMT, -1, ts).explicitGet()
+
+  def registerVSwapGen(signer: PrivateKeyAccount,
+                       contract: Contract,
+                       dataStack: Seq[DataEntry],
+                       description: String,
+                       fee: Long,
+                       ts: Long): Gen[RegisterContractTransaction] =
+    RegisterContractTransaction.create(signer, contract, dataStack, description, fee, feeScale, ts).explicitGet()
 
   def addressDataStackGen(address: Address): Gen[Seq[DataEntry]] = for {
     addr <- Gen.const(DataEntry(address.bytes.arr, DataType.Address))
@@ -93,7 +106,7 @@ trait VSwapContractGen {
     tokenAId <- Gen.const(DataEntry.create(tokenAId, DataType.TokenId).right.get)
     tokenBId <- Gen.const(DataEntry.create(tokenBId, DataType.TokenId).right.get)
     liquidityTokenId <- Gen.const(DataEntry.create(liquidityTokenId, DataType.TokenId).right.get)
-    minimumLiquidity <- Gen.const(DataEntry.create(Longs.toByteArray(minimumLiquidity), DataType.TokenId).right.get)
+    minimumLiquidity <- Gen.const(DataEntry.create(Longs.toByteArray(minimumLiquidity), DataType.Amount).right.get)
   } yield Seq(tokenAId, tokenBId, liquidityTokenId, minimumLiquidity)
 
   def supersedeVSwapGen(signer: PrivateKeyAccount,
