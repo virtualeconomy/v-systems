@@ -39,15 +39,14 @@ object CDBVOpcDiff extends OpcDiffer {
   def mapValueAdd(context: ExecutionContext)(stateMap: Array[Byte],
                                              keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
-    if (!checkStateMap(stateMap, keyValue.dataType, dataValue.dataType))
+    if (!checkStateMap(stateMap, keyValue.dataType, dataValue.dataType)) {
       Left(ContractInvalidStateMap)
-    if (dataValue.dataType == DataType.Amount){
+    } else if (dataValue.dataType == DataType.Amount) {
       val cntBalance = context.state.contractNumInfo(combinedKey)
       val addAmount = Longs.fromByteArray(dataValue.data)
       if (addAmount < 0){
         Left(InvalidDataEntry)
-      }
-      if (Try(Math.addExact(cntBalance, addAmount)).isFailure)
+      } else if (Try(Math.addExact(cntBalance, addAmount)).isFailure)
         Left(ValidationError.OverflowError)
       else
         Right(OpcDiff(contractNumDB = Map(combinedKey -> addAmount)))
@@ -58,15 +57,14 @@ object CDBVOpcDiff extends OpcDiffer {
   def mapValueMinus(context: ExecutionContext)(stateMap: Array[Byte],
                                                keyValue: DataEntry, dataValue: DataEntry): Either[ValidationError, OpcDiff] = {
     val combinedKey = ByteStr(context.contractId.bytes.arr ++ Array(stateMap(0)) ++ keyValue.bytes)
-    if (!checkStateMap(stateMap, keyValue.dataType, dataValue.dataType))
+    if (!checkStateMap(stateMap, keyValue.dataType, dataValue.dataType)) {
       Left(ContractInvalidStateMap)
-    if (dataValue.dataType == DataType.Amount){
+    } else if (dataValue.dataType == DataType.Amount) {
       val cntBalance = context.state.contractNumInfo(combinedKey)
       val minusAmount = Longs.fromByteArray(dataValue.data)
       if (minusAmount < 0){
         Left(InvalidDataEntry)
-      }
-      if (cntBalance >= minusAmount)
+      } else if (cntBalance >= minusAmount)
         Right(OpcDiff(contractNumDB = Map(combinedKey -> -minusAmount)))
       else Left(ContractMapValueInsufficient)
     }
