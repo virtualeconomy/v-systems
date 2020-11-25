@@ -25,7 +25,7 @@ class RegisterVSwapContractDiffTest extends PropSpec
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   val languageCode: String = "vdds"
-  val languageVersion: Int = 1
+  val languageVersion: Int = 2
 
   val preconditionAndBuildVSwapContract: Gen[(Array[Byte], Array[Byte], Seq[Array[Byte]],
     Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]], Seq[Array[Byte]])] = for {
