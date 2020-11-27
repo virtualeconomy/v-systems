@@ -90,13 +90,13 @@ object BasicOpcDiff extends OpcDiffer {
       }
       case _ => Left(ContractInvalidOPCData)
     }
-  def addLeadingZeros(in: Array[Byte], length: Int): Array[Byte] = 
-    new Array[Byte](0.max(length - in.length)) ++ in
+  def addLeadingZeros(in: Array[Byte], length: Int): Array[Byte] =
+    (new Array[Byte](0.max(length - in.length)) ++ in).takeRight(length)
 
   def concat(x: DataEntry, y: DataEntry): Either[ValidationError, DataEntry] =
     DataEntry.create(x.data ++ y.data, DataType.ShortBytes)
 
-  def constantGet(constant: Array[Byte]): Either[ValidationError, DataEntry] = 
+  def constantGet(constant: Array[Byte]): Either[ValidationError, DataEntry] =
     DataEntry.fromBytes(constant)
 
   object BasicType extends Enumeration {
