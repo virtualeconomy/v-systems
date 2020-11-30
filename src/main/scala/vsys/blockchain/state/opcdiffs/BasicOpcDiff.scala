@@ -83,7 +83,7 @@ object BasicOpcDiff extends OpcDiffer {
             case Int32      => formatResB[Int]   (addLeadingZeros(bytes, 4), Int32)
             case Amount     => formatResB[Long]  (addLeadingZeros(bytes, 8), Amount)
             case Timestamp  => formatResB[Long]  (addLeadingZeros(bytes, 8), Timestamp)
-            case BigInteger => formatResB[BigInt](bytes.dropWhile(i => i == 0), BigInteger)
+            case BigInteger => formatResB[BigInt](bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1), BigInteger)
             case _ => Left(ContractUnsupportedOPC)
           }
         }
