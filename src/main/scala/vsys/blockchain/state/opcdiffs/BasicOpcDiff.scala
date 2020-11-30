@@ -73,26 +73,30 @@ object BasicOpcDiff extends OpcDiffer {
 
   def convertion(x: DataEntry, t: DataEntry): Either[ValidationError, DataEntry] =
     t.dataType match {
-      case DataTypeObj => x.dataType match {
-        case Int32 | Amount | Timestamp | BigInteger => {
+      case DataTypeObj =>(x.dataType match {
+        case Int32 | Amount | Timestamp => Right(x.data) 
+        case BigInteger => Right(x.data.drop(2))
+        case _ => Left(ContractUnsupportedOPC)
+      }) flatMap { bytes => {
           val to: DataTypeVal[_] = DataTypeObj.deserializer(t.data)
           to match {
-            case Int32      => formatResB[Int]   (x.data, Int32)
-            case Amount     => formatResB[Long]  (x.data, Amount)
-            case Timestamp  => formatResB[Long]  (x.data, Timestamp)
-            case BigInteger => formatResB[BigInt](x.data, BigInteger)
+            case Int32      => formatResB[Int]   (addLeadingZeros(bytes, 4), Int32)
+            case Amount     => formatResB[Long]  (addLeadingZeros(bytes, 8), Amount)
+            case Timestamp  => formatResB[Long]  (addLeadingZeros(bytes, 8), Timestamp)
+            case BigInteger => formatResB[BigInt](bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1), BigInteger)
             case _ => Left(ContractUnsupportedOPC)
           }
         }
-        case _ => Left(ContractUnsupportedOPC)
       }
       case _ => Left(ContractInvalidOPCData)
     }
+  def addLeadingZeros(in: Array[Byte], length: Int): Array[Byte] =
+    (new Array[Byte](0.max(length - in.length)) ++ in).takeRight(length)
 
   def concat(x: DataEntry, y: DataEntry): Either[ValidationError, DataEntry] =
     DataEntry.create(x.data ++ y.data, DataType.ShortBytes)
 
-  def constantGet(constant: Array[Byte]): Either[ValidationError, DataEntry] = 
+  def constantGet(constant: Array[Byte]): Either[ValidationError, DataEntry] =
     DataEntry.fromBytes(constant)
 
   object BasicType extends Enumeration {
