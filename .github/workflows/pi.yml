@@ -29,8 +29,9 @@ jobs:
 
       - name: Build
         run: |
-          cd full
+          cd .pi
           bash build.sh
+          
       - name: Compress
         run: xz -T $(nproc) full/images/sos-full.img
 
