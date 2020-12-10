@@ -42,7 +42,7 @@ object Dependencies {
 
   lazy val db = Seq(
     "com.h2database" % "h2-mvstore" % "1.4.196",
-    "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
+    "org.openlabtesting.leveldbjni" % "leveldbjni-all" % "1.8"
   )
 
   lazy val logging = Seq(
