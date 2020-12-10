@@ -22,7 +22,7 @@ set -o xtrace
 # wget -N --progress=bar:force:noscroll http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
 
 # BUILD IMAGE
-docker buildx build --tag vsys-arm --platform linux/arm64 --progress plain --cache-to faddat/vsys-arm:cache --cache-from faddat/vsys-arm:cache --load ..
+docker buildx build --tag vsys-arm --platform linux/arm64 --progress plain --cache-to faddat/vsys-arm:cache --cache-from faddat/vsys-arm:cache --load .
 
 # TAG AND PUSH
 docker tag vsys-arm faddat/vsys-arm
