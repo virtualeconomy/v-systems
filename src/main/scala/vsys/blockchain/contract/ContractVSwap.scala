@@ -9,7 +9,7 @@ object ContractVSwap {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
     Seq(supersedeFunc, setSwapFunc, addLiquidityFunc, removeLiquidityFunc, swapTokenForExactBaseTokenFunc,
-        swapExactTokenForBaseTokenFunc, swapTokenForExactTargetTokenFunc, swapExactTokenForTargetTokenFunc), // Functions
+      swapExactTokenForBaseTokenFunc, swapTokenForExactTargetTokenFunc, swapExactTokenForTargetTokenFunc), // Functions
     stateVarSeq, // StateVars
     stateMapSeq, // StateMaps
     Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)  // Textual
@@ -17,7 +17,7 @@ object ContractVSwap {
 
   // State Var
   val stateVarName = List("maker", "tokenAId", "tokenBId", "tokenLiquidityId", "swapStatus", "minimumLiquidity",
-                          "tokenAReserved", "tokenBReserved", "totalSupply", "liquidityTokenLeft")
+    "tokenAReserved", "tokenBReserved", "totalSupply", "liquidityTokenLeft")
   val makerStateVar: StateVar               = StateVar(0.toByte, DataType.Address.id.toByte)
   val tokenAIdStateVar: StateVar            = StateVar(1.toByte, DataType.TokenId.id.toByte)
   val tokenBIdStateVar: StateVar             = StateVar(2.toByte, DataType.TokenId.id.toByte)
@@ -29,8 +29,8 @@ object ContractVSwap {
   val totalSupplyStateVar: StateVar         = StateVar(8.toByte, DataType.Amount.id.toByte)
   val liquidityTokenLeftStateVar: StateVar  = StateVar(9.toByte, DataType.Amount.id.toByte)
   lazy val stateVarSeq = Seq(makerStateVar.arr, tokenAIdStateVar.arr, tokenBIdStateVar.arr, tokenLiquidityIdStateVar.arr,
-                             swapStatusStateVar.arr, minimumLiquidityStateVar.arr, tokenAReservedStateVar.arr,
-                             tokenBReservedStateVar.arr, totalSupplyStateVar.arr, liquidityTokenLeftStateVar.arr)
+    swapStatusStateVar.arr, minimumLiquidityStateVar.arr, tokenAReservedStateVar.arr,
+    tokenBReservedStateVar.arr, totalSupplyStateVar.arr, liquidityTokenLeftStateVar.arr)
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
@@ -46,7 +46,7 @@ object ContractVSwap {
   // Initialization Trigger
   val initId: Short = 0
   val initPara: Seq[String] = Seq("tokenAId", "tokenBId", "liquidityTokenId", "minimumLiquidity") ++
-                              Seq("signer", "swapStatus")
+    Seq("signer", "swapStatus")
   val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte, DataType.TokenId.id.toByte, DataType.TokenId.id.toByte, DataType.Amount.id.toByte)
   val initTriggerOpcs: Seq[Array[Byte]] = Seq(
     loadSigner ++ Array(4.toByte),
@@ -64,9 +64,9 @@ object ContractVSwap {
   // Deposit Trigger
   val depositId: Short = 1
   val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId") ++
-                                 Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
-                                     "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
-                                     "isTokenLiquidity", "tokenLiquidityIfBlock")
+    Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
+      "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
+      "isTokenLiquidity", "tokenLiquidityIfBlock")
   val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
@@ -106,9 +106,9 @@ object ContractVSwap {
   // WithDraw Trigger
   val withdrawId: Short = 2
   val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId") ++
-                                  Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
-                                      "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
-                                      "isTokenLiquidity", "tokenLiquidityIfBlock")
+    Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
+      "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
+      "isTokenLiquidity", "tokenLiquidityIfBlock")
   val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
@@ -149,7 +149,7 @@ object ContractVSwap {
   // Supersede
   val supersedeId: Short = 0
   val supersedePara: Seq[String] = Seq("newOwner",
-                                       "maker")
+    "maker")
   val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte)
   val supersedeOpcs: Seq[Array[Byte]] =  Seq(
     cdbvrGet ++ Array(makerStateVar.index, 1.toByte),
@@ -161,10 +161,10 @@ object ContractVSwap {
   // Set Swap
   val setSwapId: Short = 1
   val setSwapPara: Seq[String] = Seq("amountADesired", "amountBDesired") ++
-                                 Seq("maker", "swapStatus", "valueFalse", "amountZero", "isValidAmountADesired", "isValidAmountBDesired",
-                                     "bigIntType", "amountADesiredBigInt", "amountBDesiredBigInt", "valueK", "initLiquidityBigInt",
-                                     "amountType", "initLiquidity", "minimumLiquidity", "isValidInitLiquidity", "liquidity",
-                                     "maxLiquidity", "isValidLiquidity", "liquidityLeft", "valueTrue")
+    Seq("maker", "swapStatus", "valueFalse", "amountZero", "isValidAmountADesired", "isValidAmountBDesired",
+      "bigIntType", "amountADesiredBigInt", "amountBDesiredBigInt", "valueK", "initLiquidityBigInt",
+      "amountType", "initLiquidity", "minimumLiquidity", "isValidInitLiquidity", "liquidity",
+      "maxLiquidity", "isValidLiquidity", "liquidityLeft", "valueTrue")
   val setSwapDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val setSwapFunctionOpcs: Seq[Array[Byte]] = Seq(
     cdbvrGet ++ Array(makerStateVar.index, 2.toByte),
@@ -190,7 +190,7 @@ object ContractVSwap {
     compareGreater ++ Array(14.toByte, 15.toByte, 16.toByte),
     assertTrue ++ Array(16.toByte),
     basicMinus ++ Array(14.toByte, 15.toByte, 17.toByte),
-    cdbvrMapGet ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
+    cdbvrMapGetOrDefault ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
     compareGreater ++ Array(18.toByte, 14.toByte, 19.toByte),
     assertTrue ++ Array(19.toByte),
     cdbvMapValMinus ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
@@ -209,15 +209,15 @@ object ContractVSwap {
   // Add Liquidity
   val addLiquidityId: Short = 2
   val addLiquidityPara: Seq[String] = Seq("amountADesired", "amountBDesired", "amountAMin", "amountBMin", "deadline") ++
-                                      Seq("caller", "swapStatus", "currentTime", "isValidTime", "amountZero",
-                                          "reserveA", "isValidReserveA", "reserveB", "isValidReserveB",
-                                          "bigIntType", "reserveABigInt", "reserveBBigInt", "amountADesiredBigInt", "amountBDesiredBigInt",
-                                          "mulA", "amountBGet", "mulB", "amountAGet", "amountType", "amountABigInt", "amountA", "isValidAmountA",
-                                          "amountBBigInt", "amountB", "isValidAmountB", "totalSupply", "totalSupplyBigInt",
-                                          "mulSupplyA", "mulSupplyB", "liquidityABigInt", "liquidityBBigInt", "liquidityBigInt",
-                                          "liquidity", "liquidityLeft", "isValidLiquidity")
+    Seq("caller", "swapStatus", "currentTime", "isValidTime", "amountZero",
+      "reserveA", "isValidReserveA", "reserveB", "isValidReserveB",
+      "bigIntType", "reserveABigInt", "reserveBBigInt", "amountADesiredBigInt", "amountBDesiredBigInt",
+      "mulA", "amountBGet", "mulB", "amountAGet", "amountType", "amountABigInt", "amountA", "isValidAmountA",
+      "amountBBigInt", "amountB", "isValidAmountB", "totalSupply", "totalSupplyBigInt",
+      "mulSupplyA", "mulSupplyB", "liquidityABigInt", "liquidityBBigInt", "liquidityBigInt",
+      "liquidity", "liquidityLeft", "isValidLiquidity")
   val addLiquidityDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte,
-                                                DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
+    DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
   val addLiquidityFunctionOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(5.toByte),
     cdbvrGet ++ Array(swapStatusStateVar.index, 6.toByte),
@@ -270,19 +270,19 @@ object ContractVSwap {
     cdbvMapValAdd ++ Array(liquidityBalanceMap.index, 5.toByte, 37.toByte)
   )
   lazy val addLiquidityFunc: Array[Byte] = getFunctionBytes(addLiquidityId, publicFuncType, nonReturnType,
-                                                            addLiquidityDataType, addLiquidityFunctionOpcs)
+    addLiquidityDataType, addLiquidityFunctionOpcs)
   val addLiquidityTextualBytes: Array[Byte] = textualFunc("addLiquidity", Seq(), addLiquidityPara)
 
   // Remove Liquidity
-  val removeLiquidityId: Short = 2
+  val removeLiquidityId: Short = 3
   val removeLiquidityPara: Seq[String] = Seq("liquidity", "amountAMin", "amountBMin", "deadline") ++
-                                         Seq("caller", "swapStatus", "currentTime", "isValidTime", "reserveA", "reserveB",
-                                             "bigIntType", "liquidityBigInt", "reserveABigInt", "reserveBBigInt",
-                                             "totalSupply", "amountZero", "isValidTotalSupply", "totalSupplyBigInt",
-                                             "mulA", "amountABigInt", "mulB", "amountBBigInt", "amountType", "amountA", "amountB",
-                                             "isValidAmountA", "isValidAmountB")
+    Seq("caller", "swapStatus", "currentTime", "isValidTime", "reserveA", "reserveB",
+      "bigIntType", "liquidityBigInt", "reserveABigInt", "reserveBBigInt",
+      "totalSupply", "amountZero", "isValidTotalSupply", "totalSupplyBigInt",
+      "mulA", "amountABigInt", "mulB", "amountBBigInt", "amountType", "amountA", "amountB",
+      "isValidAmountA", "isValidAmountB")
   val removeLiquidityDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte,
-                                                   DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
+    DataType.Amount.id.toByte, DataType.Timestamp.id.toByte)
   val removeLiquidityFunctionOpcs: Seq[Array[Byte]] = Seq(
     loadCaller ++ Array(4.toByte),
     cdbvrGet ++ Array(swapStatusStateVar.index, 5.toByte),
@@ -321,7 +321,7 @@ object ContractVSwap {
     cdbvStateValAdd ++ Array(liquidityTokenLeftStateVar.index, 0.toByte)
   )
   lazy val removeLiquidityFunc: Array[Byte] = getFunctionBytes(removeLiquidityId, publicFuncType, nonReturnType,
-                                                               removeLiquidityDataType, removeLiquidityFunctionOpcs)
+    removeLiquidityDataType, removeLiquidityFunctionOpcs)
   val removeLiquidityTextualBytes: Array[Byte] = textualFunc("removeLiquidity", Seq(), removeLiquidityPara)
 
   // Common Swap Code
@@ -353,32 +353,32 @@ object ContractVSwap {
   private def swapKValueCheck(updatedReserveA: Byte, updatedReserveB: Byte, value1000: Byte,
                               reservedABigInt: Byte, reservedBBigInt: Byte, updateK: Byte): Seq[Array[Byte]] = {
     Seq(
-      basicMultiply ++ Array(updatedReserveA, updatedReserveA, updateK),
+      basicMultiply ++ Array(updatedReserveA, updatedReserveB, updateK),
       basicMultiply ++ Array(reservedABigInt, reservedBBigInt, (updateK + 1).toByte),
       basicMultiply ++ Array(value1000, value1000, (updateK + 2).toByte),
-      basicMultiply ++ Array((updateK + 1).toByte, (updateK + 1).toByte, (updateK + 3).toByte),
+      basicMultiply ++ Array((updateK + 1).toByte, (updateK + 2).toByte, (updateK + 3).toByte),
       compareGreaterEqual ++ Array(updateK, (updateK + 3).toByte, (updateK + 4).toByte),
       assertTrue ++ Array((updateK + 4).toByte),
     )
   }
 
-  val swapTokenForExactBaseTokenId: Short = 3
+  val swapTokenForExactBaseTokenId: Short = 4
   val swapTokenForExactBaseTokenPara: Seq[String] = Seq("amountOut", "amountInMax", "deadline") ++
-                                                    commonSwapPara ++
-                                                    Seq("amountZero", "isValidAmountOut", "reserveA", "reserveB",
-                                                        "bigIntType", "amountOutBigInt", "reserveABigInt", "reserveBBigInt",
-                                                        "value1000", "mulValue", "numerator", "value997", "subValue", "denominator",
-                                                        "valueOne", "amountInBigIntPre", "amountInBigInt", "amountType",
-                                                        "amountIn", "isValidAmountIn", "updatedReserveA", "amountInWithOutFee",
-                                                        "updatedReserveB", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
+    commonSwapPara ++
+    Seq("amountZero", "isValidAmountOut", "reserveA", "reserveB",
+      "bigIntType", "amountOutBigInt", "reserveABigInt", "reserveBBigInt",
+      "value1000", "mulValue", "numerator", "value997", "subValue", "denominator",
+      "valueOne", "amountInBigIntPre", "amountInBigInt", "amountType",
+      "amountIn", "isValidAmountIn", "updatedReserveA", "amountInWithOutFee",
+      "updatedReserveB", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
   val swapTokenForExactBaseTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(0.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(14.toByte, 15.toByte, 16.toByte),
     basicMultiply ++ Array(16.toByte, 12.toByte, 17.toByte),
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(18.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(18.toByte),
     basicMinus ++ Array(13.toByte, 12.toByte, 19.toByte),
     basicMultiply ++ Array(19.toByte, 18.toByte, 20.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1).toByteArray, DataType.BigInteger).bytes ++ Array(21.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(21.toByte),
     basicDivide ++ Array(17.toByte, 20.toByte, 22.toByte),
     basicAdd ++ Array(22.toByte, 21.toByte, 23.toByte),
     basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(24.toByte),
@@ -396,22 +396,22 @@ object ContractVSwap {
     cdbvMapValAdd ++ Array(tokenABalanceMap.index, 3.toByte, 0.toByte)
   )
   lazy val swapTokenForExactBaseTokenFunc: Array[Byte] = getFunctionBytes(swapTokenForExactBaseTokenId, publicFuncType, nonReturnType,
-                                                                          swapDataType, swapTokenForExactBaseTokenFunctionOpcs)
+    swapDataType, swapTokenForExactBaseTokenFunctionOpcs)
   val swapTokenForExactBaseTokenTextualBytes: Array[Byte] = textualFunc("swapTokenForExactBaseToken", Seq(), swapTokenForExactBaseTokenPara)
 
-  val swapExactTokenForBaseTokenId: Short = 4
+  val swapExactTokenForBaseTokenId: Short = 5
   val swapExactTokenForBaseTokenPara: Seq[String] = Seq("amountOutMin", "amountIn", "deadline") ++
-                                                    commonSwapPara ++
-                                                    Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
-                                                        "bigIntType", "amountInBigInt", "reserveABigInt", "reserveBBigInt",
-                                                        "value997", "amountInWithOutFee", "value1000", "mulValue",
-                                                        "numerator", "denominator", "amountOutBigInt", "amountType", "amountOut",
-                                                        "isValidAmountOut", "subValue", "updatedReserveA", "updatedReserveB",
-                                                        "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
+    commonSwapPara ++
+    Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
+      "bigIntType", "amountInBigInt", "reserveABigInt", "reserveBBigInt",
+      "value997", "amountInWithOutFee", "value1000", "mulValue",
+      "numerator", "denominator", "amountOutBigInt", "amountType", "amountOut",
+      "isValidAmountOut", "subValue", "updatedReserveA", "updatedReserveB",
+      "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
   val swapExactTokenForBaseTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(1.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(12.toByte, 15.toByte, 16.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(17.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(17.toByte),
     basicMultiply ++ Array(14.toByte, 17.toByte, 18.toByte),
     basicMultiply ++ Array(13.toByte, 16.toByte, 19.toByte),
     basicAdd ++ Array(18.toByte, 16.toByte, 20.toByte),
@@ -430,26 +430,26 @@ object ContractVSwap {
     cdbvMapValAdd ++ Array(tokenABalanceMap.index, 3.toByte, 23.toByte)
   )
   lazy val swapExactTokenForBaseTokenFunc: Array[Byte] = getFunctionBytes(swapExactTokenForBaseTokenId, publicFuncType, nonReturnType,
-                                                                          swapDataType, swapExactTokenForBaseTokenFunctionOpcs)
+    swapDataType, swapExactTokenForBaseTokenFunctionOpcs)
   val swapExactTokenForBaseTokenTextualBytes: Array[Byte] = textualFunc("swapExactTokenForBaseToken", Seq(), swapExactTokenForBaseTokenPara)
 
-  val swapTokenForExactTargetTokenId: Short = 5
+  val swapTokenForExactTargetTokenId: Short = 6
   val swapTokenForExactTargetTokenPara: Seq[String] = Seq("amountOut", "amountInMax", "deadline") ++
-                                                      commonSwapPara ++
-                                                      Seq("amountZero", "isValidAmountOut", "reserveA", "reserveB",
-                                                          "bigIntType", "amountOutBigInt", "reserveABigInt", "reserveBBigInt",
-                                                          "value1000", "mulValue", "numerator", "value997", "subValue", "denominator",
-                                                          "valueOne", "amountInBigIntPre", "amountInBigInt", "amountType",
-                                                          "amountIn", "isValidAmountIn", "updatedReserveB", "amountInWithOutFee",
-                                                          "updatedReserveA", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
+    commonSwapPara ++
+    Seq("amountZero", "isValidAmountOut", "reserveA", "reserveB",
+      "bigIntType", "amountOutBigInt", "reserveABigInt", "reserveBBigInt",
+      "value1000", "mulValue", "numerator", "value997", "subValue", "denominator",
+      "valueOne", "amountInBigIntPre", "amountInBigInt", "amountType",
+      "amountIn", "isValidAmountIn", "updatedReserveB", "amountInWithOutFee",
+      "updatedReserveA", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
   val swapTokenForExactTargetTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(0.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(13.toByte, 15.toByte, 16.toByte),
     basicMultiply ++ Array(16.toByte, 12.toByte, 17.toByte),
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(18.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes  ++ Array(18.toByte),
     basicMinus ++ Array(14.toByte, 12.toByte, 19.toByte),
     basicMultiply ++ Array(19.toByte, 18.toByte, 20.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1).toByteArray, DataType.BigInteger).bytes ++ Array(21.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(21.toByte),
     basicDivide ++ Array(17.toByte, 20.toByte, 22.toByte),
     basicAdd ++ Array(22.toByte, 21.toByte, 23.toByte),
     basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(24.toByte),
@@ -467,22 +467,22 @@ object ContractVSwap {
     cdbvMapValAdd ++ Array(tokenBBalanceMap.index, 3.toByte, 0.toByte)
   )
   lazy val swapTokenForExactTargetTokenFunc: Array[Byte] = getFunctionBytes(swapTokenForExactTargetTokenId, publicFuncType, nonReturnType,
-                                                                            swapDataType, swapTokenForExactTargetTokenFunctionOpcs)
+    swapDataType, swapTokenForExactTargetTokenFunctionOpcs)
   val swapTokenForExactTargetTokenTextualBytes: Array[Byte] = textualFunc("swapTokenForExactTargetToken", Seq(), swapTokenForExactTargetTokenPara)
 
-  val swapExactTokenForTargetTokenId: Short = 6
+  val swapExactTokenForTargetTokenId: Short = 7
   val swapExactTokenForTargetTokenPara: Seq[String] = Seq("amountOutMin", "amountIn", "deadline") ++
-                                                      commonSwapPara ++
-                                                      Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
-                                                          "bigIntType", "amountInBigInt", "reserveABigInt", "reserveBBigInt",
-                                                          "value997", "amountInWithOutFee", "value1000", "mulValue",
-                                                          "numerator", "denominator", "amountOutBigInt", "amountType", "amountOut",
-                                                          "isValidAmountOut", "subValue", "updatedReserveB", "updatedReserveA",
-                                                          "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
+    commonSwapPara ++
+    Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
+      "bigIntType", "amountInBigInt", "reserveABigInt", "reserveBBigInt",
+      "value997", "amountInWithOutFee", "value1000", "mulValue",
+      "numerator", "denominator", "amountOutBigInt", "amountType", "amountOut",
+      "isValidAmountOut", "subValue", "updatedReserveB", "updatedReserveA",
+      "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
   val swapExactTokenForTargetTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(1.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(12.toByte, 15.toByte, 16.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(17.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(17.toByte),
     basicMultiply ++ Array(13.toByte, 17.toByte, 18.toByte),
     basicMultiply ++ Array(14.toByte, 16.toByte, 19.toByte),
     basicAdd ++ Array(18.toByte, 16.toByte, 20.toByte),
@@ -501,7 +501,7 @@ object ContractVSwap {
     cdbvMapValAdd ++ Array(tokenBBalanceMap.index, 3.toByte, 23.toByte)
   )
   lazy val swapExactTokenForTargetTokenFunc: Array[Byte] = getFunctionBytes(swapExactTokenForTargetTokenId, publicFuncType, nonReturnType,
-                                                                            swapDataType, swapExactTokenForTargetTokenFunctionOpcs)
+    swapDataType, swapExactTokenForTargetTokenFunctionOpcs)
   val swapExactTokenForTargetTokenTextualBytes: Array[Byte] = textualFunc("swapExactTokenForTargetToken", Seq(), swapExactTokenForTargetTokenPara)
 
   // Textual
