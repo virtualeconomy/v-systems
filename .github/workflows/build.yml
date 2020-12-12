@@ -22,8 +22,8 @@ jobs:
    
    - uses: actions/upload-artifact@v2
      with:
-      name: target
-      path: target/
+      name: jar
+      path: target/vsys-all-0.3.2.jar
         
            
         
