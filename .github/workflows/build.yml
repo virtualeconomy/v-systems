@@ -19,6 +19,11 @@ jobs:
 
    - name: Build and Package
      run: sbt packageAll
+   
+   - uses: actions/upload-artifact@v2
+     with:
+      name: target
+      path: target/
         
            
         
