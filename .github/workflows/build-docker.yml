@@ -1,7 +1,8 @@
-# This matrix builds VSYS with various JDKs and will be expanded to cover many more cases.   
-
-name: Build VSYS
-on: [push,pull_request]
+name: Build VSYS + Update Dockerr Image
+on: 
+  push:
+    branches: 
+      - master
 
 jobs:
   build:
