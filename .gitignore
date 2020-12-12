@@ -27,8 +27,6 @@ localsettings.json
 *.csv
 *.dat
 
-# standalone docker
-Dockerfile
 
 # logs
 *.log
@@ -48,3 +46,9 @@ test/*/data/*
 src/test/**/.DS_Store
 
 *.sublime-*
+
+# metals
+.metals/
+.bloop/
+.ammonite/
+project/metals.sbt

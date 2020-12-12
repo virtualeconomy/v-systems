@@ -1,0 +1,57 @@
+name: Build VSYS + Update Dockerr Image
+on: 
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+   runs-on: ubuntu-latest
+ 
+   steps:
+   - name: install scala
+     run: |
+       echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+       sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
+       sudo apt-get update
+       sudo apt-get install -y sbt
+       
+   - uses: actions/checkout@v2
+
+   - name: Build and Package
+     run: sbt packageAll
+   
+   - uses: actions/upload-artifact@v2
+     with:
+      name: jar
+      path: target/vsys-all-0.3.2.jar
+
+   - name: Login to DockerHub
+     uses: docker/login-action@v1
+     with:
+       username: ${{ secrets.DOCKERHUB_USERNAME }}
+       password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+   - name: Set up QEMU
+     run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
+
+   - name: Set up Docker Buildx
+     id: buildx
+     uses: docker/setup-buildx-action@v1
+     with:
+       version: latest
+
+   - name: Available platforms
+     run: echo ${{ steps.buildx.outputs.platforms }}
+   
+   - name: docker build and push
+     run: | 
+       cp target/vsys-all-0.3.2.jar .pi
+       cd .pi
+       docker buildx build --platform linux/arm64,linux/amd64 --tag faddat/vsys --push .
+
+
+  
+
+           
+        
