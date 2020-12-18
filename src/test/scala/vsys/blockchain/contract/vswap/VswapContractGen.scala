@@ -6,13 +6,12 @@ import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.account.{ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.ContractGenHelper._
 import vsys.blockchain.contract._
-import vsys.blockchain.contract.lock.LockContractGen
 import vsys.blockchain.contract.token.TokenContractGen
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.GenesisTransaction
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
-trait VswapContractGen extends TokenContractGen with LockContractGen {
+trait VswapContractGen extends TokenContractGen {
 
   val supersededId: Short = 0
   val setSwapId: Short = 1
@@ -37,11 +36,11 @@ trait VswapContractGen extends TokenContractGen with LockContractGen {
   } yield Seq(tokenAId, tokenBId, liquidityTokenId, minimumLiquidity)
 
   def registerVSwapGen(signer: PrivateKeyAccount, contract: Contract, dataStack: Seq[DataEntry],
-                                description: String, fee: Long, ts: Long): Gen[RegisterContractTransaction] =
+                       description: String, fee: Long, ts: Long): Gen[RegisterContractTransaction] =
     RegisterContractTransaction.create(signer, contract, dataStack, description, fee, feeScale, ts).explicitGet()
 
   def setSwapGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
-                                attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+                 attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = setSwapId.toShort
     for {
       data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
@@ -57,7 +56,7 @@ trait VswapContractGen extends TokenContractGen with LockContractGen {
   }
 
   def removeLiquidityGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
-                      attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+                         attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = removeLiquidityId.toShort
     for {
       data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
@@ -65,7 +64,7 @@ trait VswapContractGen extends TokenContractGen with LockContractGen {
   }
 
   def swapTokenForExactBaseTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
-                                 attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+                                    attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = swapTokenForExactBaseTokenId.toShort
     for {
       data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
@@ -101,10 +100,10 @@ trait VswapContractGen extends TokenContractGen with LockContractGen {
   def createABLiquidityTokenAndInitVSwap(totalSupplyA: Long, unityA: Long, issueAmountA: Long, totalSupplyB: Long, unityB: Long, issueAmountB: Long,
                                          liquidityTotalSupply: Long, liquidityUnity: Long, liquidityIssueAmount: Long, minimumLiquidity: Long,
                                          tokenADepositAmount: Long, tokenBDepositAmount: Long): Gen[(GenesisTransaction, GenesisTransaction,
-                                          PrivateKeyAccount, PrivateKeyAccount, RegisterContractTransaction, RegisterContractTransaction,
-                                          RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-                                          ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-                                          ExecuteContractFunctionTransaction, Long, Long, Array[Byte])] = for {
+    PrivateKeyAccount, PrivateKeyAccount, RegisterContractTransaction, RegisterContractTransaction,
+    RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, Long, Long, Array[Byte])] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     genesis <- genesisVSwapGen(master, ts)
     tokenContract <- tokenContract

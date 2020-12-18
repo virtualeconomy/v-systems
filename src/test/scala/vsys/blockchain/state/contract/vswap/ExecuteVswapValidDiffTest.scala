@@ -123,7 +123,7 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         newState.contractNumInfo(tokenBBalanceKey) shouldEqual 90L
         val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
         newState.contractNumInfo(tokenAReservedKey) shouldEqual 10L
-        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenBReservedStateVar
         newState.contractNumInfo(tokenBReservedKey) shouldEqual 10L
       }
     }
@@ -172,6 +172,10 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         newState.contractNumInfo(tokenAReservedKey) shouldEqual 3000L
         val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
         newState.contractNumInfo(tokenBReservedKey) shouldEqual 3000L
+
+        val master = addLiquidity.proofs.firstCurveProof.explicitGet().publicKey
+        val tokenLiquidityBalanceKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(2.toByte), DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes)) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenLiquidityBalanceKey) shouldEqual 2990L
       }
     }
   }
@@ -222,6 +226,10 @@ class ExecuteVSwapValidDiffTest extends PropSpec
 
         val tokenLiquidityLeftKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(9.toByte))) //tokenAReservedStateVar
         newState.contractNumInfo(tokenLiquidityLeftKey) shouldEqual 9100L
+
+        val master = removeLiquidity.proofs.firstCurveProof.explicitGet().publicKey
+        val tokenLiquidityBalanceKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(2.toByte), DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes)) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenLiquidityBalanceKey) shouldEqual 890L
       }
     }
   }
