@@ -27,6 +27,16 @@ trait VSwapContractGen {
                       ts: Long): Gen[GenesisTransaction] =
     GenesisTransaction.create(rep, ENOUGH_AMT, -1, ts).explicitGet()
 
+  def registerVSwapDataStackGen(tokenAId: Array[Byte],
+                                tokenBId: Array[Byte],
+                                liquidityTokenId: Array[Byte],
+                                minimumLiquidity: Long): Gen[Seq[DataEntry]] = for {
+    tokenAId <- Gen.const(DataEntry(tokenAId, DataType.TokenId))
+    tokenBId <- Gen.const(DataEntry(tokenBId, DataType.TokenId))
+    liquidityTokenId <- Gen.const(DataEntry(liquidityTokenId, DataType.TokenId))
+    minimumLiquidity <- Gen.const(DataEntry(Longs.toByteArray(minimumLiquidity), DataType.Amount))
+  } yield Seq(tokenAId, tokenBId, liquidityTokenId, minimumLiquidity)
+
   def registerVSwapGen(signer: PrivateKeyAccount,
                        contract: Contract,
                        dataStack: Seq[DataEntry],
