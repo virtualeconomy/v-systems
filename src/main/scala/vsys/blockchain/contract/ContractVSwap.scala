@@ -274,7 +274,7 @@ object ContractVSwap {
   val addLiquidityTextualBytes: Array[Byte] = textualFunc("addLiquidity", Seq(), addLiquidityPara)
 
   // Remove Liquidity
-  val removeLiquidityId: Short = 2
+  val removeLiquidityId: Short = 3
   val removeLiquidityPara: Seq[String] = Seq("liquidity", "amountAMin", "amountBMin", "deadline") ++
                                          Seq("caller", "swapStatus", "currentTime", "isValidTime", "reserveA", "reserveB",
                                              "bigIntType", "liquidityBigInt", "reserveABigInt", "reserveBBigInt",
@@ -362,7 +362,7 @@ object ContractVSwap {
     )
   }
 
-  val swapTokenForExactBaseTokenId: Short = 3
+  val swapTokenForExactBaseTokenId: Short = 4
   val swapTokenForExactBaseTokenPara: Seq[String] = Seq("amountOut", "amountInMax", "deadline") ++
                                                     commonSwapPara ++
                                                     Seq("amountZero", "isValidAmountOut", "reserveA", "reserveB",
@@ -399,7 +399,7 @@ object ContractVSwap {
                                                                           swapDataType, swapTokenForExactBaseTokenFunctionOpcs)
   val swapTokenForExactBaseTokenTextualBytes: Array[Byte] = textualFunc("swapTokenForExactBaseToken", Seq(), swapTokenForExactBaseTokenPara)
 
-  val swapExactTokenForBaseTokenId: Short = 4
+  val swapExactTokenForBaseTokenId: Short = 5
   val swapExactTokenForBaseTokenPara: Seq[String] = Seq("amountOutMin", "amountIn", "deadline") ++
                                                     commonSwapPara ++
                                                     Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
@@ -433,7 +433,7 @@ object ContractVSwap {
                                                                           swapDataType, swapExactTokenForBaseTokenFunctionOpcs)
   val swapExactTokenForBaseTokenTextualBytes: Array[Byte] = textualFunc("swapExactTokenForBaseToken", Seq(), swapExactTokenForBaseTokenPara)
 
-  val swapTokenForExactTargetTokenId: Short = 5
+  val swapTokenForExactTargetTokenId: Short = 6
   val swapTokenForExactTargetTokenPara: Seq[String] = Seq("amountOut", "amountInMax", "deadline") ++
                                                       commonSwapPara ++
                                                       Seq("amountZero", "isValidAmountOut", "reserveA", "reserveB",
@@ -470,7 +470,7 @@ object ContractVSwap {
                                                                             swapDataType, swapTokenForExactTargetTokenFunctionOpcs)
   val swapTokenForExactTargetTokenTextualBytes: Array[Byte] = textualFunc("swapTokenForExactTargetToken", Seq(), swapTokenForExactTargetTokenPara)
 
-  val swapExactTokenForTargetTokenId: Short = 6
+  val swapExactTokenForTargetTokenId: Short = 7
   val swapExactTokenForTargetTokenPara: Seq[String] = Seq("amountOutMin", "amountIn", "deadline") ++
                                                       commonSwapPara ++
                                                       Seq("amountZero", "isValidAmountIn", "reserveA", "reserveB",
