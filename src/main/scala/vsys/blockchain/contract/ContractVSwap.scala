@@ -190,7 +190,7 @@ object ContractVSwap {
     compareGreater ++ Array(14.toByte, 15.toByte, 16.toByte),
     assertTrue ++ Array(16.toByte),
     basicMinus ++ Array(14.toByte, 15.toByte, 17.toByte),
-    cdbvrMapGet ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
+    cdbvrMapGetOrDefault ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
     compareGreater ++ Array(18.toByte, 14.toByte, 19.toByte),
     assertTrue ++ Array(19.toByte),
     cdbvMapValMinus ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
@@ -353,10 +353,10 @@ object ContractVSwap {
   private def swapKValueCheck(updatedReserveA: Byte, updatedReserveB: Byte, value1000: Byte,
                               reservedABigInt: Byte, reservedBBigInt: Byte, updateK: Byte): Seq[Array[Byte]] = {
     Seq(
-      basicMultiply ++ Array(updatedReserveA, updatedReserveA, updateK),
+      basicMultiply ++ Array(updatedReserveA, updatedReserveB, updateK),
       basicMultiply ++ Array(reservedABigInt, reservedBBigInt, (updateK + 1).toByte),
       basicMultiply ++ Array(value1000, value1000, (updateK + 2).toByte),
-      basicMultiply ++ Array((updateK + 1).toByte, (updateK + 1).toByte, (updateK + 3).toByte),
+      basicMultiply ++ Array((updateK + 1).toByte, (updateK + 2).toByte, (updateK + 3).toByte),
       compareGreaterEqual ++ Array(updateK, (updateK + 3).toByte, (updateK + 4).toByte),
       assertTrue ++ Array((updateK + 4).toByte),
     )
@@ -372,13 +372,13 @@ object ContractVSwap {
                                                         "amountIn", "isValidAmountIn", "updatedReserveA", "amountInWithOutFee",
                                                         "updatedReserveB", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
   val swapTokenForExactBaseTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(0.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(14.toByte, 15.toByte, 16.toByte),
     basicMultiply ++ Array(16.toByte, 12.toByte, 17.toByte),
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(18.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(18.toByte),
     basicMinus ++ Array(13.toByte, 12.toByte, 19.toByte),
     basicMultiply ++ Array(19.toByte, 18.toByte, 20.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1).toByteArray, DataType.BigInteger).bytes ++ Array(21.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(21.toByte),
     basicDivide ++ Array(17.toByte, 20.toByte, 22.toByte),
     basicAdd ++ Array(22.toByte, 21.toByte, 23.toByte),
     basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(24.toByte),
@@ -409,9 +409,9 @@ object ContractVSwap {
                                                         "isValidAmountOut", "subValue", "updatedReserveA", "updatedReserveB",
                                                         "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
   val swapExactTokenForBaseTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(1.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(12.toByte, 15.toByte, 16.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(17.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(17.toByte),
     basicMultiply ++ Array(14.toByte, 17.toByte, 18.toByte),
     basicMultiply ++ Array(13.toByte, 16.toByte, 19.toByte),
     basicAdd ++ Array(18.toByte, 16.toByte, 20.toByte),
@@ -443,13 +443,13 @@ object ContractVSwap {
                                                           "amountIn", "isValidAmountIn", "updatedReserveB", "amountInWithOutFee",
                                                           "updatedReserveA", "updatedK", "KValue", "valueSquare", "oldK", "isValidUpdatedK")
   val swapTokenForExactTargetTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(0.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(13.toByte, 15.toByte, 16.toByte),
     basicMultiply ++ Array(16.toByte, 12.toByte, 17.toByte),
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(18.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(18.toByte),
     basicMinus ++ Array(14.toByte, 12.toByte, 19.toByte),
     basicMultiply ++ Array(19.toByte, 18.toByte, 20.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1).toByteArray, DataType.BigInteger).bytes ++ Array(21.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(21.toByte),
     basicDivide ++ Array(17.toByte, 20.toByte, 22.toByte),
     basicAdd ++ Array(22.toByte, 21.toByte, 23.toByte),
     basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(24.toByte),
@@ -480,9 +480,9 @@ object ContractVSwap {
                                                           "isValidAmountOut", "subValue", "updatedReserveB", "updatedReserveA",
                                                           "updatedK", "KValue", "valueSquare","oldK", "isValidUpdatedK")
   val swapExactTokenForTargetTokenFunctionOpcs: Seq[Array[Byte]] = commonSwapFunctionOpcs ++ commonSwapLoaded(1.toByte) ++ Seq(
-    basicConstantGet ++ DataEntry(BigInt(997).toByteArray, DataType.BigInteger).bytes ++ Array(15.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(997).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(15.toByte),
     basicMultiply ++ Array(12.toByte, 15.toByte, 16.toByte),
-    basicConstantGet ++ DataEntry(BigInt(1000).toByteArray, DataType.BigInteger).bytes ++ Array(17.toByte),
+    basicConstantGet ++ DataEntry.create(BigInt(1000).toByteArray, DataType.BigInteger).right.get.bytes ++ Array(17.toByte),
     basicMultiply ++ Array(13.toByte, 17.toByte, 18.toByte),
     basicMultiply ++ Array(14.toByte, 16.toByte, 19.toByte),
     basicAdd ++ Array(18.toByte, 16.toByte, 20.toByte),
