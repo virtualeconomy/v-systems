@@ -8,13 +8,15 @@ The code in master branch is under development. The latest release for each netw
 
 ## Installation
 
-[Mainnet](https://github.com/virtualeconomy/v-systems/wiki/How-to-install-V-Systems-mainnet-Node)
+**Mainnet**
+```bash
+docker run faddat/vsys /usr/sbin/java -jar /v-systems/vsys-all-0.3.2.jar /v-systems/vsys-mainnet.conf
+```
 
-[Testnet](https://github.com/virtualeconomy/v-systems/wiki/How-to-Install-V-Systems-Testnet-Node)
-
-## Documentation
-
-We maintain an extensive [Wiki](https://github.com/virtualeconomy/v-systems/wiki) that covers most topics.  If there's something you need to know that isn't covered there, please ask us either by filing an issue [here](https://github.com/virtualeconomy/v-systems/issues) or make a post on our [forum](https://forum.v.systems/).  We're happy to help with anything!
+**Testnet**
+```bash
+docker run faddat/vsys /usr/sbin/java -jar /v-systems/vsys-all-0.3.2.jar /v-systems/vsys-testnet.conf
+```
 
 ## Compiling Packages from source
 
