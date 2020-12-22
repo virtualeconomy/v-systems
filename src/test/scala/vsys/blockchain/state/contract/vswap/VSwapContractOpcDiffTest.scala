@@ -4,7 +4,7 @@ import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.contract.{Contract, ContractGenHelper, DataEntry}
 import vsys.blockchain.contract.ContractVSwap._
 import vsys.utils.serialization.Deser
-import com.google.common.primitives.{Bytes, Ints}
+import com.google.common.primitives.Ints
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}

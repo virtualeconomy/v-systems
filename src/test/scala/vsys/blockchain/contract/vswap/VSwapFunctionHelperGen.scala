@@ -1,9 +1,9 @@
 package vsys.blockchain.contract.vswap
 
-import com.google.common.primitives.{Longs, Ints}
+import com.google.common.primitives.{Ints, Longs}
 import org.scalacheck.Gen
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.account.{ContractAccount, PrivateKeyAccount}
+import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.token.TokenContractGen
 import vsys.blockchain.contract.ContractGenHelper._
@@ -11,6 +11,12 @@ import vsys.blockchain.transaction.GenesisTransaction
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
 trait VSwapFunctionHelperGen extends VSwapContractGen with TokenContractGen {
+
+  override val supersedeIndex: Short = 0
+
+  override def addressDataStackGen(address: Address): Gen[Seq[DataEntry]] = for {
+    addr <- Gen.const(DataEntry(address.bytes.arr, DataType.Address))
+  } yield Seq(addr)
 
   def registerToken(totalSupply: Long,
                     unity: Long,
