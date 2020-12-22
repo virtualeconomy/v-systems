@@ -87,7 +87,7 @@ trait VSwapFunctionHelperGen extends VSwapContractGen with TokenContractGen {
     liquidityTokenId = tokenIdFromBytes(liquidityTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
     // register VSwap contract
     description <- validDescStringGen
-    initVSwapDataStack: Seq[DataEntry] <- registerVSwapDataStackGen(tokenAId.arr, tokenBId.arr, liquidityTokenId.arr, minimumLiquidity)
+    initVSwapDataStack: Seq[DataEntry] <- initVSwapDataStackGen(tokenAId.arr, tokenBId.arr, liquidityTokenId.arr, minimumLiquidity)
     regVSwapContract <- registerVSwapGen(master, vSwapContract, initVSwapDataStack, description, fee + 10000000000L, ts + 3)
     vSwapContractId = regVSwapContract.contractId
     // issue token A
