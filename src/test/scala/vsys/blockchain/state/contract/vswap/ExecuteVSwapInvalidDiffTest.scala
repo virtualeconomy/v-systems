@@ -50,33 +50,41 @@ class ExecuteVSwapInvalidDiffTest extends PropSpec
   val preconditionsAndVSwapSetSwap: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
     RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     (genesis, genesis2, master, _, regTokenA, regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, fee, ts, attach) <-
       createABLiquidityTokenAndInitVSwap(1000, 1, 1000, 1000, 1, 1000, 1000, 1000,9, 100, 100)
 
     setSwap <- setSwapVSwapGen(master, regVSwap.contractId, 10L, 10L, attach, fee + 10000000000L, ts)
     setInvalidSwap <- setSwapVSwapGen(master, regVSwap.contractId, 1000L, 10L, attach, fee + 10000000000L, ts)
+    setInvalidSwap2 <- setSwapVSwapGen(master, regVSwap.contractId, 8L, 10L, attach, fee + 10000000000L, ts)
   } yield (genesis, genesis2, regTokenA, regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA,
-    depositB, depositLiquidity, setSwap, setInvalidSwap)
+    depositB, depositLiquidity, setSwap, setInvalidSwap, setInvalidSwap2)
 
-  // set swap token A more than deposit, set swap token B more than deposit has been local tested successfully
   property("set swap more than deposit") {
     forAll(preconditionsAndVSwapSetSwap) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regTokenA: RegisterContractTransaction,
     regTokenB: RegisterContractTransaction, regLiquidity: RegisterContractTransaction, regVSwap: RegisterContractTransaction, issueTokenA: ExecuteContractFunctionTransaction,
     issueTokenB: ExecuteContractFunctionTransaction, issueLiquidity: ExecuteContractFunctionTransaction, depositA: ExecuteContractFunctionTransaction, depositB: ExecuteContractFunctionTransaction,
-    depositLiquidity: ExecuteContractFunctionTransaction, setSwap: ExecuteContractFunctionTransaction, setInvalidSwap: ExecuteContractFunctionTransaction) =>
+    depositLiquidity: ExecuteContractFunctionTransaction, setSwap: ExecuteContractFunctionTransaction, setInvalidSwap: ExecuteContractFunctionTransaction, setInvalidSwap2: ExecuteContractFunctionTransaction) =>
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(depositLiquidity.timestamp, Seq(regTokenA,
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(setSwap), TransactionStatus.Success)) { (blockDiff) =>
         blockDiff.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
       }
-
+      // set swap token A more than deposit, set swap token B more than deposit has been local tested successfully
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(depositLiquidity.timestamp, Seq(regTokenA,
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity))),
         TestBlock.createWithTxStatus(setInvalidSwap.timestamp, Seq(setInvalidSwap), TransactionStatus.ContractMapValueInsufficient)) { (blockDiffEi) =>
         blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
         blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
+      }
+      // set swap less than minimum liquidity (amountADesired), set swap less than minimum liquidity (amountBDesired) has been local tested successfully
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(depositLiquidity.timestamp, Seq(regTokenA,
+        regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity))),
+        TestBlock.createWithTxStatus(setInvalidSwap2.timestamp, Seq(setInvalidSwap2), TransactionStatus.Failed)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
     }
   }
