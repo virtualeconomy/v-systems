@@ -7,7 +7,7 @@ import vsys.utils.serialization.Deser
 
 object ContractVStableSwap {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
-    Seq(), // Triggers
+    Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
     Seq(), // Functions
     stateVarSeq, // StateVars
     stateMapSeq,  // StateMaps
@@ -123,6 +123,17 @@ object ContractVStableSwap {
   val withdrawTextualBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Functions
+  // Supersede
+  val supersedeId: Short = 0
+  val supersedePara: Seq[String] = Seq("newOwner",
+                                       "maker")
+  val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val supersedeOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrGet ++ Array(makerStateVar.index, 1.toByte),
+    assertSigner ++ Array(1.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 0.toByte))
+  lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
+  val supersedeTextualBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
   // Textual
 
