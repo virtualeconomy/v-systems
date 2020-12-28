@@ -3,12 +3,16 @@ package vsys.blockchain.state.contract.vswap
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
+import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.contract.vswap.{VSwapContractGen, VSwapFunctionHelperGen}
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.contract._
+import vsys.blockchain.state._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
+import com.google.common.primitives.{Bytes, Ints}
 
 class ExecuteVSwapValidDiffTest extends PropSpec
   with PropertyChecks
@@ -56,8 +60,34 @@ class ExecuteVSwapValidDiffTest extends PropSpec
     withdrawLiquidity: ExecuteContractFunctionTransaction) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regTokenA.timestamp, Seq(regTokenA,
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity))),
-        TestBlock.createWithTxStatus(withdrawLiquidity.timestamp, Seq(withdrawLiquidity), TransactionStatus.Success)) { (blockDiff, newState) =>
+        TestBlock.createWithTxStatus(withdrawLiquidity.timestamp, Seq(withdrawA, withdrawB, withdrawLiquidity), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val master = withdrawLiquidity.proofs.firstCurveProof.explicitGet().publicKey
+        val vswapContractId = regVSwap.contractId.bytes
+
+        val tokenAContractId = regTokenA.contractId.bytes
+        val tokenBContractId = regTokenB.contractId.bytes
+        val liquidityContractId = regLiquidity.contractId.bytes
+
+        val tokenAId = tokenIdFromBytes(tokenAContractId.arr, Ints.toByteArray(0)).explicitGet()
+        val tokenBId = tokenIdFromBytes(tokenBContractId.arr, Ints.toByteArray(0)).explicitGet()
+        val liquidityTokenId = tokenIdFromBytes(liquidityContractId.arr, Ints.toByteArray(0)).explicitGet()
+
+        val contractTokenAIdBalanceKey = ByteStr(Bytes.concat(tokenAId.arr, vswapContractId.arr))
+        val masterTokenAIdBalanceKey = ByteStr(Bytes.concat(tokenAId.arr, master.toAddress.bytes.arr))
+        newState.tokenAccountBalance(masterTokenAIdBalanceKey) shouldBe 1000L
+        newState.tokenAccountBalance(contractTokenAIdBalanceKey) shouldBe 0L
+
+        val contractTokenBBalanceKey = ByteStr(Bytes.concat(tokenBId.arr, vswapContractId.arr))
+        val masterTokenBBalanceKey = ByteStr(Bytes.concat(tokenBId.arr, master.toAddress.bytes.arr))
+        newState.tokenAccountBalance(masterTokenBBalanceKey) shouldBe 1000L
+        newState.tokenAccountBalance(contractTokenBBalanceKey) shouldBe 0L
+
+        val contractLiquidityBalanceKey = ByteStr(Bytes.concat(liquidityTokenId.arr, vswapContractId.arr))
+        val masterLiquidityBalanceKey = ByteStr(Bytes.concat(liquidityTokenId.arr, master.toAddress.bytes.arr))
+        newState.tokenAccountBalance(masterLiquidityBalanceKey) shouldBe 10L
+        newState.tokenAccountBalance(contractLiquidityBalanceKey) shouldBe 990L
       }
     }
   }
@@ -93,6 +123,17 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(setSwap), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val master = setSwap.proofs.firstCurveProof.explicitGet().publicKey
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenABalanceKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(0.toByte), DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes)) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenABalanceKey) shouldEqual 90L
+        val tokenBBalanceKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(1.toByte), DataEntry(master.toAddress.bytes.arr, DataType.Address).bytes)) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBBalanceKey) shouldEqual 90L
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 10L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 10L
       }
     }
   }
@@ -132,6 +173,12 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(addLiquidity), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 2000L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 2000L
       }
     }
   }
@@ -175,6 +222,15 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap, addLiquidity))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(removeLiquidity), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 1000L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 1000L
+
+        val tokenLiquidityLeftKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(9.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenLiquidityLeftKey) shouldEqual 9000L
       }
     }
   }
@@ -214,6 +270,12 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(swapTokenForExactBaseToken), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 900L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 1112L
       }
     }
   }
@@ -254,6 +316,12 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(swapExactTokenForBaseToken), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 910L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 1100L
       }
     }
   }
@@ -294,6 +362,12 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(swapTokenForExactTargetToken), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 1112L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 900L
       }
     }
   }
@@ -334,6 +408,12 @@ class ExecuteVSwapValidDiffTest extends PropSpec
         regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
         TestBlock.createWithTxStatus(setSwap.timestamp, Seq(swapExactTokenForTargetToken), TransactionStatus.Success)) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val vswapContractId = regVSwap.contractId.bytes
+        val tokenAReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(6.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenAReservedKey) shouldEqual 1100L
+        val tokenBReservedKey = ByteStr(Bytes.concat(vswapContractId.arr, Array(7.toByte))) //tokenAReservedStateVar
+        newState.contractNumInfo(tokenBReservedKey) shouldEqual 910L
       }
     }
   }
