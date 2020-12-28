@@ -31,7 +31,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData ~ lastToken
   }
 
   @Path("/register")
