@@ -1,4 +1,4 @@
-# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master)
+# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=faddat_v-systems&metric=alert_status)](https://sonarcloud.io/dashboard?id=faddat_v-systems)
 
 [V Systems](https://v.systems) is a public blockchain that brings real-world businesses into the virtual economy. 
 
