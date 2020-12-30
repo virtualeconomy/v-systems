@@ -68,7 +68,7 @@ object ContractGen {
   val basicConvert             = Array(11.toByte, 10.toByte)
 
   val conditionIf             = Array(12.toByte, 1.toByte)
-  val conditionIfElse         = Array(12.toByte, 1.toByte)
+  val conditionIfElse         = Array(12.toByte, 2.toByte)
 
   sealed case class StateVar(index: Byte, dataType: Byte) {
     lazy val arr: Array[Byte] = Array(index, dataType)
