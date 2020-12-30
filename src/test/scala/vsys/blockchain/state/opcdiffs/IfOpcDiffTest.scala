@@ -35,7 +35,7 @@ class IfOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPro
       DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
       Seq.empty) should be (Right((OpcDiff(Map(),Map(),Map(),Map(),Map(),Map(),Map(),Map()),List())))
     IfOpcDiff.executeOpcBlock(executionContext,
-      DataEntry(Shorts.toByteArray(1), DataType.OpcBlock),
+      DataEntry(Array[Byte](0, 2, 0, 1), DataType.OpcBlock),
       Seq.empty) should be (Left(ContractInvalidOPCData))
 
     IfOpcDiff.runCondition(
@@ -75,7 +75,7 @@ class IfOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDrivenPro
       Array[Byte](2.toByte, 0.toByte, 1.toByte, 2.toByte),
       Seq[DataEntry](DataEntry(Array(0.toByte), DataType.Boolean),
         DataEntry(Shorts.toByteArray(0), DataType.OpcBlock),
-        DataEntry(Shorts.toByteArray(1), DataType.OpcBlock))) should be (
+        DataEntry(Array[Byte](0, 2, 0, 1), DataType.OpcBlock))) should be (
       Left(ContractInvalidOPCData))
   }
 }
