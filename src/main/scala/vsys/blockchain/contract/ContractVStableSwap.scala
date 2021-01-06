@@ -37,16 +37,18 @@ object ContractVStableSwap {
 
   // Initialization Trigger
   val initId: Short = 0
-  val initPara: Seq[String] = Seq("baseTokenId", "targetTokenId") ++
-                              Seq("signer", "swapStatus")
-  val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte, DataType.TokenId.id.toByte)
+  val initPara: Seq[String] = Seq("baseTokenId", "targetTokenId", "maxOrderPerUser", "unitPriceBase", "unitPriceTarget") ++
+                              Seq("signer")
+  val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte, DataType.TokenId.id.toByte, DataType.Amount.id.toByte,
+                                        DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val initTriggerOpcs: Seq[Array[Byte]] = Seq(
-    loadSigner ++ Array(2.toByte),
-    cdbvSet ++ Array(makerStateVar.index, 2.toByte),
+    loadSigner ++ Array(5.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 5.toByte),
     cdbvSet ++ Array(baseTokenIdStateVar.index, 0.toByte),
     cdbvSet ++ Array(targetTokenIdStateVar.index, 1.toByte),
-    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
-    cdbvSet ++ Array(swapStatusStateVar.index, 5.toByte)
+    cdbvSet ++ Array(maxOrderPerUserStateVar.index, 2.toByte),
+    cdbvSet ++ Array(unitPriceBaseStateVar.index, 3.toByte),
+    cdbvSet ++ Array(unitPriceTargetStateVar.index, 4.toByte)
   )
   lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
   val initTextualBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
