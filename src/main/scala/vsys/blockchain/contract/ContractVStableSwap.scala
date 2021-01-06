@@ -15,22 +15,15 @@ object ContractVStableSwap {
   ).explicitGet()
 
   // State Var
-  val stateVarName = List("maker", "baseTokenId", "targetTokenId", "swapStatus", "minSwapAmount", "maxSwapAmount",
-                          "lastUpdateTime", "updateGap", "feeBase", "feeTarget")
+  val stateVarName = List("maker", "baseTokenId", "targetTokenId", "maxOrderPerUser", "unitPriceBase", "unitPriceTarget")
   val makerStateVar: StateVar               = StateVar(0.toByte, DataType.Address.id.toByte)
   val baseTokenIdStateVar: StateVar         = StateVar(1.toByte, DataType.TokenId.id.toByte)
   val targetTokenIdStateVar: StateVar       = StateVar(2.toByte, DataType.TokenId.id.toByte)
-  val swapStatusStateVar: StateVar          = StateVar(3.toByte, DataType.Boolean.id.toByte)
-  val minSwapAmountStateVar: StateVar       = StateVar(4.toByte, DataType.Amount.id.toByte)
-  val maxSwapAmountStateVar: StateVar       = StateVar(5.toByte, DataType.Amount.id.toByte)
-  val lastUpdateTimeStateVar: StateVar      = StateVar(6.toByte, DataType.Timestamp.id.toByte)
-  val updateGapStateVar: StateVar           = StateVar(7.toByte, DataType.Timestamp.id.toByte)
-  val feeBaseStateVar: StateVar             = StateVar(8.toByte, DataType.Amount.id.toByte)
-  val feeTargetStateVar: StateVar           = StateVar(9.toByte, DataType.Amount.id.toByte)
-  lazy val stateVarSeq = Seq(makerStateVar.arr, baseTokenIdStateVar.arr, targetTokenIdStateVar.arr, swapStatusStateVar.arr,
-                             minSwapAmountStateVar.arr, maxSwapAmountStateVar.arr,
-                             lastUpdateTimeStateVar.arr, updateGapStateVar.arr,
-                             feeBaseStateVar.arr, feeTargetStateVar.arr)
+  val maxOrderPerUserStateVar: StateVar     = StateVar(3.toByte, DataType.Amount.id.toByte)
+  val unitPriceBaseStateVar: StateVar       = StateVar(4.toByte, DataType.Amount.id.toByte)
+  val unitPriceTargetStateVar: StateVar     = StateVar(5.toByte, DataType.Amount.id.toByte)
+  lazy val stateVarSeq = Seq(makerStateVar.arr, baseTokenIdStateVar.arr, targetTokenIdStateVar.arr, maxOrderPerUserStateVar.arr,
+                             unitPriceBaseStateVar.arr, unitPriceTargetStateVar.arr)
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
