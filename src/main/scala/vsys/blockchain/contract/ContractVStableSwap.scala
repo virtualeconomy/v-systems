@@ -29,11 +29,33 @@ object ContractVStableSwap {
   // State Map
   val stateMapBaseTokenBalance         = List("baseTokenBalance", "userAddress", "balance")
   val stateMapTargetTokenBalance       = List("targetTokenBalance", "userAddress", "balance")
+  val stateMapUserOrders               = List("userOrders", "userAddress", "orderNum")
+  val stateMapFeeBase                  = List("feeBase", "orderId", "fee")
+  val stateMapFeeTarget                = List("feeTarget", "orderId", "fee")
+  val stateMapMinBase                  = List("minBase", "orderId", "amount")
+  val stateMapMaxBase                  = List("maxBase", "orderId", "amount")
+  val stateMapMinTarget                = List("minTarget", "orderId", "amount")
+  val stateMapMaxTarget                = List("maxTarget", "orderId", "amount")
+  val stateMapPriceBase                = List("priceBase", "orderId", "price")
+  val stateMapPriceTarget              = List("priceTarget", "orderId", "price")
   val baseTokenBalanceMap: StateMap    = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val targetTokenBalanceMap: StateMap  = StateMap(1.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val userOrdersMap: StateMap          = StateMap(2.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
+  val feeBaseMap: StateMap             = StateMap(3.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val feeTargetMap: StateMap           = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val minBaseMap: StateMap             = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val maxBaseMap: StateMap             = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val minTargetMap: StateMap           = StateMap(7.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val maxTargetMap: StateMap           = StateMap(8.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val priceBaseMap: StateMap           = StateMap(9.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val priceTargetMap: StateMap         = StateMap(10.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
 
-  lazy val stateMapSeq = Seq(baseTokenBalanceMap.arr, targetTokenBalanceMap.arr)
-  lazy val stateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBaseTokenBalance, stateMapTargetTokenBalance))
+  lazy val stateMapSeq = Seq(baseTokenBalanceMap.arr, targetTokenBalanceMap.arr, userOrdersMap.arr,
+                             feeBaseMap.arr, feeTargetMap.arr, minBaseMap.arr, maxBaseMap.arr,
+                             minTargetMap.arr, maxTargetMap.arr, priceBaseMap.arr, priceTargetMap.arr)
+  lazy val stateMapTextual: Array[Byte] = textualStateMap(
+    Seq(stateMapBaseTokenBalance, stateMapTargetTokenBalance, stateMapUserOrders, stateMapFeeBase, stateMapFeeTarget,
+        stateMapMinBase, stateMapMaxBase, stateMapMinTarget, stateMapMaxTarget, stateMapPriceBase, stateMapPriceTarget))
 
   // Initialization Trigger
   val initId: Short = 0
