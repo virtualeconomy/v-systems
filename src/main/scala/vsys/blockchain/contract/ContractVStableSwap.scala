@@ -1,6 +1,6 @@
 package vsys.blockchain.contract
 
-import com.google.common.primitives.Ints
+import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
 import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
@@ -30,6 +30,7 @@ object ContractVStableSwap {
   val stateMapBaseTokenBalance         = List("baseTokenBalance", "userAddress", "balance")
   val stateMapTargetTokenBalance       = List("targetTokenBalance", "userAddress", "balance")
   val stateMapUserOrders               = List("userOrders", "userAddress", "orderNum")
+  val stateMapOrderOwner               = List("orderOwner", "orderId", "owner")
   val stateMapFeeBase                  = List("feeBase", "orderId", "fee")
   val stateMapFeeTarget                = List("feeTarget", "orderId", "fee")
   val stateMapMinBase                  = List("minBase", "orderId", "amount")
@@ -38,24 +39,33 @@ object ContractVStableSwap {
   val stateMapMaxTarget                = List("maxTarget", "orderId", "amount")
   val stateMapPriceBase                = List("priceBase", "orderId", "price")
   val stateMapPriceTarget              = List("priceTarget", "orderId", "price")
+  val stateMapBaseTokenLocked          = List("baseTokenLocked", "orderId", "amount")
+  val stateMapTargetTokenLocked        = List("targetTokenLocked", "orderId", "amount")
+  val stateMapOrderStatus              = List("orderStatus", "orderId", "status")
   val baseTokenBalanceMap: StateMap    = StateMap(0.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val targetTokenBalanceMap: StateMap  = StateMap(1.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
   val userOrdersMap: StateMap          = StateMap(2.toByte, DataType.Address.id.toByte, DataType.Amount.id.toByte)
-  val feeBaseMap: StateMap             = StateMap(3.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val feeTargetMap: StateMap           = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val minBaseMap: StateMap             = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val maxBaseMap: StateMap             = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val minTargetMap: StateMap           = StateMap(7.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val maxTargetMap: StateMap           = StateMap(8.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val priceBaseMap: StateMap           = StateMap(9.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
-  val priceTargetMap: StateMap         = StateMap(10.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val orderOwnerMap: StateMap          = StateMap(3.toByte, DataType.ShortBytes.id.toByte, DataType.Address.id.toByte)
+  val feeBaseMap: StateMap             = StateMap(4.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val feeTargetMap: StateMap           = StateMap(5.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val minBaseMap: StateMap             = StateMap(6.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val maxBaseMap: StateMap             = StateMap(7.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val minTargetMap: StateMap           = StateMap(8.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val maxTargetMap: StateMap           = StateMap(9.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val priceBaseMap: StateMap           = StateMap(10.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val priceTargetMap: StateMap         = StateMap(11.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val baseTokenLockedMap: StateMap     = StateMap(12.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val targetTokenLockedMap: StateMap   = StateMap(13.toByte, DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte)
+  val orderStatusMap: StateMap         = StateMap(14.toByte, DataType.ShortBytes.id.toByte, DataType.Boolean.id.toByte)
 
-  lazy val stateMapSeq = Seq(baseTokenBalanceMap.arr, targetTokenBalanceMap.arr, userOrdersMap.arr,
+  lazy val stateMapSeq = Seq(baseTokenBalanceMap.arr, targetTokenBalanceMap.arr, userOrdersMap.arr, orderOwnerMap.arr,
                              feeBaseMap.arr, feeTargetMap.arr, minBaseMap.arr, maxBaseMap.arr,
-                             minTargetMap.arr, maxTargetMap.arr, priceBaseMap.arr, priceTargetMap.arr)
+                             minTargetMap.arr, maxTargetMap.arr, priceBaseMap.arr, priceTargetMap.arr,
+                             baseTokenLockedMap.arr, targetTokenLockedMap.arr, orderStatusMap.arr)
   lazy val stateMapTextual: Array[Byte] = textualStateMap(
-    Seq(stateMapBaseTokenBalance, stateMapTargetTokenBalance, stateMapUserOrders, stateMapFeeBase, stateMapFeeTarget,
-        stateMapMinBase, stateMapMaxBase, stateMapMinTarget, stateMapMaxTarget, stateMapPriceBase, stateMapPriceTarget))
+    Seq(stateMapBaseTokenBalance, stateMapTargetTokenBalance, stateMapUserOrders, stateMapOrderOwner,
+        stateMapFeeBase, stateMapFeeTarget, stateMapMinBase, stateMapMaxBase, stateMapMinTarget,
+        stateMapMaxTarget, stateMapPriceBase, stateMapPriceTarget, stateMapBaseTokenLocked, stateMapTargetTokenLocked, stateMapOrderStatus))
 
   // Initialization Trigger
   val initId: Short = 0
@@ -145,12 +155,46 @@ object ContractVStableSwap {
   val supersedePara: Seq[String] = Seq("newOwner",
                                        "maker")
   val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte)
-  val supersedeOpcs: Seq[Array[Byte]] =  Seq(
+  val supersedeOpcs: Seq[Array[Byte]] = Seq(
     cdbvrGet ++ Array(makerStateVar.index, 1.toByte),
     assertSigner ++ Array(1.toByte),
     cdbvSet ++ Array(makerStateVar.index, 0.toByte))
   lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
   val supersedeTextualBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
+
+  // Set Order
+  val setOrderId: Short = 1
+  val setOrderPara: Seq[String] = Seq("feeBase", "feeTarget", "minBase", "maxBase", "minTarget", "maxTarget", "priceBase",
+                                      "priceTarget", "baseDeposit", "targetDeposit") ++
+                                  Seq("caller", "maxOrderPerUser", "userOrders", "isValidOrderNum", "orderId", "amountOne", "valueTrue")
+  val setOrderDataType: Array[Byte] = Array.fill[Byte](10)(DataType.Amount.id.toByte)
+  val setOrderOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(10.toByte),
+    cdbvrGet ++ Array(maxOrderPerUserStateVar.index, 11.toByte),
+    cdbvrMapGetOrDefault ++ Array(userOrdersMap.index, 10.toByte, 12.toByte),
+    compareGreater ++ Array(11.toByte, 12.toByte, 13.toByte),
+    assertTrue ++ Array(13.toByte),
+    loadTransactionId ++ Array(14.toByte),
+    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 9.toByte),
+    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 10.toByte),
+    cdbvMapSet ++ Array(orderOwnerMap.index, 14.toByte, 10.toByte),
+    cdbvMapSet ++ Array(feeBaseMap.index, 14.toByte, 0.toByte),
+    cdbvMapSet ++ Array(feeTargetMap.index, 14.toByte, 1.toByte),
+    cdbvMapSet ++ Array(minBaseMap.index, 14.toByte, 2.toByte),
+    cdbvMapSet ++ Array(maxBaseMap.index, 14.toByte, 3.toByte),
+    cdbvMapSet ++ Array(minTargetMap.index, 14.toByte, 4.toByte),
+    cdbvMapSet ++ Array(maxTargetMap.index, 14.toByte, 5.toByte),
+    cdbvMapSet ++ Array(priceBaseMap.index, 14.toByte, 6.toByte),
+    cdbvMapSet ++ Array(priceTargetMap.index, 14.toByte, 7.toByte),
+    cdbvMapValAdd ++ Array(baseTokenLockedMap.index, 14.toByte, 8.toByte),
+    cdbvMapValAdd ++ Array(targetTokenLockedMap.index, 14.toByte, 9.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1L), DataType.Amount).bytes ++ Array(15.toByte),
+    cdbvMapValAdd ++ Array(userOrdersMap.index, 10.toByte, 15.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(16.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 14.toByte, 16.toByte)
+  )
+  lazy val setOrderFunc: Array[Byte] = getFunctionBytes(setOrderId, publicFuncType, nonReturnType, setOrderDataType, setOrderOpcs)
+  val setOrderTextualBytes: Array[Byte] = textualFunc("setOrder", Seq(), setOrderPara)
 
   // Textual
 
