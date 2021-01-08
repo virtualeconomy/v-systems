@@ -1,12 +1,13 @@
 package vsys.blockchain.contract.vswap
 
-import com.google.common.primitives.{Ints, Longs}
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.scalacheck.Gen
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
+import vsys.account.{Address, ContractAccount, PrivateKeyAccount, PublicKeyAccount}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.token.TokenContractGen
 import vsys.blockchain.contract.ContractGenHelper._
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.GenesisTransaction
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
@@ -116,4 +117,47 @@ trait VSwapFunctionHelperGen extends VSwapContractGen with TokenContractGen {
     depositLiquidity <- depositToken(master, liquidityTokenContractId, master.toAddress.bytes.arr, vSwapContractId.bytes.arr, liquidityTotalSupply, fee + 10000000000L, ts + 9)
   } yield (genesis, genesis2, master, user, regTokenAContract, regTokenBContract, regLiquidityTokenContract, regVSwapContract,
     issueTokenA, issueTokenB, issueLiquidityToken, depositTokenA, depositTokenB, depositLiquidity, fee, ts, attach)
+
+  def getContractTokenBalanceKeys(tokenAContractId: Array[Byte], tokenBContractId: Array[Byte], liquidityContractId: Array[Byte], vSwapContractId: Array[Byte]): (ByteStr, ByteStr, ByteStr) = {
+    val tokenAId = tokenIdFromBytes(tokenAContractId, Ints.toByteArray(0)).explicitGet()
+    val tokenBId = tokenIdFromBytes(tokenBContractId, Ints.toByteArray(0)).explicitGet()
+    val liquidityTokenId = tokenIdFromBytes(liquidityContractId, Ints.toByteArray(0)).explicitGet()
+
+    val contractTokenABalanceKey = ByteStr(Bytes.concat(tokenAId.arr, vSwapContractId))
+    val contractTokenBBalanceKey = ByteStr(Bytes.concat(tokenBId.arr, vSwapContractId))
+    val contractLiquidityBalanceKey = ByteStr(Bytes.concat(liquidityTokenId.arr, vSwapContractId))
+
+    (contractTokenABalanceKey, contractTokenBBalanceKey, contractLiquidityBalanceKey)
+  }
+
+  def getUserTokenBalanceKeys(tokenAContractId: Array[Byte], tokenBContractId: Array[Byte], liquidityContractId: Array[Byte], user: PublicKeyAccount): (ByteStr, ByteStr, ByteStr) = {
+    val tokenAId = tokenIdFromBytes(tokenAContractId, Ints.toByteArray(0)).explicitGet()
+    val tokenBId = tokenIdFromBytes(tokenBContractId, Ints.toByteArray(0)).explicitGet()
+    val liquidityTokenId = tokenIdFromBytes(liquidityContractId, Ints.toByteArray(0)).explicitGet()
+
+    val masterTokenABalanceKey = ByteStr(Bytes.concat(tokenAId.arr, user.toAddress.bytes.arr))
+    val masterTokenBBalanceKey = ByteStr(Bytes.concat(tokenBId.arr, user.toAddress.bytes.arr))
+    val masterLiquidityBalanceKey = ByteStr(Bytes.concat(liquidityTokenId.arr, user.toAddress.bytes.arr))
+
+    (masterTokenABalanceKey, masterTokenBBalanceKey, masterLiquidityBalanceKey)
+  }
+
+  def getSwapContractStateVarKeys(vSwapContractId: Array[Byte]): (ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val swapStatusKey = ByteStr(Bytes.concat(vSwapContractId, Array(4.toByte)))
+    val minimumLiquidityKey = ByteStr(Bytes.concat(vSwapContractId, Array(5.toByte)))
+    val tokenAReservedKey = ByteStr(Bytes.concat(vSwapContractId, Array(6.toByte)))
+    val tokenBReservedKey = ByteStr(Bytes.concat(vSwapContractId, Array(7.toByte)))
+    val totalSupplyKey = ByteStr(Bytes.concat(vSwapContractId, Array(8.toByte)))
+    val liquidityTokenLeft = ByteStr(Bytes.concat(vSwapContractId, Array(9.toByte)))
+
+    (swapStatusKey, minimumLiquidityKey, tokenAReservedKey, tokenBReservedKey, totalSupplyKey, liquidityTokenLeft)
+  }
+
+  def getSwapContractStateMapKeys(vSwapContractId: Array[Byte], user: PublicKeyAccount): (ByteStr, ByteStr, ByteStr) = {
+    val stateMapTokenABalanceKey = ByteStr(Bytes.concat(vSwapContractId, Array(0.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val stateMapTokenBBalanceKey = ByteStr(Bytes.concat(vSwapContractId, Array(1.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val stateMapLiquidityTokenBalanceKey = ByteStr(Bytes.concat(vSwapContractId, Array(2.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+
+    (stateMapTokenABalanceKey, stateMapTokenBBalanceKey, stateMapLiquidityTokenBalanceKey)
+  }
 }
