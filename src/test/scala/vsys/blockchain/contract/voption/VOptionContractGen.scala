@@ -53,14 +53,17 @@ trait VOptionContractGen {
                               optionTokenId: Array[Byte],
                               proofTokenId: Array[Byte],
                               executeTime: Long,
-                              executeDeadLine: Long): Gen[Seq[DataEntry]] = for {
-    baseTokenId <- Gen.const(DataEntry.create(baseTokenId, DataType.TokenId).right.get)
-    targetTokenId <- Gen.const(DataEntry.create(targetTokenId, DataType.TokenId).right.get)
-    optionTokenId <- Gen.const(DataEntry.create(optionTokenId, DataType.TokenId).right.get)
-    proofTokenId <- Gen.const(DataEntry.create(proofTokenId, DataType.TokenId).right.get)
-    executeTime <- Gen.const(DataEntry.create(Longs.toByteArray(executeTime), DataType.Timestamp).right.get)
-    executeDeadLine <- Gen.const(DataEntry.create(Longs.toByteArray(executeDeadLine), DataType.Timestamp).right.get)
-  } yield Seq(baseTokenId, targetTokenId, optionTokenId, proofTokenId, executeTime, executeDeadLine)
+                              executeDeadLine: Long): Gen[Seq[DataEntry]] = {
+    for {
+      baseTokenId <- Gen.const(DataEntry.create(baseTokenId, DataType.TokenId).right.get)
+      targetTokenId <- Gen.const(DataEntry.create(targetTokenId, DataType.TokenId).right.get)
+      optionTokenId <- Gen.const(DataEntry.create(optionTokenId, DataType.TokenId).right.get)
+      proofTokenId <- Gen.const(DataEntry.create(proofTokenId, DataType.TokenId).right.get)
+      executeTime <- Gen.const(DataEntry.create(Longs.toByteArray(executeTime), DataType.Timestamp).right.get)
+      executeDeadLine <- Gen.const(DataEntry.create(Longs.toByteArray(executeDeadLine), DataType.Timestamp).right.get)
+    } yield Seq(baseTokenId, targetTokenId, optionTokenId, proofTokenId, executeTime, executeDeadLine)
+  }
+
 
   def supersedeVOptionGen(signer: PrivateKeyAccount,
                           contractId: ContractAccount,

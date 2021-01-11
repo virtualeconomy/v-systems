@@ -44,10 +44,12 @@ object BlockDiffer extends ScorexLogging {
     val txsDiffEi = txs.foldLeft(right(feesDistribution)) { case (ei, tx) => ei.flatMap(diff =>
       txDiffer(new CompositeStateReader(s, diff.asBlockDiff), tx.transaction) match {
         case Right(newDiff) => if (newDiff.chargedFee == tx.feeCharged && newDiff.txStatus == tx.status) {
-            Right(diff.combine(newDiff))
-          } else {
-            Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
-          }
+          Right(diff.combine(newDiff))
+        } else {
+          println("tx status: " + tx.status)
+          println("newDiff status: " + newDiff.txStatus)
+          Left(TransactionValidationError(ValidationError.InvalidProcessedTransaction, tx.transaction))
+        }
         case Left(l) => Left(l)
       })
     }
