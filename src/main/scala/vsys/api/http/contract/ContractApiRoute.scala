@@ -102,7 +102,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   }
 
   @Path("/data/{contractId}/{key}")
-  @ApiOperation(value = "Contract Data", notes = "Contract data by given contract ID and key (default numerical 0).", httpMethod = "Get", authorizations = Array(new Authorization("api_key")))
+  @ApiOperation(value = "Contract Data", notes = "Contract data by given contract ID and key (default numerical 0).", httpMethod = "Get")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "contractId", value = "Contract Account", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "key", value = "Key", required = true, dataType = "string", paramType = "path")
