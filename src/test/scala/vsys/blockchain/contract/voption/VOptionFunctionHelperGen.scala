@@ -1,12 +1,13 @@
 package vsys.blockchain.contract.voption
 
-import com.google.common.primitives.{Ints, Longs}
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.scalacheck.Gen
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
+import vsys.account.{Address, ContractAccount, PrivateKeyAccount, PublicKeyAccount}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.token.TokenContractGen
 import vsys.blockchain.contract.ContractGenHelper._
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.GenesisTransaction
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
@@ -66,9 +67,18 @@ trait VOptionFunctionHelperGen extends VOptionContractGen with TokenContractGen 
     withdrawToken <- withdrawTokenGen(user, contractId, false, withdrawTokenData, withdrawTokenDataType, attach, fee, timestamp)
   } yield withdrawToken
 
-  def createBaseTargetOptionProofTokenAndInitVOption(baseTotalSupply: Long, baseUnity: Long, baseIssueAmount: Long, targetTotalSupply: Long, targetUnity: Long,
-                                                     targetIssueAmount: Long, optionTotalSupply: Long, optionUnity: Long, proofTotalSupply: Long,
-                                           proofUnity: Long, baseTokenDepositAmount: Long, targetTokenDepositAmount: Long): Gen[(GenesisTransaction, GenesisTransaction,
+  def createBaseTargetOptionProofTokenAndInitVOption(baseTotalSupply: Long,
+                                                     baseUnity: Long,
+                                                     baseIssueAmount: Long,
+                                                     targetTotalSupply: Long,
+                                                     targetUnity: Long,
+                                                     targetIssueAmount: Long,
+                                                     optionTotalSupply: Long,
+                                                     optionUnity: Long,
+                                                     proofTotalSupply: Long,
+                                                     proofUnity: Long,
+                                                     baseTokenDepositAmount: Long,
+                                                     targetTokenDepositAmount: Long): Gen[(GenesisTransaction, GenesisTransaction,
     PrivateKeyAccount, PrivateKeyAccount, RegisterContractTransaction, RegisterContractTransaction,
     RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
@@ -120,4 +130,62 @@ trait VOptionFunctionHelperGen extends VOptionContractGen with TokenContractGen 
     depositProofToken <- depositToken(master, proofTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, proofTotalSupply, fee + 10000000000L, ts + 12)
   } yield (genesis, genesis2, master, user, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken , depositProofToken, fee, ts, attach)
+
+  def getOptionContractTokenBalanceKeys(baseTokenContractId: Array[Byte],
+                                        targetTokenContractId: Array[Byte],
+                                        optionTokenContractId: Array[Byte],
+                                        proofTokenContractId: Array[Byte],
+                                        vOptionContractId: Array[Byte]): (ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val baseTokenId = tokenIdFromBytes(baseTokenContractId, Ints.toByteArray(0)).explicitGet()
+    val targetTokenId = tokenIdFromBytes(targetTokenContractId, Ints.toByteArray(0)).explicitGet()
+    val optionTokenId = tokenIdFromBytes(optionTokenContractId, Ints.toByteArray(0)).explicitGet()
+    val proofTokenId = tokenIdFromBytes(proofTokenContractId, Ints.toByteArray(0)).explicitGet()
+
+    val contractBaseTokenBalanceKey = ByteStr(Bytes.concat(baseTokenId.arr, vOptionContractId))
+    val contractTargetTokenBalanceKey = ByteStr(Bytes.concat(targetTokenId.arr, vOptionContractId))
+    val contractOptionTokenBalanceKey = ByteStr(Bytes.concat(optionTokenId.arr, vOptionContractId))
+    val contractProofTokenBalanceKey = ByteStr(Bytes.concat(proofTokenId.arr, vOptionContractId))
+
+    (contractBaseTokenBalanceKey, contractTargetTokenBalanceKey, contractOptionTokenBalanceKey, contractProofTokenBalanceKey)
+  }
+
+  def getOptionUserTokenBalanceKeys(baseTokenContractId: Array[Byte],
+                                    targetTokenContractId: Array[Byte],
+                                    optionTokenContractId: Array[Byte],
+                                    proofTokenContractId: Array[Byte],
+                                    user: PublicKeyAccount): (ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val baseTokenId = tokenIdFromBytes(baseTokenContractId, Ints.toByteArray(0)).explicitGet()
+    val targetTokenId = tokenIdFromBytes(targetTokenContractId, Ints.toByteArray(0)).explicitGet()
+    val optionTokenId = tokenIdFromBytes(optionTokenContractId, Ints.toByteArray(0)).explicitGet()
+    val proofTokenId = tokenIdFromBytes(proofTokenContractId, Ints.toByteArray(0)).explicitGet()
+
+    val userBaseTokenBalanceKey = ByteStr(Bytes.concat(baseTokenId.arr, user.toAddress.bytes.arr))
+    val userTargetTokenBalanceKey = ByteStr(Bytes.concat(targetTokenId.arr, user.toAddress.bytes.arr))
+    val userOptionTokenBalanceKey = ByteStr(Bytes.concat(optionTokenId.arr, user.toAddress.bytes.arr))
+    val userProofTokenBalanceKey = ByteStr(Bytes.concat(proofTokenId.arr, user.toAddress.bytes.arr))
+
+    (userBaseTokenBalanceKey, userTargetTokenBalanceKey, userOptionTokenBalanceKey, userProofTokenBalanceKey)
+  }
+
+  def getOptionContractStateVarKeys(vOptionContractId: Array[Byte]): (ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val optionStatusKey = ByteStr(Bytes.concat(vOptionContractId, Array(7.toByte)))
+    val maxIssueNumKey = ByteStr(Bytes.concat(vOptionContractId, Array(8.toByte)))
+    val reservedOptionKey = ByteStr(Bytes.concat(vOptionContractId, Array(9.toByte)))
+    val reservedProofKey = ByteStr(Bytes.concat(vOptionContractId, Array(10.toByte)))
+    val priceKey = ByteStr(Bytes.concat(vOptionContractId, Array(11.toByte)))
+    val priceUnitKey = ByteStr(Bytes.concat(vOptionContractId, Array(12.toByte)))
+    val tokenLockedKey = ByteStr(Bytes.concat(vOptionContractId, Array(13.toByte)))
+    val tokenCollectedKey = ByteStr(Bytes.concat(vOptionContractId, Array(14.toByte)))
+
+    (optionStatusKey, maxIssueNumKey, reservedOptionKey, reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, tokenCollectedKey)
+  }
+
+  def getOptionContractStateMapKeys(vOptionContractId: Array[Byte], user: PublicKeyAccount): (ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val stateMapBaseTokenBalanceKey = ByteStr(Bytes.concat(vOptionContractId, Array(0.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val stateMapTargetTokenBalanceKey = ByteStr(Bytes.concat(vOptionContractId, Array(1.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val stateMapOptionTokenBalanceKey = ByteStr(Bytes.concat(vOptionContractId, Array(2.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val stateMapProofTokenBalanceKey = ByteStr(Bytes.concat(vOptionContractId, Array(3.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+
+    (stateMapBaseTokenBalanceKey, stateMapTargetTokenBalanceKey, stateMapOptionTokenBalanceKey, stateMapProofTokenBalanceKey)
+  }
 }
