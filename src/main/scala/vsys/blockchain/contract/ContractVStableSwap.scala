@@ -221,7 +221,7 @@ object ContractVStableSwap {
 
   // Order Deposit
   val orderDepositId: Short = 3
-  val orderDepositPara: Seq[String] = Seq("orderId", "baseDeposit", "targetDeposit")++
+  val orderDepositPara: Seq[String] = Seq("orderId", "baseDeposit", "targetDeposit") ++
                                      Seq("owner", "status")
   val orderDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val orderDepositOpcs: Seq[Array[Byte]] = Seq(
@@ -236,6 +236,24 @@ object ContractVStableSwap {
   )
   lazy val orderDepositFunc: Array[Byte] = getFunctionBytes(orderDepositId, publicFuncType, nonReturnType, orderDepositDataType, orderDepositOpcs)
   val OrderDepositTextualBytes: Array[Byte] = textualFunc("orderDeposit", Seq(), orderDepositPara)
+
+  // Order Withdraw
+  val orderWithdrawId: Short = 4
+  val orderWithdrawPara: Seq[String] = Seq("orderId", "baseWithdraw", "targetWithdraw")++
+                                       Seq("owner", "status")
+  val orderWithdrawDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
+  val orderWithdrawOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 3.toByte),
+    assertCaller ++ Array(3.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte),
+    assertTrue ++ Array(4.toByte),
+    cdbvMapValMinus ++ Array(baseTokenLockedMap.index, 0.toByte, 1.toByte),
+    cdbvMapValMinus ++ Array(targetTokenLockedMap.index, 0.toByte, 2.toByte),
+    cdbvMapValAdd ++ Array(baseTokenBalanceMap.index, 3.toByte, 1.toByte),
+    cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 3.toByte, 2.toByte)
+  )
+  lazy val orderWithdrawFunc: Array[Byte] = getFunctionBytes(orderWithdrawId, publicFuncType, nonReturnType, orderWithdrawDataType, orderWithdrawOpcs)
+  val OrderWithdrawTextualBytes: Array[Byte] = textualFunc("orderWithdraw", Seq(), orderWithdrawPara)
   // Textual
 
 }
