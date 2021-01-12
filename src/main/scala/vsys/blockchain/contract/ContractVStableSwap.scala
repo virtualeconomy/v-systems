@@ -196,6 +196,28 @@ object ContractVStableSwap {
   lazy val setOrderFunc: Array[Byte] = getFunctionBytes(setOrderId, publicFuncType, nonReturnType, setOrderDataType, setOrderOpcs)
   val setOrderTextualBytes: Array[Byte] = textualFunc("setOrder", Seq(), setOrderPara)
 
+  // Update Order
+  val updateId: Short = 2
+  val updatePara: Seq[String] = Seq("orderId", "feeBase", "feeTarget", "minBase", "maxBase", "minTarget", "maxTarget",
+                                    "priceBase", "priceTarget") ++
+                                Seq("owner", "status")
+  val updateDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte) ++ Array.fill[Byte](8)(DataType.Amount.id.toByte)
+  val updateOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 9.toByte),
+    assertCaller ++ Array(9.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 10.toByte),
+    assertTrue ++ Array(10.toByte),
+    cdbvMapSet ++ Array(feeBaseMap.index, 0.toByte, 1.toByte),
+    cdbvMapSet ++ Array(feeTargetMap.index, 0.toByte, 2.toByte),
+    cdbvMapSet ++ Array(minBaseMap.index, 0.toByte, 3.toByte),
+    cdbvMapSet ++ Array(maxBaseMap.index, 0.toByte, 4.toByte),
+    cdbvMapSet ++ Array(minTargetMap.index, 0.toByte, 5.toByte),
+    cdbvMapSet ++ Array(maxTargetMap.index, 0.toByte, 6.toByte),
+    cdbvMapSet ++ Array(priceBaseMap.index, 0.toByte, 7.toByte),
+    cdbvMapSet ++ Array(priceTargetMap.index, 0.toByte, 8.toByte)
+  )
+  lazy val updateFunc: Array[Byte] = getFunctionBytes(updateId, publicFuncType, nonReturnType, updateDataType, updateOpcs)
+  val updateTextualBytes: Array[Byte] = textualFunc("update", Seq(), updatePara)
   // Textual
 
 }
