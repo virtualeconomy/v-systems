@@ -196,17 +196,20 @@ object ContractVStableSwap {
   lazy val setOrderFunc: Array[Byte] = getFunctionBytes(setOrderId, publicFuncType, nonReturnType, setOrderDataType, setOrderOpcs)
   val setOrderTextualBytes: Array[Byte] = textualFunc("setOrder", Seq(), setOrderPara)
 
+  private def commonCheckOpcs(ownerIndex: Byte, statusIndex: Byte): Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, ownerIndex),
+    assertCaller ++ Array(ownerIndex),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, statusIndex),
+    assertTrue ++ Array(statusIndex)
+  )
+
   // Update Order
   val updateId: Short = 2
   val updatePara: Seq[String] = Seq("orderId", "feeBase", "feeTarget", "minBase", "maxBase", "minTarget", "maxTarget",
                                     "priceBase", "priceTarget") ++
                                 Seq("owner", "status")
   val updateDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte) ++ Array.fill[Byte](8)(DataType.Amount.id.toByte)
-  val updateOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 9.toByte),
-    assertCaller ++ Array(9.toByte),
-    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 10.toByte),
-    assertTrue ++ Array(10.toByte),
+  val updateOpcs: Seq[Array[Byte]] = commonCheckOpcs(9.toByte, 10.toByte) ++ Seq(
     cdbvMapSet ++ Array(feeBaseMap.index, 0.toByte, 1.toByte),
     cdbvMapSet ++ Array(feeTargetMap.index, 0.toByte, 2.toByte),
     cdbvMapSet ++ Array(minBaseMap.index, 0.toByte, 3.toByte),
@@ -222,13 +225,9 @@ object ContractVStableSwap {
   // Order Deposit
   val orderDepositId: Short = 3
   val orderDepositPara: Seq[String] = Seq("orderId", "baseDeposit", "targetDeposit") ++
-                                     Seq("owner", "status")
+                                      Seq("owner", "status")
   val orderDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
-  val orderDepositOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 3.toByte),
-    assertCaller ++ Array(3.toByte),
-    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte),
-    assertTrue ++ Array(4.toByte),
+  val orderDepositOpcs: Seq[Array[Byte]] = commonCheckOpcs(3.toByte, 4.toByte) ++ Seq(
     cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 3.toByte, 1.toByte),
     cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 3.toByte, 2.toByte),
     cdbvMapValAdd ++ Array(baseTokenLockedMap.index, 0.toByte, 1.toByte),
@@ -242,11 +241,7 @@ object ContractVStableSwap {
   val orderWithdrawPara: Seq[String] = Seq("orderId", "baseWithdraw", "targetWithdraw") ++
                                        Seq("owner", "status")
   val orderWithdrawDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
-  val orderWithdrawOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 3.toByte),
-    assertCaller ++ Array(3.toByte),
-    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte),
-    assertTrue ++ Array(4.toByte),
+  val orderWithdrawOpcs: Seq[Array[Byte]] = commonCheckOpcs(3.toByte, 4.toByte) ++ Seq(
     cdbvMapValMinus ++ Array(baseTokenLockedMap.index, 0.toByte, 1.toByte),
     cdbvMapValMinus ++ Array(targetTokenLockedMap.index, 0.toByte, 2.toByte),
     cdbvMapValAdd ++ Array(baseTokenBalanceMap.index, 3.toByte, 1.toByte),
@@ -260,11 +255,7 @@ object ContractVStableSwap {
   val closePara: Seq[String] = Seq("orderId") ++
                                Seq("owner", "status", "baseWithdraw", "targetWithdraw", "amountOne", "valueFalse")
   val closeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
-  val closeOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 1.toByte),
-    assertCaller ++ Array(1.toByte),
-    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
-    assertTrue ++ Array(2.toByte),
+  val closeOpcs: Seq[Array[Byte]] = commonCheckOpcs(1.toByte, 2.toByte) ++ Seq(
     cdbvrMapGetOrDefault ++ Array(baseTokenLockedMap.index, 0.toByte, 3.toByte),
     cdbvrMapGetOrDefault ++ Array(targetTokenLockedMap.index, 0.toByte, 4.toByte),
     cdbvMapValMinus ++ Array(baseTokenLockedMap.index, 0.toByte, 3.toByte),
