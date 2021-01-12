@@ -239,7 +239,7 @@ object ContractVStableSwap {
 
   // Order Withdraw
   val orderWithdrawId: Short = 4
-  val orderWithdrawPara: Seq[String] = Seq("orderId", "baseWithdraw", "targetWithdraw")++
+  val orderWithdrawPara: Seq[String] = Seq("orderId", "baseWithdraw", "targetWithdraw") ++
                                        Seq("owner", "status")
   val orderWithdrawDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val orderWithdrawOpcs: Seq[Array[Byte]] = Seq(
@@ -253,7 +253,31 @@ object ContractVStableSwap {
     cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 3.toByte, 2.toByte)
   )
   lazy val orderWithdrawFunc: Array[Byte] = getFunctionBytes(orderWithdrawId, publicFuncType, nonReturnType, orderWithdrawDataType, orderWithdrawOpcs)
-  val OrderWithdrawTextualBytes: Array[Byte] = textualFunc("orderWithdraw", Seq(), orderWithdrawPara)
+  val orderWithdrawTextualBytes: Array[Byte] = textualFunc("orderWithdraw", Seq(), orderWithdrawPara)
+
+  // Order Close
+  val closeId: Short = 5
+  val closePara: Seq[String] = Seq("orderId") ++
+                               Seq("owner", "status", "baseWithdraw", "targetWithdraw", "amountOne", "valueFalse")
+  val closeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val closeOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(orderOwnerMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+    assertTrue ++ Array(2.toByte),
+    cdbvrMapGetOrDefault ++ Array(baseTokenLockedMap.index, 0.toByte, 3.toByte),
+    cdbvrMapGetOrDefault ++ Array(targetTokenLockedMap.index, 0.toByte, 4.toByte),
+    cdbvMapValMinus ++ Array(baseTokenLockedMap.index, 0.toByte, 3.toByte),
+    cdbvMapValMinus ++ Array(targetTokenLockedMap.index, 0.toByte, 4.toByte),
+    cdbvMapValAdd ++ Array(baseTokenBalanceMap.index, 1.toByte, 3.toByte),
+    cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 1.toByte, 4.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1L), DataType.Amount).bytes ++ Array(5.toByte),
+    cdbvMapValMinus ++ Array(userOrdersMap.index, 1.toByte, 5.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 6.toByte)
+  )
+  lazy val closeFunc: Array[Byte] = getFunctionBytes(closeId, publicFuncType, nonReturnType, closeDataType, closeOpcs)
+  val closeTextualBytes: Array[Byte] = textualFunc("close", Seq(), closePara)
   // Textual
 
 }
