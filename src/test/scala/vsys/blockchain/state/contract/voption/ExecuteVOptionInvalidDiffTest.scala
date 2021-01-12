@@ -7,7 +7,7 @@ import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.contract.voption.{VOptionContractGen, VOptionFunctionHelperGen}
 import vsys.blockchain.state.diffs._
-import vsys.blockchain.transaction.contract._
+import vsys.blockchain.transaction.contract.{RegisterContractTransaction => RC, ExecuteContractFunctionTransaction => EC}
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
 import vsys.blockchain.state._
 
@@ -22,7 +22,7 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
   with VOptionFunctionHelperGen {
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
-  val preconditionsAndVOptionDepositAndWithdrawBaseTargetTokens: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+  val preconditionsAndVOptionDepositAndWithdrawBaseTargetTokens: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, _, regBaseTokenContract, _, _, _, regVOptionContract,
     issueBaseToken, _, _, _, depositBaseToken, _, _, _, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000, 1, 1000, 1000, 1, 100,
       100, 100,100, 100, 100, 10)
@@ -32,8 +32,8 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
 
   // withdraw base tokens
   property("withdraw base tokens more than depositing in voption contract") {
-    forAll(preconditionsAndVOptionDepositAndWithdrawBaseTargetTokens) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RegisterContractTransaction, regVOptionContract: RegisterContractTransaction, issueBaseToken: ExecuteContractFunctionTransaction,
-    depositBaseToken: ExecuteContractFunctionTransaction, withdrawBaseToken: ExecuteContractFunctionTransaction, withdrawInvalidBaseToken: ExecuteContractFunctionTransaction) =>
+    forAll(preconditionsAndVOptionDepositAndWithdrawBaseTargetTokens) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC, regVOptionContract: RC, issueBaseToken: EC,
+    depositBaseToken: EC, withdrawBaseToken: EC, withdrawInvalidBaseToken: EC) =>
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regVOptionContract, issueBaseToken, depositBaseToken))),
         TestBlock.createWithTxStatus(withdrawBaseToken.timestamp, Seq(withdrawBaseToken), TransactionStatus.Success)) { (blockDiffEi) =>
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
@@ -47,10 +47,7 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVOptionActivate: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction,
-    RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+  val preconditionsAndVOptionActivate: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000, 1, 1000, 1000, 1, 1000,
       1000, 1,1000, 1, 1000, 1000)
@@ -62,12 +59,10 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
 
   // activate option
   property("activate voption more than depositing in voption contract") {
-    forAll(preconditionsAndVOptionActivate) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RegisterContractTransaction,
-    regTargetTokenContract: RegisterContractTransaction, regOptionTokenContract: RegisterContractTransaction, regProofTokenContract: RegisterContractTransaction,
-    regVOptionContract: RegisterContractTransaction, issueBaseToken: ExecuteContractFunctionTransaction, issueTargetToken: ExecuteContractFunctionTransaction,
-    issueOptionToken: ExecuteContractFunctionTransaction, issueProofToken: ExecuteContractFunctionTransaction,
-    depositBaseToken: ExecuteContractFunctionTransaction, depositTargetToken: ExecuteContractFunctionTransaction,
-    depositOptionToken: ExecuteContractFunctionTransaction, depositProofToken: ExecuteContractFunctionTransaction, activate: ExecuteContractFunctionTransaction, activateInvalid: ExecuteContractFunctionTransaction) =>
+    forAll(preconditionsAndVOptionActivate) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
+    regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC,
+    issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC, activate: EC, activateInvalid: EC) =>
 
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
         regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
@@ -87,16 +82,12 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVOptionMint: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction,
-    RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+  val preconditionsAndVOptionMint: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000, 1, 1000, 1000, 1, 1000,
       100, 1,100, 1, 1000, 1000)
 
     activate <- activateVOptionGen(master, regVOptionContract.contractId, 100, 1,1, attach, fee + 10000000000L, ts+13)
-
     mint <- mintVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+14)
     mintInvalid <- mintVOptionGen(master, regVOptionContract.contractId, 1000, attach, fee + 10000000000L, ts+14)
     mintInvalid2 <- mintVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+101)
@@ -105,13 +96,11 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, mint, mintInvalid, mintInvalid2, mintInvalid3)
 
   property("mint voption is greater than maxIssueNum") {
-    forAll(preconditionsAndVOptionMint) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RegisterContractTransaction,
-    regTargetTokenContract: RegisterContractTransaction, regOptionTokenContract: RegisterContractTransaction, regProofTokenContract: RegisterContractTransaction,
-    regVOptionContract: RegisterContractTransaction, issueBaseToken: ExecuteContractFunctionTransaction, issueTargetToken: ExecuteContractFunctionTransaction,
-    issueOptionToken: ExecuteContractFunctionTransaction, issueProofToken: ExecuteContractFunctionTransaction,
-    depositBaseToken: ExecuteContractFunctionTransaction, depositTargetToken: ExecuteContractFunctionTransaction,
-    depositOptionToken: ExecuteContractFunctionTransaction, depositProofToken: ExecuteContractFunctionTransaction,
-    activate: ExecuteContractFunctionTransaction, mint: ExecuteContractFunctionTransaction, mintInvalid: ExecuteContractFunctionTransaction, mintInvalid2: ExecuteContractFunctionTransaction, mintInvalid3: ExecuteContractFunctionTransaction) =>
+    forAll(preconditionsAndVOptionMint) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
+    regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC, issueOptionToken: EC, 
+    issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC,
+    activate: EC, mint: EC, mintInvalid: EC, mintInvalid2: EC, mintInvalid3: EC) =>
 
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
         regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
@@ -149,10 +138,7 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVOptionUnlock: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction,
-    RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+  val preconditionsAndVOptionUnlock: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000, 1, 1000, 1000, 1, 1000,
       100, 1,100, 1, 1000, 1000)
@@ -160,21 +146,16 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     activate <- activateVOptionGen(master, regVOptionContract.contractId, 100, 1,1, attach, fee + 10000000000L, ts+13)
     mint <- mintVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+14)
     unlock <- unlockVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+14)
-
     unlockInvalid <- unlockVOptionGen(master, regVOptionContract.contractId, 100, attach, fee + 10000000000L, ts+14)
     unlockInvalid2 <- unlockVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+201)
   } yield (genesis, genesis2, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, mint, unlock, unlockInvalid, unlockInvalid2)
 
   property("unlock voption greater than mint amount") {
-    forAll(preconditionsAndVOptionUnlock) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RegisterContractTransaction,
-    regTargetTokenContract: RegisterContractTransaction, regOptionTokenContract: RegisterContractTransaction, regProofTokenContract: RegisterContractTransaction,
-    regVOptionContract: RegisterContractTransaction, issueBaseToken: ExecuteContractFunctionTransaction, issueTargetToken: ExecuteContractFunctionTransaction,
-    issueOptionToken: ExecuteContractFunctionTransaction, issueProofToken: ExecuteContractFunctionTransaction,
-    depositBaseToken: ExecuteContractFunctionTransaction, depositTargetToken: ExecuteContractFunctionTransaction,
-    depositOptionToken: ExecuteContractFunctionTransaction, depositProofToken: ExecuteContractFunctionTransaction,
-    activate: ExecuteContractFunctionTransaction, mint: ExecuteContractFunctionTransaction, unlock: ExecuteContractFunctionTransaction,
-    unlockInvalid: ExecuteContractFunctionTransaction, unlockInvalid2: ExecuteContractFunctionTransaction) =>
+    forAll(preconditionsAndVOptionUnlock) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC, regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC,
+    issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC, activate: EC, mint: EC, unlock: EC,
+    unlockInvalid: EC, unlockInvalid2: EC) =>
 
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
         regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
@@ -203,11 +184,7 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVOptionExecute: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction,
-    RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+  val preconditionsAndVOptionExecute: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000L, 1L, 1000L, 1000L, 1L, 1000L,
       1000L, 1L,1000L, 1L, 1000L, 1000L)
@@ -223,14 +200,10 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, mint, execute, executeInvalid, executeInvalid2, executeInvalid3)
 
   property("execute voption more than target token balance") {
-    forAll(preconditionsAndVOptionExecute) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RegisterContractTransaction,
-    regTargetTokenContract: RegisterContractTransaction, regOptionTokenContract: RegisterContractTransaction, regProofTokenContract: RegisterContractTransaction,
-    regVOptionContract: RegisterContractTransaction, issueBaseToken: ExecuteContractFunctionTransaction, issueTargetToken: ExecuteContractFunctionTransaction,
-    issueOptionToken: ExecuteContractFunctionTransaction, issueProofToken: ExecuteContractFunctionTransaction,
-    depositBaseToken: ExecuteContractFunctionTransaction, depositTargetToken: ExecuteContractFunctionTransaction,
-    depositOptionToken: ExecuteContractFunctionTransaction, depositProofToken: ExecuteContractFunctionTransaction,
-    activate: ExecuteContractFunctionTransaction, mint: ExecuteContractFunctionTransaction, execute: ExecuteContractFunctionTransaction,
-    executeInvalid: ExecuteContractFunctionTransaction, executeInvalid2: ExecuteContractFunctionTransaction, executeInvalid3: ExecuteContractFunctionTransaction) =>
+    forAll(preconditionsAndVOptionExecute) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
+    regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC, issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC,
+    depositOptionToken: EC, depositProofToken: EC, activate: EC, mint: EC, execute: EC, executeInvalid: EC, executeInvalid2: EC, executeInvalid3: EC) =>
 
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(mint.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
         regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
@@ -268,17 +241,13 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVOptionCollect: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction,
-    RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+  val preconditionsAndVOptionCollect: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000L, 1L, 1000L, 1000L, 1L, 1000L,
       1000L, 1L,1000L, 1L, 1000L, 1000L)
 
     activate <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L,1L, attach, fee + 10000000000L, ts+13)
     mint <- mintVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee + 10000000000L, ts+14)
-
     execute <- executeVOptionGen(master, regVOptionContract.contractId, 2L, attach, fee + 10000000000L, ts+199)
     collect <- collectVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee + 10000000000L, ts+100000000)
     collectInvalid <- collectVOptionGen(master, regVOptionContract.contractId, 1000L, attach, fee + 10000000000L, ts+100000000)
@@ -289,14 +258,11 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, mint, execute, collect, collectInvalid, collectInvalid2, collectInvalid3)
 
   property("collect voption more than mint amount") {
-    forAll(preconditionsAndVOptionCollect) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RegisterContractTransaction,
-    regTargetTokenContract: RegisterContractTransaction, regOptionTokenContract: RegisterContractTransaction, regProofTokenContract: RegisterContractTransaction,
-    regVOptionContract: RegisterContractTransaction, issueBaseToken: ExecuteContractFunctionTransaction, issueTargetToken: ExecuteContractFunctionTransaction,
-    issueOptionToken: ExecuteContractFunctionTransaction, issueProofToken: ExecuteContractFunctionTransaction,
-    depositBaseToken: ExecuteContractFunctionTransaction, depositTargetToken: ExecuteContractFunctionTransaction,
-    depositOptionToken: ExecuteContractFunctionTransaction, depositProofToken: ExecuteContractFunctionTransaction,
-    activate: ExecuteContractFunctionTransaction, mint: ExecuteContractFunctionTransaction, execute: ExecuteContractFunctionTransaction, collect: ExecuteContractFunctionTransaction,
-    collectInvalid: ExecuteContractFunctionTransaction, collectInvalid2: ExecuteContractFunctionTransaction, collectInvalid3: ExecuteContractFunctionTransaction) =>
+    forAll(preconditionsAndVOptionCollect) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
+    regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC,
+    issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC,
+    activate: EC, mint: EC, execute: EC, collect: EC, collectInvalid: EC, collectInvalid2: EC, collectInvalid3: EC) =>
 
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(activate.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
         regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
