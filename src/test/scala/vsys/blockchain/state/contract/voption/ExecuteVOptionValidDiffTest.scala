@@ -45,7 +45,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L, // proofTotalSupply
         1L, // proofUnity
         100L, // baseTokenDepositAmount
-        500L) // targetTokenDepositAmount
+        500L, 1000L, 1000L) // targetTokenDepositAmount
 
   } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken,
     issueTargetToken, depositBaseToken, depositTargetToken)
@@ -96,7 +96,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L, // proofTotalSupply
         1L, // proofUnity
         1000L, // baseTokenDepositAmount
-        1000L) // targetTokenDepositAmount
+        1000L, 1000L, 1000L) // targetTokenDepositAmount
 
     withdrawBaseToken <- withdrawToken(master, regBaseTokenContract.contractId, regVOptionContract.contractId.bytes.arr, master.toAddress.bytes.arr, 100L, fee, ts + 13)
 
@@ -233,7 +233,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L,
         1L,
         1000L,
-        1000L)
+        1000L, 1000L, 1000L)
 
     activateOption <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L, 10L, attach, fee, ts + 13)
     mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 500L, attach, fee, ts + 14)
@@ -289,7 +289,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L,
         1L,
         1000L,
-        1000L)
+        1000L, 1000L, 1000L)
 
     activateOption <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L, 10L, attach, fee, ts + 13)
     mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 10L, attach, fee, ts + 14)
@@ -345,7 +345,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L,
         1L,
         1000L,
-        1000L)
+        1000L, 1000L, 1000L)
 
     activateOption <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L, 1L, attach, fee, ts + 13)
     mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee, ts + 14)
@@ -401,7 +401,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L,
         1L,
         1000L,
-        1000L)
+        1000L, 1000L, 1000L)
 
     activateOption <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L, 1L, attach, fee, ts + 13)
     mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee, ts + 14)

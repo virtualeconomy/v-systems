@@ -78,7 +78,9 @@ trait VOptionFunctionHelperGen extends VOptionContractGen with TokenContractGen 
                                                      proofTotalSupply: Long,
                                                      proofUnity: Long,
                                                      baseTokenDepositAmount: Long,
-                                                     targetTokenDepositAmount: Long): Gen[(GenesisTransaction, GenesisTransaction,
+                                                     targetTokenDepositAmount: Long,
+                                                     optionTokenDepositAmount: Long,
+                                                     proofTokenDepositAmount: Long): Gen[(GenesisTransaction, GenesisTransaction,
     PrivateKeyAccount, PrivateKeyAccount, RegisterContractTransaction, RegisterContractTransaction,
     RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
@@ -126,8 +128,8 @@ trait VOptionFunctionHelperGen extends VOptionContractGen with TokenContractGen 
     // deposit all issued tokens into voption contract, always deposit the entire supply of option and proof tokens
     depositBaseToken <- depositToken(master, baseTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, baseTokenDepositAmount, fee + 10000000000L, ts + 9)
     depositTargetToken <- depositToken(master, targetTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, targetTokenDepositAmount, fee + 10000000000L, ts + 10)
-    depositOptionToken <- depositToken(master, optionTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, optionTotalSupply, fee + 10000000000L, ts + 11)
-    depositProofToken <- depositToken(master, proofTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, proofTotalSupply, fee + 10000000000L, ts + 12)
+    depositOptionToken <- depositToken(master, optionTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, optionTokenDepositAmount, fee + 10000000000L, ts + 11)
+    depositProofToken <- depositToken(master, proofTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, proofTokenDepositAmount, fee + 10000000000L, ts + 12)
   } yield (genesis, genesis2, master, user, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken , depositProofToken, fee, ts, attach)
 
