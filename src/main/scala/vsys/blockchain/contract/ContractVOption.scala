@@ -69,8 +69,8 @@ object ContractVOption {
     cdbvSet ++ Array(proofTokenIdStateVar.index, 3.toByte),
     cdbvSet ++ Array(executeTimeStateVar.index, 4.toByte),
     cdbvSet ++ Array(executeDeadlineStateVar.index, 5.toByte),
-    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
-    cdbvSet ++ Array(optionStatusStateVar.index, 7.toByte)
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
+    cdbvSet ++ Array(optionStatusStateVar.index, 5.toByte)
   )
   lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
   val initTextualBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
