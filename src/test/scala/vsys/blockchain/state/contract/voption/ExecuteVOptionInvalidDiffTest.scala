@@ -81,6 +81,61 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
+  val preconditionsAndVOptionMint: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000, 1, 1000, 1000, 1, 1000,
+      100, 1,100, 1, 1000, 1000, 100, 100)
+
+    activate <- activateVOptionGen(master, regVOptionContract.contractId, 100, 1,1, attach, fee + 10000000000L, ts+13)
+    mint <- mintVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+14)
+    mintInvalid <- mintVOptionGen(master, regVOptionContract.contractId, 1000, attach, fee + 10000000000L, ts+14)
+    mintInvalid2 <- mintVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+101)
+    mintInvalid3 <- mintVOptionGen(master, regVOptionContract.contractId, 10, attach, fee + 10000000000L, ts+201)
+  } yield (genesis, genesis2, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, mint, mintInvalid, mintInvalid2, mintInvalid3)
+
+  property("unable to mint") {
+    forAll(preconditionsAndVOptionMint) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
+    regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC, issueOptionToken: EC,
+    issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC,
+    activate: EC, mint: EC, mintInvalid: EC, mintInvalid2: EC, mintInvalid3: EC) =>
+
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate))),
+        TestBlock.createWithTxStatus(mint.timestamp, Seq(mint), TransactionStatus.Success)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+      // mint voption is greater than maxIssueNum
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate))),
+        TestBlock.createWithTxStatus(mintInvalid.timestamp, Seq(mintInvalid), TransactionStatus.ContractMapValueInsufficient)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
+      }
+      // mint after executeTime
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate))),
+        TestBlock.createWithTxStatus(mintInvalid2.timestamp, Seq(mintInvalid2), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // mint after executeDeadline
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate))),
+        TestBlock.createWithTxStatus(mintInvalid3.timestamp, Seq(mintInvalid3), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
 
 
 
