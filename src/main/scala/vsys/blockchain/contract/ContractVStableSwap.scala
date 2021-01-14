@@ -269,6 +269,55 @@ object ContractVStableSwap {
   )
   lazy val closeFunc: Array[Byte] = getFunctionBytes(closeId, publicFuncType, nonReturnType, closeDataType, closeOpcs)
   val closeTextualBytes: Array[Byte] = textualFunc("close", Seq(), closePara)
+
+  // Swap
+  val swapBaseToTargetId: Short = 6
+  val swapBaseToTargetPara: Seq[String] = Seq("orderId", "amount", "fee", "price", "deadline") ++
+                                          Seq("caller", "status", "lastBlockTime", "isValidTime", "feeInOrder", "priceInOrder",
+                                              "minAmount", "isGreaterThanMin", "maxAmount", "isLessThanMax",
+                                              "bigIntType", "unitPrice", "unitBigInt", "amountBigInt", "priceBigInt",
+                                              "mul", "amountWithoutFeeBigInt", "amountType", "amountWithoutFee", "swapAmount",
+                                              "amountZero", "isValidSwapAmount")
+  val swapBaseToTargetDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte) ++
+                                              Array.fill[Byte](3)(DataType.Amount.id.toByte) ++
+                                              Array(DataType.Timestamp.id.toByte)
+  val swapBaseToTargetOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(5.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 6.toByte),
+    assertTrue ++ Array(6.toByte),
+    loadTimestamp ++ Array(7.toByte),
+    compareGreaterEqual ++ Array(4.toByte, 7.toByte, 8.toByte),
+    assertTrue ++ Array(8.toByte),
+    cdbvrMapGet ++ Array(feeBaseMap.index, 0.toByte, 9.toByte),
+    assertEqual ++ Array(2.toByte, 9.toByte),
+    cdbvrMapGet ++ Array(priceBaseMap.index, 0.toByte, 10.toByte),
+    assertEqual ++ Array(3.toByte, 10.toByte),
+    cdbvrMapGet ++ Array(minBaseMap.index, 0.toByte, 11.toByte),
+    compareGreaterEqual ++ Array(1.toByte, 11.toByte, 12.toByte),
+    assertTrue ++ Array(12.toByte),
+    cdbvrMapGet ++ Array(maxBaseMap.index, 0.toByte, 13.toByte),
+    compareLessEqual ++ Array(1.toByte, 13.toByte, 14.toByte),
+    assertTrue ++ Array(14.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.BigInteger.id.toByte), DataType.DataTypeObj).bytes ++ Array(15.toByte),
+    cdbvrGet ++ Array(unitPriceBaseStateVar.index, 16.toByte),
+    basicConvert ++ Array(16.toByte, 15.toByte, 17.toByte),
+    basicConvert ++ Array(1.toByte, 15.toByte, 18.toByte),
+    basicConvert ++ Array(3.toByte, 15.toByte, 19.toByte),
+    basicMultiply ++ Array(18.toByte, 19.toByte, 20.toByte),
+    basicDivide ++ Array(20.toByte, 17.toByte, 21.toByte),
+    basicConstantGet ++ DataEntry(Array(DataType.Amount.id.toByte), DataType.DataTypeObj).bytes ++ Array(22.toByte),
+    basicConvert ++ Array(21.toByte, 22.toByte, 23.toByte),
+    basicMinus ++ Array(23.toByte, 2.toByte, 24.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(25.toByte),
+    compareGreater ++ Array(24.toByte, 25.toByte, 26.toByte),
+    assertTrue ++ Array(26.toByte),
+    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 5.toByte, 1.toByte),
+    cdbvMapValMinus ++ Array(targetTokenLockedMap.index, 0.toByte, 24.toByte),
+    cdbvMapValAdd ++ Array(baseTokenLockedMap.index, 0.toByte, 1.toByte),
+    cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 5.toByte, 24.toByte)
+  )
+  lazy val swapBaseToTargetFunc: Array[Byte] = getFunctionBytes(swapBaseToTargetId, publicFuncType, nonReturnType, swapBaseToTargetDataType, swapBaseToTargetOpcs)
+  val swapBaseToTargetTextualBytes: Array[Byte] = textualFunc("swapBaseToTarget", Seq(), swapBaseToTargetPara)
   // Textual
 
 }
