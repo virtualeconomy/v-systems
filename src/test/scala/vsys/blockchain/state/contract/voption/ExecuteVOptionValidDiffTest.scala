@@ -77,4 +77,58 @@ class ExecuteVOptionValidDiffTest extends PropSpec
       }
     }
   }
+
+  // test if we can deposit and withdraw all tokens to and from a v option contract
+  // all 4 tokens deposit and withdraw has been tested locally, the unit test will test for withdrawing base token only
+
+  val preconditionsAndVoptionWithdrawBaseToken: Gen[(GenesisTransaction, RC,
+    RC, RC, RC, RC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, _, _, _, depositBaseToken, _, _ , _, fee, ts, _) <-
+      createBaseTargetOptionProofTokenAndInitVOption(
+        1000L, // baseTotalSupply
+        1L, // baseUnity
+        1000L, // baseIssueAmount
+        1000L, // targetTotalSupply
+        1L, // targetUnity
+        1000L, // targetIssueAmount
+        1000L, // optionTotalSupply
+        1L, // optionUnity
+        1000L, // proofTotalSupply
+        1L, // proofUnity
+        1000L, // baseTokenDepositAmount
+        1000L, // targetTokenDepositAmount
+        1000L, // optionTokenDepositAmount
+        1000L) // proofTokenDepositAmount
+
+    withdrawBaseToken <- withdrawToken(master, regBaseTokenContract.contractId, regVOptionContract.contractId.bytes.arr, master.toAddress.bytes.arr, 100L, fee, ts + 13)
+
+  } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, depositBaseToken,
+    withdrawBaseToken)
+
+  property("vOption able to withdraw") {
+    forAll(preconditionsAndVoptionWithdrawBaseToken) { case (genesis: GenesisTransaction, registerBase: RC,
+    registerTarget: RC, registerOption: RC, registerProof: RC,
+    registerVOption: RC, issueBase: EC, depositBase: EC,
+    withdrawBase: EC) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)),
+        TestBlock.create(registerVOption.timestamp, Seq(registerBase, registerTarget, registerOption, registerProof, registerVOption, issueBase, depositBase))),
+        TestBlock.createWithTxStatus(withdrawBase.timestamp, Seq(withdrawBase), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val master = registerVOption.proofs.firstCurveProof.explicitGet().publicKey
+
+        val (contractBaseTokenBalanceKey, _, _, _) = getOptionContractTokenBalanceKeys(registerBase.contractId.bytes.arr,
+          registerTarget.contractId.bytes.arr, registerOption.contractId.bytes.arr,
+          registerProof.contractId.bytes.arr, registerVOption.contractId.bytes.arr)
+
+        val (masterBaseTokenBalanceKey, _, _, _) = getOptionUserTokenBalanceKeys(registerBase.contractId.bytes.arr,
+          registerTarget.contractId.bytes.arr, registerOption.contractId.bytes.arr,
+          registerProof.contractId.bytes.arr, master)
+
+        newState.tokenAccountBalance(masterBaseTokenBalanceKey) shouldBe 100L // withdraw 100
+        newState.tokenAccountBalance(contractBaseTokenBalanceKey) shouldBe 900L // deposit 1000, withdraw 100
+      }
+    }
+  }
 }
