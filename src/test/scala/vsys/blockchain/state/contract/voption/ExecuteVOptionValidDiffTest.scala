@@ -1,10 +1,14 @@
 
 package vsys.blockchain.state.contract.voption
 
+import com.google.common.primitives.{Ints, Longs}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
+import vsys.blockchain.contract.ContractGenHelper.basicContractTestGen
+import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.token.SystemContractGen
 import vsys.blockchain.contract.voption.{VOptionContractGen, VOptionFunctionHelperGen}
 import vsys.blockchain.state._
@@ -128,6 +132,94 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         newState.tokenAccountBalance(masterBaseTokenBalanceKey) shouldBe 100L // withdraw 100
         newState.tokenAccountBalance(contractBaseTokenBalanceKey) shouldBe 900L // deposit 1000, withdraw 100
+      }
+    }
+  }
+
+  // testing logic of supersede, address registering the v option contract and activating it should be different
+  // making the user address register and issue tokens reduces need for sending over tokens before activating
+
+  val preconditionsAndVOptionSupersedeActivate: Gen[(GenesisTransaction, GenesisTransaction, RC,
+    RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+
+    (master, ts, fee) <- basicContractTestGen()
+
+    genesis <- genesisVOptionGen(master, ts)
+    user <- accountGen
+    genesis2 <- genesisVOptionGen(user, ts)
+    vOptionContract <- vOptionContractGen()
+
+    // register base token
+    regBaseTokenContract <- registerToken(user, 1000L, 1L, "init", fee + 10000000000L, ts)
+    baseTokenContractId = regBaseTokenContract.contractId
+    baseTokenId = tokenIdFromBytes(baseTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+    // register target token
+    regTargetTokenContract <- registerToken(user, 1000L, 1L, "init", fee + 10000000000L, ts + 1)
+    targetTokenContractId = regTargetTokenContract.contractId
+    targetTokenId = tokenIdFromBytes(targetTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+    // register option token
+    regOptionTokenContract <- registerToken(user, 1000L, 1L, "init", fee + 10000000000L, ts + 2)
+    optionTokenContractId = regOptionTokenContract.contractId
+    optionTokenId = tokenIdFromBytes(optionTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+    // register proof token
+    regProofTokenContract <- registerToken(user, 1000L, 1L, "init", fee + 10000000000L, ts + 3)
+    proofTokenContractId = regProofTokenContract.contractId
+    proofTokenId = tokenIdFromBytes(proofTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+
+    // register VSwap contract
+    description <- validDescStringGen
+    initVOptionDataStack: Seq[DataEntry] <- initVOptionDataStackGen(baseTokenId.arr, targetTokenId.arr, optionTokenId.arr, proofTokenId.arr, ts + 100, ts + 200)
+    regVOptionContract <- registerVOptionGen(master, vOptionContract, initVOptionDataStack, description, fee + 10000000000L, ts + 4)
+    vOptionContractId = regVOptionContract.contractId
+
+    // issue base token
+    attach <- genBoundedString(2, EC.MaxDescriptionSize)
+    issueBaseToken <- issueToken(user, baseTokenContractId, 1000L, fee, ts + 5)
+    // issue target token
+    issueTargetToken <- issueToken(user, targetTokenContractId, 1000L, fee, ts + 6)
+    // issue option token, issue the entire supply of option tokens
+    issueOptionToken <- issueToken(user, optionTokenContractId, 1000L, fee, ts + 7)
+    // issue proof token, issue the entire supply of proof tokens
+    issueProofToken <- issueToken(user, proofTokenContractId, 1000L, fee, ts + 8)
+
+    depositBaseToken <- depositToken(user, baseTokenContractId, user.toAddress.bytes.arr, vOptionContractId.bytes.arr, 1000L, fee + 10000000000L, ts + 9)
+    depositTargetToken <- depositToken(user, targetTokenContractId, user.toAddress.bytes.arr, vOptionContractId.bytes.arr, 1000L, fee + 10000000000L, ts + 10)
+    depositOptionToken <- depositToken(user, optionTokenContractId, user.toAddress.bytes.arr, vOptionContractId.bytes.arr, 1000L, fee + 10000000000L, ts + 11)
+    depositProofToken <- depositToken(user, proofTokenContractId, user.toAddress.bytes.arr, vOptionContractId.bytes.arr, 1000L, fee + 10000000000L, ts + 12)
+
+    supersedeOption <- supersedeVOptionGen(master, regVOptionContract.contractId, user.toAddress, attach, fee, ts + 13)
+    activateOption <- activateVOptionGen(user, regVOptionContract.contractId, 1000L, 10L, 10L, attach, fee, ts + 14)
+  } yield (genesis, genesis2, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken,
+    issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, supersedeOption, activateOption)
+
+  property("vOption able to supersede and activate") {
+    forAll(preconditionsAndVOptionSupersedeActivate) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, registerBase: RC, registerTarget: RC,
+    registerOption: RC, registerProof: RC, registerVOption: RC, issueBase: EC,
+    issueTarget: EC, issueOption: EC, issueProof: EC, depositBase: EC,
+    depositTarget: EC, depositOption: EC, depositProof: EC,
+    supersede: EC, activate: EC) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)),
+        TestBlock.create(registerVOption.timestamp, Seq(registerBase, registerTarget, registerOption, registerProof, registerVOption, issueBase, issueTarget,
+          issueOption, issueProof, depositBase, depositTarget, depositOption, depositProof))),
+        TestBlock.createWithTxStatus(activate.timestamp, Seq(supersede, activate), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val user = registerBase.proofs.firstCurveProof.explicitGet().publicKey
+        val vOptionContractId = registerVOption.contractId.bytes.arr
+
+        val (optionStatusKey, maxIssueNumKey, reservedOptionKey,
+        reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, tokenCollectedKey) = getOptionContractStateVarKeys(vOptionContractId)
+
+        val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
+        userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
+        newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
+        newState.contractNumInfo(reservedOptionKey) shouldBe 1000L
+        newState.contractNumInfo(reservedProofKey) shouldBe 1000L
+        newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
+        newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
+        newState.contractNumInfo(tokenLockedKey) shouldBe 0L
       }
     }
   }
