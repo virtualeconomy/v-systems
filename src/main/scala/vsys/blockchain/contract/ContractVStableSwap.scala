@@ -323,6 +323,16 @@ object ContractVStableSwap {
   )
   lazy val swapBaseToTargetFunc: Array[Byte] = getFunctionBytes(swapBaseToTargetId, publicFuncType, nonReturnType, swapCommonDataType, swapBaseToTargetOpcs)
   val swapBaseToTargetTextualBytes: Array[Byte] = textualFunc("swapBaseToTarget", Seq(), swapCommonPara)
+
+  val swapTargetToBaseId: Short = 7
+  val swapTargetToBaseOpcs: Seq[Array[Byte]] = swapCommonOpcs(feeTargetMap.index, priceTargetMap.index, minTargetMap.index, maxTargetMap.index, unitPriceTargetStateVar.index) ++ Seq(
+    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 5.toByte, 1.toByte),
+    cdbvMapValMinus ++ Array(baseTokenLockedMap.index, 0.toByte, 24.toByte),
+    cdbvMapValAdd ++ Array(targetTokenLockedMap.index, 0.toByte, 1.toByte),
+    cdbvMapValAdd ++ Array(baseTokenBalanceMap.index, 5.toByte, 24.toByte)
+  )
+  lazy val swapTargetToBaseFunc: Array[Byte] = getFunctionBytes(swapTargetToBaseId, publicFuncType, nonReturnType, swapCommonDataType, swapTargetToBaseOpcs)
+  val swapTargetToBaseTextualBytes: Array[Byte] = textualFunc("swapTargetToBase", Seq(), swapCommonPara)
   // Textual
 
 }
