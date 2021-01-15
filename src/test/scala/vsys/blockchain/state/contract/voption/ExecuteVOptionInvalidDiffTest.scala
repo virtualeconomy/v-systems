@@ -248,5 +248,71 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
       }
     }
   }
+  val preconditionsAndVOptionCollect: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, genesis2, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000L, 1L, 1000L, 1000L, 1L, 1000L,
+      1000L, 1L,1000L, 1L, 1000L, 1000L, 1000, 1000)
+
+    activate <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L,1L, attach, fee + 10000000000L, ts+13)
+    mint <- mintVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee + 10000000000L, ts+14)
+    execute <- executeVOptionGen(master, regVOptionContract.contractId, 2L, attach, fee + 10000000000L, ts+199)
+    collect <- collectVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee + 10000000000L, ts+100000000)
+    collectInvalid <- collectVOptionGen(master, regVOptionContract.contractId, 1000L, attach, fee + 10000000000L, ts+100000000)
+    collectInvalid2 <- collectVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee + 10000000000L, ts+99)
+    collectInvalid3 <- collectVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee + 10000000000L, ts+199)
+
+  } yield (genesis, genesis2, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, mint, execute, collect, collectInvalid, collectInvalid2, collectInvalid3)
+
+  property("unable to collect voption") {
+    forAll(preconditionsAndVOptionCollect) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
+    regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
+    regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC,
+    issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC,
+    activate: EC, mint: EC, execute: EC, collect: EC, collectInvalid: EC, collectInvalid2: EC, collectInvalid3: EC) =>
+
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(activate.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate, mint)),
+        TestBlock.create(execute.timestamp, Seq()),
+        TestBlock.create(execute.timestamp+1, Seq(execute))),
+        TestBlock.createWithTxStatus(collect.timestamp, Seq(collect), TransactionStatus.Success)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+      // collect voption more than mint amount
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(mint.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate, mint)),
+        TestBlock.create(execute.timestamp, Seq()),
+        TestBlock.create(execute.timestamp+1, Seq(execute))),
+        TestBlock.createWithTxStatus(collectInvalid.timestamp, Seq(collectInvalid), TransactionStatus.ContractMapValueInsufficient)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
+      }
+      // collect voption before execute time
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(mint.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate, mint)),
+        TestBlock.create(execute.timestamp, Seq()),
+        TestBlock.create(execute.timestamp+1, Seq(execute))),
+        TestBlock.createWithTxStatus(collectInvalid2.timestamp, Seq(collectInvalid2), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // collect voption after execute deadline
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(mint.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken, activate, mint)),
+        TestBlock.create(execute.timestamp, Seq()),
+        TestBlock.create(execute.timestamp+1, Seq(execute))),
+        TestBlock.createWithTxStatus(collectInvalid3.timestamp, Seq(collectInvalid3), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
 
 }
