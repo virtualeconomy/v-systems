@@ -273,11 +273,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
-        newState.contractNumInfo(reservedOptionKey) shouldBe 500L
-        newState.contractNumInfo(reservedProofKey) shouldBe 500L
+        newState.contractNumInfo(reservedOptionKey) shouldBe 500L // maxIssueNum 1000, mint 500
+        newState.contractNumInfo(reservedProofKey) shouldBe 500L // maxIssueNum 1000, mint 500
         newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
         newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
-        newState.contractNumInfo(tokenLockedKey) shouldBe 500L
+        newState.contractNumInfo(tokenLockedKey) shouldBe 500L // mint 500
 
       }
     }
@@ -304,7 +304,7 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         1000L) // proofTokenDepositAmount
 
     activateOption <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L, 10L, attach, fee, ts + 13)
-    mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 10L, attach, fee, ts + 14)
+    mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 500L, attach, fee, ts + 14)
     unlockOption <- unlockVOptionGen(master, regVOptionContract.contractId, 10L, attach, fee, ts + 15)
   } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken,
     issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activateOption, mintOption, unlockOption)
@@ -332,11 +332,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
-        newState.contractNumInfo(reservedOptionKey) shouldBe 1000L
-        newState.contractNumInfo(reservedProofKey) shouldBe 1000L
+        newState.contractNumInfo(reservedOptionKey) shouldBe 510L // maxIssueNum 1000, mint 500, unlock 10
+        newState.contractNumInfo(reservedProofKey) shouldBe 510L // maxIssueNum 1000, mint 500, unlock 10
         newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
         newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
-        newState.contractNumInfo(tokenLockedKey) shouldBe 0L
+        newState.contractNumInfo(tokenLockedKey) shouldBe 490L // mint 500, unlock 10
       }
     }
   }
@@ -390,11 +390,74 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
-        newState.contractNumInfo(reservedOptionKey) shouldBe 910L
-        newState.contractNumInfo(reservedProofKey) shouldBe 900L
+        newState.contractNumInfo(reservedOptionKey) shouldBe 910L // maxIssueNum 1000, mint 100, execute 10
+        newState.contractNumInfo(reservedProofKey) shouldBe 900L // maxIssueNum 1000, mint 100
         newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
         newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(1L), DataType.Amount))
-        newState.contractNumInfo(tokenLockedKey) shouldBe 90L
+        newState.contractNumInfo(tokenLockedKey) shouldBe 90L // mint 100, execute 10
+      }
+    }
+  }
+
+  val preconditionsAndVOptionCollect: Gen[(GenesisTransaction, RC,
+    RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <-
+      createBaseTargetOptionProofTokenAndInitVOption(
+        1000L, // baseTotalSupply
+        1L, // baseUnity
+        1000L, // baseIssueAmount
+        1000L, // targetTotalSupply
+        1L, // targetUnity
+        1000L, // targetIssueAmount
+        1000L, // optionTotalSupply
+        1L, // optionUnity
+        1000L, // proofTotalSupply
+        1L, // proofUnity
+        1000L, // baseTokenDepositAmount
+        1000L, // targetTokenDepositAmount
+        1000L, // optionTokenDepositAmount
+        1000L) // proofTokenDepositAmount
+
+    activateOption <- activateVOptionGen(master, regVOptionContract.contractId, 1000L, 10L, 1L, attach, fee, ts + 13)
+    mintOption <- mintVOptionGen(master, regVOptionContract.contractId, 500L, attach, fee, ts + 14)
+    executeOption <- executeVOptionGen(master, regVOptionContract.contractId, 10L, attach, fee, ts + 101)
+    collectOption <- collectVOptionGen(master, regVOptionContract.contractId, 100L, attach, fee, ts + 202)
+
+  } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken,
+    issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activateOption, mintOption, executeOption, collectOption)
+
+  property("vOption able to collect") {
+    forAll(preconditionsAndVOptionCollect) { case (genesis: GenesisTransaction, registerBase: RC, registerTarget: RC,
+    registerOption: RC, registerProof: RC, registerVOption: RC, issueBase: EC,
+    issueTarget: EC, issueOption: EC, issueProof: EC, depositBase: EC,
+    depositTarget: EC, depositOption: EC, depositProof: EC, activate: EC,
+    mint: EC, execute: EC, collect: EC) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)),
+        TestBlock.create(registerVOption.timestamp, Seq(registerBase, registerTarget, registerOption, registerProof, registerVOption, issueBase, issueTarget,
+          issueOption, issueProof, depositBase, depositTarget, depositOption, depositProof, activate, mint)), TestBlock.create(execute.timestamp, Seq()), // empty block since transactions look at previous block timestamp
+        TestBlock.create(execute.timestamp + 1, Seq(execute))),
+        TestBlock.createWithTxStatus(collect.timestamp, Seq(collect), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val user = registerBase.proofs.firstCurveProof.explicitGet().publicKey
+        val vOptionContractId = registerVOption.contractId.bytes.arr
+
+        val (optionStatusKey, maxIssueNumKey, reservedOptionKey,
+        reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, tokenCollectedKey) = getOptionContractStateVarKeys(vOptionContractId)
+
+        val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
+        userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
+        newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
+        newState.contractNumInfo(reservedOptionKey) shouldBe 510L // maxIssueNum 1000, mint 500, execute 10
+        newState.contractNumInfo(reservedProofKey) shouldBe 600L // maxIssueNum 1000, mint 500, collect 100
+        newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(10L), DataType.Amount))
+        newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(1L), DataType.Amount))
+        // the collect function gives the caller the fraction of the pool equal to the fraction of proof tokens they use to execute the function
+        // here there are 490 target tokens and 500 available proof tokens
+        newState.contractNumInfo(tokenLockedKey) shouldBe 392L // 490 - ((100/500) * 490)
       }
     }
   }
