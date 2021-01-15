@@ -461,4 +461,172 @@ class ExecuteVOptionValidDiffTest extends PropSpec
       }
     }
   }
+
+  val preconditionsAndVOptionLargeAmountsExecute: Gen[(GenesisTransaction, RC,
+    RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <-
+      createBaseTargetOptionProofTokenAndInitVOption(
+        Long.MaxValue, // baseTotalSupply
+        1L, // baseUnity
+        Long.MaxValue, // baseIssueAmount
+        Long.MaxValue, // targetTotalSupply
+        1L, // targetUnity
+        Long.MaxValue, // targetIssueAmount
+        Long.MaxValue, // optionTotalSupply
+        1L, // optionUnity
+        Long.MaxValue, // proofTotalSupply
+        1L, // proofUnity
+        Long.MaxValue, // baseTokenDepositAmount
+        Long.MaxValue, // targetTokenDepositAmount
+        Long.MaxValue, // optionTokenDepositAmount
+        Long.MaxValue) // proofTokenDepositAmount
+
+    activateOption <- activateVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, Long.MaxValue, 1L, attach, fee, ts + 13)
+    mintOption <- mintVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, attach, fee, ts + 14)
+    executeOption <- executeVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, attach, fee, ts + 101)
+
+  } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken,
+    issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activateOption, mintOption, executeOption)
+
+  property("vOption able to execute very large numbers") {
+    forAll(preconditionsAndVOptionLargeAmountsExecute) { case (genesis: GenesisTransaction, registerBase: RC, registerTarget: RC,
+    registerOption: RC, registerProof: RC, registerVOption: RC, issueBase: EC,
+    issueTarget: EC, issueOption: EC, issueProof: EC, depositBase: EC,
+    depositTarget: EC, depositOption: EC, depositProof: EC, activate: EC,
+    mint: EC, execute: EC) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)),
+        TestBlock.create(registerVOption.timestamp, Seq(registerBase, registerTarget, registerOption, registerProof, registerVOption, issueBase, issueTarget,
+          issueOption, issueProof, depositBase, depositTarget, depositOption, depositProof, activate, mint))),
+        TestBlock.createWithTxStatus(execute.timestamp, Seq(execute), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val user = registerBase.proofs.firstCurveProof.explicitGet().publicKey
+        val vOptionContractId = registerVOption.contractId.bytes.arr
+
+        val (optionStatusKey, maxIssueNumKey, reservedOptionKey,
+        reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, tokenCollectedKey) = getOptionContractStateVarKeys(vOptionContractId)
+
+        val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
+        userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
+        newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
+        newState.contractNumInfo(reservedOptionKey) shouldBe Long.MaxValue
+        newState.contractNumInfo(reservedProofKey) shouldBe 0L
+        newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
+        newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(1L), DataType.Amount))
+        newState.contractNumInfo(tokenLockedKey) shouldBe 0L
+
+        val master = registerVOption.proofs.firstCurveProof.explicitGet().publicKey
+
+        val (contractBaseTokenBalanceKey, contractTargetTokenBalanceKey,
+        contractOptionTokenBalanceKey, contractProofTokenBalanceKey) = getOptionContractTokenBalanceKeys(registerBase.contractId.bytes.arr,
+          registerTarget.contractId.bytes.arr, registerOption.contractId.bytes.arr,
+          registerProof.contractId.bytes.arr, registerVOption.contractId.bytes.arr)
+
+        val (masterBaseTokenBalanceKey, masterTargetTokenBalanceKey,
+        masterOptionTokenBalanceKey, masterProofTokenBalanceKey) = getOptionUserTokenBalanceKeys(registerBase.contractId.bytes.arr,
+          registerTarget.contractId.bytes.arr, registerOption.contractId.bytes.arr,
+          registerProof.contractId.bytes.arr, master)
+
+        // Ensure that the final token balance values are correct
+        newState.tokenAccountBalance(masterBaseTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractBaseTokenBalanceKey) shouldBe Long.MaxValue
+
+        newState.tokenAccountBalance(masterTargetTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractTargetTokenBalanceKey) shouldBe Long.MaxValue
+
+        newState.tokenAccountBalance(masterOptionTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractOptionTokenBalanceKey) shouldBe Long.MaxValue
+
+        newState.tokenAccountBalance(masterProofTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractProofTokenBalanceKey) shouldBe Long.MaxValue
+      }
+    }
+  }
+
+  val preconditionsAndVOptionLargeAmountsCollect: Gen[(GenesisTransaction, RC,
+    RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <-
+      createBaseTargetOptionProofTokenAndInitVOption(
+        Long.MaxValue, // baseTotalSupply
+        1L, // baseUnity
+        Long.MaxValue, // baseIssueAmount
+        Long.MaxValue, // targetTotalSupply
+        1L, // targetUnity
+        Long.MaxValue, // targetIssueAmount
+        Long.MaxValue, // optionTotalSupply
+        1L, // optionUnity
+        Long.MaxValue, // proofTotalSupply
+        1L, // proofUnity
+        Long.MaxValue, // baseTokenDepositAmount
+        Long.MaxValue, // targetTokenDepositAmount
+        Long.MaxValue, // optionTokenDepositAmount
+        Long.MaxValue) // proofTokenDepositAmount
+
+    activateOption <- activateVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, Long.MaxValue, 1L, attach, fee, ts + 13)
+    mintOption <- mintVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, attach, fee, ts + 14)
+    collectOption <- collectVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, attach, fee, ts + 202)
+
+  } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken,
+    issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activateOption, mintOption, collectOption)
+
+  property("vOption able to collect very large numbers") {
+    forAll(preconditionsAndVOptionLargeAmountsCollect) { case (genesis: GenesisTransaction, registerBase: RC, registerTarget: RC,
+    registerOption: RC, registerProof: RC, registerVOption: RC, issueBase: EC,
+    issueTarget: EC, issueOption: EC, issueProof: EC, depositBase: EC,
+    depositTarget: EC, depositOption: EC, depositProof: EC, activate: EC,
+    mint: EC, collect: EC) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)),
+        TestBlock.create(registerVOption.timestamp, Seq(registerBase, registerTarget, registerOption, registerProof, registerVOption, issueBase, issueTarget,
+          issueOption, issueProof, depositBase, depositTarget, depositOption, depositProof, activate, mint))),
+        TestBlock.createWithTxStatus(collect.timestamp, Seq(collect), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        val user = registerBase.proofs.firstCurveProof.explicitGet().publicKey
+        val vOptionContractId = registerVOption.contractId.bytes.arr
+
+        val (optionStatusKey, maxIssueNumKey, reservedOptionKey,
+        reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, tokenCollectedKey) = getOptionContractStateVarKeys(vOptionContractId)
+
+        val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
+        userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
+        newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
+        newState.contractNumInfo(reservedOptionKey) shouldBe 0L
+        newState.contractNumInfo(reservedProofKey) shouldBe Long.MaxValue
+        newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
+        newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(1L), DataType.Amount))
+        newState.contractNumInfo(tokenLockedKey) shouldBe 0L
+
+        val master = registerVOption.proofs.firstCurveProof.explicitGet().publicKey
+
+        val (contractBaseTokenBalanceKey, contractTargetTokenBalanceKey,
+        contractOptionTokenBalanceKey, contractProofTokenBalanceKey) = getOptionContractTokenBalanceKeys(registerBase.contractId.bytes.arr,
+          registerTarget.contractId.bytes.arr, registerOption.contractId.bytes.arr,
+          registerProof.contractId.bytes.arr, registerVOption.contractId.bytes.arr)
+
+        val (masterBaseTokenBalanceKey, masterTargetTokenBalanceKey,
+        masterOptionTokenBalanceKey, masterProofTokenBalanceKey) = getOptionUserTokenBalanceKeys(registerBase.contractId.bytes.arr,
+          registerTarget.contractId.bytes.arr, registerOption.contractId.bytes.arr,
+          registerProof.contractId.bytes.arr, master)
+
+        // Ensure that the final token balance values are correct
+        newState.tokenAccountBalance(masterBaseTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractBaseTokenBalanceKey) shouldBe Long.MaxValue
+
+        newState.tokenAccountBalance(masterTargetTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractTargetTokenBalanceKey) shouldBe Long.MaxValue
+
+        newState.tokenAccountBalance(masterOptionTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractOptionTokenBalanceKey) shouldBe Long.MaxValue
+
+        newState.tokenAccountBalance(masterProofTokenBalanceKey) shouldBe 0L
+        newState.tokenAccountBalance(contractProofTokenBalanceKey) shouldBe Long.MaxValue
+      }
+    }
+  }
 }
