@@ -8,10 +8,11 @@ import vsys.utils.serialization.Deser
 object ContractVStableSwap {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
-    Seq(), // Functions
+    Seq(supersedeFunc, setOrderFunc, updateFunc, orderDepositFunc, orderWithdrawFunc, closeFunc,
+        swapBaseToTargetFunc, swapTargetToBaseFunc), // Functions
     stateVarSeq, // StateVars
     stateMapSeq,  // StateMaps
-    Seq()  // Textual
+    Seq(triggerTextual, descriptorTextual, stateVarTextual, stateMapTextual)  // Textual
   ).explicitGet()
 
   // State Var
@@ -234,7 +235,7 @@ object ContractVStableSwap {
     cdbvMapValAdd ++ Array(targetTokenLockedMap.index, 0.toByte, 2.toByte)
   )
   lazy val orderDepositFunc: Array[Byte] = getFunctionBytes(orderDepositId, publicFuncType, nonReturnType, orderDepositDataType, orderDepositOpcs)
-  val OrderDepositTextualBytes: Array[Byte] = textualFunc("orderDeposit", Seq(), orderDepositPara)
+  val orderDepositTextualBytes: Array[Byte] = textualFunc("orderDeposit", Seq(), orderDepositPara)
 
   // Order Withdraw
   val orderWithdrawId: Short = 4
@@ -333,6 +334,11 @@ object ContractVStableSwap {
   )
   lazy val swapTargetToBaseFunc: Array[Byte] = getFunctionBytes(swapTargetToBaseId, publicFuncType, nonReturnType, swapCommonDataType, swapTargetToBaseOpcs)
   val swapTargetToBaseTextualBytes: Array[Byte] = textualFunc("swapTargetToBase", Seq(), swapCommonPara)
+
   // Textual
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initTextualBytes, depositTextualBytes, withdrawTextualBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeTextualBytes, setOrderTextualBytes, updateTextualBytes,
+    orderDepositTextualBytes, orderWithdrawTextualBytes, closeTextualBytes, swapBaseToTargetTextualBytes, swapTargetToBaseTextualBytes))
+
 
 }
