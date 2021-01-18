@@ -47,21 +47,24 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVOptionActivate: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC,EC,EC)] = for {
+  val preconditionsAndVOptionActivate: Gen[(GenesisTransaction, GenesisTransaction, RC, RC, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, genesis2, master, user, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
     issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, fee, ts, attach) <- createBaseTargetOptionProofTokenAndInitVOption(1000, 1, 1000, 1000, 1, 1000,
       1000, 1,1000, 1, 1000, 1000, 1000, 1000)
     activate <- activateVOptionGen(master, regVOptionContract.contractId, 1000, 1,1, attach, fee + 10000000000L, ts+13)
     activateInvalid <- activateVOptionGen(master, regVOptionContract.contractId, 10000, 1,1, attach, fee + 10000000000L, ts+13)
     activateInvalid2 <- activateVOptionGen(user, regVOptionContract.contractId, 1000, 1,1, attach, fee + 10000000000L, ts+13)
+    activateInvalid3 <- activateVOptionGen(master, regVOptionContract.contractId, 1000, 1,0, attach, fee + 10000000000L, ts+13)
+    activateInvalid4 <- activateVOptionGen(master, regVOptionContract.contractId, 1000, 0,1, attach, fee + 10000000000L, ts+13)
+    activateInvalid5 <- activateVOptionGen(master, regVOptionContract.contractId, 0, 1,1, attach, fee + 10000000000L, ts+13)
   } yield (genesis, genesis2, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract,
-    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, activateInvalid, activateInvalid2)
+    issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activate, activateInvalid, activateInvalid2, activateInvalid3, activateInvalid4, activateInvalid5)
 
   property("unable to activate voption contract") {
     forAll(preconditionsAndVOptionActivate) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regBaseTokenContract: RC,
     regTargetTokenContract: RC, regOptionTokenContract: RC, regProofTokenContract: RC,
     regVOptionContract: RC, issueBaseToken: EC, issueTargetToken: EC,
-    issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC, activate: EC, activateInvalid: EC, activateInvalid2: EC) =>
+    issueOptionToken: EC, issueProofToken: EC, depositBaseToken: EC, depositTargetToken: EC, depositOptionToken: EC, depositProofToken: EC, activate: EC, activateInvalid: EC, activateInvalid2: EC, activateInvalid3: EC, activateInvalid4: EC, activateInvalid5: EC) =>
 
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
         regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
@@ -87,6 +90,36 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
         blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
       }
+      // activated with price unit zero
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken))),
+        TestBlock.createWithTxStatus(activateInvalid3.timestamp, Seq(activateInvalid3), TransactionStatus.Failed)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+
+      // activated with price zero
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken))),
+        TestBlock.createWithTxStatus(activateInvalid4.timestamp, Seq(activateInvalid4), TransactionStatus.Failed)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+
+      // activated with maxIssueNum zero
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regVOptionContract.timestamp, Seq(regBaseTokenContract, regTargetTokenContract,
+        regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken, issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken,
+        depositOptionToken, depositProofToken))),
+        TestBlock.createWithTxStatus(activateInvalid4.timestamp, Seq(activateInvalid5), TransactionStatus.Failed)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.contractNumDB.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.portfolios.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+
     }
   }
 
@@ -314,5 +347,4 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
       }
     }
   }
-
 }
