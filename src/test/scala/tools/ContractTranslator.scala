@@ -16,12 +16,13 @@ import vsys.blockchain.state.opcdiffs.TDBAROpcDiff.TDBARType
 import vsys.blockchain.state.opcdiffs.TDBOpcDiff.TDBType
 import vsys.blockchain.state.opcdiffs.TDBROpcDiff.TDBRType
 import vsys.blockchain.state.opcdiffs.SystemTransferDiff.TransferType
+import vsys.blockchain.state.opcdiffs.IfOpcDiff.IfType
 import vsys.utils.serialization.Deser
 
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractPaymentChannel.contract.bytes.arr
+  val bytes = ContractVSwap.contract.bytes.arr
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
@@ -62,7 +63,8 @@ object ContractTranslator extends App {
   val textual = Deser.parseArrays(bytes.slice(last, bytes.length))
   val textualStr = textualFromBytes(textual)
 
-  val dataTypeList = Seq("PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount", "Account", "TokenId", "Timestamp", "Boolean", "ShortBytes")
+  val dataTypeList = Seq("DataTypeObj", "PublicKey", "Address", "Amount", "Int32", "ShortText", "ContractAccount",
+                         "Account", "TokenId", "Timestamp", "Boolean", "ShortBytes", "Balance", "OpcBlock", "BigInt")
 
   val triggerTypeList = Seq("onInit trigger", "onDeposit trigger", "onWithdraw trigger")
 
@@ -95,7 +97,7 @@ object ContractTranslator extends App {
           // print input variables
           val inputVarList = ftString(idx).slice(retNum + 1, ftString(idx).length)
           List.range(0, listParaTypes.size).foreach { i =>
-            print(dataTypeList(listParaTypes(i) - 1) + " " + inputVarList(i))
+            print(dataTypeList(listParaTypes(i)) + " " + inputVarList(i))
             if (i < listParaTypes.size - 1) print(", ")
           }
           print(")")
@@ -103,11 +105,11 @@ object ContractTranslator extends App {
           //print return variables
           if (listReturnTypes.length == 1) {
             print(" return ")
-            println(dataTypeList(listReturnTypes(0) - 1) + " " + ftString(idx)(0))
+            println(dataTypeList(listReturnTypes(0)) + " " + ftString(idx)(0))
           } else if (listReturnTypes.length > 1){
             print(" return (")
             List.range(0, retNum).foreach { i =>
-              print(dataTypeList(listReturnTypes(i) - 1) + " " + ftString(idx)(i))
+              print(dataTypeList(listReturnTypes(i)) + " " + ftString(idx)(i))
               if (i < listParaTypes.size - 1) print(", ")
             }
             println(")")
@@ -178,16 +180,16 @@ object ContractTranslator extends App {
       printSeqSeqString(desc)
       println("State Variables:")
       List.range(0, stav.size).foreach { i =>
-        println("%02d".format(i) + " | " + stav(i) + ": " + dataTypeList(stateVar(i)(1) - 1))
+        println("%02d".format(i) + " | " + stav(i) + ": " + dataTypeList(stateVar(i)(1)))
       }
       println("State Maps:")
       List.range(0, stam.size).foreach { i =>
-        println("%02d".format(i) + " | " + stam(i).head + " | " + stam(i)(1) + " -> " + stam(i)(2) + " | Map[" + dataTypeList(stateMap(i)(1) - 1) + ", " + dataTypeList(stateMap(i)(2) - 1) + "]")
+        println("%02d".format(i) + " | " + stam(i).head + " | " + stam(i)(1) + " -> " + stam(i)(2) + " | Map[" + dataTypeList(stateMap(i)(1)) + ", " + dataTypeList(stateMap(i)(2)) + "]")
       }
     }
   }
 
-  def strDataEntry(s: Array[Byte]): String = {
+  def strDataEntry(s: Array[Byte], nameList: Seq[String]): String = {
     var res = "DataEntry("
     if (s(0) == DataType.Int32.id.toByte) {
       res = res + Ints.fromByteArray(s.tail).toString
@@ -199,9 +201,24 @@ object ContractTranslator extends App {
       } else if (s(1) == 0.toByte) {
         res = res + "false"
       }
+    } else if (s(0) == DataType.OpcBlock.id.toByte) {
+      res = res + "Seq(\n"
+      val ifOpcLines = Deser.parseArrays(s.drop(3))
+      ifOpcLines.foreach { case l =>
+        res = res + "        "
+        val x = opcToName(l, nameList)
+        res = res + x + "\n"
+        res = res + "        | " + convertBytesToHex(l.slice(0, 2)) + "| "
+        res = res + convertBytesToHex(l.slice(2, l.length)) + "|\n"
+      }
+      res = res + "\n"
+      res = res + "    )"
+    } else if (s(0) == DataType.DataTypeObj.id.toByte) {
+      res = res + "DataType."
+      res = res + dataTypeList(s(1).toInt)
     }
     res = res + ", "
-    res = res + dataTypeList(s(0).toInt - 1)
+    res = res + dataTypeList(s(0).toInt)
     res = res + ")"
     res
   }
@@ -297,8 +314,11 @@ object ContractTranslator extends App {
         y match {
           case opcType: Byte if opcType == CDBVType.SetCDBV.id => "operation.db.setVariable(" + "db." + stateNameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == CDBVType.mapValueAddCDBV.id => "operation.db.mapValueAdd(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3))  + ", " + nameList(data(4)) + ")"
-          case opcType: Byte if opcType == CDBVType.mapValueMinusCDBV.id => "operation.db.mapValueMinus(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3))  + ", " + nameList(data(4)) + ")"
-          case opcType: Byte if opcType == CDBVType.mapSetCDBV.id => "operation.db.mapSet(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3))  + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == CDBVType.mapValueMinusCDBV.id => "operation.db.mapValueMinus(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == CDBVType.mapSetCDBV.id => "operation.db.mapSet(" + "db." + stateMapList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
+          case opcType: Byte if opcType == CDBVType.stateValueAddCDBV.id => "operation.db.stateValueAdd(" + "db." + stateNameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CDBVType.stateValueMinusCDBV.id => "operation.db.stateValueMinus(" + "db." + stateNameList(data(2)) + ", " + nameList(data(3)) + ")"
+
           case _ => "--- invalid opc code ---"
         }
 
@@ -307,6 +327,7 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == CDBVRType.GetCDBVR.id => nameList(data(3)) + " = operation.db.getVariable(db." + stateNameList(data(2)) + ")"
           case opcType: Byte if opcType == CDBVRType.MapGetOrDefaultCDBVR.id => nameList(data(4)) + " = operation.db.mapGetOrDefault(db." + stateMapList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == CDBVRType.MapGetCDVVR.id => nameList(data(4)) + " = operation.db.mapGet(db." + stateMapList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CDBVRType.StateVarGetOrDefaultCDBVR.id => nameList(data(3)) + " = operation.db.stateGetOrDefault(db." + stateNameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
@@ -342,7 +363,9 @@ object ContractTranslator extends App {
 
       case opcType: Byte if opcType == OpcType.CompareOpc.id =>
         y match {
-          case opcType: Byte if opcType == CompareType.Ge.id => nameList(data(4)) + " = operation.compare.greater(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CompareType.Ge.id => nameList(data(4)) + " = operation.compare.greaterEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CompareType.Gt.id => nameList(data(4)) + " = operation.compare.greater(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CompareType.Beq.id => nameList(data(4)) + " = operation.compare.bytesEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
@@ -355,8 +378,14 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == BasicType.Minimum.id => nameList(data(4)) + " = operation.basic.minimum(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == BasicType.Maximum.id => nameList(data(4)) + " = operation.basic.maximum(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == BasicType.Concat.id => nameList(data(4)) + " = operation.basic.concat(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
-          case opcType: Byte if opcType == BasicType.ConstantGet.id => nameList(data.last) + " = operation.basic.getConstant(" + strDataEntry(data.slice(2, data.length - 1)) + ")"
+          case opcType: Byte if opcType == BasicType.Convert.id => nameList(data(4)) + " = operation.basic.convert(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == BasicType.ConstantGet.id => nameList(data.last) + " = operation.basic.getConstant(" + strDataEntry(data.slice(2, data.length - 1), nameList) + ")"
+          case opcType: Byte if opcType == BasicType.SqrtBigInt.id => nameList(data(3)) + " = operation.basic.sqrt(" + nameList(data(2)) + ")"
           case _ => "--- invalid opc code ---"
+        }
+      case opcType: Byte if opcType == OpcType.IfOpc.id =>
+        y match {
+          case opcType: Byte if opcType == IfType.If.id => "operation.if(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
         }
 
       case _ => "--- invalid opc code ---"
