@@ -22,7 +22,8 @@ import vsys.utils.serialization.Deser
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractVSwap.contract.bytes.arr
+  val bytes = ContractVOption.contract.bytes.arr
+  val showHex = false
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
@@ -106,7 +107,7 @@ object ContractTranslator extends App {
           if (listReturnTypes.length == 1) {
             print(" return ")
             println(dataTypeList(listReturnTypes(0)) + " " + ftString(idx)(0))
-          } else if (listReturnTypes.length > 1){
+          } else if (listReturnTypes.length > 1) {
             print(" return (")
             List.range(0, retNum).foreach { i =>
               print(dataTypeList(listReturnTypes(i)) + " " + ftString(idx)(i))
@@ -116,24 +117,28 @@ object ContractTranslator extends App {
           } else println()
 
           // print function or trigger head opc
-          print("| ")
-          print(convertBytesToHex(Shorts.toByteArray(funcIdx)))
-          print("| ")
-          print(convertBytesToHex(Array(funcType)))
-          print("| ")
-          print(convertBytesToHex(listParaTypes))
-          print("| ")
-          print(convertBytesToHex(listReturnTypes))
-          println("|")
+          if (showHex) {
+            print("| ")
+            print(convertBytesToHex(Shorts.toByteArray(funcIdx)))
+            print("| ")
+            print(convertBytesToHex(Array(funcType)))
+            print("| ")
+            print(convertBytesToHex(listParaTypes))
+            print("| ")
+            print(convertBytesToHex(listReturnTypes))
+            println("|")
+          }
 
           // print opc lines
           listOpcLines.foreach { case l =>
             print("    ")
             val x = opcToName(l, inputVarList)
             println(x)
-            print("    | " + convertBytesToHex(l.slice(0, 2)))
-            print("| ")
-            println(convertBytesToHex(l.slice(2, l.length)) + "|")
+            if (showHex) {
+              print("    | " + convertBytesToHex(l.slice(0, 2)))
+              print("| ")
+              println(convertBytesToHex(l.slice(2, l.length)) + "|")
+            }
           }
           println()
         }
@@ -208,8 +213,10 @@ object ContractTranslator extends App {
         res = res + "        "
         val x = opcToName(l, nameList)
         res = res + x + "\n"
-        res = res + "        | " + convertBytesToHex(l.slice(0, 2)) + "| "
-        res = res + convertBytesToHex(l.slice(2, l.length)) + "|\n"
+        if (showHex) {
+          res = res + "        | " + convertBytesToHex(l.slice(0, 2)) + "| "
+          res = res + convertBytesToHex(l.slice(2, l.length)) + "|\n"
+        }
       }
       res = res + "\n"
       res = res + "    )"
