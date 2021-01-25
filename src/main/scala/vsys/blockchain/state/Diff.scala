@@ -89,7 +89,7 @@ object Diff {
             contractTokens: Map[ByteStr, Int] = Map.empty,
             tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
             tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
-            relatedAddress: Map[Address, Boolean] = Map.empty,
+            relatedAddress: Map[Account, Boolean] = Map.empty,
             dbEntries: Map[ByteStr, Entry] = Map.empty,
             leaseState: Map[ByteStr, Boolean] = Map.empty): Diff = Diff(
     transactions = Map((tx.id, (height, ProcessedTransaction(txStatus, chargedFee, tx), (portfolios.keys ++ relatedAddress.keys).toSet))),
