@@ -34,8 +34,14 @@ class TransactionsRouteSpec extends RouteSpec("/transactions")
 
   routePath("/address/{address}/limit/{limit}") - {
     "handles invalid address" in {
-      forAll(bytes32gen, choose(1, MaxTransactionsPerRequest)) { case (bytes, limit) =>
-        Get(routePath(s"/address/${Base58.encode(bytes)}/limit/$limit")) ~> route should produce(InvalidAddress)
+      forAll(fakeAddressGen, choose(1, MaxTransactionsPerRequest)) { case (bytes, limit) =>
+        Get(routePath(s"/address/$bytes/limit/$limit")) ~> route should produce(InvalidAddress)
+      }
+    }
+
+    "handles invalid contract address" in {
+      forAll(fakeAccountGen, choose(1, MaxTransactionsPerRequest)) { case (bytes, limit) =>
+        Get(routePath(s"/address/$bytes/limit/$limit")) ~> route should produce(InvalidContractAddress)
       }
     }
 
