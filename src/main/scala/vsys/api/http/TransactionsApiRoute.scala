@@ -1,18 +1,17 @@
 package vsys.api.http
 
 import javax.ws.rs.Path
-
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import io.swagger.annotations._
 import play.api.libs.json._
-import vsys.account.Address
+import vsys.account.{Account, Address}
 import vsys.blockchain.history.History
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
+import vsys.blockchain.transaction.{ProcessedTransaction, Transaction}
 import vsys.blockchain.UtxPool
 import vsys.settings.{RestAPISettings, StateSettings}
 
@@ -95,7 +94,7 @@ case class TransactionsApiRoute(
   ))
   def transactionList: Route = (path("list") & get) {
     parameters(('address, 'txType.?, 'limit, 'offset ? "0")) { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
-      Address.fromString(addressStr) match {
+      Account.fromString(addressStr) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
           Exception.allCatch.opt(limitStr.toInt) match {
@@ -138,7 +137,7 @@ case class TransactionsApiRoute(
   //remove after all related productions being updated
   def addressLimit: Route = (pathPrefix("address") & get) {
     pathPrefix(Segment) { address =>
-      Address.fromString(address) match {
+      Account.fromString(address) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
           pathPrefix("limit") {
