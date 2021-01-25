@@ -30,7 +30,7 @@ object ExecuteContractFunctionTransactionDiff {
         contractNumDB = diff.contractNumDB,
         contractStateDB = diff.contractStateDB,
         contractTokens = diff.contractTokens,
-        relatedAddress = diff.relatedAddress,
+        relatedAddress = diff.relatedAddress ++ Map(exContext.contractId -> true),
         chargedFee = tx.transactionFee
       ))
       .left.flatMap( e =>
