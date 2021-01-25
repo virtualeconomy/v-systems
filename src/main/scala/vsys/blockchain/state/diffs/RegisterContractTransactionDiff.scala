@@ -34,7 +34,7 @@ object RegisterContractTransactionDiff {
         contractTokens = diff.contractTokens,
         tokenDB = diff.tokenDB,
         tokenAccountBalance = diff.tokenAccountBalance,
-        relatedAddress = diff.relatedAddress,
+        relatedAddress = diff.relatedAddress ++ Map(exContext.contractId -> true),
         chargedFee = tx.transactionFee
       ))
       .left.flatMap( e =>
