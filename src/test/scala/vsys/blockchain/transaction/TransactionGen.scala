@@ -2,11 +2,12 @@ package vsys.blockchain.transaction
 
 import org.scalacheck.Gen.{alphaLowerChar, frequency, numChar}
 import org.scalacheck.{Arbitrary, Gen}
+import scorex.crypto.encode.Base58
 import vsys.account.PublicKeyAccount._
 import vsys.account._
 import vsys.blockchain.consensus.SPoSCalc._
 import vsys.blockchain.contract._
-import vsys.blockchain.database.{DataType => DatabaseDataType, Entry}
+import vsys.blockchain.database.{Entry, DataType => DatabaseDataType}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.database.DbPutTransaction
@@ -39,6 +40,10 @@ trait TransactionGen {
   val ntpTimestampGen: Gen[Long] = Gen.choose(1, 1000).map(NTP.correctedTime() - _)
 
   val accountGen: Gen[PrivateKeyAccount] = bytes32gen.map(seed => PrivateKeyAccount(seed))
+  
+  val fakeAddressGen: Gen[String] = bytes32gen.map(seed => 'A' +: Base58.encode(seed.tail))
+
+  val fakeAccountGen: Gen[String] = bytes32gen.map(seed => 'C' +: Base58.encode(seed.tail))
 
   val contractAccountGen: Gen[ContractAccount] = Gen.const(ContractAccount.fromId(ByteStr(bytes32gen.sample.get)))
 
