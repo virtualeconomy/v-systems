@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import com.google.common.primitives.Ints
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
-import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
+import play.api.libs.json.{Format, JsArray, JsNull, JsNumber, JsObject, JsValue, Json}
 import vsys.account.{Account, ContractAccount}
 import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
 import vsys.api.http._
@@ -24,6 +24,7 @@ import vsys.wallet.Wallet
 import scala.util.Success
 import scala.util.control.Exception
 import ContractApiRoute._
+import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
 @Path("/contract")
 @Api(value = "/contract")
@@ -31,7 +32,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData ~ addressLimit
   }
 
   @Path("/register")
@@ -284,9 +285,61 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     }
   }
 
+  @Path("/contractId/{contractId}/limit/{limit}")
+  @ApiOperation(value = "Contract Id",
+    notes = "Get list of transactions where specified contract id has been involved", httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "contractId",
+      value = "Contract Id", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "limit",
+      value = "Specified number of records to be returned",
+      required = true, dataType = "integer", paramType = "path")
+  ))
+  def addressLimit: Route = (pathPrefix("contractId") & get) {
+    pathPrefix(Segment) { address =>
+      Account.fromString(address) match {
+        case Left(e) => complete(ApiError.fromValidationError(e))
+        case Right(a) =>
+          pathPrefix("limit") {
+            pathEndOrSingleSlash {
+              complete(invalidLimit)
+            } ~
+              path(Segment) { limitStr =>
+                Exception.allCatch.opt(limitStr.toInt) match {
+                  case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
+                    complete(Json.arr(JsArray(state.accountTransactions(a, limit, 0)._2.map { case (h, tx) =>
+                      processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+                    })))
+                  case Some(limit) if limit > MaxTransactionsPerRequest =>
+                    complete(TooBigArrayAllocation)
+                  case _ =>
+                    complete(invalidLimit)
+                }
+              }
+          } ~ complete(StatusCodes.NotFound)
+      }
+    }
+  }
+
+  private def processedTxToExtendedJson(tx: ProcessedTransaction): JsObject = {
+    tx.transaction match {
+      case leaseCancel: LeaseCancelTransaction =>
+        tx.json ++ Json.obj(
+          "lease" -> state.findTransaction[LeaseTransaction](
+            leaseCancel.leaseId).map(_.json).getOrElse[JsValue](JsNull))
+      case lease: LeaseTransaction =>
+        tx.json ++ Json.obj("leaseStatus" -> (if (state.isLeaseActive(lease)) "active" else "canceled"))
+      case _ => tx.json
+    }
+  }
+
+  private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
+
 }
 
 object ContractApiRoute {
+
+  val MaxTransactionsPerRequest = 10000
 
   case class Balance(address: String, confirmations: Int, balance: Long)
 
