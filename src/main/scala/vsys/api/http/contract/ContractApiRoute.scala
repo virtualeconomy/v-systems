@@ -16,7 +16,7 @@ import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction._
 import vsys.blockchain.UtxPool
 import vsys.blockchain.contract._
-import vsys.settings.RestAPISettings
+import vsys.settings.{RestAPISettings, StateSettings}
 import vsys.utils.serialization.Deser
 import vsys.utils.Time
 import vsys.wallet.Wallet
@@ -24,15 +24,22 @@ import vsys.wallet.Wallet
 import scala.util.Success
 import scala.util.control.Exception
 import ContractApiRoute._
+import vsys.blockchain.transaction.TransactionParser.TransactionType
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
 @Path("/contract")
 @Api(value = "/contract")
-case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time, state: StateReader)
+case class ContractApiRoute (settings: RestAPISettings,
+                             stateSettings: StateSettings,
+                             wallet: Wallet,
+                             utx: UtxPool,
+                             allChannels: ChannelGroup,
+                             time: Time,
+                             state: StateReader)
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData ~ addressLimit
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData ~ addressLimit ~ transactionList
   }
 
   @Path("/register")
@@ -287,7 +294,7 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
 
   @Path("/contractId/{contractId}/limit/{limit}")
   @ApiOperation(value = "Contract Id",
-    notes = "Get list of transactions where specified contract id has been involved", httpMethod = "GET")
+    notes = "Get list of transactions where specified contract id has been involved, *This is a custom api, you need to enable it in configuration file.*", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "contractId",
       value = "Contract Id", required = true, dataType = "string", paramType = "path"),
@@ -335,11 +342,77 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
 
   private val invalidLimit = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.limit")
 
+  @Path("/list")
+  @ApiOperation(value = "List",
+    notes = "Get list of transactions where specified contract id has been involved. *This is a custom api, you need to enable it in configuration file.*",
+    httpMethod = "GET")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "contractId", value = "contract id", required = true, dataType = "string", paramType = "query"),
+    new ApiImplicitParam(name = "txType", value = "transaction type", required = false, dataType = "integer", paramType = "query"),
+    new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "query"),
+    new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = false, dataType = "integer", paramType = "query")
+  ))
+  def transactionList: Route = (path("list") & get) {
+    parameters(('contractId, 'txType.?, 'limit, 'offset ? "0")) { (addressStr, txTypeStrOpt, limitStr, offsetStr) =>
+      Account.fromString(addressStr) match {
+        case Left(e) => complete(ApiError.fromValidationError(e))
+        case Right(a) =>
+          Exception.allCatch.opt(limitStr.toInt) match {
+            case Some(limit) if limit > 0 && limit <= MaxTransactionsPerRequest =>
+              Exception.allCatch.opt(offsetStr.toInt) match {
+                case Some(offset) if offset >= 0 && offset <= MaxTransactionOffset =>
+                  txTypeStrOpt match {
+                    case None =>
+                      complete(txListWrapper(state.accountTransactions(a, limit, offset)))
+                    case Some(txTypeStr) =>
+                      Exception.allCatch.opt(TransactionType(txTypeStr.toInt)) match {
+                        case Some(txType: TransactionType.Value) =>
+                          if(stateSettings.txTypeAccountTxIds){
+                            complete(txListWrapper(state.txTypeAccountTransactions(txType, a, limit, offset)))
+                          }
+                          else {
+                            complete(unsupportedStateError("tx-type-account-tx-ids"))
+                          }
+                        case _ => complete(invalidTxType)
+                      }
+                  }
+                case _ =>
+                  complete(invalidOffset)
+              }
+            case Some(limit) if limit > MaxTransactionsPerRequest =>
+              complete(TooBigArrayAllocation)
+            case _ =>
+              complete(invalidLimit)
+          }
+      }
+    }
+  }
+
+  private def txListWrapper(resFromReader: (Int, Seq[(Int, _ <: ProcessedTransaction)])): JsObject = {
+    Json.obj(
+      "totalCount" -> resFromReader._1,
+      "size" -> resFromReader._2.size,
+      "transactions" -> resFromReader._2.map { case (h, tx) =>
+        processedTxToExtendedJson(tx) + ("height" -> JsNumber(h))
+      }
+    )
+  }
+
+  private def unsupportedStateError(stateName: String) = {
+    StatusCodes.BadRequest -> Json.obj(
+      "message" -> s"State $stateName is not enabled at this node. You can turn on the state by editing configuration file.")
+  }
+
+  private val invalidTxType = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.txType")
+
+  private val invalidOffset = StatusCodes.BadRequest -> Json.obj("message" -> "invalid.offset")
+
 }
 
 object ContractApiRoute {
 
   val MaxTransactionsPerRequest = 10000
+  val MaxTransactionOffset = 10000000
 
   case class Balance(address: String, confirmations: Int, balance: Long)
 

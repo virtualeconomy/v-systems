@@ -100,7 +100,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
       LeaseBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       SPOSApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
       SPOSBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
-      ContractApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader),
+      ContractApiRoute(settings.restAPISettings, settings.blockchainSettings.stateSettings, wallet, utxStorage, allChannels, time, stateReader),
       ContractBroadcastApiRoute(settings.restAPISettings, utxStorage, allChannels),
       DbApiRoute(settings.restAPISettings, wallet, utxStorage, allChannels, time, stateReader)
     )
