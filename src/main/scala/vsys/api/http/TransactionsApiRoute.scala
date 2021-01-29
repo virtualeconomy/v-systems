@@ -54,7 +54,7 @@ case class TransactionsApiRoute(
   ))
   def transactionCount: Route = (path("count") & get) {
     parameters(('address, 'txType.?)) { (addressStr, txTypeStrOpt) =>
-      Address.fromString(addressStr) match {
+      Account.fromString(addressStr) match {
         case Left(e) => complete(ApiError.fromValidationError(e))
         case Right(a) =>
           txTypeStrOpt match {
