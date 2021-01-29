@@ -77,11 +77,18 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
   ))
   def lastToken: Route = (get & path("lastTokenIndex" / Segment)) { contractId =>
     ByteStr.decodeBase58(contractId) match {
-      case Success(id) => complete(Json.obj(
-        "contractId" -> contractId,
-        "lastTokenIndex" -> state.contractTokens(id)
-      ))
-      case _ => complete(InvalidAddress)
+      case Success(id) if ContractAccount.fromString(contractId).isRight => {
+        val lastTokenIndex = state.contractTokens(id) - 1
+        if (lastTokenIndex == -1) {
+          complete(CustomValidationError("No token generated in this contract"))
+        } else {
+          complete(Json.obj(
+            "contractId" -> contractId,
+            "lastTokenIndex" -> lastTokenIndex
+          ))
+        }
+      }
+      case _ => complete(InvalidContractAddress)
     }
   }
 
