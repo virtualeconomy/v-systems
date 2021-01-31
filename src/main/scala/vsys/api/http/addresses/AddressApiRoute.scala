@@ -32,8 +32,11 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
     } ~ root ~ create
 
   @Path("/{address}")
-  @ApiOperation(value = "Delete", notes = "Remove the account with address {address} from the wallet", httpMethod = "DELETE",
+  @ApiOperation(value = "Delete", notes = "Remove the `address` from the wallet", httpMethod = "DELETE",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -50,14 +53,14 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/sign/{address}")
-  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with {address}", httpMethod = "POST",
+  @ApiOperation(value = "Sign", notes = "Sign a `message` with a private key associated with an `address`", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "message", value = "Message to sign as a plain string", required = true, paramType = "body", dataType = "string"),
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with error or json like {\"message\": \"Base58-encoded\",\"publickey\": \"Base58-encoded\", \"signature\": \"Base58-encoded\"}")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def sign: Route = {
     path("sign" / Segment) { address =>
@@ -66,14 +69,14 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/signText/{address}")
-  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with {address}", httpMethod = "POST",
+  @ApiOperation(value = "Sign", notes = "Sign a message with a private key associated with `address`", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "message", value = "Message to sign as a plain string", required = true, paramType = "body", dataType = "string"),
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with error or json like {\"message\": \"plain text\",\"publickey\": \"Base58-encoded\", \"signature\": \"Base58-encoded\"}")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def signText: Route = {
     path("signText" / Segment) { address =>
@@ -82,8 +85,11 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/verify/{address}")
-  @ApiOperation(value = "Verify", notes = "Check a signature of a message signed by an account", httpMethod = "POST",
+  @ApiOperation(value = "Verify", notes = "Check a signature of a base58-encoded message(`body`) signed by an `address`", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(
@@ -102,8 +108,11 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/verifyText/{address}")
-  @ApiOperation(value = "Verify text", notes = "Check a signature of a message signed by an account", httpMethod = "POST",
+  @ApiOperation(value = "Verify text", notes = "Check a signature of a plain message(`body`) signed by an `address`", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(
@@ -120,7 +129,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/balance/{address}")
-  @ApiOperation(value = "Balance", notes = "Account's balance", httpMethod = "GET")
+  @ApiOperation(value = "Balance", notes = "Get the available balance of a specified `address`", httpMethod = "GET", response = classOf[Balance])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -129,7 +138,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/balance/details/{address}")
-  @ApiOperation(value = "Details for balance", notes = "Account's balances", httpMethod = "GET")
+  @ApiOperation(value = "Details for balance", notes = "Get the balance details of a specified `address` including **effective, mintingAverage and available balance**.", httpMethod = "GET", response = classOf[BalanceDetails])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -140,7 +149,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/balance/{address}/{confirmations}")
-  @ApiOperation(value = "Confirmed balance", notes = "Balance of {address} after {confirmations}", httpMethod = "GET")
+  @ApiOperation(value = "Confirmed balance", notes = "Get the balance of an `address` after `confirmations`", httpMethod = "GET", response = classOf[Balance])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "confirmations", value = "0", required = true, dataType = "integer", paramType = "path")
@@ -153,7 +162,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
 
 
   @Path("/effectiveBalance/{address}")
-  @ApiOperation(value = "Balance", notes = "Account's balance", httpMethod = "GET")
+  @ApiOperation(value = "Balance", notes = "Get the effective balance of a specified `address`", httpMethod = "GET", response = classOf[Balance])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -164,7 +173,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/effectiveBalance/{address}/{confirmations}")
-  @ApiOperation(value = "Confirmed balance", notes = "Balance of {address} after {confirmations}", httpMethod = "GET")
+  @ApiOperation(value = "Confirmed balance", notes = "Get the balance of an `address` after `confirmations`", httpMethod = "GET", response = classOf[Balance])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "confirmations", value = "0", required = true, dataType = "integer", paramType = "path")
@@ -178,8 +187,11 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/seed/{address}")
-  @ApiOperation(value = "Seed", notes = "Export seed value for the {address}", httpMethod = "GET",
+  @ApiOperation(value = "Seed", notes = "Export seed value for the `address`", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of a seed or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -194,7 +206,7 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/validate/{address}")
-  @ApiOperation(value = "Validate", notes = "Check whether address {address} is valid or not", httpMethod = "GET")
+  @ApiOperation(value = "Validate", notes = "Check whether `address` is valid or not", httpMethod = "GET", response = classOf[Validity])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -203,6 +215,9 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of a addresses list or error")
+  ))
   @ApiOperation(value = "Addresses", notes = "Get wallet accounts addresses", httpMethod = "GET")
   def root: Route = (path("addresses") & get) {
     val accounts = wallet.privateKeyAccounts
@@ -211,10 +226,13 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/seq/{from}/{to}")
-  @ApiOperation(value = "Seq", notes = "Get wallet accounts addresses", httpMethod = "GET")
+  @ApiOperation(value = "Seq", notes = "Get wallet accounts addresses by specified a start nonce index(`from`) and a end nonce index(`to`)", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of wallet addresses or error")
+  ))
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "from", value = "Start address", required = true, dataType = "integer", paramType = "path"),
-    new ApiImplicitParam(name = "to", value = "address", required = true, dataType = "integer", paramType = "path")
+    new ApiImplicitParam(name = "from", value = "nonce start index", required = true, dataType = "integer", paramType = "path"),
+    new ApiImplicitParam(name = "to", value = "nonce end index", required = true, dataType = "integer", paramType = "path")
   ))
   def seq: Route = {
     (path("seq" / IntNumber / IntNumber) & get) { case (start, end) =>
@@ -229,6 +247,9 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
   }
 
   @Path("/")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   @ApiOperation(value = "Create", notes = "Create a new account in the wallet(if it exists)", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
   def create: Route = (path("addresses") & post) {
@@ -318,7 +339,10 @@ case class AddressApiRoute(settings: RestAPISettings, wallet: Wallet, state: Sta
     new ApiImplicitParam(name = "publicKey", value = "Public key Base58-encoded", required = true,
       paramType = "path", dataType = "string")
   ))
-  @ApiOperation(value = "Address from Public Key", notes = "Generate a address from public key", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of an address or error")
+  ))
+  @ApiOperation(value = "Address from Public Key", notes = "Generate an address from a `publicKey`", httpMethod = "GET")
   def publicKey: Route = (path("publicKey" / Segment) & get) { publicKey =>
     Base58.decode(publicKey) match {
       case Success(pubKeyBytes) => {
