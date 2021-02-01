@@ -6,9 +6,9 @@ import play.api.libs.functional.syntax._
 
 case class PaymentRequest( @ApiModelProperty(required = true)
                            amount: Long,
-                           @ApiModelProperty(required = true)
+                           @ApiModelProperty(required = true, example = "10000000")
                            fee: Long,
-                           @ApiModelProperty(required = true)
+                           @ApiModelProperty(required = true, example = "100")
                            feeScale: Short,
                            @ApiModelProperty(value = "Base58 encoded sender", required = true)
                            sender: String,
