@@ -110,9 +110,9 @@ object ContractVStableSwap {
         cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(11.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(9.toByte),
     conditionIf ++ Array(6.toByte, 7.toByte),
-    conditionIf ++ Array(8.toByte, 10.toByte),
+    conditionIf ++ Array(8.toByte, 9.toByte),
     assertTrue ++ Array(5.toByte)
   )
   lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
@@ -142,9 +142,9 @@ object ContractVStableSwap {
         cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(11.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(9.toByte),
     conditionIf ++ Array(6.toByte, 7.toByte),
-    conditionIf ++ Array(8.toByte, 10.toByte),
+    conditionIf ++ Array(8.toByte, 9.toByte),
     assertTrue ++ Array(5.toByte)
   )
   lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
@@ -176,8 +176,8 @@ object ContractVStableSwap {
     compareGreater ++ Array(11.toByte, 12.toByte, 13.toByte),
     assertTrue ++ Array(13.toByte),
     loadTransactionId ++ Array(14.toByte),
-    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 9.toByte),
-    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 10.toByte),
+    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 10.toByte, 8.toByte),
+    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 10.toByte, 9.toByte),
     cdbvMapSet ++ Array(orderOwnerMap.index, 14.toByte, 10.toByte),
     cdbvMapSet ++ Array(feeBaseMap.index, 14.toByte, 0.toByte),
     cdbvMapSet ++ Array(feeTargetMap.index, 14.toByte, 1.toByte),
