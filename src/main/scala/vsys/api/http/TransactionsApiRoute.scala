@@ -12,7 +12,7 @@ import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
 import vsys.blockchain.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 import vsys.blockchain.transaction.TransactionParser.TransactionType
-import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
+import vsys.blockchain.transaction.{ProcessedTransaction, Transaction}
 import vsys.blockchain.UtxPool
 import vsys.settings.{RestAPISettings, StateSettings}
 
@@ -130,7 +130,10 @@ case class TransactionsApiRoute(
   }
 
   @Path("/address/{address}/limit/{limit}")
-  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiOperation(value = "Address", notes = "Get a transactions list with the `limit` size a specified `address` getting involved", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of a transcations list or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path")
@@ -163,8 +166,11 @@ case class TransactionsApiRoute(
   }
 
   @Path("/activeLeaseList/{address}")
-  @ApiOperation(value = "Address", notes = "Get list of active lease transactions", httpMethod = "GET",
+  @ApiOperation(value = "Address", notes = "Get a list of **active lease transactions** by a specified `address`", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response with a list of active lease transactions or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
   ))
@@ -187,7 +193,10 @@ case class TransactionsApiRoute(
   }
 
   @Path("/info/{id}")
-  @ApiOperation(value = "Info", notes = "Get transaction info", httpMethod = "GET")
+  @ApiOperation(value = "Info", notes = "Get transaction info by a specified transaction `id`", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of transaction info or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "id", value = "transaction id ", required = true, dataType = "string", paramType = "path")
   ))
@@ -210,7 +219,10 @@ case class TransactionsApiRoute(
   }
 
   @Path("/unconfirmed")
-  @ApiOperation(value = "Unconfirmed", notes = "Get list of unconfirmed transactions", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the unconfirmed transactions list or error")
+  ))
+  @ApiOperation(value = "Unconfirmed", notes = "Get a list of unconfirmed transactions", httpMethod = "GET")
   def unconfirmed: Route = (pathPrefix("unconfirmed") & get) {
     pathEndOrSingleSlash {
       complete(JsArray(utxPool.all().map(txToExtendedJson)))
@@ -218,13 +230,16 @@ case class TransactionsApiRoute(
   }
 
   @Path("/unconfirmed/size")
-  @ApiOperation(value = "Size of UTX pool", notes = "Get number of unconfirmed transactions in the UTX pool", httpMethod = "GET")
+  @ApiOperation(value = "Size of UTX pool", notes = "Get the number of transactions in the unconfirmed transactions(UTX) pool", httpMethod = "GET", response = classOf[Int])
   def utxSize: Route = (pathPrefix("size") & get) {
     complete(Json.obj("size" -> JsNumber(utxPool.size)))
   }
 
   @Path("/unconfirmed/info/{id}")
-  @ApiOperation(value = "Transaction Info", notes = "Get transaction that is in the UTX", httpMethod = "GET")
+  @ApiOperation(value = "Transaction Info", notes = "Get the **unconfirmed transaction** by a specified transaction `id`", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the unconfirmed transaction info or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "id", value = "Transaction id ", required = true, dataType = "string", paramType = "path")
   ))
