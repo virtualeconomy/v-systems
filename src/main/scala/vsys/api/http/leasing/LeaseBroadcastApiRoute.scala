@@ -31,11 +31,10 @@ case class LeaseBroadcastApiRoute(
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.leasing.SignedLeaseRequest",
-      defaultValue = "{\n\t\"amount\": 100000000,\n\t\"recipient\": \"3NBsppTVpai9jq6agi9wXXrWhaMPPig48Aw\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      dataType = "vsys.api.http.leasing.SignedLeaseRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def signedLease: Route = (path("lease") & post) {
     json[SignedLeaseRequest] { leaseReq =>
       doBroadcast(leaseReq.toTx)
@@ -47,14 +46,16 @@ case class LeaseBroadcastApiRoute(
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(
       name = "body",
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.leasing.SignedLeaseCancelRequest",
-      defaultValue = "{\n\t\"sender\": \"3Myss6gmMckKYtka3cKCM563TBJofnxvfD7\",\n\t\"txId\": \"ABMZDPY4MyQz7kKNAevw5P9eNmRErMutJoV9UNeCtqRV\",\n\t\"fee\": 10000000,\n\t\"feeScale\": 100,\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      dataType = "vsys.api.http.leasing.SignedLeaseCancelRequest"
     )
   ))
   def signedLeaseCancel: Route = (path("cancel") & post) {
