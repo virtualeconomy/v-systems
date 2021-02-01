@@ -90,7 +90,7 @@ object ContractVStableSwap {
   val depositId: Short = 1
   val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId") ++
                                  Seq("baseTokenId", "targetTokenId", "isValidTokenId",
-                                     "isBaseToken", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
+                                     "isBaseToken", "baseTokenIfBlock", "isTargetToken", "valueFalse", "targetTokenIfBlock")
   val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
@@ -105,14 +105,16 @@ object ContractVStableSwap {
       )
     ), DataType.OpcBlock).bytes ++ Array(7.toByte),
     compareBytesEqual ++ Array(2.toByte, 4.toByte, 8.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(9.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
+        assertEqual ++ Array(5.toByte, 9.toByte),
         cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(9.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(10.toByte),
     conditionIf ++ Array(6.toByte, 7.toByte),
-    conditionIf ++ Array(8.toByte, 9.toByte),
+    conditionIf ++ Array(8.toByte, 10.toByte),
     assertTrue ++ Array(5.toByte)
   )
   lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
