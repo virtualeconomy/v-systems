@@ -10,7 +10,7 @@ import vsys.blockchain.transaction._
 import vsys.settings.GenesisSettings
 import vsys.utils.crypto.EllipticCurveImpl
 import vsys.utils.ScorexLogging
-
+import io.swagger.annotations._
 import scala.util.{Failure, Try}
 
 case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData: SignerData,
@@ -31,6 +31,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
 
   lazy val fee: Long = transactionData.map(_.transaction.transactionFee).sum
 
+  @ApiModelProperty(hidden= true)
   lazy val json: JsObject =
     versionField.json ++
       timestampField.json ++
@@ -45,6 +46,7 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
         "blocksize" -> bytes.length
       )
 
+  @ApiModelProperty(hidden= true)
   lazy val bytes: Array[Byte] = {
     val txBytesSize = transactionDataField.bytes.length
     val txBytes = Bytes.ensureCapacity(Ints.toByteArray(txBytesSize), 4, 0) ++ transactionDataField.bytes
@@ -69,9 +71,11 @@ case class Block(timestamp: Long, version: Byte, reference: ByteStr, signerData:
 
   // set blockScore to minting Balance / 100000000
   val sc = Math.max(consensusData.mintBalance / 100000000L, 1L)
+  @ApiModelProperty(hidden= true)
   lazy val blockScore: BigInt = BigInt(sc.toString)
 
   // destroy transaction fee
+  @ApiModelProperty(hidden= true)
   lazy val feesDistribution: Diff = Diff.empty
 
   override lazy val signatureValid: Boolean = EllipticCurveImpl.verify(signerData.signature.arr, bytesWithoutSignature, signerData.generator.publicKey)
