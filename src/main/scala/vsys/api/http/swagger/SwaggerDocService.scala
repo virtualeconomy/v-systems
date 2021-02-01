@@ -59,6 +59,11 @@ class SwaggerDocService(val actorSystem: ActorSystem, val materializer: ActorMat
     val filteredPaths: Map[String, Path] = swagger.getPaths().asScala.toMap.filterKeys(cumstomPathsConfig.getOrElse(_, true))
     swagger.addSecurityDefinition("api_key", new ApiKeyAuthDefinition("api_key", In.HEADER))
     swagger.paths(collection.mutable.Map(filteredPaths.toSeq: _*).asJava)
+    val unwantedDefinitions: Seq[String] = Seq("Function1", "Function1RequestContextFutureRouteResult")
+    if (unwantedDefinitions.nonEmpty) {
+      swagger.setDefinitions(swagger.getDefinitions.asScala.filterKeys(definitionName => !unwantedDefinitions.contains(definitionName)).asJava)
+    }
+    swagger
   }
 
   //Let swagger-ui determine the host and port
