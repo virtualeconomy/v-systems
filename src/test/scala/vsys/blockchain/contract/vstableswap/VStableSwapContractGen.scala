@@ -65,14 +65,18 @@ trait VStableSwapContractGen {
                          feeTarget: Long,
                          minBase: Long,
                          minTarget: Long,
-                         maxTarget: Long): Gen[Seq[DataEntry]] = for {
+                         maxTarget: Long,
+                         priceBase: Long,
+                         priceTarget: Long): Gen[Seq[DataEntry]] = for {
     orderId <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
     feeBase <- Gen.const(DataEntry(Longs.toByteArray(feeBase), DataType.Amount))
     feeTarget <- Gen.const(DataEntry(Longs.toByteArray(feeTarget), DataType.Amount))
     minBase <- Gen.const(DataEntry(Longs.toByteArray(minBase), DataType.Amount))
     minTarget <- Gen.const(DataEntry(Longs.toByteArray(minTarget), DataType.Amount))
     maxTarget <- Gen.const(DataEntry(Longs.toByteArray(maxTarget), DataType.Amount))
-  } yield Seq(orderId, feeBase, feeTarget, minBase, minTarget, maxTarget)
+    priceBase <- Gen.const(DataEntry(Longs.toByteArray(priceBase), DataType.Amount))
+    priceTarget <- Gen.const(DataEntry(Longs.toByteArray(priceTarget), DataType.Amount))
+  } yield Seq(orderId, feeBase, feeTarget, minBase, minTarget, maxTarget, priceBase, priceTarget)
 
   def orderDepositDataStackGen(orderId: Array[Byte],
                                baseDeposit: Long,
@@ -165,12 +169,14 @@ trait VStableSwapContractGen {
                            minBase: Long,
                            minTarget: Long,
                            maxTarget: Long,
+                           priceBase: Long,
+                           priceTarget: Long,
                            attachment: Array[Byte],
                            fee: Long,
                            ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = updateIndex
     for {
-      data: Seq[DataEntry] <- updateDataStackGen(orderId, feeBase, feeTarget, minBase, minTarget, maxTarget)
+      data: Seq[DataEntry] <- updateDataStackGen(orderId, feeBase, feeTarget, minBase, minTarget, maxTarget, priceBase, priceTarget)
     } yield ExecuteContractFunctionTransaction.create(sender, contractId, id,
       data, attachment, fee, feeScale, ts).explicitGet()
   }
