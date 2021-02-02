@@ -130,6 +130,11 @@ trait VStableSwapContractGen {
     unitPriceTarget <- Gen.const(DataEntry.create(Longs.toByteArray(unitPriceTarget), DataType.Amount).right.get)
   } yield Seq(baseTokenId, targetTokenId, maxOrderPerUser, unitPriceBase, unitPriceTarget)
 
+  def supersedeVStableSwapGen(signer: PrivateKeyAccount, contractId: ContractAccount, newAdd: Address,
+                              attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = for {
+    data: Seq[DataEntry] <- addressDataStackGen(newAdd)
+  } yield ExecuteContractFunctionTransaction.create(signer, contractId, supersedeIndex, data, attachment, fee, feeScale, ts).explicitGet()
+
   def setOrderVStableSwapGen(sender: PrivateKeyAccount,
                              contractId: ContractAccount,
                              feeBase: Long,

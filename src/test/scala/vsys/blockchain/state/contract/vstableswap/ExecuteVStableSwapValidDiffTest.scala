@@ -79,4 +79,30 @@ class ExecuteVStableSwapValidDiffTest extends PropSpec
       }
     }
   }
+
+  val preconditionsAndVStableSwapSupersedeAndSetOrder: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, genesis2, master, user, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attach)
+      <- createBaseTokenTargetTokenAndInitVStableSwap(
+      1000,
+      1,
+      1000,
+      1000,
+      1,
+      1000,
+      5,
+      1,
+      1)
+    supersede <- supersedeVStableSwapGen(master, regVStableSwapContract.contractId, user.toAddress, attach, fee, ts + 5)
+    setOrder <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 0, 100, 0, 100, 1, 1, 1000, 1000, attach, fee, ts + 6)
+  } yield(genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, supersede, setOrder)
+
+  property("V Stable Swap able to supersede and set order") {
+    forAll(preconditionsAndVStableSwapSupersedeAndSetOrder) { case (genesis: GenesisTransaction, regBase: RC, regTarget: RC,
+    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, supersede: EC, setOrder: EC) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(depositBase.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, supersede))),
+        TestBlock.createWithTxStatus(setOrder.timestamp, Seq(setOrder), TransactionStatus.Success)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
 }
