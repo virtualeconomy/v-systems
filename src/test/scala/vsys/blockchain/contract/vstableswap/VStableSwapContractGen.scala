@@ -64,24 +64,26 @@ trait VStableSwapContractGen {
                          feeBase: Long,
                          feeTarget: Long,
                          minBase: Long,
+                         maxBase: Long,
                          minTarget: Long,
                          maxTarget: Long,
                          priceBase: Long,
                          priceTarget: Long): Gen[Seq[DataEntry]] = for {
-    orderId <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
+    orderId <- Gen.const(DataEntry.create(orderId, DataType.ShortBytes).right.get)
     feeBase <- Gen.const(DataEntry(Longs.toByteArray(feeBase), DataType.Amount))
     feeTarget <- Gen.const(DataEntry(Longs.toByteArray(feeTarget), DataType.Amount))
     minBase <- Gen.const(DataEntry(Longs.toByteArray(minBase), DataType.Amount))
+    maxBase <- Gen.const(DataEntry(Longs.toByteArray(maxBase), DataType.Amount))
     minTarget <- Gen.const(DataEntry(Longs.toByteArray(minTarget), DataType.Amount))
     maxTarget <- Gen.const(DataEntry(Longs.toByteArray(maxTarget), DataType.Amount))
     priceBase <- Gen.const(DataEntry(Longs.toByteArray(priceBase), DataType.Amount))
     priceTarget <- Gen.const(DataEntry(Longs.toByteArray(priceTarget), DataType.Amount))
-  } yield Seq(orderId, feeBase, feeTarget, minBase, minTarget, maxTarget, priceBase, priceTarget)
+  } yield Seq(orderId, feeBase, feeTarget, minBase, maxBase, minTarget, maxTarget, priceBase, priceTarget)
 
   def orderDepositDataStackGen(orderId: Array[Byte],
                                baseDeposit: Long,
                                targetDeposit: Long): Gen[Seq[DataEntry]] = for {
-    orderId <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
+    orderId <- Gen.const(DataEntry.create(orderId, DataType.ShortBytes).right.get)
     baseDeposit <- Gen.const(DataEntry(Longs.toByteArray(baseDeposit), DataType.Amount))
     targetDeposit <- Gen.const(DataEntry(Longs.toByteArray(targetDeposit), DataType.Amount))
   } yield Seq(orderId, baseDeposit, targetDeposit)
@@ -89,7 +91,7 @@ trait VStableSwapContractGen {
   def orderWithdrawDataStackGen(orderId: Array[Byte],
                                 baseWithdraw: Long,
                                 targetWithdraw: Long): Gen[Seq[DataEntry]] = for {
-    orderId <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
+    orderId <- Gen.const(DataEntry.create(orderId, DataType.ShortBytes).right.get)
     baseWithdraw <- Gen.const(DataEntry(Longs.toByteArray(baseWithdraw), DataType.Amount))
     targetWithdraw <- Gen.const(DataEntry(Longs.toByteArray(targetWithdraw), DataType.Amount))
   } yield Seq(orderId, baseWithdraw, targetWithdraw)
@@ -103,7 +105,7 @@ trait VStableSwapContractGen {
                                    fee: Long,
                                    price: Long,
                                    deadLine: Long): Gen[Seq[DataEntry]] = for {
-    orderId <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
+    orderId <- Gen.const(DataEntry.create(orderId, DataType.ShortBytes).right.get)
     amount <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     fee <- Gen.const(DataEntry(Longs.toByteArray(fee), DataType.Amount))
     price <- Gen.const(DataEntry(Longs.toByteArray(price), DataType.Amount))
@@ -115,7 +117,7 @@ trait VStableSwapContractGen {
                                    fee: Long,
                                    price: Long,
                                    deadLine: Long): Gen[Seq[DataEntry]] = for {
-    orderId  <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
+    orderId  <- Gen.const(DataEntry.create(orderId, DataType.ShortBytes).right.get)
     amount <- Gen.const(DataEntry(Longs.toByteArray(amount), DataType.Amount))
     fee <- Gen.const(DataEntry(Longs.toByteArray(fee), DataType.Amount))
     price <- Gen.const(DataEntry(Longs.toByteArray(price), DataType.Amount))
@@ -127,11 +129,11 @@ trait VStableSwapContractGen {
                                   maxOrderPerUser: Long,
                                   unitPriceBase: Long,
                                   unitPriceTarget: Long): Gen[Seq[DataEntry]] = for {
-    baseTokenId <- Gen.const(DataEntry.create(baseTokenId, DataType.TokenId).right.get)
-    targetTokenId <- Gen.const(DataEntry.create(targetTokenId, DataType.TokenId).right.get)
-    maxOrderPerUser <- Gen.const(DataEntry.create(Longs.toByteArray(maxOrderPerUser), DataType.Amount).right.get)
-    unitPriceBase <- Gen.const(DataEntry.create(Longs.toByteArray(unitPriceBase), DataType.Amount).right.get)
-    unitPriceTarget <- Gen.const(DataEntry.create(Longs.toByteArray(unitPriceTarget), DataType.Amount).right.get)
+    baseTokenId <- Gen.const(DataEntry(baseTokenId, DataType.TokenId))
+    targetTokenId <- Gen.const(DataEntry(targetTokenId, DataType.TokenId))
+    maxOrderPerUser <- Gen.const(DataEntry(Longs.toByteArray(maxOrderPerUser), DataType.Amount))
+    unitPriceBase <- Gen.const(DataEntry(Longs.toByteArray(unitPriceBase), DataType.Amount))
+    unitPriceTarget <- Gen.const(DataEntry(Longs.toByteArray(unitPriceTarget), DataType.Amount))
   } yield Seq(baseTokenId, targetTokenId, maxOrderPerUser, unitPriceBase, unitPriceTarget)
 
   def supersedeVStableSwapGen(signer: PrivateKeyAccount, contractId: ContractAccount, newAdd: Address,
@@ -167,6 +169,7 @@ trait VStableSwapContractGen {
                            feeBase: Long,
                            feeTarget: Long,
                            minBase: Long,
+                           maxBase: Long,
                            minTarget: Long,
                            maxTarget: Long,
                            priceBase: Long,
@@ -176,7 +179,7 @@ trait VStableSwapContractGen {
                            ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = updateIndex
     for {
-      data: Seq[DataEntry] <- updateDataStackGen(orderId, feeBase, feeTarget, minBase, minTarget, maxTarget, priceBase, priceTarget)
+      data: Seq[DataEntry] <- updateDataStackGen(orderId, feeBase, feeTarget, minBase, maxBase, minTarget, maxTarget, priceBase, priceTarget)
     } yield ExecuteContractFunctionTransaction.create(sender, contractId, id,
       data, attachment, fee, feeScale, ts).explicitGet()
   }
