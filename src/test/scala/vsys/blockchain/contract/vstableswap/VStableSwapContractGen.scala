@@ -97,7 +97,7 @@ trait VStableSwapContractGen {
   } yield Seq(orderId, baseWithdraw, targetWithdraw)
 
   def closeDataStackGen(orderId: Array[Byte]): Gen[Seq[DataEntry]] = for {
-    orderId <- Gen.const(DataEntry(orderId, DataType.ShortBytes))
+    orderId <- Gen.const(DataEntry.create(orderId, DataType.ShortBytes).right.get)
   } yield Seq(orderId)
 
   def swapBaseToTargetDataStackGen(orderId: Array[Byte],
