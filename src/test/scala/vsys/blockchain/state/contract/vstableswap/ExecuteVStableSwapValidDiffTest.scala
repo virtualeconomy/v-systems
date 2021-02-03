@@ -218,4 +218,56 @@ class ExecuteVStableSwapValidDiffTest extends PropSpec
       }
     }
   }
+
+  val preconditionsAndVStableSwapSetAndSwapBaseToTarget: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attach)
+      <- createBaseTokenTargetTokenAndInitVStableSwap(
+      1000,
+      1,
+      1000,
+      1000,
+      1,
+      1000,
+      5,
+      1,
+      1)
+    setOrder <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 0, 100, 0, 100, 1, 1, 500, 500, attach, fee, ts + 5)
+    swapBaseToTarget <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 100, 0, 1, ts + 10, attach, fee, ts + 6)
+  } yield (genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, setOrder, swapBaseToTarget)
+
+  property("V Stable Swap able to swap base to target") {
+    forAll(preconditionsAndVStableSwapSetAndSwapBaseToTarget) { case (genesis: GenesisTransaction, regBase: RC, regTarget: RC,
+    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, setOrder: EC, swapBaseToTarget: EC) =>
+      assertDiffAndState(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(setOrder.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTarget.timestamp, Seq(swapBaseToTarget), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
+
+  val preconditionsAndVStableSwapSetAndSwapTargetToBase: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attach)
+      <- createBaseTokenTargetTokenAndInitVStableSwap(
+      1000,
+      1,
+      1000,
+      1000,
+      1,
+      1000,
+      5,
+      1,
+      1)
+    setOrder <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 0, 100, 0, 100, 1, 1, 500, 500, attach, fee, ts + 5)
+    swapTargetToBase <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 100, 0, 1, ts + 10, attach, fee, ts + 6)
+  } yield (genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, setOrder, swapTargetToBase)
+
+  property("V Stable Swap able to swap target to base") {
+    forAll(preconditionsAndVStableSwapSetAndSwapTargetToBase) { case (genesis: GenesisTransaction, regBase: RC, regTarget: RC,
+    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, setOrder: EC, swapTargetToBase: EC) =>
+      assertDiffAndState(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(setOrder.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(swapTargetToBase.timestamp, Seq(swapTargetToBase), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
 }
