@@ -168,4 +168,28 @@ class ExecuteVStableSwapInvalidDiffTest extends PropSpec
       }
     }
   }
+
+  val preconditionsAndVStableSwapOrderClose: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attachment)
+      <- createBaseTokenTargetTokenAndInitVStableSwap(1000, 1, 1000, 1000,
+      1, 1000, 5, 1, 1)
+    setOrder <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 10, 1000, 10, 1000, 10, 10, 1000, 1000, attachment, fee, ts+7)
+    closeOrder <- closeVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, attachment, fee, ts+8)
+    closeOrderInvalid <- closeVStableSwapGen(master, regVStableSwapContract.contractId, Array[Byte](10), attachment, fee, ts+8)
+  } yield (genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, setOrder, closeOrder, closeOrderInvalid)
+
+  property("unable to close order") {
+    forAll(preconditionsAndVStableSwapOrderClose) { case (genesis: GenesisTransaction, regBase: RC, regTarget: RC,
+    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, setOrder: EC, closeOrder: EC, closeOrderInvalid: EC) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(closeOrder.timestamp, Seq(closeOrder), TransactionStatus.Success)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+      // close order with wrong order id
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(closeOrderInvalid.timestamp, Seq(closeOrderInvalid), TransactionStatus.ContractStateMapNotDefined)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractStateMapNotDefined
+      }
+    }
+  }
 }
