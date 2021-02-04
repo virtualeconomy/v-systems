@@ -68,20 +68,20 @@ class ExecuteVStableSwapInvalidDiffTest extends PropSpec
     }
   }
 
-  val preconditionsAndVStableSwapUpdateOrder: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC)] = for {
+  val preconditionsAndVStableSwapUpdateOrder: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
     (genesis, _, master, _, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attachment)
       <- createBaseTokenTargetTokenAndInitVStableSwap(1000, 1, 1000, 1000,
       1, 1000, 5, 1, 1)
     setOrder <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 10, 1000, 10, 1000, 10, 10, 1000, 1000, attachment, fee, ts+7)
-    updateOrder <- updateVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 0, 0, 10, 1000, 10, 1000, 10, 10, attachment, fee, ts+8)
-    updateOrderInvalid <- updateVStableSwapGen(master, regVStableSwapContract.contractId, Array[Byte](10), 0, 0, 10, 1000, 10, 1000, 10, 10, attachment, fee, ts+8)
+    closeOrder <- closeVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, attachment, fee, ts+8)
+    updateOrder <- updateVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 0, 0, 10, 1000, 10, 1000, 10, 10, attachment, fee, ts+9)
+    updateOrderInvalid <- updateVStableSwapGen(master, regVStableSwapContract.contractId, Array[Byte](10), 0, 0, 10, 1000, 10, 1000, 10, 10, attachment, fee, ts+9)
 
-  } yield (genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, setOrder, updateOrder, updateOrderInvalid)
+  } yield (genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, setOrder, closeOrder, updateOrder, updateOrderInvalid)
 
   property("unable to update order") {
     forAll(preconditionsAndVStableSwapUpdateOrder) { case (genesis: GenesisTransaction, regBase: RC, regTarget: RC,
-    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, setOrder: EC, updateOrder: EC, updateOrderInvalid: EC) =>
-
+    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, setOrder: EC, closeOrder: EC, updateOrder: EC, updateOrderInvalid: EC) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
         TestBlock.createWithTxStatus(updateOrder.timestamp, Seq(updateOrder), TransactionStatus.Success)) { (blockDiffEi, _) =>
         blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Success
@@ -90,6 +90,11 @@ class ExecuteVStableSwapInvalidDiffTest extends PropSpec
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
         TestBlock.createWithTxStatus(updateOrderInvalid.timestamp, Seq(updateOrderInvalid), TransactionStatus.ContractStateMapNotDefined)) { (blockDiffEi, _) =>
         blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.ContractStateMapNotDefined
+      }
+      // update order after close order
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder, closeOrder))),
+        TestBlock.createWithTxStatus(updateOrder.timestamp, Seq(updateOrder), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
     }
   }
@@ -189,6 +194,85 @@ class ExecuteVStableSwapInvalidDiffTest extends PropSpec
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
         TestBlock.createWithTxStatus(closeOrderInvalid.timestamp, Seq(closeOrderInvalid), TransactionStatus.ContractStateMapNotDefined)) { blockDiffEi =>
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractStateMapNotDefined
+      }
+    }
+  }
+  val preconditionsAndVStableSwapBaseToTarget: Gen[(GenesisTransaction, RC, RC, RC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC, EC)] = for {
+    (genesis, _, master, _, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attachment)
+      <- createBaseTokenTargetTokenAndInitVStableSwap(Long.MaxValue, 1, Long.MaxValue, Long.MaxValue,
+      1, Long.MaxValue, 5, 1, 1)
+    setOrder <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 10, 1000, 10, 1000, 10, 1, 990, 100000, attachment, fee, ts+7)
+    setOrder1 <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 10, 1000, 10, 1000, 10, 1, 990, 10, attachment, fee, ts+7)
+    setOrder2 <- setOrderVStableSwapGen(master, regVStableSwapContract.contractId, 0, 0, 10, Long.MaxValue, 10, 1000, 1, 1, 990, Long.MaxValue, attachment, fee, ts+7)
+    closeOrder <- closeVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, attachment, fee, ts+8)
+    swapBaseToTarget <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 10, 0, 10, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 10, 0, 20, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid2 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 10, 10, 10, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid3 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder1.id.arr, 10, 0, 10, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid4 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder2.id.arr, Long.MaxValue, 0, 1, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid5 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 10, 0, 10, ts-100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid6 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 10000, 0, 10, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid7 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, setOrder.id.arr, 1, 0, 10, ts+100, attachment, fee, ts+9)
+    swapBaseToTargetInvalid8 <- swapBaseToTargetVStableSwapGen(master, regVStableSwapContract.contractId, Array[Byte](10), 10, 0, 10, ts+100, attachment, fee, ts+9)
+  } yield (genesis, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, setOrder, setOrder1, setOrder2, closeOrder, swapBaseToTarget, swapBaseToTargetInvalid, swapBaseToTargetInvalid2,
+    swapBaseToTargetInvalid3, swapBaseToTargetInvalid4, swapBaseToTargetInvalid5, swapBaseToTargetInvalid6, swapBaseToTargetInvalid7, swapBaseToTargetInvalid8)
+
+  property("unable to swap base to target") {
+    forAll(preconditionsAndVStableSwapBaseToTarget) { case (genesis: GenesisTransaction, regBase: RC, regTarget: RC,
+    regVStableSwap: RC, issueBase: EC, issueTarget: EC, depositBase: EC, depositTarget: EC, setOrder: EC, setOrder1: EC, setOrder2: EC, closeOrder: EC, swapBaseToTarget: EC, swapBaseToTargetInvalid: EC, swapBaseToTargetInvalid2: EC,
+    swapBaseToTargetInvalid3: EC, swapBaseToTargetInvalid4: EC, swapBaseToTargetInvalid5: EC, swapBaseToTargetInvalid6: EC, swapBaseToTargetInvalid7: EC, swapBaseToTargetInvalid8: EC) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTarget.timestamp, Seq(swapBaseToTarget), TransactionStatus.Success)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+      // price is not equal to priceBase
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid.timestamp, Seq(swapBaseToTargetInvalid), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // swapFee is not equal to baseFee
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid2.timestamp, Seq(swapBaseToTargetInvalid2), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // swap base token with not enough depositing target token
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder1))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid3.timestamp, Seq(swapBaseToTargetInvalid3), TransactionStatus.ContractMapValueInsufficient)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
+      }
+      // swap base token with not enough holding base token
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder2))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid4.timestamp, Seq(swapBaseToTargetInvalid4), TransactionStatus.ContractMapValueInsufficient)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractMapValueInsufficient
+      }
+      // swap base token with wrong deadline
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget)),
+        TestBlock.create(setOrder.timestamp, Seq(setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid5.timestamp, Seq(swapBaseToTargetInvalid5), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // swap base token more than maxBase
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget)),
+        TestBlock.create(setOrder.timestamp, Seq(setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid6.timestamp, Seq(swapBaseToTargetInvalid6), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // swap base token less than minBase
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget)),
+        TestBlock.create(setOrder.timestamp, Seq(setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid7.timestamp, Seq(swapBaseToTargetInvalid7), TransactionStatus.Failed)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // swap base token with wrong order id
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget)),
+        TestBlock.create(setOrder.timestamp, Seq(setOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTargetInvalid8.timestamp, Seq(swapBaseToTargetInvalid8), TransactionStatus.ContractStateMapNotDefined)) { (blockDiffEi, _) =>
+        blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.ContractStateMapNotDefined
+      }
+      // swap base token after order close
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(regVStableSwap.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder, closeOrder))),
+        TestBlock.createWithTxStatus(swapBaseToTarget.timestamp, Seq(swapBaseToTarget), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
     }
   }
