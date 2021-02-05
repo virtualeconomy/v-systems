@@ -1,12 +1,13 @@
 package vsys.blockchain.contract.vstableswap
 
-import com.google.common.primitives.{Ints, Longs}
+import com.google.common.primitives.{Bytes, Ints, Longs}
 import org.scalacheck.Gen
 import vsys.account.ContractAccount.tokenIdFromBytes
-import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
+import vsys.account.{Address, ContractAccount, PrivateKeyAccount, PublicKeyAccount}
 import vsys.blockchain.contract.{DataEntry, DataType}
 import vsys.blockchain.contract.token.TokenContractGen
 import vsys.blockchain.contract.ContractGenHelper._
+import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.GenesisTransaction
 import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction, RegisterContractTransaction}
 
@@ -104,4 +105,57 @@ trait VStableSwapFunctionHelperGen extends VStableSwapContractGen with TokenCont
     depositBase <- depositToken(master, tokenBaseContractId, master.toAddress.bytes.arr, regVStableSwapContract.contractId.bytes.arr, issueAmountBase, fee, ts + 5)
     depositTarget <- depositToken(master, tokenTargetContractId, master.toAddress.bytes.arr, regVStableSwapContract.contractId.bytes.arr, issueAmountTarget, fee, ts + 6)
   } yield (genesis, genesis2, master, user, regTokenBase, regTokenTarget, regVStableSwapContract, issueTokenBase, issueTokenTarget, depositBase, depositTarget, fee, ts, attach)
+
+  def getContractTokenBalanceKeys(tokenBaseContractId: Array[Byte], tokenTargetContractId: Array[Byte], vStableSwapContractId: Array[Byte]): (ByteStr, ByteStr) = {
+    val tokenBaseId = tokenIdFromBytes(tokenBaseContractId, Ints.toByteArray(0)).explicitGet()
+    val tokenTargetId = tokenIdFromBytes(tokenTargetContractId, Ints.toByteArray(0)).explicitGet()
+
+    val contractTokenBaseBalanceKey = ByteStr(Bytes.concat(tokenBaseId.arr, vStableSwapContractId))
+    val contractTokenTargetBalanceKey = ByteStr(Bytes.concat(tokenTargetId.arr, vStableSwapContractId))
+
+    (contractTokenBaseBalanceKey, contractTokenTargetBalanceKey)
+  }
+
+  def getUserTokenBalanceKeys(tokenBaseContractId: Array[Byte], tokenTargetContractId: Array[Byte], user: PublicKeyAccount): (ByteStr, ByteStr) = {
+    val tokenBaseId = tokenIdFromBytes(tokenBaseContractId, Ints.toByteArray(0)).explicitGet()
+    val tokenTargetId = tokenIdFromBytes(tokenTargetContractId, Ints.toByteArray(0)).explicitGet()
+
+    val userTokenBaseBalanceKey = ByteStr(Bytes.concat(tokenBaseId.arr, user.toAddress.bytes.arr))
+    val userTokenTargetBalanceKey = ByteStr(Bytes.concat(tokenTargetId.arr, user.toAddress.bytes.arr))
+
+    (userTokenBaseBalanceKey, userTokenTargetBalanceKey)
+  }
+
+  def getStableSwapContractStateVarKeys(vStableSwapContractId: Array[Byte]): (ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val makerKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(0.toByte)))
+    val baseTokenIdKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(1.toByte)))
+    val targetTokenIdKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(2.toByte)))
+    val maxOrderPerUserKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(3.toByte)))
+    val unitPriceBaseKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(4.toByte)))
+    val unitPriceTargetKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(5.toByte)))
+
+    (makerKey, baseTokenIdKey, targetTokenIdKey, maxOrderPerUserKey, unitPriceBaseKey, unitPriceTargetKey)
+  }
+
+  def getStableSwapContractStateMapKeys(vStableSwapContractId: Array[Byte], orderId: Array[Byte], user: PublicKeyAccount): (ByteStr, ByteStr, ByteStr,
+    ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr, ByteStr) = {
+    val baseTokenBalanceKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(0.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val targetTokenBalanceKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(1.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val userOrdersKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(2.toByte), DataEntry(user.toAddress.bytes.arr, DataType.Address).bytes))
+    val orderOwnerKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(3.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val feeBaseKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(4.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val feeTargetKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(5.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val minBaseKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(6.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val maxBaseKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(7.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val minTargetKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(8.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val maxTargetKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(9.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val priceBaseKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(10.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val priceTargetKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(11.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val baseTokenLockedKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(12.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val targetTokenLockedKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(13.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+    val orderStatusKey = ByteStr(Bytes.concat(vStableSwapContractId, Array(14.toByte), DataEntry.create(orderId, DataType.ShortBytes).right.get.bytes))
+
+    (baseTokenBalanceKey, targetTokenBalanceKey, userOrdersKey, orderOwnerKey, feeBaseKey, feeTargetKey, minBaseKey, maxBaseKey,
+      minTargetKey, maxTargetKey, priceBaseKey, priceTargetKey, baseTokenLockedKey, targetTokenLockedKey, orderStatusKey)
+  }
 }
