@@ -59,12 +59,14 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     if(stateSettings.txTypeAccountTxIds) {
       measureSizeLog("txTypeAccountTxIds")(blockDiff.txsDiff.txTypeAccountTxIds) {
         _.foreach { case ((txType, acc), txIds) =>
-          val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
-          txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-            sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
-            shift + 1
+          if (stateSettings.txContractTxIds || acc.bytes.arr(0) == Address.AddressVersion) {
+            val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
+            txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
+              sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
+              shift + 1
+            }
+            sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
           }
-          sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
         }
       }
     }
