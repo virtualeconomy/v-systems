@@ -1,16 +1,16 @@
 package vsys.blockchain.contract
 
 import com.google.common.primitives.Ints
-import vsys.blockchain.contract.ContractGen.{StateMap, StateVar, textualStateMap}
+import vsys.blockchain.contract.ContractGen._
 import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractVEscrow {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
+    Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
     Seq(),
-    Seq(),
-    Seq(),
-    Seq(),
+    stateVarSeq, // StateVars
+    stateMapSeq, // StateMaps
     Seq()
   ).explicitGet()
 
@@ -74,12 +74,50 @@ object ContractVEscrow {
         stateMapOrderRefund, stateMapOrderRecipientRefund, stateMapOrderExpirationTime, stateMapOrderStatus,
         stateMapOrderRepDepositStatus, stateMapOrderJudgeDepositStatus, stateMapOrderSubmitStatus, stateMapOrderJudgeStatus,
         stateMapOrderRepLockedAmount, stateMapOrderJudgeLockedAmount))
-  
+
   // Initialization Trigger
+  val initId: Short = 0
+  val initPara: Seq[String] = Seq("tokenId", "duration", "judgeDuration",
+                                  "signer")
+  val initDataType: Array[Byte] = Array(DataType.TokenId.id.toByte, DataType.Timestamp.id.toByte, DataType.Timestamp.id.toByte)
+  val initTriggerOpcs: Seq[Array[Byte]] = Seq(
+    loadSigner ++ Array(3.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 3.toByte),
+    cdbvSet ++ Array(judgeStateVar.index, 3.toByte),
+    cdbvSet ++ Array(tokenIdStateVar.index, 0.toByte),
+    cdbvSet ++ Array(durationStateVar.index, 1.toByte),
+    cdbvSet ++ Array(judgeDurationStateVar.index, 2.toByte)
+  )
+  lazy val initTrigger: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initTriggerOpcs)
+  val initTextualBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Deposit Trigger
+  val depositId: Short = 1
+  val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId",
+                                     "contractTokenId")
+  val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
+  val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(tokenIdStateVar.index, 3.toByte),
+    assertEqual ++ Array(2.toByte, 3.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 0.toByte, 1.toByte)
+  )
+  lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
+  val depositTextualBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
-  // WithDraw Trigger
+  // Withdraw Trigger
+  val withdrawId: Short = 2
+  val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId",
+                                      "contractTokenId")
+  val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
+  val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    cdbvrGet ++ Array(tokenIdStateVar.index, 3.toByte),
+    assertEqual ++ Array(2.toByte, 3.toByte),
+    cdbvMapValMinus ++ Array(contractBalanceMap.index, 0.toByte, 1.toByte)
+  )
+  lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
+  val withdrawTextualBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Functions
 
