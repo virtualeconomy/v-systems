@@ -46,11 +46,11 @@ case class TransactionsApiRoute(
 
   @Path("/count")
   @ApiOperation(value = "Count",
-                notes = "Get count of transactions where specified address has been involved. *This is a custom api, you need to enable it in configuration file.*",
+                notes = "Get count of transactions where specified address (wallet address or contract address) has been involved. *This is a custom api, you need to enable it in configuration file.*",
                 httpMethod = "GET")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
-    new ApiImplicitParam(name = "txType", value = "transaction type", required = false, dataType = "integer", paramType = "query")
+    new ApiImplicitParam(name = "address", value = "Wallet address or contract address", required = true, dataType = "string", paramType = "query"),
+    new ApiImplicitParam(name = "txType", value = "Transaction type", required = false, dataType = "integer", paramType = "query")
   ))
   def transactionCount: Route = (path("count") & get) {
     parameters(('address, 'txType.?)) { (addressStr, txTypeStrOpt) =>
@@ -84,11 +84,11 @@ case class TransactionsApiRoute(
 
   @Path("/list")
   @ApiOperation(value = "List",
-                notes = "Get list of transactions where specified address has been involved. *This is a custom api, you need to enable it in configuration file.*",
+                notes = "Get list of transactions where specified address (wallet address or contract address) has been involved. *This is a custom api, you need to enable it in configuration file.*",
                 httpMethod = "GET")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "address", value = "wallet address ", required = true, dataType = "string", paramType = "query"),
-    new ApiImplicitParam(name = "txType", value = "transaction type ", required = false, dataType = "integer", paramType = "query"),
+    new ApiImplicitParam(name = "address", value = "Wallet address or contract address", required = true, dataType = "string", paramType = "query"),
+    new ApiImplicitParam(name = "txType", value = "Transaction type", required = false, dataType = "integer", paramType = "query"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "query"),
     new ApiImplicitParam(name = "offset", value = "Specified number of records offset", required = false, dataType = "integer", paramType = "query")
   ))
@@ -129,9 +129,9 @@ case class TransactionsApiRoute(
   }
 
   @Path("/address/{address}/limit/{limit}")
-  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address has been involved", httpMethod = "GET")
+  @ApiOperation(value = "Address", notes = "Get list of transactions where specified address (wallet address or contract address) has been involved", httpMethod = "GET")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
+    new ApiImplicitParam(name = "address", value = "Wallet address or contract address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path")
   ))
   //remove after all related productions being updated
