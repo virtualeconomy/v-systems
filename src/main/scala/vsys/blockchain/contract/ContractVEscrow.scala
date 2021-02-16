@@ -1,6 +1,6 @@
 package vsys.blockchain.contract
 
-import com.google.common.primitives.Ints
+import com.google.common.primitives.{Ints, Longs}
 import vsys.blockchain.contract.ContractGen._
 import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
@@ -120,6 +120,58 @@ object ContractVEscrow {
   val withdrawTextualBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   // Functions
+  // Supersede
+  val supersedeId: Short = 0
+  val supersedePara: Seq[String] = Seq("newJudge",
+                                       "maker")
+  val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val supersedeOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrGet ++ Array(makerStateVar.index, 1.toByte),
+    assertSigner ++ Array(1.toByte),
+    cdbvSet ++ Array(judgeStateVar.index, 0.toByte))
+  lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
+  val supersedeTextualBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
+
+  // Create Order Function
+  val createId: Short = 0
+  val createPara: Seq[String] = Seq("recipient", "amount", "repDeposit", "judgeDeposit", "fee", "refund", "expirationTime",
+                                    "caller", "orderId", "repAmount", "needToDeposit", "totalDeposit", "repRefund",
+                                    "valueTrue", "valueFalse", "amountZero")
+  val createDataType: Array[Byte] = Array(DataType.Address.id.toByte) ++
+                                    Array.fill[Byte](5)(DataType.Amount.id.toByte) ++
+                                    Array(DataType.Timestamp.id.toByte)
+  val createOpcs: Seq[Array[Byte]] =  Seq(
+    loadCaller ++ Array(7.toByte),
+    loadTransactionId ++ Array(8.toByte),
+    cdbvMapValMinus ++ Array(contractBalanceMap.index, 7.toByte, 1.toByte),
+    cdbvMapSet ++ Array(orderPayerMap.index, 8.toByte, 7.toByte),
+    cdbvMapSet ++ Array(orderRecipientMap.index, 8.toByte, 0.toByte),
+    cdbvMapSet ++ Array(orderAmountMap.index, 8.toByte, 1.toByte),
+    cdbvMapSet ++ Array(orderRecipientDepositMap.index, 8.toByte, 2.toByte),
+    cdbvMapSet ++ Array(orderJudgeDepositMap.index, 8.toByte, 3.toByte),
+    cdbvMapSet ++ Array(orderFeeMap.index, 8.toByte, 4.toByte),
+    basicMinus ++ Array(1.toByte, 4.toByte, 9.toByte),
+    cdbvMapSet ++ Array(orderRecipientAmountMap.index, 8.toByte, 9.toByte),
+    basicAdd ++ Array(2.toByte, 3.toByte, 10.toByte),
+    basicAdd ++ Array(10.toByte, 1.toByte, 11.toByte),
+    basicMinus ++ Array(11.toByte, 5.toByte, 12.toByte),
+    cdbvMapSet ++ Array(orderRefundMap.index, 8.toByte, 5.toByte),
+    cdbvMapSet ++ Array(orderRecipientRefundMap.index, 8.toByte, 12.toByte),
+    cdbvMapSet ++ Array(orderExpirationTimeMap.index, 8.toByte, 6.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(13.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 8.toByte, 13.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(14.toByte),
+    cdbvMapSet ++ Array(orderRepDepositStatusMap.index, 8.toByte, 14.toByte),
+    cdbvMapSet ++ Array(orderJudgeDepositStatusMap.index, 8.toByte, 14.toByte),
+    cdbvMapSet ++ Array(orderSubmitStatusMap.index, 8.toByte, 14.toByte),
+    cdbvMapSet ++ Array(orderJudgeStatusMap.index, 8.toByte, 14.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(0L), DataType.Amount).bytes ++ Array(15.toByte),
+    cdbvMapSet ++ Array(orderRepLockedAmountMap.index, 8.toByte, 15.toByte),
+    cdbvMapSet ++ Array(orderJudgeLockedAmountMap.index, 8.toByte, 15.toByte)
+  )
+  lazy val createFunc: Array[Byte] = getFunctionBytes(createId, publicFuncType, nonReturnType, createDataType, createOpcs)
+  val createTextualBytes: Array[Byte] = textualFunc("create", Seq(), createPara)
+
 
   // Textual
 }
