@@ -131,12 +131,12 @@ object TDBAOpcDiff extends OpcDiffer {
         // relatedContract needed
         for {
           senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, tokenIdDataEntry, CallType.Trigger, 2)
-          senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Account.fromBytes(sender.data,0).explicitGet()._1 -> true) else Map[Account, Boolean]()
+          senderRelatedAddress = Map[Account, Boolean](Account.fromBytes(sender.data,0).explicitGet()._1 -> true)
           senderDiff = OpcDiff(relatedAddress = senderRelatedAddress,
             tokenAccountBalance = Map(senderBalanceKey -> -transferAmount))
           senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
           recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, tokenIdDataEntry, CallType.Trigger, 1)
-          recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Account.fromBytes(recipient.data,0).explicitGet()._1 -> true) else Map[Account, Boolean]()
+          recipientRelatedAddress = Map[Account, Boolean](Account.fromBytes(recipient.data,0).explicitGet()._1 -> true)
           recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress,
             tokenAccountBalance = Map(recipientBalanceKey -> transferAmount))
           returnDiff = Monoid.combineAll(Seq(senderTotalDiff, recipientCallDiff, recipientDiff))

@@ -49,7 +49,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
         val startIdxShift = sp().accountTransactionsLengths.get(acc.bytes).getOrElse(0)
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
           sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId)
-          shift + 1 
+          shift + 1
         }
         sp().accountTransactionsLengths.put(acc.bytes, startIdxShift + txIds.length)
       }
