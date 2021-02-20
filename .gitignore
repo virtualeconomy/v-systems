@@ -27,9 +27,6 @@ localsettings.json
 *.csv
 *.dat
 
-# standalone docker
-Dockerfile
-
 # logs
 *.log
 
