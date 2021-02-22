@@ -133,7 +133,7 @@ object ContractVEscrow {
   val supersedeTextualBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
   // Create Order Function
-  val createId: Short = 0
+  val createId: Short = 1
   val createPara: Seq[String] = Seq("recipient", "amount", "repDeposit", "judgeDeposit", "fee", "refund", "expirationTime",
                                     "caller", "orderId", "repAmount", "needToDeposit", "totalDeposit", "repRefund",
                                     "valueTrue", "valueFalse", "amountZero")
@@ -172,6 +172,48 @@ object ContractVEscrow {
   lazy val createFunc: Array[Byte] = getFunctionBytes(createId, publicFuncType, nonReturnType, createDataType, createOpcs)
   val createTextualBytes: Array[Byte] = textualFunc("create", Seq(), createPara)
 
+  // Order Deposit Common
+  private def depositCommonOpcs(isCallerJudge: Boolean, orderDepositStatusIndex: Byte, orderDepositAmountIndex: Byte, orderLockedAmountIndex: Byte): Seq[Array[Byte]] = {
+    val tmp :Seq[Array[Byte]] = Seq(
+      assertCaller ++ Array(1.toByte),
+      cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+      assertTrue ++ Array(2.toByte),
+      cdbvrMapGet ++ Array(orderDepositStatusIndex, 0.toByte, 3.toByte),
+      assertTrue ++ Array(3.toByte),
+      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
+      assertEqual ++ Array(3.toByte, 4.toByte),
+      cdbvrMapGet ++ Array(orderDepositAmountIndex, 0.toByte, 5.toByte),
+      cdbvMapValMinus ++ Array(contractBalanceMap.index, 1.toByte, 5.toByte),
+      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      cdbvMapSet ++ Array(orderDepositStatusIndex, 0.toByte, 6.toByte),
+      cdbvMapSet ++ Array(orderLockedAmountIndex, 0.toByte, 5.toByte)
+    )
+    if (isCallerJudge) {
+      Seq(cdbvrGet ++ Array(judgeStateVar.index, 1.toByte)) ++ tmp
+    } else {
+      Seq(cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte)) ++ tmp
+    }
+  }
+
+  // Recipient Deposit Function
+  val recipientDepositId: Short = 1
+  val recipientDepositPara: Seq[String] = Seq("orderId") ++
+                                          Seq("recipient", "orderStatus", "depositStatus", "valueFalse", "amount", "valueTrue")
+  val recipientDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val recipientDepositOpcs: Seq[Array[Byte]] =  depositCommonOpcs(false, orderRepDepositStatusMap.index,
+                                                                  orderRecipientDepositMap.index, orderRepLockedAmountMap.index)
+  lazy val recipientDepositFunc: Array[Byte] = getFunctionBytes(recipientDepositId, publicFuncType, nonReturnType, recipientDepositDataType, recipientDepositOpcs)
+  val recipientDepositTextualBytes: Array[Byte] = textualFunc("recipientDeposit", Seq(), recipientDepositPara)
+
+  // Judge Deposit Function
+  val judgeDepositId: Short = 2
+  val judgeDepositPara: Seq[String] = Seq("orderId") ++
+                                      Seq("judge", "orderStatus", "depositStatus", "valueFalse", "amount", "valueTrue")
+  val judgeDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val judgeDepositOpcs: Seq[Array[Byte]] =  depositCommonOpcs(true, orderJudgeDepositStatusMap.index,
+                                                              orderJudgeDepositMap.index, orderJudgeLockedAmountMap.index)
+  lazy val judgeDepositFunc: Array[Byte] = getFunctionBytes(judgeDepositId, publicFuncType, nonReturnType, judgeDepositDataType, judgeDepositOpcs)
+  val judgeDepositTextualBytes: Array[Byte] = textualFunc("judgeDeposit", Seq(), judgeDepositPara)
 
   // Textual
 }
