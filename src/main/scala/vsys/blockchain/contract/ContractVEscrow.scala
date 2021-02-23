@@ -184,7 +184,7 @@ object ContractVEscrow {
       assertEqual ++ Array(3.toByte, 4.toByte),
       cdbvrMapGet ++ Array(orderDepositAmountIndex, 0.toByte, 5.toByte),
       cdbvMapValMinus ++ Array(contractBalanceMap.index, 1.toByte, 5.toByte),
-      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
+      basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
       cdbvMapSet ++ Array(orderDepositStatusIndex, 0.toByte, 6.toByte),
       cdbvMapSet ++ Array(orderLockedAmountIndex, 0.toByte, 5.toByte)
     )
@@ -196,7 +196,7 @@ object ContractVEscrow {
   }
 
   // Recipient Deposit Function
-  val recipientDepositId: Short = 1
+  val recipientDepositId: Short = 2
   val recipientDepositPara: Seq[String] = Seq("orderId") ++
                                           Seq("recipient", "orderStatus", "depositStatus", "valueFalse", "amount", "valueTrue")
   val recipientDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
@@ -206,7 +206,7 @@ object ContractVEscrow {
   val recipientDepositTextualBytes: Array[Byte] = textualFunc("recipientDeposit", Seq(), recipientDepositPara)
 
   // Judge Deposit Function
-  val judgeDepositId: Short = 2
+  val judgeDepositId: Short = 3
   val judgeDepositPara: Seq[String] = Seq("orderId") ++
                                       Seq("judge", "orderStatus", "depositStatus", "valueFalse", "amount", "valueTrue")
   val judgeDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
@@ -214,6 +214,52 @@ object ContractVEscrow {
                                                               orderJudgeDepositMap.index, orderJudgeLockedAmountMap.index)
   lazy val judgeDepositFunc: Array[Byte] = getFunctionBytes(judgeDepositId, publicFuncType, nonReturnType, judgeDepositDataType, judgeDepositOpcs)
   val judgeDepositTextualBytes: Array[Byte] = textualFunc("judgeDeposit", Seq(), judgeDepositPara)
+
+  // Order Cancel Common
+  val cancelCommonPara: Seq[String] = Seq("orderId") ++
+                                      Seq("payer", "recipient", "judge", "orderStatus", "repDepositStatus", "judgeDepositStatus",
+                                          "depositStatus", "valueFalse", "amount", "recipientAmount", "judgeAmount")
+  val cancelCommonDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  private def cancelCommonOpcs(callerIndex: Byte): Seq[Array[Byte]] = {
+    Seq(
+      cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
+      cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 2.toByte),
+      cdbvrGet ++ Array(judgeStateVar.index, 3.toByte),
+      assertCaller ++ Array(callerIndex),
+      cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte),
+      assertTrue ++ Array(4.toByte),
+      cdbvrMapGet ++ Array(orderRepDepositStatusMap.index, 0.toByte, 5.toByte),
+      cdbvrMapGet ++ Array(orderJudgeDepositStatusMap.index, 0.toByte, 6.toByte),
+      basicAnd ++ Array(5.toByte, 6.toByte, 7.toByte),
+      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(8.toByte),
+      assertEqual ++ Array(7.toByte, 8.toByte),
+      cdbvrMapGet ++ Array(orderAmountMap.index, 0.toByte, 9.toByte),
+      cdbvMapValAdd ++ Array(contractBalanceMap.index, 1.toByte, 9.toByte),
+      cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+      cdbvMapValAdd ++ Array(contractBalanceMap.index, 2.toByte, 10.toByte),
+      cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 11.toByte),
+      cdbvMapValAdd ++ Array(contractBalanceMap.index, 3.toByte, 11.toByte),
+      cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 8.toByte)
+    )
+  }
+
+  // Payer Cancel Function
+  val payerCancelId: Short = 4
+  val payerCancelOpcs: Seq[Array[Byte]] = cancelCommonOpcs(1.toByte)
+  lazy val payerCancelFunc: Array[Byte] = getFunctionBytes(payerCancelId, publicFuncType, nonReturnType, cancelCommonDataType, payerCancelOpcs)
+  val payerCancelTextualBytes: Array[Byte] = textualFunc("payerCancel", Seq(), cancelCommonPara)
+
+  // Recipient Cancel Function
+  val recipientCancelId: Short = 5
+  val recipientCancelOpcs: Seq[Array[Byte]] = cancelCommonOpcs(2.toByte)
+  lazy val recipientCancelFunc: Array[Byte] = getFunctionBytes(recipientCancelId, publicFuncType, nonReturnType, cancelCommonDataType, recipientCancelOpcs)
+  val recipientCancelTextualBytes: Array[Byte] = textualFunc("recipientCancel", Seq(), cancelCommonPara)
+
+  // Judge Cancel Function
+  val judgeCancelId: Short = 6
+  val judgeCancelOpcs: Seq[Array[Byte]] = cancelCommonOpcs(3.toByte)
+  lazy val judgeCancelFunc: Array[Byte] = getFunctionBytes(judgeCancelId, publicFuncType, nonReturnType, cancelCommonDataType, judgeCancelOpcs)
+  val judgeCancelTextualBytes: Array[Byte] = textualFunc("judgeCancel", Seq(), cancelCommonPara)
 
   // Textual
 }
