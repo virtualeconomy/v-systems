@@ -261,5 +261,38 @@ object ContractVEscrow {
   lazy val judgeCancelFunc: Array[Byte] = getFunctionBytes(judgeCancelId, publicFuncType, nonReturnType, cancelCommonDataType, judgeCancelOpcs)
   val judgeCancelTextualBytes: Array[Byte] = textualFunc("judgeCancel", Seq(), cancelCommonPara)
 
+  // Submit Work Function
+  val submitWorkId: Short = 7
+  val submitWorkPara: Seq[String] = Seq("orderId") ++
+                                    Seq("recipient", "orderStatus", "repDepositStatus", "judgeDepositStatus", "depositStatus",
+                                        "currentTime", "expirationTime", "isValidTime", "valueFalse", "submitStatus", "duration",
+                                        "time", "updateTime", "valueTrue")
+  val submitWorkDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val submitWorkOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+    assertTrue ++ Array(2.toByte),
+    cdbvrMapGet ++ Array(orderRepDepositStatusMap.index, 0.toByte, 3.toByte),
+    cdbvrMapGet ++ Array(orderJudgeDepositStatusMap.index, 0.toByte, 4.toByte),
+    basicAnd ++ Array(3.toByte, 4.toByte, 5.toByte),
+    assertTrue ++ Array(5.toByte),
+    loadTimestamp ++ Array(6.toByte),
+    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 7.toByte),
+    compareGreater ++ Array(7.toByte, 6.toByte, 8.toByte),
+    assertTrue ++Array(8.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(9.toByte),
+    cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 10.toByte),
+    assertEqual ++ Array(9.toByte, 10.toByte),
+    cdbvrGet ++ Array(durationStateVar.index, 11.toByte),
+    basicAdd ++ Array(6.toByte, 11.toByte, 12.toByte),
+    basicMax ++ Array(12.toByte, 7.toByte, 13.toByte),
+    cdbvMapSet ++ Array(orderExpirationTimeMap.index, 0.toByte, 13.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(14.toByte),
+    cdbvMapSet ++ Array(orderSubmitStatusMap.index, 0.toByte, 14.toByte)
+  )
+  lazy val submitWorkFunc: Array[Byte] = getFunctionBytes(submitWorkId, publicFuncType, nonReturnType, submitWorkDataType, submitWorkOpcs)
+  val submitWorkTextualBytes: Array[Byte] = textualFunc("submitWork", Seq(), submitWorkPara)
+
   // Textual
 }
