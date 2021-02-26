@@ -90,8 +90,13 @@ object BasicOpcDiff extends OpcDiffer {
       }
       case _ => Left(ContractInvalidOPCData)
     }
+
   def addLeadingZeros(in: Array[Byte], length: Int): Array[Byte] =
-    (new Array[Byte](0.max(length - in.length)) ++ in).takeRight(length)
+    if (in.length - length > 0) {
+      in.take(in.length - length).dropWhile(i => i == 0) ++ in.takeRight(length)
+    } else {
+      (new Array[Byte](0.max(length - in.length)) ++ in).takeRight(length)
+    }
 
   def concat(x: DataEntry, y: DataEntry): Either[ValidationError, DataEntry] =
     DataEntry.create(x.data ++ y.data, DataType.ShortBytes)
@@ -140,5 +145,4 @@ object BasicOpcDiff extends OpcDiffer {
   private def checkBytesLength(bytes: Array[Byte], t: BasicType.BasicTypeVal): Boolean = {
     (t == BasicType.ConstantGet && bytes.length > t.len) || (bytes.length == t.len)
   }
-
 }

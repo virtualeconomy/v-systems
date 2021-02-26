@@ -111,7 +111,7 @@ class ConvertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriv
     )
   }
   property("test overflow to Int32") {
-    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray(BigInt(Int.MaxValue + 1).toByteArray.length.toShort) ++ BigInt(Int.MaxValue + 1).toByteArray, DataType.BigInteger), Int32DataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray((BigInt(Int.MaxValue) + 1).toByteArray.length.toShort) ++ (BigInt(Int.MaxValue) + 1).toByteArray, DataType.BigInteger), Int32DataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
     BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(Int.MaxValue + 1), DataType.Amount), Int32DataTypeObj) should be (
@@ -120,28 +120,36 @@ class ConvertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriv
     BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(Int.MaxValue + 1), DataType.Timestamp), Int32DataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
+    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray((BigInt(Long.MaxValue) * BigInt(Long.MaxValue)).toByteArray.length.toShort) ++ (BigInt(Long.MaxValue) * BigInt(Long.MaxValue)).toByteArray, DataType.BigInteger), Int32DataTypeObj) should be (
+      Left(ValidationError.OverflowError)
+    )
   }
   property("test overflow to Amount") {
-    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray(BigInt(Long.MaxValue + 1).toByteArray.length.toShort) ++ BigInt(Long.MaxValue + 1).toByteArray, DataType.BigInteger), AmountDataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray((BigInt(Long.MaxValue) + 1).toByteArray.length.toShort) ++ (BigInt(Long.MaxValue) + 1).toByteArray, DataType.BigInteger), AmountDataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
-    BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(Long.MaxValue + 1), DataType.Amount), AmountDataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry((BigInt(Long.MaxValue) + 1).toByteArray, DataType.Amount), AmountDataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
-    BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(Long.MaxValue + 1), DataType.Timestamp), AmountDataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry((BigInt(Long.MaxValue) + 1).toByteArray, DataType.Timestamp), AmountDataTypeObj) should be (
+      Left(ValidationError.OverflowError)
+    )
+    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray((BigInt(Long.MaxValue) * BigInt(Long.MaxValue)).toByteArray.length.toShort) ++ (BigInt(Long.MaxValue) * BigInt(Long.MaxValue)).toByteArray, DataType.BigInteger), AmountDataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
   }
   property("test overflow to Timestamp") {
-    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray(BigInt(Long.MaxValue + 1).toByteArray.length.toShort) ++ BigInt(Long.MaxValue + 1).toByteArray, DataType.BigInteger), TimestampDataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray((BigInt(Long.MaxValue) + 1).toByteArray.length.toShort) ++ (BigInt(Long.MaxValue) + 1).toByteArray, DataType.BigInteger), TimestampDataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
-    BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(Long.MaxValue + 1), DataType.Amount), TimestampDataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry((BigInt(Long.MaxValue) + 1).toByteArray, DataType.Amount), TimestampDataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
-    BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(Long.MaxValue + 1), DataType.Timestamp), TimestampDataTypeObj) should be (
+    BasicOpcDiff.convertion(DataEntry((BigInt(Long.MaxValue) + 1).toByteArray, DataType.Timestamp), TimestampDataTypeObj) should be (
+      Left(ValidationError.OverflowError)
+    )
+    BasicOpcDiff.convertion(DataEntry(Shorts.toByteArray((BigInt(Long.MaxValue) * BigInt(Long.MaxValue)).toByteArray.length.toShort) ++ (BigInt(Long.MaxValue) * BigInt(Long.MaxValue)).toByteArray, DataType.BigInteger), TimestampDataTypeObj) should be (
       Left(ValidationError.OverflowError)
     )
   }
-
 }
