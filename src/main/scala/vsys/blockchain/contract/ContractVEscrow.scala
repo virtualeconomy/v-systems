@@ -294,5 +294,39 @@ object ContractVEscrow {
   lazy val submitWorkFunc: Array[Byte] = getFunctionBytes(submitWorkId, publicFuncType, nonReturnType, submitWorkDataType, submitWorkOpcs)
   val submitWorkTextualBytes: Array[Byte] = textualFunc("submitWork", Seq(), submitWorkPara)
 
+  // Approve Work Function
+  val approveWorkId: Short = 8
+  val approveWorkPara: Seq[String] = Seq("orderId") ++
+                                     Seq("payer", "orderStatus", "isSubmit", "currentTime", "expirationTime", "isValidTime",
+                                         "recipient", "judge", "workAmount", "recipientLocked", "recipientAmount",
+                                         "fee", "judgeLocked", "judgeAmount", "valueFalse")
+  val approveWorkDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val approveWorkOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+    assertTrue ++ Array(2.toByte),
+    cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
+    assertTrue ++ Array(3.toByte),
+    loadTimestamp ++ Array(4.toByte),
+    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 5.toByte),
+    compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
+    assertTrue ++Array(6.toByte),
+    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 7.toByte),
+    cdbvrGet ++ Array(judgeStateVar.index, 0.toByte, 8.toByte),
+    cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
+    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+    basicAdd ++ Array(9.toByte, 10.toByte, 11.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 7.toByte, 11.toByte),
+    cdbvrMapGet ++ Array(orderFeeMap.index, 0.toByte, 12.toByte),
+    cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 13toByte),
+    basicAdd ++ Array(12.toByte, 13.toByte, 14.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 8.toByte, 14.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(15.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 15.toByte)
+  )
+  lazy val approveWorkFunc: Array[Byte] = getFunctionBytes(approveWorkId, publicFuncType, nonReturnType, approveWorkDataType, approveWorkOpcs)
+  val approveWorkTextualBytes: Array[Byte] = textualFunc("approveWork", Seq(), approveWorkPara)
+
   // Textual
 }
