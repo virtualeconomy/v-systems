@@ -344,7 +344,7 @@ object ContractVEscrow {
     loadTimestamp ++ Array(4.toByte),
     cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 5.toByte),
     compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
-    assertTrue ++Array(6.toByte),
+    assertTrue ++ Array(6.toByte),
     cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 7.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(8.toByte),
     assertEqual ++ Array(7.toByte, 8.toByte),
@@ -357,6 +357,43 @@ object ContractVEscrow {
   )
   lazy val applyToJudgeFunc: Array[Byte] = getFunctionBytes(applyToJudgeId, publicFuncType, nonReturnType, applyToJudgeDataType, applyToJudgeOpcs)
   val applyToJudgeTextualBytes: Array[Byte] = textualFunc("applyToJudge", Seq(), applyToJudgePara)
+
+  // Judge Function
+  val judgeId: Short = 10
+  val judgePara: Seq[String] = Seq("orderId", "payerAmount", "recipientAmount") ++
+                               Seq("judge", "orderStatus", "currentTime", "expirationTime", "isValidTime",
+                                   "judgeStatus", "payToRep", "recipientLocked", "totalToPay", "totalArrange",
+                                    "fee", "judgeLocked", "judgeAmount", "valueFalse")
+  val judgeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
+  val judgeOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrGet ++ Array(judgeStateVar.index, 3.toByte),
+    assertCaller ++ Array(3.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte),
+    assertTrue ++ Array(4.toByte),
+    loadTimestamp ++ Array(5.toByte),
+    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 6.toByte),
+    compareGreater ++ Array(6.toByte, 5.toByte, 7.toByte),
+    assertTrue ++ Array(7.toByte),
+    cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 8.toByte),
+    assertTrue ++ Array(8.toByte),
+    cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
+    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+    basicAdd ++ Array(9.toByte, 10.toByte, 11.toByte),
+    basicAdd ++ Array(1.toByte, 2.toByte, 12.toByte),
+    assertEqual ++ Array(11.toByte, 12.toByte),
+    cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 13.toByte),
+    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 14.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 13.toByte, 1.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 14.toByte, 2.toByte),
+    cdbvrMapGet ++ Array(orderFeeMap.index, 0.toByte, 15.toByte),
+    cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 16.toByte),
+    basicAdd ++ Array(15.toByte, 16.toByte, 17.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 3.toByte, 17.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(18.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 18.toByte)
+  )
+  lazy val judgeFunc: Array[Byte] = getFunctionBytes(judgeId, publicFuncType, nonReturnType, judgeDataType, judgeOpcs)
+  val judgeTextualBytes: Array[Byte] = textualFunc("judge", Seq(), judgePara)
 
   // Textual
 }
