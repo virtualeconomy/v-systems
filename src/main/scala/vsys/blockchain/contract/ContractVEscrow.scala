@@ -395,5 +395,39 @@ object ContractVEscrow {
   lazy val judgeFunc: Array[Byte] = getFunctionBytes(judgeId, publicFuncType, nonReturnType, judgeDataType, judgeOpcs)
   val judgeTextualBytes: Array[Byte] = textualFunc("judge", Seq(), judgePara)
 
+  // Submit Penalty Function
+  val submitPenaltyId: Short = 10
+  val submitPenaltyPara: Seq[String] = Seq("orderId") ++
+                                       Seq("payer", "orderStatus", "valueFalse", "isSubmit",
+                                           "currentTime", "expirationTime", "isExpired",
+                                           "judge", "workAmount", "recipientLocked", "penaltyAmount",
+                                           "fee", "judgeLocked", "judgeAmount")
+  val submitPenaltyDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val submitPenaltyOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+    assertTrue ++ Array(2.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(3.toByte),
+    cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 4.toByte),
+    assertEqual ++ Array(3.toByte, 4.toByte),
+    loadTimestamp ++ Array(5.toByte),
+    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 6.toByte),
+    compareGreater ++ Array(5.toByte, 6.toByte, 7.toByte),
+    assertTrue ++ Array(7.toByte),
+    cdbvrGet ++ Array(judgeStateVar.index, 8.toByte),
+    cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
+    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+    basicAdd ++ Array(9.toByte, 10.toByte, 11.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 1.toByte, 11.toByte),
+    cdbvrMapGet ++ Array(orderFeeMap.index, 0.toByte, 12.toByte),
+    cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 13.toByte),
+    basicAdd ++ Array(12.toByte, 13.toByte, 14.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 8.toByte, 14.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 3.toByte)
+  )
+  lazy val submitPenaltyFunc: Array[Byte] = getFunctionBytes(submitPenaltyId, publicFuncType, nonReturnType, submitPenaltyDataType, submitPenaltyOpcs)
+  val submitPenaltyTextualBytes: Array[Byte] = textualFunc("submitPenalty", Seq(), submitPenaltyPara)
+
   // Textual
 }
