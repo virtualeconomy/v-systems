@@ -328,5 +328,35 @@ object ContractVEscrow {
   lazy val approveWorkFunc: Array[Byte] = getFunctionBytes(approveWorkId, publicFuncType, nonReturnType, approveWorkDataType, approveWorkOpcs)
   val approveWorkTextualBytes: Array[Byte] = textualFunc("approveWork", Seq(), approveWorkPara)
 
+  // Apply to Judge Function
+  val applyToJudgeId: Short = 9
+  val applyToJudgePara: Seq[String] = Seq("orderId") ++
+                                      Seq("payer", "orderStatus", "isSubmit", "currentTime", "expirationTime", "isValidTime",
+                                          "judgeStatus", "valueFalse", "judgeDuration", "time", "updateTime", "valueTrue")
+  val applyToJudgeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val applyToJudgeOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+    assertTrue ++ Array(2.toByte),
+    cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
+    assertTrue ++ Array(3.toByte),
+    loadTimestamp ++ Array(4.toByte),
+    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 5.toByte),
+    compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
+    assertTrue ++Array(6.toByte),
+    cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 7.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(8.toByte),
+    assertEqual ++ Array(7.toByte, 8.toByte),
+    cdbvrGet ++ Array(judgeDurationStateVar.index, 9.toByte),
+    basicAdd ++ Array(4.toByte, 9.toByte, 10.toByte),
+    basicMax ++ Array(10.toByte, 5.toByte, 11.toByte),
+    cdbvMapSet ++ Array(orderExpirationTimeMap.index, 0.toByte, 11.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(12.toByte),
+    cdbvMapSet ++ Array(orderJudgeStatusMap.index, 0.toByte, 12.toByte)
+  )
+  lazy val applyToJudgeFunc: Array[Byte] = getFunctionBytes(applyToJudgeId, publicFuncType, nonReturnType, applyToJudgeDataType, applyToJudgeOpcs)
+  val applyToJudgeTextualBytes: Array[Byte] = textualFunc("applyToJudge", Seq(), applyToJudgePara)
+
   // Textual
 }
