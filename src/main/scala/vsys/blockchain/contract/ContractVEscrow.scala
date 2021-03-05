@@ -396,7 +396,7 @@ object ContractVEscrow {
   val judgeTextualBytes: Array[Byte] = textualFunc("judge", Seq(), judgePara)
 
   // Submit Penalty Function
-  val submitPenaltyId: Short = 10
+  val submitPenaltyId: Short = 11
   val submitPenaltyPara: Seq[String] = Seq("orderId") ++
                                        Seq("payer", "orderStatus", "valueFalse", "isSubmit",
                                            "currentTime", "expirationTime", "isExpired",
@@ -428,6 +428,46 @@ object ContractVEscrow {
   )
   lazy val submitPenaltyFunc: Array[Byte] = getFunctionBytes(submitPenaltyId, publicFuncType, nonReturnType, submitPenaltyDataType, submitPenaltyOpcs)
   val submitPenaltyTextualBytes: Array[Byte] = textualFunc("submitPenalty", Seq(), submitPenaltyPara)
+
+  // Order Refund Common
+  val refundCommonPara: Seq[String] = Seq("orderId") ++
+                                      Seq("payer", "recipient", "orderStatus", "judgeStatus", "currentTime", "expirationTime", "isExpired",
+                                          "recipientRefund", "payerRefund", "valueFalse")
+  val refundCommonDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  private def refundCommonOpcs(callerIndex: Byte): Seq[Array[Byte]] = {
+    Seq(
+      cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
+      cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 2.toByte),
+      assertCaller ++ Array(callerIndex),
+      cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 3.toByte),
+      assertTrue ++ Array(3.toByte),
+      cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 4.toByte),
+      assertTrue ++ Array(4.toByte),
+      loadTimestamp ++ Array(5.toByte),
+      cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 6.toByte),
+      compareGreater ++ Array(5.toByte, 6.toByte, 7.toByte),
+      assertTrue ++ Array(7.toByte),
+      cdbvrMapGet ++ Array(orderRecipientRefundMap.index, 0.toByte, 8.toByte),
+      cdbvMapValAdd ++ Array(contractBalanceMap.index, 2.toByte, 8.toByte),
+      cdbvrMapGet ++ Array(orderRefundMap.index, 0.toByte, 9.toByte),
+      cdbvMapValAdd ++ Array(contractBalanceMap.index, 1.toByte, 9.toByte),
+      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(10.toByte),
+      cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 10.toByte)
+    )
+  }
+
+  // Payer Refund Function
+  val payerRefundId: Short = 12
+  val payerRefundOpcs: Seq[Array[Byte]] = refundCommonOpcs(1.toByte)
+  lazy val payerRefundFunc: Array[Byte] = getFunctionBytes(payerRefundId, publicFuncType, nonReturnType, refundCommonDataType, payerRefundOpcs)
+  val payerRefundTextualBytes: Array[Byte] = textualFunc("payerRefund", Seq(), refundCommonPara)
+
+  // Payer Refund Function
+  val recipientRefundId: Short = 13
+  val recipientRefundOpcs: Seq[Array[Byte]] = refundCommonOpcs(2.toByte)
+  lazy val recipientRefundFunc: Array[Byte] = getFunctionBytes(recipientRefundId, publicFuncType, nonReturnType, refundCommonDataType, recipientRefundOpcs)
+  val recipientRefundTextualBytes: Array[Byte] = textualFunc("recipientRefund", Seq(), refundCommonPara)
+
 
   // Textual
 }
