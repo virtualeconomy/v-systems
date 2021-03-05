@@ -468,6 +468,40 @@ object ContractVEscrow {
   lazy val recipientRefundFunc: Array[Byte] = getFunctionBytes(recipientRefundId, publicFuncType, nonReturnType, refundCommonDataType, recipientRefundOpcs)
   val recipientRefundTextualBytes: Array[Byte] = textualFunc("recipientRefund", Seq(), refundCommonPara)
 
-
+  // Collect Function
+  val collectId: Short = 13
+  val collectPara: Seq[String] = Seq("orderId") ++
+                                 Seq("recipient", "orderStatus", "isSubmit", "valueFalse", "judgeStatus",
+                                     "currentTime", "expirationTime", "isExpired",
+                                     "judge", "workAmount", "recipientLocked", "recipientAmount", "fee", "judgerLocked", "judgerAmount")
+  val collectDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+  val collectOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
+    assertCaller ++ Array(2.toByte),
+    cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
+    assertCaller ++ Array(3.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
+    cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 5.toByte),
+    assertEqual ++ Array(4.toByte, 5.toByte),
+    loadTimestamp ++ Array(6.toByte),
+    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 7.toByte),
+    compareGreater ++ Array(6.toByte, 7.toByte, 8.toByte),
+    assertTrue ++ Array(8.toByte),
+    cdbvrGet ++ Array(judgeStateVar.index, 9.toByte),
+    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 11.toByte),
+    basicAdd ++ Array(10.toByte, 11.toByte, 12.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 1.toByte, 12.toByte),
+    cdbvrMapGet ++ Array(orderFeeMap.index, 0.toByte, 13.toByte),
+    cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 14.toByte),
+    basicAdd ++ Array(13.toByte, 14.toByte, 15.toByte),
+    cdbvMapValAdd ++ Array(contractBalanceMap.index, 9.toByte, 15.toByte),
+    cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte)
+  )
+  lazy val collectFunc: Array[Byte] = getFunctionBytes(collectId, publicFuncType, nonReturnType, collectDataType, collectOpcs)
+  val collectTextualBytes: Array[Byte] = textualFunc("collect", Seq(), collectPara)
+  
   // Textual
 }
