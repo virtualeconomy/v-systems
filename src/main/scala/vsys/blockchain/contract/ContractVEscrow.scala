@@ -469,7 +469,7 @@ object ContractVEscrow {
   val recipientRefundTextualBytes: Array[Byte] = textualFunc("recipientRefund", Seq(), refundCommonPara)
 
   // Collect Function
-  val collectId: Short = 13
+  val collectId: Short = 14
   val collectPara: Seq[String] = Seq("orderId") ++
                                  Seq("recipient", "orderStatus", "isSubmit", "valueFalse", "judgeStatus",
                                      "currentTime", "expirationTime", "isExpired",
@@ -502,6 +502,11 @@ object ContractVEscrow {
   )
   lazy val collectFunc: Array[Byte] = getFunctionBytes(collectId, publicFuncType, nonReturnType, collectDataType, collectOpcs)
   val collectTextualBytes: Array[Byte] = textualFunc("collect", Seq(), collectPara)
-  
+
   // Textual
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initTextualBytes, depositTextualBytes, withdrawTextualBytes))
+  lazy val descriptorTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeTextualBytes, createTextualBytes, recipientDepositTextualBytes,
+    judgeDepositTextualBytes, payerCancelTextualBytes, recipientCancelTextualBytes, judgeCancelTextualBytes, submitWorkTextualBytes,
+    approveWorkTextualBytes, applyToJudgeTextualBytes, judgeTextualBytes, submitPenaltyTextualBytes,
+    payerRefundTextualBytes, recipientRefundTextualBytes, collectTextualBytes))
 }
