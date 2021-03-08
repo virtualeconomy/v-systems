@@ -77,6 +77,8 @@ object ContractVEscrow {
         stateMapOrderRepDepositStatus, stateMapOrderJudgeDepositStatus, stateMapOrderSubmitStatus, stateMapOrderJudgeStatus,
         stateMapOrderRepLockedAmount, stateMapOrderJudgeLockedAmount))
 
+  val commonDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+
   // Initialization Trigger
   val initId: Short = 0
   val initPara: Seq[String] = Seq("tokenId", "duration", "judgeDuration",
@@ -136,8 +138,8 @@ object ContractVEscrow {
 
   // Create Order Function
   val createId: Short = 1
-  val createPara: Seq[String] = Seq("recipient", "amount", "repDeposit", "judgeDeposit", "fee", "refund", "expirationTime",
-                                    "caller", "orderId", "repAmount", "needToDeposit", "totalDeposit", "repRefund",
+  val createPara: Seq[String] = Seq("recipient", "amount", "repDeposit", "judgeDeposit", "fee", "refund", "expirationTime") ++
+                                Seq("caller", "orderId", "repAmount", "needToDeposit", "totalDeposit", "repRefund",
                                     "valueTrue", "valueFalse", "amountZero")
   val createDataType: Array[Byte] = Array(DataType.Address.id.toByte) ++
                                     Array.fill[Byte](5)(DataType.Amount.id.toByte) ++
@@ -201,27 +203,24 @@ object ContractVEscrow {
   val recipientDepositId: Short = 2
   val recipientDepositPara: Seq[String] = Seq("orderId") ++
                                           Seq("recipient", "orderStatus", "depositStatus", "valueFalse", "amount", "valueTrue")
-  val recipientDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val recipientDepositOpcs: Seq[Array[Byte]] =  depositCommonOpcs(false, orderRepDepositStatusMap.index,
                                                                   orderRecipientDepositMap.index, orderRepLockedAmountMap.index)
-  lazy val recipientDepositFunc: Array[Byte] = getFunctionBytes(recipientDepositId, publicFuncType, nonReturnType, recipientDepositDataType, recipientDepositOpcs)
+  lazy val recipientDepositFunc: Array[Byte] = getFunctionBytes(recipientDepositId, publicFuncType, nonReturnType, commonDataType, recipientDepositOpcs)
   val recipientDepositTextualBytes: Array[Byte] = textualFunc("recipientDeposit", Seq(), recipientDepositPara)
 
   // Judge Deposit Function
   val judgeDepositId: Short = 3
   val judgeDepositPara: Seq[String] = Seq("orderId") ++
                                       Seq("judge", "orderStatus", "depositStatus", "valueFalse", "amount", "valueTrue")
-  val judgeDepositDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val judgeDepositOpcs: Seq[Array[Byte]] =  depositCommonOpcs(true, orderJudgeDepositStatusMap.index,
                                                               orderJudgeDepositMap.index, orderJudgeLockedAmountMap.index)
-  lazy val judgeDepositFunc: Array[Byte] = getFunctionBytes(judgeDepositId, publicFuncType, nonReturnType, judgeDepositDataType, judgeDepositOpcs)
+  lazy val judgeDepositFunc: Array[Byte] = getFunctionBytes(judgeDepositId, publicFuncType, nonReturnType, commonDataType, judgeDepositOpcs)
   val judgeDepositTextualBytes: Array[Byte] = textualFunc("judgeDeposit", Seq(), judgeDepositPara)
 
   // Order Cancel Common
   val cancelCommonPara: Seq[String] = Seq("orderId") ++
                                       Seq("payer", "recipient", "judge", "orderStatus", "repDepositStatus", "judgeDepositStatus",
                                           "depositStatus", "valueFalse", "amount", "recipientAmount", "judgeAmount")
-  val cancelCommonDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   private def cancelCommonOpcs(callerIndex: Byte): Seq[Array[Byte]] = {
     Seq(
       cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
@@ -248,20 +247,31 @@ object ContractVEscrow {
   // Payer Cancel Function
   val payerCancelId: Short = 4
   val payerCancelOpcs: Seq[Array[Byte]] = cancelCommonOpcs(1.toByte)
-  lazy val payerCancelFunc: Array[Byte] = getFunctionBytes(payerCancelId, publicFuncType, nonReturnType, cancelCommonDataType, payerCancelOpcs)
+  lazy val payerCancelFunc: Array[Byte] = getFunctionBytes(payerCancelId, publicFuncType, nonReturnType, commonDataType, payerCancelOpcs)
   val payerCancelTextualBytes: Array[Byte] = textualFunc("payerCancel", Seq(), cancelCommonPara)
 
   // Recipient Cancel Function
   val recipientCancelId: Short = 5
   val recipientCancelOpcs: Seq[Array[Byte]] = cancelCommonOpcs(2.toByte)
-  lazy val recipientCancelFunc: Array[Byte] = getFunctionBytes(recipientCancelId, publicFuncType, nonReturnType, cancelCommonDataType, recipientCancelOpcs)
+  lazy val recipientCancelFunc: Array[Byte] = getFunctionBytes(recipientCancelId, publicFuncType, nonReturnType, commonDataType, recipientCancelOpcs)
   val recipientCancelTextualBytes: Array[Byte] = textualFunc("recipientCancel", Seq(), cancelCommonPara)
 
   // Judge Cancel Function
   val judgeCancelId: Short = 6
   val judgeCancelOpcs: Seq[Array[Byte]] = cancelCommonOpcs(3.toByte)
-  lazy val judgeCancelFunc: Array[Byte] = getFunctionBytes(judgeCancelId, publicFuncType, nonReturnType, cancelCommonDataType, judgeCancelOpcs)
+  lazy val judgeCancelFunc: Array[Byte] = getFunctionBytes(judgeCancelId, publicFuncType, nonReturnType, commonDataType, judgeCancelOpcs)
   val judgeCancelTextualBytes: Array[Byte] = textualFunc("judgeCancel", Seq(), cancelCommonPara)
+
+  private def timestampCheck(startIndex: Int, isValid: Boolean): Seq[Array[Byte]] = {
+    val a: Byte = if (isValid) (startIndex + 1).toByte else startIndex.toByte
+    val b: Byte = if (isValid) startIndex.toByte else (startIndex + 1).toByte
+    Seq(
+      loadTimestamp ++ Array(startIndex.toByte),
+      cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, (startIndex + 1).toByte),
+      compareGreater ++ Array(a, b, (startIndex + 2).toByte),
+      assertTrue ++Array((startIndex + 2).toByte),
+    )
+  }
 
   // Submit Work Function
   val submitWorkId: Short = 7
@@ -269,7 +279,6 @@ object ContractVEscrow {
                                     Seq("recipient", "orderStatus", "repDepositStatus", "judgeDepositStatus", "depositStatus",
                                         "currentTime", "expirationTime", "isValidTime", "valueFalse", "submitStatus", "duration",
                                         "time", "updateTime", "valueTrue")
-  val submitWorkDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val submitWorkOpcs: Seq[Array[Byte]] =  Seq(
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
@@ -278,11 +287,7 @@ object ContractVEscrow {
     cdbvrMapGet ++ Array(orderRepDepositStatusMap.index, 0.toByte, 3.toByte),
     cdbvrMapGet ++ Array(orderJudgeDepositStatusMap.index, 0.toByte, 4.toByte),
     basicAnd ++ Array(3.toByte, 4.toByte, 5.toByte),
-    assertTrue ++ Array(5.toByte),
-    loadTimestamp ++ Array(6.toByte),
-    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 7.toByte),
-    compareGreater ++ Array(7.toByte, 6.toByte, 8.toByte),
-    assertTrue ++Array(8.toByte),
+    assertTrue ++ Array(5.toByte)) ++ timestampCheck(6, true) ++ Seq(
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(9.toByte),
     cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 10.toByte),
     assertEqual ++ Array(9.toByte, 10.toByte),
@@ -293,7 +298,7 @@ object ContractVEscrow {
     basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(14.toByte),
     cdbvMapSet ++ Array(orderSubmitStatusMap.index, 0.toByte, 14.toByte)
   )
-  lazy val submitWorkFunc: Array[Byte] = getFunctionBytes(submitWorkId, publicFuncType, nonReturnType, submitWorkDataType, submitWorkOpcs)
+  lazy val submitWorkFunc: Array[Byte] = getFunctionBytes(submitWorkId, publicFuncType, nonReturnType, commonDataType, submitWorkOpcs)
   val submitWorkTextualBytes: Array[Byte] = textualFunc("submitWork", Seq(), submitWorkPara)
 
   // Approve Work Function
@@ -302,18 +307,13 @@ object ContractVEscrow {
                                      Seq("payer", "orderStatus", "isSubmit", "currentTime", "expirationTime", "isValidTime",
                                          "recipient", "judge", "workAmount", "recipientLocked", "recipientAmount",
                                          "fee", "judgeLocked", "judgeAmount", "valueFalse")
-  val approveWorkDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val approveWorkOpcs: Seq[Array[Byte]] =  Seq(
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
     assertTrue ++ Array(2.toByte),
     cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
-    assertTrue ++ Array(3.toByte),
-    loadTimestamp ++ Array(4.toByte),
-    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 5.toByte),
-    compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
-    assertTrue ++Array(6.toByte),
+    assertTrue ++ Array(3.toByte)) ++ timestampCheck(4, true) ++ Seq(
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 7.toByte),
     cdbvrGet ++ Array(judgeStateVar.index, 0.toByte, 8.toByte),
     cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
@@ -321,13 +321,13 @@ object ContractVEscrow {
     basicAdd ++ Array(9.toByte, 10.toByte, 11.toByte),
     cdbvMapValAdd ++ Array(contractBalanceMap.index, 7.toByte, 11.toByte),
     cdbvrMapGet ++ Array(orderFeeMap.index, 0.toByte, 12.toByte),
-    cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 13toByte),
+    cdbvrMapGet ++ Array(orderJudgeLockedAmountMap.index, 0.toByte, 13.toByte),
     basicAdd ++ Array(12.toByte, 13.toByte, 14.toByte),
     cdbvMapValAdd ++ Array(contractBalanceMap.index, 8.toByte, 14.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(15.toByte),
     cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 15.toByte)
   )
-  lazy val approveWorkFunc: Array[Byte] = getFunctionBytes(approveWorkId, publicFuncType, nonReturnType, approveWorkDataType, approveWorkOpcs)
+  lazy val approveWorkFunc: Array[Byte] = getFunctionBytes(approveWorkId, publicFuncType, nonReturnType, commonDataType, approveWorkOpcs)
   val approveWorkTextualBytes: Array[Byte] = textualFunc("approveWork", Seq(), approveWorkPara)
 
   // Apply to Judge Function
@@ -335,18 +335,13 @@ object ContractVEscrow {
   val applyToJudgePara: Seq[String] = Seq("orderId") ++
                                       Seq("payer", "orderStatus", "isSubmit", "currentTime", "expirationTime", "isValidTime",
                                           "judgeStatus", "valueFalse", "judgeDuration", "time", "updateTime", "valueTrue")
-  val applyToJudgeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val applyToJudgeOpcs: Seq[Array[Byte]] =  Seq(
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
     assertTrue ++ Array(2.toByte),
     cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
-    assertTrue ++ Array(3.toByte),
-    loadTimestamp ++ Array(4.toByte),
-    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 5.toByte),
-    compareGreater ++ Array(5.toByte, 4.toByte, 6.toByte),
-    assertTrue ++ Array(6.toByte),
+    assertTrue ++ Array(3.toByte)) ++ timestampCheck(4, true) ++ Seq(
     cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 7.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(8.toByte),
     assertEqual ++ Array(7.toByte, 8.toByte),
@@ -357,7 +352,7 @@ object ContractVEscrow {
     basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(12.toByte),
     cdbvMapSet ++ Array(orderJudgeStatusMap.index, 0.toByte, 12.toByte)
   )
-  lazy val applyToJudgeFunc: Array[Byte] = getFunctionBytes(applyToJudgeId, publicFuncType, nonReturnType, applyToJudgeDataType, applyToJudgeOpcs)
+  lazy val applyToJudgeFunc: Array[Byte] = getFunctionBytes(applyToJudgeId, publicFuncType, nonReturnType, commonDataType, applyToJudgeOpcs)
   val applyToJudgeTextualBytes: Array[Byte] = textualFunc("applyToJudge", Seq(), applyToJudgePara)
 
   // Judge Function
@@ -371,11 +366,7 @@ object ContractVEscrow {
     cdbvrGet ++ Array(judgeStateVar.index, 3.toByte),
     assertCaller ++ Array(3.toByte),
     cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte),
-    assertTrue ++ Array(4.toByte),
-    loadTimestamp ++ Array(5.toByte),
-    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 6.toByte),
-    compareGreater ++ Array(6.toByte, 5.toByte, 7.toByte),
-    assertTrue ++ Array(7.toByte),
+    assertTrue ++ Array(4.toByte)) ++ timestampCheck(5, true) ++ Seq(
     cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 8.toByte),
     assertTrue ++ Array(8.toByte),
     cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
@@ -404,7 +395,6 @@ object ContractVEscrow {
                                            "currentTime", "expirationTime", "isExpired",
                                            "judge", "workAmount", "recipientLocked", "penaltyAmount",
                                            "fee", "judgeLocked", "judgeAmount")
-  val submitPenaltyDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   val submitPenaltyOpcs: Seq[Array[Byte]] =  Seq(
     cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
@@ -412,11 +402,7 @@ object ContractVEscrow {
     assertTrue ++ Array(2.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(3.toByte),
     cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 4.toByte),
-    assertEqual ++ Array(3.toByte, 4.toByte),
-    loadTimestamp ++ Array(5.toByte),
-    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 6.toByte),
-    compareGreater ++ Array(5.toByte, 6.toByte, 7.toByte),
-    assertTrue ++ Array(7.toByte),
+    assertEqual ++ Array(3.toByte, 4.toByte)) ++ timestampCheck(5, false) ++ Seq(
     cdbvrGet ++ Array(judgeStateVar.index, 8.toByte),
     cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
     cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
@@ -428,14 +414,13 @@ object ContractVEscrow {
     cdbvMapValAdd ++ Array(contractBalanceMap.index, 8.toByte, 14.toByte),
     cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 3.toByte)
   )
-  lazy val submitPenaltyFunc: Array[Byte] = getFunctionBytes(submitPenaltyId, publicFuncType, nonReturnType, submitPenaltyDataType, submitPenaltyOpcs)
+  lazy val submitPenaltyFunc: Array[Byte] = getFunctionBytes(submitPenaltyId, publicFuncType, nonReturnType, commonDataType, submitPenaltyOpcs)
   val submitPenaltyTextualBytes: Array[Byte] = textualFunc("submitPenalty", Seq(), submitPenaltyPara)
 
   // Order Refund Common
   val refundCommonPara: Seq[String] = Seq("orderId") ++
                                       Seq("payer", "recipient", "orderStatus", "judgeStatus", "currentTime", "expirationTime", "isExpired",
                                           "recipientRefund", "payerRefund", "valueFalse")
-  val refundCommonDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
   private def refundCommonOpcs(callerIndex: Byte): Seq[Array[Byte]] = {
     Seq(
       cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
@@ -444,11 +429,7 @@ object ContractVEscrow {
       cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 3.toByte),
       assertTrue ++ Array(3.toByte),
       cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 4.toByte),
-      assertTrue ++ Array(4.toByte),
-      loadTimestamp ++ Array(5.toByte),
-      cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 6.toByte),
-      compareGreater ++ Array(5.toByte, 6.toByte, 7.toByte),
-      assertTrue ++ Array(7.toByte),
+      assertTrue ++ Array(4.toByte)) ++ timestampCheck(5, false) ++ Seq(
       cdbvrMapGet ++ Array(orderRecipientRefundMap.index, 0.toByte, 8.toByte),
       cdbvMapValAdd ++ Array(contractBalanceMap.index, 2.toByte, 8.toByte),
       cdbvrMapGet ++ Array(orderRefundMap.index, 0.toByte, 9.toByte),
@@ -461,13 +442,13 @@ object ContractVEscrow {
   // Payer Refund Function
   val payerRefundId: Short = 12
   val payerRefundOpcs: Seq[Array[Byte]] = refundCommonOpcs(1.toByte)
-  lazy val payerRefundFunc: Array[Byte] = getFunctionBytes(payerRefundId, publicFuncType, nonReturnType, refundCommonDataType, payerRefundOpcs)
+  lazy val payerRefundFunc: Array[Byte] = getFunctionBytes(payerRefundId, publicFuncType, nonReturnType, commonDataType, payerRefundOpcs)
   val payerRefundTextualBytes: Array[Byte] = textualFunc("payerRefund", Seq(), refundCommonPara)
 
   // Payer Refund Function
   val recipientRefundId: Short = 13
   val recipientRefundOpcs: Seq[Array[Byte]] = refundCommonOpcs(2.toByte)
-  lazy val recipientRefundFunc: Array[Byte] = getFunctionBytes(recipientRefundId, publicFuncType, nonReturnType, refundCommonDataType, recipientRefundOpcs)
+  lazy val recipientRefundFunc: Array[Byte] = getFunctionBytes(recipientRefundId, publicFuncType, nonReturnType, commonDataType, recipientRefundOpcs)
   val recipientRefundTextualBytes: Array[Byte] = textualFunc("recipientRefund", Seq(), refundCommonPara)
 
   // Collect Function
@@ -475,8 +456,7 @@ object ContractVEscrow {
   val collectPara: Seq[String] = Seq("orderId") ++
                                  Seq("recipient", "orderStatus", "isSubmit", "valueFalse", "judgeStatus",
                                      "currentTime", "expirationTime", "isExpired",
-                                     "judge", "workAmount", "recipientLocked", "recipientAmount", "fee", "judgerLocked", "judgerAmount")
-  val collectDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte)
+                                     "judge", "workAmount", "recipientLocked", "recipientAmount", "fee", "judgeLocked", "judgeAmount")
   val collectOpcs: Seq[Array[Byte]] = Seq(
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
@@ -486,11 +466,7 @@ object ContractVEscrow {
     assertCaller ++ Array(3.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
     cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 5.toByte),
-    assertEqual ++ Array(4.toByte, 5.toByte),
-    loadTimestamp ++ Array(6.toByte),
-    cdbvrMapGet ++ Array(orderExpirationTimeMap.index, 0.toByte, 7.toByte),
-    compareGreater ++ Array(6.toByte, 7.toByte, 8.toByte),
-    assertTrue ++ Array(8.toByte),
+    assertEqual ++ Array(4.toByte, 5.toByte)) ++ timestampCheck(6, false) ++ Seq(
     cdbvrGet ++ Array(judgeStateVar.index, 9.toByte),
     cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
     cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 11.toByte),
@@ -502,7 +478,7 @@ object ContractVEscrow {
     cdbvMapValAdd ++ Array(contractBalanceMap.index, 9.toByte, 15.toByte),
     cdbvMapSet ++ Array(orderStatusMap.index, 0.toByte, 4.toByte)
   )
-  lazy val collectFunc: Array[Byte] = getFunctionBytes(collectId, publicFuncType, nonReturnType, collectDataType, collectOpcs)
+  lazy val collectFunc: Array[Byte] = getFunctionBytes(collectId, publicFuncType, nonReturnType, commonDataType, collectOpcs)
   val collectTextualBytes: Array[Byte] = textualFunc("collect", Seq(), collectPara)
 
   // Textual
