@@ -360,7 +360,7 @@ object ContractVEscrow {
   val judgePara: Seq[String] = Seq("orderId", "payerAmount", "recipientAmount") ++
                                Seq("judge", "orderStatus", "currentTime", "expirationTime", "isValidTime",
                                    "judgeStatus", "payToRep", "recipientLocked", "totalToPay", "totalArrange",
-                                    "fee", "judgeLocked", "judgeAmount", "valueFalse")
+                                   "payer", "recipient", "fee", "judgeLocked", "judgeAmount", "valueFalse")
   val judgeDataType: Array[Byte] = Array(DataType.ShortBytes.id.toByte, DataType.Amount.id.toByte, DataType.Amount.id.toByte)
   val judgeOpcs: Seq[Array[Byte]] =  Seq(
     cdbvrGet ++ Array(judgeStateVar.index, 3.toByte),
