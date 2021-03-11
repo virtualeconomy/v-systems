@@ -25,6 +25,8 @@ object CDBVROpcDiff extends OpcDiffer {
         Right(DataEntry(Longs.toByteArray(0L), DataType.Timestamp))
       case _ if DataType(dataTypeByte) == DataType.Amount =>
         Right(DataEntry(Longs.toByteArray(context.state.contractNumInfo(dbKey)), DataType.Amount))
+      case _ if DataType(dataTypeByte) == DataType.Boolean =>
+        Right(DataEntry(Array(0.toByte), DataType.Boolean))
       case _ => Left(GenericError("Can not find the data."))
     }
   }
