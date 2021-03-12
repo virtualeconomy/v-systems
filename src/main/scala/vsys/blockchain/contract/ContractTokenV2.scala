@@ -63,5 +63,28 @@ object ContractTokenV2 {
   lazy val updateListFunc: Array[Byte] = getFunctionBytes(updateListId, publicFuncType, nonReturnType, updateListDataType, updateListOpcs)
   val updateListFuncBytes: Array[Byte] = textualFunc("updateList", Seq(), updateListPara)
 
+  private def whitelistCheck(startIndex: Int, sender: Byte, recipient: Byte): Seq[Array[Byte]] = {
+    val isSenderInListIndex: Byte = startIndex.toByte
+    val isRecipientInListIndex: Byte = (startIndex + 1).toByte
+    Seq(
+      cdbvrMapGetOrDefault ++ Array(listMap.index, sender, isSenderInListIndex),
+      assertTrue ++ Array(isSenderInListIndex),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, recipient, isRecipientInListIndex),
+      assertTrue ++ Array(isRecipientInListIndex),
+    )
+  }
+
+  private def blacklistCheck(startIndex: Int, sender: Byte, recipient: Byte): Seq[Array[Byte]] = {
+    val valueFalseIndex: Byte = startIndex.toByte
+    val isSenderInListIndex: Byte = (startIndex + 1).toByte
+    val isRecipientInListIndex: Byte = (startIndex + 2).toByte
+    Seq(
+      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(valueFalseIndex),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, sender, isSenderInListIndex),
+      assertEqual ++ Array(isSenderInListIndex, valueFalseIndex),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, recipient, isRecipientInListIndex),
+      assertEqual ++ Array(isRecipientInListIndex, valueFalseIndex),
+    )
+  }
 
 }
