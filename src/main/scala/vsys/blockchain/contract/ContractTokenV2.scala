@@ -49,5 +49,19 @@ object ContractTokenV2 {
   lazy val destroyFunc: Array[Byte] = ContractPermitted.depositFunc
   val destroyFuncBytes: Array[Byte] = ContractPermitted.depositFuncBytes
 
+  // Update List
+  val updateListId: Short = 3
+  val updateListPara: Seq[String] = Seq("userAccount",
+    "issuer", "valueTrue")
+  val updateListDataType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val updateListOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrGet ++ Array(issuerStateVar.index, 1.toByte),
+    assertCaller ++ Array(1.toByte),
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(2.toByte),
+    cdbvMapSet ++ Array(listMap.index, 0.toByte, 2.toByte)
+  )
+  lazy val updateListFunc: Array[Byte] = getFunctionBytes(updateListId, publicFuncType, nonReturnType, updateListDataType, updateListOpcs)
+  val updateListFuncBytes: Array[Byte] = textualFunc("updateList", Seq(), updateListPara)
+
 
 }
