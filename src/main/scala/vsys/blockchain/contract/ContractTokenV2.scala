@@ -104,4 +104,26 @@ object ContractTokenV2 {
   lazy val sendBlacklistFunc: Array[Byte] = getFunctionBytes(sendId, publicFuncType, nonReturnType, sendDataType, sendBlacklistOpcs)
   val sendBlacklistFuncBytes: Array[Byte] = textualFunc("send", Seq(), sendBlacklistPara)
 
+  // Transfer
+  val transferId: Short = 5
+  val transferDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte, DataType.Amount.id.toByte)
+
+  // Whitelist
+  val transferWhitelistPara: Seq[String] = Seq("sender", "recipient", "amount",
+    "isSenderInList", "isRecipientInList")
+  val transferWhitelistOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte)) ++ whitelistCheck(0.toByte, 1.toByte) ++ Seq(
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+  lazy val transferWhitelistFunc: Array[Byte] = getFunctionBytes(transferId, publicFuncType, nonReturnType, transferDataType, transferWhitelistOpcs)
+  val transferWhitelistFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferWhitelistPara)
+
+  // Blacklist
+  val transferBlacklistPara: Seq[String] = Seq("sender", "recipient", "amount",
+    "valueFalse", "isSenderInList", "isRecipientInList")
+  val transferBlacklistOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte)) ++ blacklistCheck(0.toByte, 1.toByte) ++ Seq(
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 2.toByte))
+  lazy val transferBlacklistFunc: Array[Byte] = getFunctionBytes(transferId, publicFuncType, nonReturnType, transferDataType, transferBlacklistOpcs)
+  val transferBlacklistFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferBlacklistPara)
+
 }
