@@ -170,5 +170,21 @@ object ContractTokenV2 {
   lazy val withdrawBlacklistFunc: Array[Byte] = getFunctionBytes(withdrawId, publicFuncType, nonReturnType, withdrawDataType, withdrawBlacklistOpcs)
   val withdrawBlacklistFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawBlacklistPara)
 
+  // TotalSupply
+  lazy val totalSupplyFunc: Array[Byte] = ContractPermitted.totalSupplyFunc
+  val totalSupplyFuncBytes: Array[Byte] = ContractPermitted.totalSupplyFuncBytes
+
+  // MaxSupply
+  lazy val maxSupplyFunc: Array[Byte] = ContractPermitted.maxSupplyFunc
+  val maxSupplyFuncBytes: Array[Byte] = ContractPermitted.maxSupplyFuncBytes
+
+  // BalanceOf
+  lazy val balanceOfFunc: Array[Byte] = ContractPermitted.balanceOfFunc
+  val balanceOfFuncBytes: Array[Byte] = ContractPermitted.balanceOfFuncBytes
+
+  // GetIssuer
+  lazy val getIssuerFunc: Array[Byte] = ContractPermitted.getIssuerFunc
+  val getIssuerFuncBytes: Array[Byte] = ContractPermitted.getIssuerFuncBytes
+
 
 }
