@@ -32,4 +32,22 @@ object ContractTokenV2 {
   val stateMapBlacklist    = List("blacklist", "userAccount", "isInList")
   val listMap: StateMap    = StateMap(0.toByte, DataType.Account.id.toByte, DataType.Boolean.id.toByte)
 
+  // initTrigger
+  lazy val initFunc: Array[Byte] = ContractPermitted.initFunc
+  lazy val initFuncBytes: Array[Byte] = ContractPermitted.initFuncBytes
+
+  // Functions
+  // Supersede
+  lazy val supersedeFunc: Array[Byte] = ContractPermitted.supersedeFunc
+  val supersedeFuncBytes: Array[Byte] = ContractPermitted.supersedeFuncBytes
+
+  // Issue
+  lazy val issueFunc: Array[Byte] = ContractPermitted.issueFunc
+  val issueFuncBytes: Array[Byte] = ContractPermitted.issueFuncBytes
+
+  //destroy
+  lazy val destroyFunc: Array[Byte] = ContractPermitted.depositFunc
+  val destroyFuncBytes: Array[Byte] = ContractPermitted.depositFuncBytes
+
+
 }
