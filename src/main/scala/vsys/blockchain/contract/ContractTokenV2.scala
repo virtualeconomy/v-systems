@@ -7,19 +7,23 @@ import vsys.utils.serialization.Deser
 
 object ContractTokenV2 {
   lazy val contractTokenWhiteList: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
-    Seq(),
-    Seq(),
+    Seq(initFunc),
+    Seq(supersedeFunc, issueFunc, destroyFunc, updateListFunc,
+      sendWhitelistFunc, transferWhitelistFunc, depositWhitelistFunc, withdrawWhitelistFunc,
+      totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(listMap.arr),
-    Seq()
+    Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual)
   ).explicitGet()
 
   lazy val contractTokenBlackList: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
-    Seq(),
-    Seq(),
+    Seq(initFunc),
+    Seq(supersedeFunc, issueFunc, destroyFunc, updateListFunc,
+      sendBlacklistFunc, transferBlacklistFunc, depositBlacklistFunc, withdrawBlacklistFunc,
+      totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(listMap.arr),
-    Seq()
+    Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual)
   ).explicitGet()
 
   // StateVar
@@ -45,7 +49,7 @@ object ContractTokenV2 {
   lazy val issueFunc: Array[Byte] = ContractPermitted.issueFunc
   val issueFuncBytes: Array[Byte] = ContractPermitted.issueFuncBytes
 
-  //destroy
+  // Destroy
   lazy val destroyFunc: Array[Byte] = ContractPermitted.depositFunc
   val destroyFuncBytes: Array[Byte] = ContractPermitted.depositFuncBytes
 
@@ -186,5 +190,13 @@ object ContractTokenV2 {
   lazy val getIssuerFunc: Array[Byte] = ContractPermitted.getIssuerFunc
   val getIssuerFuncBytes: Array[Byte] = ContractPermitted.getIssuerFuncBytes
 
+  // Textual
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
+  lazy val descriptorWhitelistTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+    destroyFuncBytes, updateListFuncBytes, sendWhitelistFuncBytes, transferWhitelistFuncBytes, depositWhitelistFuncBytes, withdrawWhitelistFuncBytes,
+    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
+  lazy val descriptorBlacklistTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+    destroyFuncBytes, updateListFuncBytes, sendBlacklistFuncBytes, transferBlacklistFuncBytes, depositBlacklistFuncBytes, withdrawBlacklistFuncBytes,
+    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
 
 }
