@@ -139,7 +139,7 @@ object ContractNonFungibleV2 {
   val transferBlacklistFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
 
   // deposit
-  val depositId: Short = 4
+  val depositId: Short = 5
   val depositPara: Seq[String] = Seq("sender", "smart", "tokenIndex",
     "amount", "value", "isSenderInList", "isRecipientInList")
   val depositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Int32.id.toByte)
@@ -161,8 +161,34 @@ object ContractNonFungibleV2 {
   ) ++ blacklistCheck(0.toByte, 1.toByte) ++ Seq(
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
   )
-  lazy val depositBlacklistFunc: Array[Byte] = getFunctionBytes(depositId, publicFuncType, nonReturnType, depositDataType, depositWhitelistOpcs)
+  lazy val depositBlacklistFunc: Array[Byte] = getFunctionBytes(depositId, publicFuncType, nonReturnType, depositDataType, depositBlacklistOpcs)
   val depositBlacklistFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
+
+  // withdraw
+  val withdrawId: Short = 6
+  val withdrawPara: Seq[String] = Seq("smart", "recipient", "tokenIndex",
+    "amount", "value", "isSenderInList", "isRecipientInList")
+  val withdrawDataType: Array[Byte] = Array(DataType.ContractAccount.id.toByte, DataType.Account.id.toByte, DataType.Int32.id.toByte)
+
+  // whitelist withdraw
+  val withdrawWhitelistOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(1.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
+  ) ++ whitelistCheck(0.toByte, 1.toByte) ++ Seq(
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
+  )
+  lazy val withdrawWhitelistFunc: Array[Byte] = getFunctionBytes(withdrawId, publicFuncType, nonReturnType, withdrawDataType, withdrawWhitelistOpcs)
+  val withdrawWhitelistFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
+
+  // blacklist withdraw
+  val withdrawBlacklistOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(1.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
+  ) ++ whitelistCheck(0.toByte, 1.toByte) ++ Seq(
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
+  )
+  lazy val withdrawBlacklistFunc: Array[Byte] = getFunctionBytes(withdrawId, publicFuncType, nonReturnType, withdrawDataType, withdrawBlacklistOpcs)
+  val withdrawBlacklistFuncBytes: Array[Byte] = textualFunc("withdraw", Seq(), withdrawPara)
 
   private def whitelistCheck(sender: Byte, recipient: Byte): Seq[Array[Byte]] =
     Seq(
