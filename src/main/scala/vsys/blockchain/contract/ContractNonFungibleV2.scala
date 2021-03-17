@@ -6,7 +6,7 @@ import vsys.blockchain.state._
 import vsys.utils.serialization.Deser
 
 object ContractNonFungibleV2 {
-  lazy val contractNFTWhiteList: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
+  lazy val contractNFTWhitelist: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(),
     Seq(),
     Seq(),
@@ -14,7 +14,7 @@ object ContractNonFungibleV2 {
     Seq()
   ).explicitGet()
 
-  lazy val contractNFTBlackList: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
+  lazy val contractNFTBlacklist: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(),
     Seq(),
     Seq(),
@@ -85,5 +85,49 @@ object ContractNonFungibleV2 {
   )
   lazy val updateListFunc: Array[Byte] = getFunctionBytes(updateListId, publicFuncType, nonReturnType, updateListDataType, updateListOpcs)
   val updateListFuncBytes: Array[Byte] = textualFunc("updateList", Seq(), updateListPara)
+
+  // send
+  val sendId: Short = 3
+  val sendPara: Seq[String] = Seq("recipient", "tokenIndex",
+    "caller", "amount", "value", "isSenderInList", "isRecipientInList")
+  val sendDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Int32.id.toByte)
+
+  // whitelist
+  val sendWhitelistOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(2.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
+  ) ++ whitelistCheck(2.toByte, 0.toByte) ++ Seq(
+    tdbaTransfer ++ Array(2.toByte, 0.toByte, 3.toByte, 1.toByte)
+  )
+  lazy val sendWhitelistFunc: Array[Byte] = getFunctionBytes(sendId, publicFuncType, nonReturnType, sendDataType, sendWhitelistOpcs)
+  val sendWhitelistFuncBytes: Array[Byte] = textualFunc("send", Seq(), sendPara)
+
+  // blacklist
+  val sendBlacklistOpcs: Seq[Array[Byte]] = Seq(
+    loadCaller ++ Array(2.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
+  ) ++ blacklistCheck(2.toByte, 0.toByte) ++ Seq(
+    tdbaTransfer ++ Array(2.toByte, 0.toByte, 3.toByte, 1.toByte)
+  )
+  lazy val sendBlacklistFunc: Array[Byte] = getFunctionBytes(sendId, publicFuncType, nonReturnType, sendDataType, sendBlacklistOpcs)
+  val sendBlacklistFuncBytes: Array[Byte] = textualFunc("send", Seq(), sendPara)
+
+  private def whitelistCheck(sender: Byte, recipient: Byte): Seq[Array[Byte]] =
+    Seq(
+      basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, sender, 5.toByte),
+      assertEqual ++ Array(5.toByte, 4.toByte),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, recipient, 6.toByte),
+      assertEqual ++ Array(6.toByte, 4.toByte),
+    )
+
+  private def blacklistCheck(sender: Byte, recipient: Byte): Seq[Array[Byte]] =
+    Seq(
+      basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, sender, 5.toByte),
+      assertEqual ++ Array(5.toByte, 4.toByte),
+      cdbvrMapGetOrDefault ++ Array(listMap.index, recipient, 6.toByte),
+      assertEqual ++ Array(6.toByte, 4.toByte)
+    )
 
 }
