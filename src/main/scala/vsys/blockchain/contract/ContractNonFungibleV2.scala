@@ -7,19 +7,21 @@ import vsys.utils.serialization.Deser
 
 object ContractNonFungibleV2 {
   lazy val contractNFTWhitelist: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
-    Seq(),
-    Seq(),
-    Seq(),
-    Seq(),
-    Seq()
+    Seq(initFunc),
+    Seq(supersedeFunc, issueFunc, updateListFunc,
+      sendWhitelistFunc, transferWhitelistFunc, depositWhitelistFunc, withdrawWhitelistFunc),
+    Seq(issuerStateVar.arr, makerStateVar.arr),
+    Seq(listMap.arr),
+    Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual)
   ).explicitGet()
 
   lazy val contractNFTBlacklist: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
-    Seq(),
-    Seq(),
-    Seq(),
-    Seq(),
-    Seq()
+    Seq(initFunc),
+    Seq(supersedeFunc, issueFunc, updateListFunc,
+      sendBlacklistFunc, transferBlacklistFunc, depositBlacklistFunc, withdrawBlacklistFunc),
+    Seq(issuerStateVar.arr, makerStateVar.arr),
+    Seq(listMap.arr),
+    Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual)
   ).explicitGet()
 
   // StateVar
