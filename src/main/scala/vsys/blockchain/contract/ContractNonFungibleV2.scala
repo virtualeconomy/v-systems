@@ -126,7 +126,7 @@ object ContractNonFungibleV2 {
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
   )
   lazy val transferWhitelistFunc: Array[Byte] = getFunctionBytes(transferId, publicFuncType, nonReturnType, transferDataType, transferWhitelistOpcs)
-  val transferWhitelistBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
+  val transferWhitelistFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
 
   // blacklist transfer
   val transferBlacklistOpcs: Seq[Array[Byte]] = Seq(
@@ -136,7 +136,33 @@ object ContractNonFungibleV2 {
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
   )
   lazy val transferBlacklistFunc: Array[Byte] = getFunctionBytes(transferId, publicFuncType, nonReturnType, transferDataType, transferBlacklistOpcs)
-  val transferBlacklistBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
+  val transferBlacklistFuncBytes: Array[Byte] = textualFunc("transfer", Seq(), transferPara)
+
+  // deposit
+  val depositId: Short = 4
+  val depositPara: Seq[String] = Seq("sender", "smart", "tokenIndex",
+    "amount", "value", "isSenderInList", "isRecipientInList")
+  val depositDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.ContractAccount.id.toByte, DataType.Int32.id.toByte)
+
+  // whitelist deposit
+  val depositWhitelistOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
+  ) ++ whitelistCheck(0.toByte, 1.toByte) ++ Seq(
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
+  )
+  lazy val depositWhitelistFunc: Array[Byte] = getFunctionBytes(depositId, publicFuncType, nonReturnType, depositDataType, depositWhitelistOpcs)
+  val depositWhitelistFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
+
+  // blacklist deposit
+  val depositBlacklistOpcs: Seq[Array[Byte]] = Seq(
+    assertCaller ++ Array(0.toByte),
+    basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
+  ) ++ blacklistCheck(0.toByte, 1.toByte) ++ Seq(
+    tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
+  )
+  lazy val depositBlacklistFunc: Array[Byte] = getFunctionBytes(depositId, publicFuncType, nonReturnType, depositDataType, depositWhitelistOpcs)
+  val depositBlacklistFuncBytes: Array[Byte] = textualFunc("deposit", Seq(), depositPara)
 
   private def whitelistCheck(sender: Byte, recipient: Byte): Seq[Array[Byte]] =
     Seq(
