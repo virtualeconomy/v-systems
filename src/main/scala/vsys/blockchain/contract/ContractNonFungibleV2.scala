@@ -208,4 +208,13 @@ object ContractNonFungibleV2 {
       assertEqual ++ Array(6.toByte, 4.toByte)
     )
 
+  // textual
+  lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
+  lazy val descriptorWhitelistTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+    updateListFuncBytes, sendWhitelistFuncBytes, transferWhitelistFuncBytes,
+    depositWhitelistFuncBytes, withdrawWhitelistFuncBytes))
+  lazy val descriptorBlacklistTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
+    updateListFuncBytes, sendBlacklistFuncBytes, transferBlacklistFuncBytes,
+    depositBlacklistFuncBytes, withdrawBlacklistFuncBytes))
+
 }
