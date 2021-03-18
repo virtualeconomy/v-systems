@@ -12,7 +12,7 @@ object ContractNonFungibleV2 {
       sendWhitelistFunc, transferWhitelistFunc, depositWhitelistFunc, withdrawWhitelistFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(listMap.arr),
-    Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual)
+    Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual, stateMapWhitelistTextual)
   ).explicitGet()
 
   lazy val contractNFTBlacklist: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
@@ -21,7 +21,7 @@ object ContractNonFungibleV2 {
       sendBlacklistFunc, transferBlacklistFunc, depositBlacklistFunc, withdrawBlacklistFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(listMap.arr),
-    Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual)
+    Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual, stateMapBlacklistTextual)
   ).explicitGet()
 
   // StateVar
@@ -34,6 +34,8 @@ object ContractNonFungibleV2 {
   val stateMapWhitelist = List("whitelist", "userAccount", "isInList")
   val stateMapBlacklist = List("blacklist", "userAccount", "isInList")
   val listMap: StateMap = StateMap(0.toByte, DataType.Account.id.toByte, DataType.Boolean.id.toByte)
+  lazy val stateMapWhitelistTextual: Array[Byte] = textualStateMap(Seq(stateMapWhitelist))
+  lazy val stateMapBlacklistTextual: Array[Byte] = textualStateMap(Seq(stateMapBlacklist))
 
   // initTrigger
   val initId: Short = 0
