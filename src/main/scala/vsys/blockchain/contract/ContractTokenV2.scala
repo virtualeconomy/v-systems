@@ -13,7 +13,7 @@ object ContractTokenV2 {
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(listMap.arr),
-    Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual)
+    Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual, whitelistStateMapTextual)
   ).explicitGet()
 
   lazy val contractTokenBlackList: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
@@ -23,7 +23,7 @@ object ContractTokenV2 {
       totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
     Seq(issuerStateVar.arr, makerStateVar.arr),
     Seq(listMap.arr),
-    Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual)
+    Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual, blacklistStateMapTextual)
   ).explicitGet()
 
   // StateVar
@@ -35,6 +35,8 @@ object ContractTokenV2 {
   val stateMapWhitelist    = List("whitelist", "userAccount", "isInList")
   val stateMapBlacklist    = List("blacklist", "userAccount", "isInList")
   val listMap: StateMap    = StateMap(0.toByte, DataType.Account.id.toByte, DataType.Boolean.id.toByte)
+  lazy val whitelistStateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapWhitelist))
+  lazy val blacklistStateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBlacklist))
 
   // initTrigger
   lazy val initFunc: Array[Byte] = ContractPermitted.initFunc
@@ -55,14 +57,13 @@ object ContractTokenV2 {
 
   // Update List
   val updateListId: Short = 3
-  val updateListPara: Seq[String] = Seq("userAccount",
-    "issuer", "valueTrue")
-  val updateListDataType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val updateListPara: Seq[String] = Seq("userAccount", "value",
+    "issuer")
+  val updateListDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Boolean.id.toByte)
   val updateListOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrGet ++ Array(issuerStateVar.index, 1.toByte),
-    assertCaller ++ Array(1.toByte),
-    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(2.toByte),
-    cdbvMapSet ++ Array(listMap.index, 0.toByte, 2.toByte)
+    cdbvrGet ++ Array(issuerStateVar.index, 2.toByte),
+    assertCaller ++ Array(2.toByte),
+    cdbvMapSet ++ Array(listMap.index, 0.toByte, 1.toByte)
   )
   lazy val updateListFunc: Array[Byte] = getFunctionBytes(updateListId, publicFuncType, nonReturnType, updateListDataType, updateListOpcs)
   val updateListFuncBytes: Array[Byte] = textualFunc("updateList", Seq(), updateListPara)
