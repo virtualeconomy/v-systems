@@ -52,8 +52,8 @@ object ContractTokenV2 {
   val issueFuncBytes: Array[Byte] = ContractPermitted.issueFuncBytes
 
   // Destroy
-  lazy val destroyFunc: Array[Byte] = ContractPermitted.depositFunc
-  val destroyFuncBytes: Array[Byte] = ContractPermitted.depositFuncBytes
+  lazy val destroyFunc: Array[Byte] = ContractPermitted.destroyFunc
+  val destroyFuncBytes: Array[Byte] = ContractPermitted.destroyFuncBytes
 
   // Update List
   val updateListId: Short = 3
