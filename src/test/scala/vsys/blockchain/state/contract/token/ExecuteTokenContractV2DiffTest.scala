@@ -182,7 +182,8 @@ class ExecuteTokenContractV2DiffTest extends PropSpec
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, Long)] = for {
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, Long)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     newIssuer <- accountGen
     genesis <- genesisTokenGen(master, ts)
@@ -199,23 +200,24 @@ class ExecuteTokenContractV2DiffTest extends PropSpec
     executeContractDestroy <- destroyTokenGen(master, contractId, 10000L, description, fee, ts)
     executeContractUpdateList <- updateListTokenGen(master, contractId, master.toAddress,true, description, fee, ts)
     recipient <- mintingAddressGen
-    executeContractSend <- sendTokenGen(master, contractId, true, recipient, 100000L, description, fee, ts)
-    executeContractSelfSend <- sendTokenGen(master, contractId, true, master.toAddress, 100000L, description, fee, ts)
+    executeContractUpdateList2 <- updateListTokenGen(master, contractId, recipient,true, description, fee, ts)
+    executeContractSend <- sendTokenGen(master, contractId, recipient, 100000L, description, fee, ts)
+    executeContractSelfSend <- sendTokenGen(master, contractId, master.toAddress, 100000L, description, fee, ts)
     transferData = Seq(master.toAddress.bytes.arr, recipient.bytes.arr, Longs.toByteArray(1000L))
     transferType = Seq(DataType.Address, DataType.Address, DataType.Amount)
-    executeContractTransfer <- transferTokenGen(master, contractId, true, transferData, transferType, description, fee, ts)
-    executeContractTotalSupply <- totalSupplyTokenGen(master, contractId, true, description, fee, ts)
-    executeContractMaxSupply <- maxSupplyTokenGen(master, contractId, true, description, fee, ts)
-    executeContractBalanceOf <- balanceOfTokenGen(master, contractId, true, master.toAddress, description, fee, ts)
-    executeContractGetIssuer <- getIssuerTokenGen(master, contractId, true, description, fee, ts)
+    executeContractTransfer <- transferTokenGen(master, contractId, transferData, transferType, description, fee, ts)
+    executeContractTotalSupply <- totalSupplyTokenGen(master, contractId, description, fee, ts)
+    executeContractMaxSupply <- maxSupplyTokenGen(master, contractId, description, fee, ts)
+    executeContractBalanceOf <- balanceOfTokenGen(master, contractId, master.toAddress, description, fee, ts)
+    executeContractGetIssuer <- getIssuerTokenGen(master, contractId, description, fee, ts)
   } yield (genesis, genesis1, regContract, executeContractSupersede, executeContractIssue, executeContractIssue1,
-    executeContractDestroy, executeContractUpdateList, executeContractSend, executeContractSelfSend,
-    executeContractTransfer, executeContractTotalSupply, executeContractMaxSupply, executeContractBalanceOf,
-    executeContractGetIssuer, executeContractSelfSend.transactionFee)
+    executeContractDestroy, executeContractUpdateList, executeContractUpdateList2, executeContractSend,
+    executeContractSelfSend, executeContractTransfer, executeContractTotalSupply, executeContractMaxSupply,
+    executeContractBalanceOf, executeContractGetIssuer, executeContractSelfSend.transactionFee)
 
   property("execute token contract white v2 transaction supersede function successfully") {
     forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, genesis1, regContract, executeContractSupersede, executeContractIssue,
-    executeContractIssue1, _, _, _, _, _, _, _, _, _, _) =>
+    executeContractIssue1, _, _, _, _, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))), TestBlock.create(Seq(executeContractSupersede))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
@@ -239,7 +241,7 @@ class ExecuteTokenContractV2DiffTest extends PropSpec
 
   property("execute token contract white v2 transaction issue function successfully"){
     forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _,
-    executeContractIssue, _, _, _, _, _, _, _, _, _, _, _) =>
+    executeContractIssue, _, _, _, _, _, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.create(Seq(executeContractIssue))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
@@ -250,7 +252,7 @@ class ExecuteTokenContractV2DiffTest extends PropSpec
 
   property("execute token contract white v2 transaction destroy function successfully") {
     forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue, _,
-    executeContractDestroy, _, _, _, _, _, _, _, _, _) =>
+    executeContractDestroy, _, _, _, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))), TestBlock.create(Seq(executeContractDestroy))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
@@ -261,7 +263,7 @@ class ExecuteTokenContractV2DiffTest extends PropSpec
 
   property("execute token contract white v2 transaction updateList function successfully") {
     forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, _, _, _,
-    executeContractUpdateList, _, _, _, _, _, _, _, _) =>
+    executeContractUpdateList, _, _, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))), TestBlock.create(Seq(executeContractUpdateList))) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe false
@@ -270,6 +272,91 @@ class ExecuteTokenContractV2DiffTest extends PropSpec
     }
   }
 
-  
+  property("execute token contract white v2 transaction send function successfully") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue, _, _, executeContractUpdateList, executeContractUpdateList2,
+    executeContractSend, _, _, _, _, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue, executeContractUpdateList, executeContractUpdateList2))),
+        TestBlock.create(Seq(executeContractSend))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
+
+  property("execute token contract white v2 transaction send function self send successfully") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract: RegisterContractTransaction, _, executeContractIssue, _, _, executeContractUpdateList, _, _,
+    executeContractSelfSend: ExecuteContractFunctionTransaction, _, _, _, _, _, feeSelfSend: Long) =>
+      assertDiffAndState(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue, executeContractUpdateList))),
+        TestBlock.create(Seq(executeContractSelfSend))) { (blockDiff, newState) =>
+        val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
+        val sender = executeContractSelfSend.proofs.firstCurveProof.explicitGet().publicKey
+        totalPortfolioDiff.balance shouldBe -feeSelfSend
+        totalPortfolioDiff.effectiveBalance shouldBe -feeSelfSend
+        val contractId = regContract.contractId.bytes
+        val tokenId = tokenIdFromBytes(contractId.arr, Ints.toByteArray(0)).explicitGet()
+        val senderBalanceKey = ByteStr(Bytes.concat(tokenId.arr, sender.toAddress.bytes.arr))
+        val (_, senderTxs) = newState.accountTransactionIds(sender.toAddress, 10, 0)
+        senderTxs.size shouldBe 5 // genesis and payment, issue, updateList and send
+        newState.tokenAccountBalance(senderBalanceKey) shouldBe 100000L
+      }
+    }
+  }
+
+  property("execute token contract white v2 transaction transfer function to address successfully") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue, _, _, executeContractUpdateList,
+    executeContractUpdateList2, _, _, executeContractTransfer, _, _, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis)), TestBlock.create(Seq(regContract, executeContractIssue, executeContractUpdateList, executeContractUpdateList2))),
+        TestBlock.create(Seq(executeContractTransfer))) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe false
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+  }
+
+  property("execute token contract white v2 transaction totalSupply function unsupported") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue,
+    _, _, _, _, _, _, _, executeContractTotalSupply, _, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(executeContractTotalSupply), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+      }
+    }
+  }
+
+  property("execute token contract white v2 transaction maxSupply function unsupported") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue,
+    _, _, _, _, _, _, _, _, executeContractMaxSupply, _, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(executeContractMaxSupply), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+      }
+    }
+  }
+
+  property("execute token contract white v2 transaction balanceOf function unsupported") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue,
+    _, _, _, _, _, _, _, _, _, executeContractBalanceOf, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(executeContractBalanceOf), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+      }
+    }
+  }
+
+  property("execute token contract white v2 transaction getIssuer function unsupported") {
+    forAll(preconditionsAndExecuteContractTransactionWhite) { case (genesis, _, regContract, _, executeContractIssue,
+    _, _, _, _, _, _, _, _, _, _, executeContractGetIssuer, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(executeContractGetIssuer), TransactionStatus.ContractUnsupportedOPC)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractUnsupportedOPC
+      }
+    }
+  }
 
 }
