@@ -152,7 +152,8 @@ object Contract extends ScorexLogging {
       !(bytes sameElements ContractNonFungible.contract.bytes.arr) &&
       !(bytes sameElements ContractPaymentChannel.contract.bytes.arr) &&
       !(bytes sameElements ContractVSwap.contract.bytes.arr) &&
-      !(bytes sameElements ContractTokenV2.contractTokenWhiteList.bytes.arr)) {
+      !(bytes sameElements ContractTokenV2.contractTokenWhiteList.bytes.arr) &&
+      !(bytes sameElements ContractTokenV2.contractTokenBlackList.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||
