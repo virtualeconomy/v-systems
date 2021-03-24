@@ -3,7 +3,7 @@ package vsys.blockchain.contract.token
 import org.scalacheck.Gen
 import vsys.account.{Address, ContractAccount, PrivateKeyAccount}
 import vsys.blockchain.contract.ContractGenHelper._
-import vsys.blockchain.contract.{Contract, ContractTokenV2, DataEntry, DataType}
+import vsys.blockchain.contract.{Contract, ContractGenHelper, ContractTokenV2, DataEntry, DataType}
 import vsys.blockchain.state._
 import vsys.blockchain.transaction.contract.ExecuteContractFunctionTransaction
 
@@ -31,4 +31,46 @@ trait TokenContractV2Gen extends TokenContractGen {
     data: Seq[DataEntry] <- sendDataStackGen(rep, amount)
   } yield ExecuteContractFunctionTransaction.create(sender, contractId, sendIndex, data, attachment, fee, feeScale, ts).explicitGet()
 
+  def transferTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
+                       attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    for {
+      data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
+    } yield ExecuteContractFunctionTransaction.create(signer, contractId, transferIndex, data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def depositTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
+                      attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    for {
+      data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
+    } yield ExecuteContractFunctionTransaction.create(signer, contractId, depositIndex, data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def withdrawTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
+                       attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    for {
+      data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
+    } yield ExecuteContractFunctionTransaction.create(signer, contractId, withdrawIndex, data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def totalSupplyTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount,
+                          attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    ExecuteContractFunctionTransaction.create(signer, contractId, totalSupplyIndex, Nil, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def maxSupplyTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount,
+                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    ExecuteContractFunctionTransaction.create(signer, contractId, maxSupplyIndex, Nil, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def balanceOfTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, add: Address,
+                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    for {
+      data: Seq[DataEntry] <- addressDataStackGen(add)
+    } yield ExecuteContractFunctionTransaction.create(signer, contractId, balanceOfIndex, data, attachment, fee, feeScale, ts).explicitGet()
+  }
+
+  def getIssuerTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount,
+                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
+    ExecuteContractFunctionTransaction.create(signer, contractId, getIssuerIndex, Nil, attachment, fee, feeScale, ts).explicitGet()
+  }
 }
