@@ -17,11 +17,22 @@ trait TokenContractV2Gen extends TokenContractGen {
     v <- Gen.const(DataEntry(Array(b), DataType.Boolean))
   } yield Seq(u, v)
 
+  def updateListDataStackGen(user: ContractAccount, value: Boolean): Gen[Seq[DataEntry]] = for {
+    u <- Gen.const(DataEntry(user.bytes.arr, DataType.ContractAccount))
+    b: Byte = if (value) 1.toByte else 0.toByte
+    v <- Gen.const(DataEntry(Array(b), DataType.Boolean))
+  } yield Seq(u, v)
+
   def tokenContractV2Gen(white: Boolean): Gen[Contract] =
     if (white) ContractTokenV2.contractTokenWhiteList
     else ContractTokenV2.contractTokenBlackList
 
   def updateListTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, user: Address, value: Boolean,
+                         attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = for {
+    data: Seq[DataEntry] <- updateListDataStackGen(user, value)
+  } yield ExecuteContractFunctionTransaction.create(signer, contractId, updateListIndex, data, attachment, fee, feeScale, ts).explicitGet()
+
+  def updateListTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, user: ContractAccount, value: Boolean,
                          attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = for {
     data: Seq[DataEntry] <- updateListDataStackGen(user, value)
   } yield ExecuteContractFunctionTransaction.create(signer, contractId, updateListIndex, data, attachment, fee, feeScale, ts).explicitGet()
