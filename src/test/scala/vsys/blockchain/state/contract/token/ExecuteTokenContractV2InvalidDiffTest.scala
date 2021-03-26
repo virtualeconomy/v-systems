@@ -1,11 +1,13 @@
 package vsys.blockchain.state.contract.token
 
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Ints, Longs}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract.ContractGenHelper.feeScale
+import vsys.blockchain.contract.lock.LockContractGen
 import vsys.blockchain.contract.{Contract, ContractGenHelper, DataEntry, DataType}
 import vsys.blockchain.contract.token.TokenContractV2Gen
 import vsys.blockchain.state.EitherExt2
@@ -18,12 +20,14 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
   with GeneratorDrivenPropertyChecks
   with Matchers
   with TransactionGen
+  with LockContractGen
   with TokenContractV2Gen {
 
   private implicit def noShrink[A]: Shrink[A] = Shrink(_ => Stream.empty)
 
   val tokenContractWhiteV2: Gen[Contract] = tokenContractV2Gen(true)
   val tokenContractBlackV2: Gen[Contract] = tokenContractV2Gen(false)
+  val lockContract: Gen[Contract] = lockContractGen()
 
   val executeTokenContractWhiteWithInvalidData: Gen[(GenesisTransaction, RegisterContractTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
@@ -183,16 +187,22 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
   val preconditionsAndExecuteContractTransactionInvalidWhite: Gen[(GenesisTransaction, GenesisTransaction,
     RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     newIssuer <- accountGen
     genesis <- genesisTokenGen(master, ts)
     genesis1 <- genesisTokenGen(newIssuer, ts)
     contract <- tokenContractWhiteV2
+    contract2 <- lockContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
     regContract <- registerTokenGen(master, contract, dataStack, description, fee, ts)
+    blackTokenId = tokenIdFromBytes(regContract.contractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+    dataStack2 <- initLockContractDataStackGen(blackTokenId.arr)
+    regContract2 <- registerTokenGen(master, contract2, dataStack2, description, fee, ts)
     contractId = regContract.contractId
+    contractId2 = regContract2.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, description, fee, ts)
     executeContractIssue <- issueTokenGen(master, contractId, 100000L, description, fee, ts)
@@ -201,10 +211,21 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     invalidUpdateList <- updateListTokenGen(newIssuer, contractId, master.toAddress,true, description, fee, ts)
     recipient <- mintingAddressGen
     invalidSend <- sendTokenGen(master, contractId, recipient, 1000000L, description, fee, ts)
-  } yield (genesis, genesis1, regContract, invalidSupersede, executeContractIssue, invalidIssue, invalidDestroy, invalidUpdateList, invalidSend)
+    transferData = Seq(master.toAddress.bytes.arr, recipient.bytes.arr, Longs.toByteArray(1000L))
+    transferType = Seq(DataType.Address, DataType.Address, DataType.Amount)
+    invalidTransfer <- transferTokenGen(master, contractId, transferData, transferType, description, fee, ts)
+    depositData = Seq(master.toAddress.bytes.arr, contractId2.bytes.arr, Longs.toByteArray(0L))
+    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
+    invalidDeposit <- depositTokenGen(master, contractId, depositData, depositType, description, fee, ts)
+    withdrawData = Seq(contractId2.bytes.arr, master.toAddress.bytes.arr, Longs.toByteArray(0L))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Amount)
+    invalidWithdraw <- withdrawTokenGen(master, contractId, withdrawData, withdrawType, description, fee, ts)
+  } yield (genesis, genesis1, regContract, invalidSupersede, executeContractIssue, invalidIssue,
+    invalidDestroy, invalidUpdateList, invalidSend, invalidTransfer, invalidDeposit, invalidWithdraw)
 
   property("execute contract white v2 transaction invalid supersede function") {
-    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, genesis1, regContract, invalidSupersede, _, _, _, _, _) =>
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, genesis1, regContract,
+    invalidSupersede, _, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))), TestBlock.createWithTxStatus(Seq(invalidSupersede), TransactionStatus.ContractInvalidSigner)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
@@ -214,7 +235,8 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
   }
 
   property("execute contract white v2 transaction invalid issue function"){
-    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _, _, invalidIssue, _, _, _) =>
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _, _,
+    invalidIssue, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))),
         TestBlock.createWithTxStatus(Seq(invalidIssue), TransactionStatus.ContractTokenMaxExceeded)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -225,7 +247,8 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
   }
 
   property("execute contract white v2 transaction invalid destroy function") {
-    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _, executeContractIssue, _, invalidDestroy, _, _) =>
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _,
+    executeContractIssue, _, invalidDestroy, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
         TestBlock.createWithTxStatus(Seq(invalidDestroy), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -236,7 +259,8 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
   }
 
   property("execute contract white v2 transaction updateList function invalid caller") {
-    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, genesis1, regContract, _, _, _, _, invalidUpdateList, _) =>
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, genesis1, regContract, _, _,
+    _, _, invalidUpdateList, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))), TestBlock.createWithTxStatus(Seq(invalidUpdateList), TransactionStatus.ContractInvalidCaller)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.tokenDB.isEmpty shouldBe true
@@ -245,10 +269,47 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     }
   }
 
-  property("execute contract white v2 transaction send function failed with invalid sender") {
-    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _, executeContractIssue, _, _, _, invalidSend) =>
+  property("execute contract white v2 transaction send function failed with sender not in white list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, invalidSend, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
         TestBlock.createWithTxStatus(Seq(invalidSend), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("execute contract white v2 transaction transfer function failed with sender not in white list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, _, invalidTransfer, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(invalidTransfer), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("execute contract white v2 transaction deposit function failed with sender not in white list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, _, _, invalidDeposit, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(invalidDeposit), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("execute contract white v2 transaction withdraw function failed with sender not in white list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidWhite) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, _, _, _, invalidWithdraw) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
+        TestBlock.createWithTxStatus(Seq(invalidWithdraw), TransactionStatus.Failed)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
@@ -399,16 +460,22 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
   val preconditionsAndExecuteContractTransactionInvalidBlack: Gen[(GenesisTransaction, GenesisTransaction,
     RegisterContractTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
     ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     newIssuer <- accountGen
     genesis <- genesisTokenGen(master, ts)
     genesis1 <- genesisTokenGen(newIssuer, ts)
     contract <- tokenContractBlackV2
+    contract2 <- lockContract
     dataStack: Seq[DataEntry] <- initTokenDataStackGen(100000000L, 100L, "init")
     description <- validDescStringGen
     regContract <- registerTokenGen(master, contract, dataStack, description, fee, ts)
+    blackTokenId = tokenIdFromBytes(regContract.contractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+    dataStack2 <- initLockContractDataStackGen(blackTokenId.arr)
+    regContract2 <- registerTokenGen(master, contract2, dataStack2, description, fee, ts)
     contractId = regContract.contractId
+    contractId2 = regContract2.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, description, fee, ts)
     executeContractIssue <- issueTokenGen(master, contractId, 100000L, description, fee, ts)
@@ -418,12 +485,21 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     recipient <- mintingAddressGen
     updateList <- updateListTokenGen(master, contractId, master.toAddress,true, description, fee, ts)
     invalidSend <- sendTokenGen(master, contractId, recipient, 1000L, description, fee, ts)
+    transferData = Seq(master.toAddress.bytes.arr, recipient.bytes.arr, Longs.toByteArray(1000L))
+    transferType = Seq(DataType.Address, DataType.Address, DataType.Amount)
+    invalidTransfer <- transferTokenGen(master, contractId, transferData, transferType, description, fee, ts)
+    depositData = Seq(master.toAddress.bytes.arr, contractId2.bytes.arr, Longs.toByteArray(0L))
+    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Amount)
+    invalidDeposit <- depositTokenGen(master, contractId, depositData, depositType, description, fee, ts)
+    withdrawData = Seq(contractId2.bytes.arr, master.toAddress.bytes.arr, Longs.toByteArray(0L))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Amount)
+    invalidWithdraw <- withdrawTokenGen(master, contractId, withdrawData, withdrawType, description, fee, ts)
   } yield (genesis, genesis1, regContract, invalidSupersede, executeContractIssue, invalidIssue, invalidDestroy,
-    invalidUpdateList, invalidSend, updateList)
+    invalidUpdateList, invalidSend, updateList, invalidTransfer, invalidDeposit, invalidWithdraw)
 
   property("execute contract black v2 transaction invalid supersede function") {
     forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, genesis1, regContract,
-    invalidSupersede, _, _, _, _, _, _) =>
+    invalidSupersede, _, _, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))), TestBlock.createWithTxStatus(Seq(invalidSupersede), TransactionStatus.ContractInvalidSigner)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.contractDB.isEmpty shouldBe true
@@ -434,7 +510,7 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
 
   property("execute contract black v2 transaction invalid issue function"){
     forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, _, regContract, _, _,
-    invalidIssue, _, _, _, _) =>
+    invalidIssue, _, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract))),
         TestBlock.createWithTxStatus(Seq(invalidIssue), TransactionStatus.ContractTokenMaxExceeded)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -446,7 +522,7 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
 
   property("execute contract black v2 transaction invalid destroy function") {
     forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, _, regContract, _,
-    executeContractIssue, _, invalidDestroy, _, _, _) =>
+    executeContractIssue, _, invalidDestroy, _, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue))),
         TestBlock.createWithTxStatus(Seq(invalidDestroy), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -458,7 +534,7 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
 
   property("execute contract black v2 transaction updateList function invalid caller") {
     forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, genesis1, regContract, _, _, _,
-    _, invalidUpdateList, _, _) =>
+    _, invalidUpdateList, _, _, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, genesis1, regContract))),
         TestBlock.createWithTxStatus(Seq(invalidUpdateList), TransactionStatus.ContractInvalidCaller)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
@@ -468,11 +544,47 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     }
   }
 
-  property("execute contract black v2 transaction send function failed with invalid sender") {
+  property("execute contract black v2 transaction send function failed with sender in black list") {
     forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, _, regContract, _,
-    executeContractIssue, _, _, _, invalidSend, updateList) =>
+    executeContractIssue, _, _, _, invalidSend, updateList, _, _, _) =>
       assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue, updateList))),
         TestBlock.createWithTxStatus(Seq(invalidSend), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("execute contract black v2 transaction transfer function failed with sender in black list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, _, updateList, invalidTransfer, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue, updateList))),
+        TestBlock.createWithTxStatus(Seq(invalidTransfer), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("execute contract black v2 transaction deposit function failed with sender in black list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, _, updateList, _, invalidDeposit, _) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue, updateList))),
+        TestBlock.createWithTxStatus(Seq(invalidDeposit), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi shouldBe an[Right[_, _]]
+        blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  property("execute contract black v2 transaction withdraw function failed with sender in black list") {
+    forAll(preconditionsAndExecuteContractTransactionInvalidBlack) { case (genesis, _, regContract, _,
+    executeContractIssue, _, _, _, _, updateList, _, _, invalidWithdraw) =>
+      assertDiffEi(Seq(TestBlock.create(Seq(genesis, regContract, executeContractIssue, updateList))),
+        TestBlock.createWithTxStatus(Seq(invalidWithdraw), TransactionStatus.Failed)) { blockDiffEi =>
         blockDiffEi shouldBe an[Right[_, _]]
         blockDiffEi.explicitGet().txsDiff.tokenAccountBalance.isEmpty shouldBe true
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
