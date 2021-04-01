@@ -88,7 +88,7 @@ trait TokenContractGen {
     } yield ExecuteContractFunctionTransaction.create(sender, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def transferTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, split: Boolean, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def transferTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, split: Boolean, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = if (split) transferIndex else (transferIndex - 1).toShort
     for {
@@ -96,7 +96,7 @@ trait TokenContractGen {
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def depositTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, split: Boolean, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def depositTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, split: Boolean, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = if (split) depositIndex else (depositIndex - 1).toShort
     for {
@@ -104,7 +104,7 @@ trait TokenContractGen {
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def withdrawTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, split: Boolean, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def withdrawTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, split: Boolean, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                       attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = if (split) withdrawIndex else (withdrawIndex - 1).toShort
     for {
