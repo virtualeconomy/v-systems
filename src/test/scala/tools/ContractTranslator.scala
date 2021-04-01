@@ -21,7 +21,7 @@ import vsys.utils.serialization.Deser
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractPaymentChannel.contract.bytes.arr
+  val bytes = ContractAtomicSwap.contract.bytes.arr
 
   println(Base58.encode(bytes))
   print("Contract Bytes Length:")
@@ -168,7 +168,7 @@ object ContractTranslator extends App {
   }
 
   def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[Seq[String]])]): Unit = {
-    if (t.isFailure) println("Invalid Texture")
+    if (t.isFailure) println("Invalid Textural")
     else {
       val r = t.get
       val (trig, desc, stav, stam) = r
