@@ -11,7 +11,7 @@ import vsys.blockchain.transaction.contract.{ExecuteContractFunctionTransaction,
 
 trait VEscrowContractGen {
 
-  val supersedeIndex: Short = 0
+  val vEscrowsupersedeIndex: Short = 0
   val createIndex: Short = 1
   val recipientDepositIndex: Short = 2
   val judgeDepositIndex: Short = 3
@@ -41,7 +41,7 @@ trait VEscrowContractGen {
                          ts: Long): Gen[RegisterContractTransaction] =
     RegisterContractTransaction.create(signer, contract, dataStack, description, fee, feeScale, ts).explicitGet()
 
-  def addressDataStackGen(address: Address): Gen[Seq[DataEntry]] = for {
+  def vEscrowAddressDataStackGen(address: Address): Gen[Seq[DataEntry]] = for {
     addr <- Gen.const(DataEntry.create(address.bytes.arr, DataType.Address).right.get)
   } yield Seq(addr)
 
@@ -117,9 +117,9 @@ trait VEscrowContractGen {
                           attachment: Array[Byte],
                           fee: Long,
                           ts: Long): Gen[ExecuteContractFunctionTransaction] = {
-    val id: Short = supersedeIndex
+    val id: Short = vEscrowsupersedeIndex
     for {
-      data: Seq[DataEntry] <- addressDataStackGen(newJudge)
+      data: Seq[DataEntry] <- vEscrowAddressDataStackGen(newJudge)
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id,
       data, attachment, fee, feeScale, ts).explicitGet()
   }
