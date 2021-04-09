@@ -58,7 +58,7 @@ trait VEscrowContractGen {
     judgeDeposit <- Gen.const(DataEntry.create(Longs.toByteArray(judgeDeposit), DataType.Amount).right.get)
     fee <- Gen.const(DataEntry.create(Longs.toByteArray(fee), DataType.Amount).right.get)
     refund <- Gen.const(DataEntry.create(Longs.toByteArray(refund), DataType.Amount).right.get)
-    expirationTime <- Gen.const(DataEntry.create(Longs.toByteArray(expirationTime), DataType.Amount).right.get)
+    expirationTime <- Gen.const(DataEntry.create(Longs.toByteArray(expirationTime), DataType.Timestamp).right.get)
   } yield Seq(recipient, amount, repDeposit, judgeDeposit, fee, refund, expirationTime)
 
   def escrowDepositDataStackGen(orderId: Array[Byte]): Gen[Seq[DataEntry]] = for {
