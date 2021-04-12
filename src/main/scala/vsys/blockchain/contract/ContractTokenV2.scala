@@ -10,8 +10,8 @@ object ContractTokenV2 {
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, destroyFunc, updateListFunc,
       sendWhitelistFunc, transferWhitelistFunc, depositWhitelistFunc, withdrawWhitelistFunc,
-      totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
-    Seq(issuerStateVar.arr, makerStateVar.arr),
+      totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc, getRegulatorFunc),
+    Seq(issuerStateVar.arr, makerStateVar.arr, regulatorStateVar.arr),
     Seq(listMap.arr),
     Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual, whitelistStateMapTextual)
   ).explicitGet()
@@ -20,16 +20,18 @@ object ContractTokenV2 {
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, destroyFunc, updateListFunc,
       sendBlacklistFunc, transferBlacklistFunc, depositBlacklistFunc, withdrawBlacklistFunc,
-      totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc),
-    Seq(issuerStateVar.arr, makerStateVar.arr),
+      totalSupplyFunc, maxSupplyFunc, balanceOfFunc, getIssuerFunc, getRegulatorFunc),
+    Seq(issuerStateVar.arr, makerStateVar.arr, regulatorStateVar.arr),
     Seq(listMap.arr),
     Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual, blacklistStateMapTextual)
   ).explicitGet()
 
   // StateVar
-  val issuerStateVar: StateVar  = StateVar(0.toByte, DataType.Address.id.toByte)
-  val makerStateVar: StateVar   = StateVar(1.toByte, DataType.Address.id.toByte)
-  lazy val stateVarTextual: Array[Byte] = ContractPermitted.stateVarTextual
+  val stateVarName = List("issuer", "maker", "regulator")
+  val issuerStateVar: StateVar      = StateVar(0.toByte, DataType.Address.id.toByte)
+  val makerStateVar: StateVar       = StateVar(1.toByte, DataType.Address.id.toByte)
+  val regulatorStateVar: StateVar   = StateVar(2.toByte, DataType.Address.id.toByte)
+  lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // State Map
   val stateMapWhitelist    = List("whitelist", "userAccount", "isInList")
@@ -39,21 +41,41 @@ object ContractTokenV2 {
   lazy val blacklistStateMapTextual: Array[Byte] = textualStateMap(Seq(stateMapBlacklist))
 
   // initTrigger
-  lazy val initFunc: Array[Byte] = ContractPermitted.initFunc
-  lazy val initFuncBytes: Array[Byte] = ContractPermitted.initFuncBytes
+  val initId: Short = 0
+  val initPara: Seq[String] = Seq("max", "unity", "tokenDescription",
+                                  "signer")
+  val initDataType: Array[Byte] = Array(DataType.Amount.id.toByte, DataType.Amount.id.toByte, DataType.ShortText.id.toByte)
+  val initOpcs: Seq[Array[Byte]] = Seq(
+    loadSigner ++ Array(3.toByte),
+    cdbvSet ++ Array(issuerStateVar.index, 3.toByte),
+    cdbvSet ++ Array(makerStateVar.index, 3.toByte),
+    cdbvSet ++ Array(regulatorStateVar.index, 3.toByte),
+    tdbNewToken ++ Array(0.toByte, 1.toByte, 2.toByte))
+  lazy val initFunc: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initOpcs)
+  lazy val initFuncBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Functions
   // Supersede
-  lazy val supersedeFunc: Array[Byte] = ContractPermitted.supersedeFunc
-  val supersedeFuncBytes: Array[Byte] = ContractPermitted.supersedeFuncBytes
+  val supersedeId: Short = 0
+  val supersedeIdWithoutSplit: Short = 0
+  val supersedePara: Seq[String] = Seq("newIssuer", "newRegulator",
+                                       "maker")
+  val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte)
+  val supersedeOpcs: Seq[Array[Byte]] =  Seq(
+    cdbvrGet ++ Array(makerStateVar.index, 2.toByte),
+    assertSigner ++ Array(2.toByte),
+    cdbvSet ++ Array(issuerStateVar.index, 0.toByte),
+    cdbvSet ++ Array(regulatorStateVar.index, 1.toByte))
+  lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
+  val supersedeFuncBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
   // Issue
   lazy val issueFunc: Array[Byte] = ContractPermitted.issueFunc
   val issueFuncBytes: Array[Byte] = ContractPermitted.issueFuncBytes
 
   // Destroy
-  lazy val destroyFunc: Array[Byte] = ContractPermitted.depositFunc
-  val destroyFuncBytes: Array[Byte] = ContractPermitted.depositFuncBytes
+  lazy val destroyFunc: Array[Byte] = ContractPermitted.destroyFunc
+  val destroyFuncBytes: Array[Byte] = ContractPermitted.destroyFuncBytes
 
   // Update List
   val updateListId: Short = 3
@@ -61,7 +83,7 @@ object ContractTokenV2 {
     "issuer")
   val updateListDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Boolean.id.toByte)
   val updateListOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrGet ++ Array(issuerStateVar.index, 2.toByte),
+    cdbvrGet ++ Array(regulatorStateVar.index, 2.toByte),
     assertCaller ++ Array(2.toByte),
     cdbvMapSet ++ Array(listMap.index, 0.toByte, 1.toByte)
   )
@@ -191,13 +213,24 @@ object ContractTokenV2 {
   lazy val getIssuerFunc: Array[Byte] = ContractPermitted.getIssuerFunc
   val getIssuerFuncBytes: Array[Byte] = ContractPermitted.getIssuerFuncBytes
 
+  // GetRegulator
+  val getRegulatorId: Short = 12
+  val getRegulatorPara: Seq[String] = Seq(
+    "regulator")
+  val getRegulatorDataType: Array[Byte] = Array()
+  val getRegulatorOpcs: Seq[Array[Byte]] = Seq(
+    cdbvrGet ++ Array(regulatorStateVar.index, 0.toByte),
+    returnValue ++ Array(0.toByte))
+  lazy val getRegulatorFunc: Array[Byte] = getFunctionBytes(getRegulatorId, publicFuncType, Array(DataType.Account.id.toByte), getRegulatorDataType, getRegulatorOpcs)
+  val getRegulatorFuncBytes: Array[Byte] = textualFunc("getRegulator", Seq("regulator"), getRegulatorPara)
+
   // Textual
   lazy val triggerTextual: Array[Byte] = Deser.serializeArrays(Seq(initFuncBytes))
   lazy val descriptorWhitelistTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
     destroyFuncBytes, updateListFuncBytes, sendWhitelistFuncBytes, transferWhitelistFuncBytes, depositWhitelistFuncBytes, withdrawWhitelistFuncBytes,
-    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
+    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes, getRegulatorFuncBytes))
   lazy val descriptorBlacklistTextual: Array[Byte] = Deser.serializeArrays(Seq(supersedeFuncBytes, issueFuncBytes,
     destroyFuncBytes, updateListFuncBytes, sendBlacklistFuncBytes, transferBlacklistFuncBytes, depositBlacklistFuncBytes, withdrawBlacklistFuncBytes,
-    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes))
+    totalSupplyFuncBytes, maxSupplyFuncBytes, balanceOfFuncBytes, getIssuerFuncBytes, getRegulatorFuncBytes))
 
 }
