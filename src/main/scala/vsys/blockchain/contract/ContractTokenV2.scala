@@ -80,7 +80,7 @@ object ContractTokenV2 {
   // Update List
   val updateListId: Short = 3
   val updateListPara: Seq[String] = Seq("userAccount", "value",
-    "issuer")
+    "regulator")
   val updateListDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Boolean.id.toByte)
   val updateListOpcs: Seq[Array[Byte]] = Seq(
     cdbvrGet ++ Array(regulatorStateVar.index, 2.toByte),
