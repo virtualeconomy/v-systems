@@ -10,7 +10,7 @@ object ContractNonFungibleV2 {
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, updateListFunc,
       sendWhitelistFunc, transferWhitelistFunc, depositWhitelistFunc, withdrawWhitelistFunc),
-    Seq(issuerStateVar.arr, makerStateVar.arr),
+    Seq(issuerStateVar.arr, makerStateVar.arr, regulatorStateVar.arr),
     Seq(listMap.arr),
     Seq(triggerTextual, descriptorWhitelistTextual, stateVarTextual, stateMapWhitelistTextual)
   ).explicitGet()
@@ -19,15 +19,16 @@ object ContractNonFungibleV2 {
     Seq(initFunc),
     Seq(supersedeFunc, issueFunc, updateListFunc,
       sendBlacklistFunc, transferBlacklistFunc, depositBlacklistFunc, withdrawBlacklistFunc),
-    Seq(issuerStateVar.arr, makerStateVar.arr),
+    Seq(issuerStateVar.arr, makerStateVar.arr, regulatorStateVar.arr),
     Seq(listMap.arr),
     Seq(triggerTextual, descriptorBlacklistTextual, stateVarTextual, stateMapBlacklistTextual)
   ).explicitGet()
 
   // StateVar
-  val stateVarName = List("issuer", "maker")
+  val stateVarName = List("issuer", "maker", "regulator")
   val issuerStateVar: StateVar = StateVar(0.toByte, DataType.Address.id.toByte)
   val makerStateVar: StateVar = StateVar(1.toByte, DataType.Address.id.toByte)
+  val regulatorStateVar: StateVar = StateVar(2.toByte, DataType.Address.id.toByte)
   lazy val stateVarTextual: Array[Byte] = Deser.serializeArrays(stateVarName.map(x => Deser.serilizeString(x)))
 
   // StateMap
@@ -45,20 +46,22 @@ object ContractNonFungibleV2 {
   val initOpcs: Seq[Array[Byte]] = Seq(
     loadSigner ++ Array(0.toByte),
     cdbvSet ++ Array(issuerStateVar.index, 0.toByte),
-    cdbvSet ++ Array(makerStateVar.index, 0.toByte))
+    cdbvSet ++ Array(makerStateVar.index, 0.toByte),
+    cdbvSet ++ Array(regulatorStateVar.index, 0.toByte))
   lazy val initFunc: Array[Byte] = getFunctionBytes(initId, onInitTriggerType, nonReturnType, initDataType, initOpcs)
   lazy val initFuncBytes: Array[Byte] = textualFunc("init", Seq(), initPara)
 
   // Functions
   // Supersede
   val supersedeId: Short = 0
-  val supersedePara: Seq[String] = Seq("newIssuer",
+  val supersedePara: Seq[String] = Seq("newIssuer", "newRegulator",
     "maker")
-  val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte)
+  val supersedeDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Account.id.toByte)
   val supersedeOpcs: Seq[Array[Byte]] =  Seq(
-    cdbvrGet ++ Array(makerStateVar.index, 1.toByte),
-    assertSigner ++ Array(1.toByte),
-    cdbvSet ++ Array(issuerStateVar.index, 0.toByte))
+    cdbvrGet ++ Array(makerStateVar.index, 2.toByte),
+    assertSigner ++ Array(2.toByte),
+    cdbvSet ++ Array(issuerStateVar.index, 0.toByte),
+    cdbvSet ++ Array(regulatorStateVar.index, 1.toByte))
   lazy val supersedeFunc: Array[Byte] = getFunctionBytes(supersedeId, publicFuncType, nonReturnType, supersedeDataType, supersedeOpcs)
   val supersedeFuncBytes: Array[Byte] = textualFunc("supersede", Seq(), supersedePara)
 
@@ -80,10 +83,10 @@ object ContractNonFungibleV2 {
   // update list
   val updateListId: Short = 2
   val updateListPara: Seq[String] = Seq("userAccount", "value",
-    "issuer")
+    "regulator")
   val updateListDataType: Array[Byte] = Array(DataType.Account.id.toByte, DataType.Boolean.id.toByte)
   val updateListOpcs: Seq[Array[Byte]] = Seq(
-    cdbvrGet ++ Array(issuerStateVar.index, 2.toByte),
+    cdbvrGet ++ Array(regulatorStateVar.index, 2.toByte),
     assertCaller ++ Array(2.toByte),
     cdbvMapSet ++ Array(listMap.index, 0.toByte, 1.toByte)
   )
