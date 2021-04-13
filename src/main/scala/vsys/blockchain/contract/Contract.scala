@@ -152,7 +152,9 @@ object Contract extends ScorexLogging {
       !(bytes sameElements ContractNonFungible.contract.bytes.arr) &&
       !(bytes sameElements ContractPaymentChannel.contract.bytes.arr) &&
       !(bytes sameElements ContractAtomicSwap.contract.bytes.arr) &&
-      !(bytes sameElements ContractVSwap.contract.bytes.arr)) {
+      !(bytes sameElements ContractVSwap.contract.bytes.arr) &&
+      !(bytes sameElements ContractNonFungibleV2.contractNFTWhitelist.bytes.arr) &&
+      !(bytes sameElements ContractNonFungibleV2.contractNFTBlacklist.bytes.arr)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||
