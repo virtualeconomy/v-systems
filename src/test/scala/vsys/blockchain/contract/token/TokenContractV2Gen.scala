@@ -11,6 +11,11 @@ trait TokenContractV2Gen extends TokenContractGen {
 
   val updateListIndex: Short = 3
 
+  def supersedeDataStackGen(address1: Address, address2: Address): Gen[Seq[DataEntry]] = for {
+    add1 <- Gen.const(DataEntry(address1.bytes.arr, DataType.Address))
+    add2 <- Gen.const(DataEntry(address2.bytes.arr, DataType.Address))
+  } yield Seq(add1, add2)
+
   def updateListDataStackGen(user: Address, value: Boolean): Gen[Seq[DataEntry]] = for {
     u <- Gen.const(DataEntry(user.bytes.arr, DataType.Address))
     b: Byte = if (value) 1.toByte else 0.toByte
@@ -26,6 +31,11 @@ trait TokenContractV2Gen extends TokenContractGen {
   def tokenContractV2Gen(white: Boolean): Gen[Contract] =
     if (white) ContractTokenV2.contractTokenWhiteList
     else ContractTokenV2.contractTokenBlackList
+
+  def supersedeTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, add1: Address, add2: Address,
+                        attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = for {
+    data: Seq[DataEntry] <- supersedeDataStackGen(add1, add2)
+  } yield ExecuteContractFunctionTransaction.create(signer, contractId, supersedeIndex, data, attachment, fee, feeScale, ts).explicitGet()
 
   def updateListTokenGen(signer: PrivateKeyAccount, contractId: ContractAccount, user: Address, value: Boolean,
                          attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = for {
