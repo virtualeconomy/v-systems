@@ -43,7 +43,7 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     descEx <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
     dataForIssueDestorySplit: Seq[DataEntry] <- amountDataStackGen(10000L)
     dataForSend: Seq[DataEntry] <- sendDataStackGen(rep, 100L)
-    dataForSupersede: Seq[DataEntry] <- addressDataStackGen(rep)
+    dataForSupersede: Seq[DataEntry] <- supersedeDataStackGen(rep, rep)
     invalidIssue: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master,
       contractId, issueIndex, dataForSend, descEx, fee, feeScale, ts + 1000).explicitGet()
     invalidUpdateList: ExecuteContractFunctionTransaction = ExecuteContractFunctionTransaction.create(master,
@@ -204,7 +204,7 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     contractId = regContract.contractId
     contractId2 = regContract2.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, description, fee, ts)
+    invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, newIssuer.toAddress, description, fee, ts)
     executeContractIssue <- issueTokenGen(master, contractId, 100000L, description, fee, ts)
     invalidIssue <- issueTokenGen(master, contractId, 100000001L, description, fee, ts)
     invalidDestroy <- destroyTokenGen(master, contractId, 100001L, description, fee, ts)
@@ -477,7 +477,7 @@ class ExecuteTokenContractV2InvalidDiffTest extends PropSpec
     contractId = regContract.contractId
     contractId2 = regContract2.contractId
     description <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
-    invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, description, fee, ts)
+    invalidSupersede <- supersedeTokenGen(newIssuer, contractId, newIssuer.toAddress, newIssuer.toAddress, description, fee, ts)
     executeContractIssue <- issueTokenGen(master, contractId, 100000L, description, fee, ts)
     invalidIssue <- issueTokenGen(master, contractId, 100000001L, description, fee, ts)
     invalidDestroy <- destroyTokenGen(master, contractId, 100001L, description, fee, ts)
