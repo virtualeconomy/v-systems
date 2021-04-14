@@ -25,7 +25,7 @@ case class DataEntry(data: Array[Byte],
 
   private def toJson(d: Array[Byte], t: DataType.Value): JsValue = {
     t match {
-      case DataType.PublicKey => Json.toJson(PublicKeyAccount(d).address)
+      case DataType.PublicKey => Json.toJson(Base58.encode(PublicKeyAccount(d).publicKey))
       case DataType.Address => Json.toJson(Address.fromBytes(d).right.get.address)
       case DataType.Amount => Json.toJson(Longs.fromByteArray(d))
       case DataType.Int32 => Json.toJson(Ints.fromByteArray(d))
