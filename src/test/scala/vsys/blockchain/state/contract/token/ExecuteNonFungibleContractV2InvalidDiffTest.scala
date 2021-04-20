@@ -65,6 +65,7 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
         TestBlock.createWithTxStatus(updateList2.timestamp, Seq(updateList2), TransactionStatus.Success)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
+      // update list not with a NFT contract owner
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(reg.timestamp, Seq(reg, issue))),
         TestBlock.createWithTxStatus(updateList3.timestamp, Seq(updateList3), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
@@ -415,17 +416,17 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
 
-      // depositor on black list
+      // master depositor on black list
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(updateList1.timestamp, Seq(regContractBlack, regContractLock, issue, updateList1))),
         TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Failed)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
 
-        // depositor on black list
-        assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(updateList1.timestamp, Seq(regContractBlack, regContractLock, issue, updateList1))),
-          TestBlock.createWithTxStatus(depositInvalid.timestamp, Seq(depositInvalid), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
-          blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
-        }
+      // user depositor try to deposit
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(updateList1.timestamp, Seq(regContractBlack, regContractLock, issue))),
+        TestBlock.createWithTxStatus(depositInvalid.timestamp, Seq(depositInvalid), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
+      }
 
       // deposit into a wrong contract
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(updateList1.timestamp, Seq(regContractBlack, regContractLock, issue))),
@@ -496,12 +497,12 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
           TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Success)) { (blockDiff, _) =>
           blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
         }
-        // only update depositor to whitelist
+        // only update master depositor to whitelist
         assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1))),
           TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Failed)) { (blockDiff, _) =>
           blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
         }
-        // only update contract to whitelist before withdraw
+        // only update contract to whitelist
         assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList2))),
           TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Failed)) { (blockDiff, _) =>
           blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
@@ -515,7 +516,7 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
     }
 
   val preconditionsNonFungibleBlackContractV2WithdrawInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction,
-    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
     (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
     contractBlack <- nonFungibleBlackContract
     user <- accountGen
@@ -542,6 +543,10 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
     updateListType = Seq(DataType.Address, DataType.Boolean)
     updateList1 <- updateListNonFungibleV2Gen(master, contractBlackId, updateListData, updateListType, attach, fee, ts)
 
+    updateListData = Seq(contractLockId.bytes.arr, Array(1.toByte))
+    updateListType = Seq(DataType.ContractAccount, DataType.Boolean)
+    updateList2 <- updateListNonFungibleV2Gen(master, contractBlackId, updateListData, updateListType, attach, fee, ts)
+
     depositData = Seq(master.toAddress.bytes.arr, contractLockId.bytes.arr, Ints.toByteArray(0))
     depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Int32)
     deposit <- depositNonFungibleV2Gen(master, contractBlackId, depositData, depositType, attach, fee, ts)
@@ -554,20 +559,27 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
     withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Int32)
     withdrawInvalid <- withdrawNonFungibleV2Gen(master, contractBlackId, withdrawData, withdrawType, attach, fee, ts)
 
-  } yield (genesis, genesis2, regContractBlack, regContractLock, issue, updateList1, deposit, withdraw, withdrawInvalid)
+  } yield (genesis, genesis2, regContractBlack, regContractLock, issue, updateList1, updateList2, deposit, withdraw, withdrawInvalid)
 
   property("Execute withdraw in non fungible black contract") {
     forAll(preconditionsNonFungibleBlackContractV2WithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regContractBlack: RegisterContractTransaction, regContractLock: RegisterContractTransaction,
-    issue: ExecuteContractFunctionTransaction, updateList1: ExecuteContractFunctionTransaction, deposit: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, withdrawInvalid: ExecuteContractFunctionTransaction) =>
+    issue: ExecuteContractFunctionTransaction, updateList1: ExecuteContractFunctionTransaction, updateList2: ExecuteContractFunctionTransaction, deposit: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, withdrawInvalid: ExecuteContractFunctionTransaction) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit))),
         TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Success)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
-      // update blacklist before withdraw
+      // update master withdrawer into blacklist before withdraw
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit, updateList1))),
         TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
+
+      // update contract into blacklist before withdraw
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit, updateList2))),
+        TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+
       // withdraw with a wrong caller
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit))),
         TestBlock.createWithTxStatus(withdrawInvalid.timestamp, Seq(withdrawInvalid), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
@@ -638,7 +650,7 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
         TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Success)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
-      // only update depositor to whitelist before withdraw
+      // only update withdrawer to whitelist before withdraw
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1, updateList2, deposit, updateList3))),
         TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
