@@ -1,15 +1,13 @@
 package vsys.blockchain.state.contract.token
 
-import cats.Monoid
 import vsys.blockchain.state._
-import com.google.common.primitives.{Bytes, Ints, Shorts}
+import com.google.common.primitives.{Bytes, Ints}
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract.{Contract, ContractGenHelper, DataEntry, DataType}
-import vsys.blockchain.contract.ContractGenHelper.{feeScale, genBoundedString}
 import vsys.blockchain.contract.lock.LockContractGen
 import vsys.blockchain.contract.token.NonFungibleContractV2Gen
 import vsys.blockchain.state.ByteStr
