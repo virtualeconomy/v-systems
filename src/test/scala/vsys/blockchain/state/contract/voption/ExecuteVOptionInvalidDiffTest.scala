@@ -1,4 +1,4 @@
-package test.scala.vsys.blockchain.state.contract.voption
+package vsys.blockchain.state.contract.voption
 
 import com.google.common.primitives.Ints
 import org.scalacheck.{Gen, Shrink}
