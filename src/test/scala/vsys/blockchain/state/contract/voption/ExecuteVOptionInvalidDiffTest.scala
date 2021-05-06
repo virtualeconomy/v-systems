@@ -1,9 +1,13 @@
 package test.scala.vsys.blockchain.state.contract.voption
 
+import com.google.common.primitives.Ints
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
+import vsys.blockchain.contract.ContractGenHelper.basicContractTestGen
+import vsys.blockchain.contract.DataEntry
 import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.contract.voption.{VOptionContractGen, VOptionFunctionHelperGen}
 import vsys.blockchain.state.diffs._
@@ -441,6 +445,40 @@ class ExecuteVOptionInvalidDiffTest extends PropSpec
         blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
         blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
         blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  val preconditionsAndVOptionDepositSameInputTokens: Gen[(GenesisTransaction, RC, RC, EC, EC)] = for {
+    (master, ts, fee) <- basicContractTestGen()
+    genesis <- genesisVOptionGen(master, ts)
+    user <- accountGen
+    genesis2 <- genesisVOptionGen(user, ts)
+    vOptionContract <- vOptionContractGen()
+    // register base token
+    regBaseTokenContract <- registerToken(master, 1000000000, 1000, "init", fee + 10000000000L, ts)
+    baseTokenContractId = regBaseTokenContract.contractId
+    baseTokenId = tokenIdFromBytes(baseTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+
+    // issue base token
+    attach <- genBoundedString(2, EC.MaxDescriptionSize)
+    issueBaseToken <- issueToken(master, baseTokenContractId, 1000000000, fee, ts + 5)
+
+    // register VOption contract with same token Ids
+    description <- validDescStringGen
+    initVOptionDataStack: Seq[DataEntry] <- initVOptionDataStackGen(baseTokenId.arr, baseTokenId.arr, baseTokenId.arr, baseTokenId.arr, ts + 100, ts + 200)
+    regVOptionContract <- registerVOptionGen(master, vOptionContract, initVOptionDataStack, description, fee + 10000000000L, ts + 4)
+    vOptionContractId = regVOptionContract.contractId
+
+    invalidDeposit <- depositToken(master, baseTokenContractId, master.toAddress.bytes.arr, vOptionContractId.bytes.arr, 1000000000, fee + 10000000000L, ts + 9)
+  } yield (genesis, regBaseTokenContract, regVOptionContract, issueBaseToken, invalidDeposit)
+
+  property("unable to deposit tokens when 4 input token ids are the same") {
+    forAll(preconditionsAndVOptionDepositSameInputTokens) { case (genesis: GenesisTransaction, regBaseTokenContract: RC, regVOptionContract: RC, issueBaseToken: EC,
+    invalidDeposit: EC) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(issueBaseToken.timestamp, Seq(regBaseTokenContract, regVOptionContract, issueBaseToken))),
+        TestBlock.createWithTxStatus(invalidDeposit.timestamp, Seq(invalidDeposit), TransactionStatus.Failed)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
     }
   }

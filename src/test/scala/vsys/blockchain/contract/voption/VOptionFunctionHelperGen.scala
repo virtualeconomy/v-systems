@@ -109,7 +109,7 @@ trait VOptionFunctionHelperGen extends VOptionContractGen with TokenContractGen 
     proofTokenContractId = regProofTokenContract.contractId
     proofTokenId = tokenIdFromBytes(proofTokenContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
 
-    // register VSwap contract
+    // register VOption contract
     description <- validDescStringGen
     initVOptionDataStack: Seq[DataEntry] <- initVOptionDataStackGen(baseTokenId.arr, targetTokenId.arr, optionTokenId.arr, proofTokenId.arr, ts + 100, ts + 200)
     regVOptionContract <- registerVOptionGen(master, vOptionContract, initVOptionDataStack, description, fee + 10000000000L, ts + 4)
