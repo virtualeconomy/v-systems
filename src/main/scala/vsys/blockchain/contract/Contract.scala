@@ -79,6 +79,22 @@ object Contract extends ScorexLogging {
   val LanguageVersionByteLength = 4
   val LanguageCodeByte: Array[Byte] = Deser.serilizeString("vdds")
   val LanguageVersionByte: Array[Byte] = Ints.toByteArray(1)
+  val validContractBytesList: Seq[Array[Byte]] = Seq(
+    ContractPermitted.contract.bytes.arr,
+    ContractPermitted.contractWithoutSplit.bytes.arr,
+    ContractLock.contract.bytes.arr,
+    ContractNonFungible.contract.bytes.arr,
+    ContractPaymentChannel.contract.bytes.arr,
+    ContractAtomicSwap.contract.bytes.arr,
+    ContractVSwap.contract.bytes.arr,
+    ContractVOption.contract.bytes.arr,
+    ContractVStableSwap.contract.bytes.arr,
+    ContractVEscrow.contract.bytes.arr,
+    ContractTokenV2.contractTokenWhiteList.bytes.arr,
+    ContractTokenV2.contractTokenBlackList.bytes.arr,
+    ContractNonFungibleV2.contractNFTWhitelist.bytes.arr,
+    ContractNonFungibleV2.contractNFTBlacklist.bytes.arr
+  )
 
   def buildContract(languageCode: Array[Byte], languageVersion: Array[Byte],
                     trigger: Seq[Array[Byte]], descriptor: Seq[Array[Byte]],
@@ -144,16 +160,13 @@ object Contract extends ScorexLogging {
   def checkStateMap(stateMap: Array[Byte], keyDataType: DataType.DataTypeVal[_], valueDataType: DataType.DataTypeVal[_]): Boolean =
     stateMap.length == 3 && DataType.check(keyDataType.id.toByte, stateMap(1)) && DataType.check(valueDataType.id.toByte, stateMap(2))
 
+  private def checkContractBytes(bytes: Array[Byte]): Boolean = {
+    validContractBytesList.forall(y => !(bytes sameElements y))
+  }
+
   private def isByteArrayValid(bytes: Array[Byte], textual: Seq[Array[Byte]]): Boolean = {
     val textualStr = textualFromBytes(textual)
-    if (!(bytes sameElements ContractPermitted.contract.bytes.arr) &&
-      !(bytes sameElements ContractPermitted.contractWithoutSplit.bytes.arr) &&
-      !(bytes sameElements ContractLock.contract.bytes.arr) &&
-      !(bytes sameElements ContractNonFungible.contract.bytes.arr) &&
-      !(bytes sameElements ContractPaymentChannel.contract.bytes.arr) &&
-      !(bytes sameElements ContractVSwap.contract.bytes.arr) &&
-      !(bytes sameElements ContractTokenV2.contractTokenWhiteList.bytes.arr) &&
-      !(bytes sameElements ContractTokenV2.contractTokenBlackList.bytes.arr)) {
+    if (checkContractBytes(bytes)) {
       log.warn(s"Illegal contract ${bytes.mkString(" ")}")
       false
     } else if (textualStr.isFailure ||
