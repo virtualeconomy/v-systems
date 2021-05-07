@@ -6,7 +6,6 @@ import org.scalacheck.{Gen, Shrink}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import scorex.crypto.hash.Sha256
-import vsys.account.ContractAccount
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
