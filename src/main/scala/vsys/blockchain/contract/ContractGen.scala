@@ -66,6 +66,10 @@ object ContractGen {
   val basicConstantGet         = Array(11.toByte, 8.toByte)
   val basicSqrtBigint          = Array(11.toByte, 9.toByte)
   val basicConvert             = Array(11.toByte, 10.toByte)
+  val basicAnd                 = Array(11.toByte, 11.toByte)
+  val basicOr                  = Array(11.toByte, 12.toByte)
+  val basicXor                 = Array(11.toByte, 13.toByte)
+  val basicNot                 = Array(11.toByte, 14.toByte)
 
   val conditionIf             = Array(12.toByte, 1.toByte)
   val conditionIfElse         = Array(12.toByte, 1.toByte)

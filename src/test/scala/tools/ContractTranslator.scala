@@ -175,7 +175,7 @@ object ContractTranslator extends App {
   }
 
   def printTextual(t: Try[(Seq[Seq[String]], Seq[Seq[String]], Seq[String], Seq[Seq[String]])]): Unit = {
-    if (t.isFailure) println("Invalid Texture")
+    if (t.isFailure) println("Invalid Textural")
     else {
       val r = t.get
       val (trig, desc, stav, stam) = r
