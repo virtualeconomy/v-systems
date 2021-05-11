@@ -30,7 +30,8 @@ object FunctionalitySettings {
   val configPath = "vsys.blockchain.custom.functionality"
 }
 
-case class StateSettings(txTypeAccountTxIds: Boolean)
+case class StateSettings(txTypeAccountTxIds: Boolean,
+                         txContractTxIds: Boolean)
 
 object StateSettings {
   val configPath = "vsys.blockchain.state"

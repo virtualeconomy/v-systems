@@ -3,7 +3,7 @@ package vsys.blockchain.state.opcdiffs
 import cats.Monoid
 import com.google.common.primitives.{Bytes, Ints, Longs}
 import vsys.blockchain.state._
-import vsys.account.{Address, ContractAccount}
+import vsys.account.{Account, Address, ContractAccount}
 import vsys.blockchain.transaction.ValidationError
 import vsys.blockchain.transaction.ValidationError._
 import vsys.account.ContractAccount.tokenIdFromBytes
@@ -131,12 +131,12 @@ object TDBAOpcDiff extends OpcDiffer {
         // relatedContract needed
         for {
           senderCallDiff <- getTriggerCallOpcDiff(context, OpcDiff.empty, sender, recipient, amount, tokenIdDataEntry, CallType.Trigger, 2)
-          senderRelatedAddress = if (sender.dataType == DataType.Address) Map(Address.fromBytes(sender.data).explicitGet() -> true) else Map[Address, Boolean]()
+          senderRelatedAddress = Map[Account, Boolean](Account.fromBytes(sender.data,0).explicitGet()._1 -> true)
           senderDiff = OpcDiff(relatedAddress = senderRelatedAddress,
             tokenAccountBalance = Map(senderBalanceKey -> -transferAmount))
           senderTotalDiff = OpcDiff.opcDiffMonoid.combine(senderCallDiff, senderDiff)
           recipientCallDiff <- getTriggerCallOpcDiff(context, senderTotalDiff, sender, recipient, amount, tokenIdDataEntry, CallType.Trigger, 1)
-          recipientRelatedAddress = if (recipient.dataType == DataType.Address) Map(Address.fromBytes(recipient.data).explicitGet() -> true) else Map[Address, Boolean]()
+          recipientRelatedAddress = Map[Account, Boolean](Account.fromBytes(recipient.data,0).explicitGet()._1 -> true)
           recipientDiff = OpcDiff(relatedAddress = recipientRelatedAddress,
             tokenAccountBalance = Map(recipientBalanceKey -> transferAmount))
           returnDiff = Monoid.combineAll(Seq(senderTotalDiff, recipientCallDiff, recipientDiff))
