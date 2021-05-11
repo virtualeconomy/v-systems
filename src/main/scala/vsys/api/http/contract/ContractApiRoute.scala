@@ -27,7 +27,12 @@ import ContractApiRoute._
 
 @Path("/contract")
 @Api(value = "/contract")
-case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time, state: StateReader)
+case class ContractApiRoute (settings: RestAPISettings,
+                             wallet: Wallet,
+                             utx: UtxPool,
+                             allChannels: ChannelGroup,
+                             time: Time,
+                             state: StateReader)
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
@@ -314,7 +319,6 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       }
     }
   }
-
 }
 
 object ContractApiRoute {

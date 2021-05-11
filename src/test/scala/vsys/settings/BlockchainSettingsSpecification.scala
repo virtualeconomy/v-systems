@@ -51,6 +51,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |    }
         |    state {
         |      tx-type-account-tx-ids = on
+        |      tx-contract-tx-ids = on
         |    }
         |  }
         |}""".stripMargin))
@@ -84,6 +85,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
         |    type = TESTNET
         |    state {
         |      tx-type-account-tx-ids = off
+        |      tx-contract-tx-ids = off
         |    }
         |  }
         |}""".stripMargin))
