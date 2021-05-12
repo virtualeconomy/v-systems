@@ -208,10 +208,15 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         val vOptionContractId = registerVOption.contractId.bytes.arr
 
         val (optionStatusKey, maxIssueNumKey, reservedOptionKey,
-        reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, tokenCollectedKey) = getOptionContractStateVarKeys(vOptionContractId)
+        reservedProofKey, priceKey, priceUnitKey, tokenLockedKey, _) = getOptionContractStateVarKeys(vOptionContractId)
 
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe 1000L
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe 1000L
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe 0L
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe 0L
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
@@ -270,6 +275,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe 1000L
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe 500L
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe 500L
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe 500L
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
@@ -330,6 +340,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
 
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe 1000L
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe 510L
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe 490L
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe 490L
+
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
         newState.contractNumInfo(reservedOptionKey) shouldBe 510L // maxIssueNum 1000, mint 500, unlock 10
@@ -387,6 +402,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe 899L
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe 910L
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe 90L
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe 100L
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
@@ -449,6 +469,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
 
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe 919L
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe 608L
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe 490L
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe 400L
+
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(1000L), DataType.Amount))
         newState.contractNumInfo(reservedOptionKey) shouldBe 510L // maxIssueNum 1000, mint 500, execute 10
@@ -482,9 +507,9 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         Long.MaxValue, // optionTokenDepositAmount
         Long.MaxValue) // proofTokenDepositAmount
 
-    activateOption <- activateVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, Long.MaxValue, 1L, attach, fee, ts + 13)
+    activateOption <- activateVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, Long.MaxValue, Long.MaxValue, attach, fee, ts + 13)
     mintOption <- mintVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, attach, fee, ts + 14)
-    executeOption <- executeVOptionGen(master, regVOptionContract.contractId, Long.MaxValue, attach, fee, ts + 101)
+    executeOption <- executeVOptionGen(master, regVOptionContract.contractId, Long.MaxValue - 1, attach, fee, ts + 101)
 
   } yield (genesis, regBaseTokenContract, regTargetTokenContract, regOptionTokenContract, regProofTokenContract, regVOptionContract, issueBaseToken, issueTargetToken,
     issueOptionToken, issueProofToken, depositBaseToken, depositTargetToken, depositOptionToken, depositProofToken, activateOption, mintOption, executeOption)
@@ -510,13 +535,18 @@ class ExecuteVOptionValidDiffTest extends PropSpec
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
 
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe 0L
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe Long.MaxValue - 1
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe 1L
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe Long.MaxValue
+
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
-        newState.contractNumInfo(reservedOptionKey) shouldBe Long.MaxValue
+        newState.contractNumInfo(reservedOptionKey) shouldBe Long.MaxValue - 1
         newState.contractNumInfo(reservedProofKey) shouldBe 0L
         newState.contractInfo(priceKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
-        newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(1L), DataType.Amount))
-        newState.contractNumInfo(tokenLockedKey) shouldBe 0L
+        newState.contractInfo(priceUnitKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
+        newState.contractNumInfo(tokenLockedKey) shouldBe 1L
 
         val master = registerVOption.proofs.firstCurveProof.explicitGet().publicKey
 
@@ -593,6 +623,11 @@ class ExecuteVOptionValidDiffTest extends PropSpec
 
         val (userStateMapBaseTokenBalanceKey, userStateMapTargetTokenBalanceKey,
         userStateMapOptionTokenBalanceKey, userStateMapProofTokenBalanceKey) = getOptionContractStateMapKeys(vOptionContractId, user)
+
+        newState.contractNumInfo(userStateMapBaseTokenBalanceKey) shouldBe Long.MaxValue
+        newState.contractNumInfo(userStateMapTargetTokenBalanceKey) shouldBe Long.MaxValue
+        newState.contractNumInfo(userStateMapOptionTokenBalanceKey) shouldBe Long.MaxValue
+        newState.contractNumInfo(userStateMapProofTokenBalanceKey) shouldBe 0L
 
         newState.contractInfo(optionStatusKey) shouldBe Some(DataEntry(Array(1.toByte), DataType.Boolean))
         newState.contractInfo(maxIssueNumKey) shouldBe Some(DataEntry(Longs.toByteArray(Long.MaxValue), DataType.Amount))
