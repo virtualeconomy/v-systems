@@ -39,15 +39,19 @@ object CommonValidation {
     else Right(tx)
   }
 
+  private def isTokenContracts(c: Contract): Boolean =
+    c == ContractPermitted.contract || c == ContractPermitted.contractWithoutSplit
+
+  private def isDepositWithdrawContracts(c: Contract): Boolean =
+    c == ContractLock.contract || c == ContractPaymentChannel.contract || c == ContractNonFungible.contract
+
   private def disallowInvalidContractTxs[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T, c: Contract): Either[ValidationError, T] = {
     if (h <= settings.allowContractTransactionAfterHeight)
       Left(GenericError(s"must not appear before height=${settings.allowContractTransactionAfterHeight}"))
-    else if (h <= settings.allowDepositWithdrawContractAfterHeight &&
-       (c == ContractLock.contract ||
-        c == ContractNonFungible.contract ||
-        c == ContractPaymentChannel.contract ||
-        c == ContractAtomicSwap.contract))
+    else if (h <= settings.allowDepositWithdrawContractAfterHeight && !isTokenContracts(c))
       Left(GenericError(s"deposit withdraw contracts must not appear before height=${settings.allowDepositWithdrawContractAfterHeight}"))
+    else if (h <= settings.allowExchangeContractAfterHeight && !isTokenContracts(c) && !isDepositWithdrawContracts(c))
+      Left(GenericError(s"exchange contracts must not appear before height=${settings.allowExchangeContractAfterHeight}"))
     else Right(tx)
   }
 
