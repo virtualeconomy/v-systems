@@ -133,24 +133,21 @@ object ContractVStableSwap {
     cdbvrGet ++ Array(targetTokenIdStateVar.index, 4.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
     compareBytesEqual ++ Array(2.toByte, 3.toByte, 6.toByte),
-    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
-        assertEqual ++ Array(5.toByte, 7.toByte),
         cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(8.toByte),
-    compareBytesEqual ++ Array(2.toByte, 4.toByte, 9.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(7.toByte),
+    compareBytesEqual ++ Array(2.toByte, 4.toByte, 8.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
-        assertEqual ++ Array(5.toByte, 7.toByte),
         cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(10.toByte),
-    conditionIf ++ Array(6.toByte, 8.toByte),
-    conditionIf ++ Array(9.toByte, 10.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(9.toByte),
+    conditionIf ++ Array(6.toByte, 7.toByte),
+    conditionIf ++ Array(8.toByte, 9.toByte),
     assertTrue ++ Array(5.toByte)
   )
   lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
