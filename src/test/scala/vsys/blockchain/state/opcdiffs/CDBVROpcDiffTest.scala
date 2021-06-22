@@ -55,6 +55,10 @@ class CDBVROpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
         Longs.toByteArray(1), DataType.Timestamp), Seq.empty, 0) should be (
       Right(Seq(DataEntry(Longs.toByteArray(0), DataType.Timestamp))))
     CDBVROpcDiff.mapGetOrDefault(executionContext)(
+      Array[Byte](0.toByte, 9.toByte, 10.toByte), DataEntry(
+        Longs.toByteArray(1), DataType.Timestamp), Seq.empty, 0) should be (
+      Right(Seq(DataEntry(Array(0.toByte), DataType.Boolean))))
+    CDBVROpcDiff.mapGetOrDefault(executionContext)(
       Array[Byte](0.toByte, 3.toByte, 3.toByte), DataEntry(
         Ints.toByteArray(1), DataType.Int32), Seq.empty, 0) should be (
       Left(ContractInvalidStateMap))

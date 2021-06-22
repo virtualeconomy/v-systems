@@ -47,7 +47,7 @@ object DataType extends Enumeration {
     maxLen            = KeyLength,
     deserializer      = PublicKeyAccount(_),
     serializer        = p => p.publicKey,
-    jsonifier         = p => Json.toJson(p.address),
+    jsonifier         = p => Json.toJson(Base58.encode(p.publicKey)),
     extValidator      = _ => true)
 
   val Address         = DataTypeVal[vsys.account.Address](2,
