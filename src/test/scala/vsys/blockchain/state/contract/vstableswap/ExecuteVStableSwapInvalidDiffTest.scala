@@ -1,9 +1,12 @@
 package vsys.blockchain.state.contract.vstableswap
 
+import com.google.common.primitives.Ints
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
+import vsys.blockchain.contract.ContractGenHelper.basicContractTestGen
 import vsys.blockchain.contract.token.SystemContractGen
 import vsys.blockchain.contract.vstableswap.{VStableSwapContractGen, VStableSwapFunctionHelperGen}
 import vsys.blockchain.state.diffs._
@@ -281,6 +284,46 @@ class ExecuteVStableSwapInvalidDiffTest extends PropSpec
       assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(closeOrder.timestamp, Seq(regBase, regTarget, regVStableSwap, issueBase, issueTarget, depositBase, depositTarget, setOrder, closeOrder))),
         TestBlock.createWithTxStatus(swapBaseToTarget.timestamp, Seq(swapBaseToTarget), TransactionStatus.Failed)) { blockDiffEi =>
         blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  val preconditionsAndVStableSwapSameTokenId: Gen[(GenesisTransaction, RC, RC, EC, EC, EC, EC)] = for {
+    (master, ts, fee) <- basicContractTestGen()
+    genesis <- genesisVStableSwapGen(master, ts)
+    vStableSwapContract <- vStableSwapContractGen()
+    // Register base token
+    regTokenBase <- registerToken(master, 1000000, 100, "init", fee, ts)
+    tokenBaseContractId = regTokenBase.contractId
+    tokenBaseId = tokenIdFromBytes(tokenBaseContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+    description <- validDescStringGen
+    initVStableSwapDataStack <- initVStableSwapDataStackGen(tokenBaseId.arr, tokenBaseId.arr, 5, 1, 1)
+    regVStableSwapContract <- registerVStableSwapGen(master, vStableSwapContract, initVStableSwapDataStack, description, fee, ts + 2)
+    issueTokenBase <- issueToken(master, tokenBaseContractId, 1000000, fee, ts + 3)
+    depositBase <- depositToken(master, tokenBaseContractId, master.toAddress.bytes.arr, regVStableSwapContract.contractId.bytes.arr, 1000, fee, ts + 4)
+    withdrawBase0 <- withdrawToken(master, tokenBaseContractId, regVStableSwapContract.contractId.bytes.arr, master.toAddress.bytes.arr, 0, fee, ts + 5)
+    withdrawBaseInvalid <- withdrawToken(master, tokenBaseContractId, regVStableSwapContract.contractId.bytes.arr, master.toAddress.bytes.arr, 1000, fee, ts + 5)
+  } yield (genesis, regTokenBase, regVStableSwapContract, issueTokenBase, depositBase, withdrawBase0, withdrawBaseInvalid)
+
+  property("unable to deposit when token id is duplicated") {
+    forAll(preconditionsAndVStableSwapSameTokenId) { case (genesis: GenesisTransaction, regBase: RC, regVStableSwap: RC, issueBase: EC, depositBase: EC, _, _) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(issueBase.timestamp, Seq(regBase, regVStableSwap, issueBase))),
+        TestBlock.createWithTxStatus(depositBase.timestamp, Seq(depositBase), TransactionStatus.Failed)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+
+    forAll(preconditionsAndVStableSwapSameTokenId) { case (genesis: GenesisTransaction, regBase: RC, regVStableSwap: RC, issueBase: EC, _, withdraw0: EC, _) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(issueBase.timestamp, Seq(regBase, regVStableSwap, issueBase))),
+        TestBlock.createWithTxStatus(withdraw0.timestamp, Seq(withdraw0), TransactionStatus.Success)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+    }
+
+    forAll(preconditionsAndVStableSwapSameTokenId) { case (genesis: GenesisTransaction, regBase: RC, regVStableSwap: RC, issueBase: EC, _, _, withdrawInvalid: EC) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(issueBase.timestamp, Seq(regBase, regVStableSwap, issueBase))),
+        TestBlock.createWithTxStatus(withdrawInvalid.timestamp, Seq(withdrawInvalid), TransactionStatus.ContractTokenBalanceInsufficient)) { blockDiffEi =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.ContractTokenBalanceInsufficient
       }
     }
   }
