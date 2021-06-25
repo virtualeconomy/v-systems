@@ -143,6 +143,7 @@ class Application(val actorSystem: ActorSystem, val settings: VsysSettings) exte
     // on unexpected shutdown
     sys.addShutdownHook {
       network.shutdown()
+      peerDatabase.close()
       shutdown()
     }
 

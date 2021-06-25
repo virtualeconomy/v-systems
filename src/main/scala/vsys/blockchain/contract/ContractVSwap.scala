@@ -65,7 +65,7 @@ object ContractVSwap {
   val depositId: Short = 1
   val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId") ++
                                  Seq("tokenAId", "tokenBId", "tokenLiquidityId", "isValidTokenId",
-                                     "isTokenA", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
+                                     "isTokenA", "valueFalse", "tokenAIfBlock", "isTokenB", "tokenBIfBlock",
                                      "isTokenLiquidity", "tokenLiquidityIfBlock")
   val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
@@ -75,29 +75,33 @@ object ContractVSwap {
     cdbvrGet ++ Array(tokenLiquidityIdStateVar.index, 5.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
     compareBytesEqual ++ Array(2.toByte, 3.toByte, 7.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(8.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
+        assertEqual ++ Array(6.toByte, 8.toByte),
         cdbvMapValAdd ++ Array(tokenABalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(8.toByte),
-    compareBytesEqual ++ Array(2.toByte, 4.toByte, 9.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(9.toByte),
+    compareBytesEqual ++ Array(2.toByte, 4.toByte, 10.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
+        assertEqual ++ Array(6.toByte, 8.toByte),
         cdbvMapValAdd ++ Array(tokenBBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(10.toByte),
-    compareBytesEqual ++ Array(2.toByte, 5.toByte, 11.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(11.toByte),
+    compareBytesEqual ++ Array(2.toByte, 5.toByte, 12.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
+        assertEqual ++ Array(6.toByte, 8.toByte),
         cdbvMapValAdd ++ Array(liquidityBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(6.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(12.toByte),
-    conditionIf ++ Array(7.toByte, 8.toByte),
-    conditionIf ++ Array(9.toByte, 10.toByte),
-    conditionIf ++ Array(11.toByte, 12.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(13.toByte),
+    conditionIf ++ Array(7.toByte, 9.toByte),
+    conditionIf ++ Array(10.toByte, 11.toByte),
+    conditionIf ++ Array(12.toByte, 13.toByte),
     assertTrue ++ Array(6.toByte)
   )
   lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)

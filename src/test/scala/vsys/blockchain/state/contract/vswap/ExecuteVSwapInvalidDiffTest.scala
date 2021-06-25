@@ -1,11 +1,15 @@
 package vsys.blockchain.state.contract.vswap
 
+import com.google.common.primitives.Ints
 import org.scalacheck.{Gen, Shrink}
 import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 import org.scalatest.{Matchers, PropSpec}
+import vsys.account.ContractAccount.tokenIdFromBytes
 import vsys.blockchain.block.TestBlock
 import vsys.blockchain.contract.token.{SystemContractGen, TokenContractGen}
 import vsys.blockchain.contract.vswap.{VSwapContractGen, VSwapFunctionHelperGen}
+import vsys.blockchain.contract.ContractGenHelper.basicContractTestGen
+import vsys.blockchain.contract.DataEntry
 import vsys.blockchain.state.diffs._
 import vsys.blockchain.transaction.contract._
 import vsys.blockchain.transaction.{GenesisTransaction, TransactionGen, TransactionStatus}
@@ -392,6 +396,39 @@ class ExecuteVSwapInvalidDiffTest extends PropSpec
         blockDiffEi.txsDiff.contractNumDB.isEmpty shouldBe true
         blockDiffEi.txsDiff.portfolios.isEmpty shouldBe false
         blockDiffEi.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+    }
+  }
+
+  val preconditionsAndVSwapDepositSameInputTokens: Gen[(GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction)] = for {
+    (master, ts, fee) <- basicContractTestGen()
+    genesis <- genesisVSwapGen(master, ts)
+    vSwapContract <- vSwapContractGen()
+    // register base token
+    regTokenAContract <- registerToken(master, 1000000000, 1000, "init", fee + 10000000000L, ts)
+    tokenAContractId = regTokenAContract.contractId
+    tokenAId = tokenIdFromBytes(tokenAContractId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+
+    // issue base token
+    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    issueTokenA <- issueToken(master, tokenAContractId, 1000000000, fee, ts + 5)
+
+    // register VSwap contract with same token Ids
+    description <- validDescStringGen
+    initVSwapDataStack: Seq[DataEntry] <- initVSwapDataStackGen(tokenAId.arr, tokenAId.arr, tokenAId.arr, 100)
+    regVSwapContract <- registerVSwapGen(master, vSwapContract, initVSwapDataStack, description, fee + 10000000000L, ts + 4)
+    vSwapContractId = regVSwapContract.contractId
+
+    invalidDeposit <- depositToken(master, tokenAContractId, master.toAddress.bytes.arr, vSwapContractId.bytes.arr, 1000000000, fee + 10000000000L, ts + 9)
+  } yield (genesis, regTokenAContract, regVSwapContract, issueTokenA, invalidDeposit)
+
+  property("unable to deposit tokens when 3 input token ids are the same") {
+    forAll(preconditionsAndVSwapDepositSameInputTokens) { case (genesis: GenesisTransaction, regTokenAContract: RegisterContractTransaction, regVSwapContract: RegisterContractTransaction, issueTokenA: ExecuteContractFunctionTransaction,
+    invalidDeposit: ExecuteContractFunctionTransaction) =>
+      assertDiffEi(Seq(TestBlock.create(genesis.timestamp, Seq(genesis)), TestBlock.create(issueTokenA.timestamp, Seq(regTokenAContract, regVSwapContract, issueTokenA))),
+        TestBlock.createWithTxStatus(invalidDeposit.timestamp, Seq(invalidDeposit), TransactionStatus.Failed)) { (blockDiffEi) =>
+        blockDiffEi.explicitGet().txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
     }
   }
