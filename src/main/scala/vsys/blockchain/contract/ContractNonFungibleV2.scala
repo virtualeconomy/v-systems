@@ -191,7 +191,7 @@ object ContractNonFungibleV2 {
   val withdrawBlacklistOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(1.toByte),
     basicConstantGet ++ DataEntry(Longs.toByteArray(1), DataType.Amount).bytes ++ Array(3.toByte)
-  ) ++ whitelistCheck(0.toByte, 1.toByte) ++ Seq(
+  ) ++ blacklistCheck(0.toByte, 1.toByte) ++ Seq(
     tdbaTransfer ++ Array(0.toByte, 1.toByte, 3.toByte, 2.toByte)
   )
   lazy val withdrawBlacklistFunc: Array[Byte] = getFunctionBytes(withdrawId, publicFuncType, nonReturnType, withdrawDataType, withdrawBlacklistOpcs)

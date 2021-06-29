@@ -495,7 +495,7 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
         TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Success)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
       }
-      // only update depositor to whitelist before withdraw
+      // only update depositor to whitelist
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1))),
         TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Failed)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
@@ -505,9 +505,150 @@ class ExecuteNonFungibleContractV2InvalidDiffTest extends PropSpec
         TestBlock.createWithTxStatus(deposit.timestamp, Seq(deposit), TransactionStatus.Failed)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
       }
-      // withdraw with a wrong caller
+      // deposit with a wrong caller
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1, updateList2))),
         TestBlock.createWithTxStatus(depositInvalid.timestamp, Seq(depositInvalid), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
+      }
+    }
+  }
+  val preconditionsNonFungibleBlackContractV2WithdrawInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
+    contractBlack <- nonFungibleBlackContract
+    user <- accountGen
+    dataStack: Seq[DataEntry] <- initTokenDataStackGen()
+    description <- validDescStringGen
+    regContractBlack <- registerNonFungibleV2Gen(master, contractBlack, dataStack, description, fee + 10000000000L, ts)
+    contractBlackId = regContractBlack.contractId
+    tokenId = tokenIdFromBytes(contractBlackId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+
+    contractLock <- lockContractGen
+    dataStack: Seq[DataEntry] <- initLockContractDataStackGen(tokenId.arr)
+    description <- validDescStringGen
+    regContractLock <- registerLockGen(master, contractLock, dataStack, description, fee + 10000000000L, ts)
+    contractLockId = regContractLock.contractId
+
+    genesis <- genesisNonFungibleV2Gen(master, ts)
+    genesis2 <- genesisNonFungibleV2Gen(user, ts)
+
+    issueData = "first token"
+    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    issue <- issueNonFungibleV2Gen(master, contractBlackId, issueData, attach, fee, ts+1)
+
+    updateListData = Seq(master.toAddress.bytes.arr, Array(1.toByte))
+    updateListType = Seq(DataType.Address, DataType.Boolean)
+    updateList1 <- updateListNonFungibleV2Gen(master, contractBlackId, updateListData, updateListType, attach, fee, ts)
+
+    depositData = Seq(master.toAddress.bytes.arr, contractLockId.bytes.arr, Ints.toByteArray(0))
+    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Int32)
+    deposit <- depositNonFungibleV2Gen(master, contractBlackId, depositData, depositType, attach, fee, ts)
+
+    withdrawData = Seq(contractLockId.bytes.arr, master.toAddress.bytes.arr, Ints.toByteArray(0))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Int32)
+    withdraw <- withdrawNonFungibleV2Gen(master, contractBlackId, withdrawData, withdrawType, attach, fee, ts)
+
+    withdrawData = Seq(contractLockId.bytes.arr, user.toAddress.bytes.arr, Ints.toByteArray(0))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Int32)
+    withdrawInvalid <- withdrawNonFungibleV2Gen(master, contractBlackId, withdrawData, withdrawType, attach, fee, ts)
+
+  } yield (genesis, genesis2, regContractBlack, regContractLock, issue, updateList1, deposit, withdraw, withdrawInvalid)
+
+  property("Execute withdraw in non fungible black contract") {
+    forAll(preconditionsNonFungibleBlackContractV2WithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regContractBlack: RegisterContractTransaction, regContractLock: RegisterContractTransaction,
+    issue: ExecuteContractFunctionTransaction, updateList1: ExecuteContractFunctionTransaction, deposit: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, withdrawInvalid: ExecuteContractFunctionTransaction) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit))),
+        TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Success)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+      // update blacklist before withdraw
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit, updateList1))),
+        TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // withdraw with a wrong caller
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractBlack, regContractLock, issue, deposit))),
+        TestBlock.createWithTxStatus(withdrawInvalid.timestamp, Seq(withdrawInvalid), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
+      }
+
+    }
+  }
+
+  val preconditionsNonFungibleWhiteContractV2WithdrawInvalidTest: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+    (master, ts, fee) <- ContractGenHelper.basicContractTestGen()
+    contractWhite <- nonFungibleWhiteContract
+    user <- accountGen
+    dataStack: Seq[DataEntry] <- initTokenDataStackGen()
+    description <- validDescStringGen
+    regContractWhite <- registerNonFungibleV2Gen(master, contractWhite, dataStack, description, fee + 10000000000L, ts)
+    contractWhiteId = regContractWhite.contractId
+    tokenId = tokenIdFromBytes(contractWhiteId.bytes.arr, Ints.toByteArray(0)).explicitGet()
+
+    contractLock <- lockContractGen
+    dataStack: Seq[DataEntry] <- initLockContractDataStackGen(tokenId.arr)
+    description <- validDescStringGen
+    regContractLock <- registerLockGen(master, contractLock, dataStack, description, fee + 10000000000L, ts)
+    contractLockId = regContractLock.contractId
+
+    genesis <- genesisNonFungibleV2Gen(master, ts)
+    genesis2 <- genesisNonFungibleV2Gen(user, ts)
+
+    issueData = "first token"
+    attach <- genBoundedString(2, ExecuteContractFunctionTransaction.MaxDescriptionSize)
+    issue <- issueNonFungibleV2Gen(master, contractWhiteId, issueData, attach, fee, ts+1)
+
+    updateListData = Seq(master.toAddress.bytes.arr, Array(1.toByte))
+    updateListType = Seq(DataType.Address, DataType.Boolean)
+    updateList1 <- updateListNonFungibleV2Gen(master, contractWhiteId, updateListData, updateListType, attach, fee, ts)
+
+    updateListData = Seq(contractLockId.bytes.arr, Array(1.toByte))
+    updateListType = Seq(DataType.ContractAccount, DataType.Boolean)
+    updateList2 <- updateListNonFungibleV2Gen(master, contractWhiteId, updateListData, updateListType, attach, fee, ts)
+
+    updateListData = Seq(master.toAddress.bytes.arr, Array(0.toByte))
+    updateListType = Seq(DataType.Address, DataType.Boolean)
+    updateList3 <- updateListNonFungibleV2Gen(master, contractWhiteId, updateListData, updateListType, attach, fee, ts)
+
+    updateListData = Seq(contractLockId.bytes.arr, Array(0.toByte))
+    updateListType = Seq(DataType.ContractAccount, DataType.Boolean)
+    updateList4 <- updateListNonFungibleV2Gen(master, contractWhiteId, updateListData, updateListType, attach, fee, ts)
+
+    depositData = Seq(master.toAddress.bytes.arr, contractLockId.bytes.arr, Ints.toByteArray(0))
+    depositType = Seq(DataType.Address, DataType.ContractAccount, DataType.Int32)
+    deposit <- depositNonFungibleV2Gen(master, contractWhiteId, depositData, depositType, attach, fee, ts)
+
+    withdrawData = Seq(contractLockId.bytes.arr, master.toAddress.bytes.arr, Ints.toByteArray(0))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Int32)
+    withdraw <- withdrawNonFungibleV2Gen(master, contractWhiteId, withdrawData, withdrawType, attach, fee, ts)
+
+    withdrawData = Seq(contractLockId.bytes.arr, user.toAddress.bytes.arr, Ints.toByteArray(0))
+    withdrawType = Seq(DataType.ContractAccount, DataType.Address, DataType.Int32)
+    withdrawInvalid <- withdrawNonFungibleV2Gen(master, contractWhiteId, withdrawData, withdrawType, attach, fee, ts)
+
+  } yield (genesis, genesis2, regContractWhite, regContractLock, issue, updateList1, updateList2, updateList3, updateList4, deposit, withdraw, withdrawInvalid)
+
+  property("Execute withdraw in non fungible white contract") {
+    forAll(preconditionsNonFungibleWhiteContractV2WithdrawInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regContractWhite: RegisterContractTransaction, regContractLock: RegisterContractTransaction,
+    issue: ExecuteContractFunctionTransaction, updateList1: ExecuteContractFunctionTransaction, updateList2: ExecuteContractFunctionTransaction, updateList3: ExecuteContractFunctionTransaction, updateList4: ExecuteContractFunctionTransaction, deposit: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction, withdrawInvalid: ExecuteContractFunctionTransaction) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1, updateList2, deposit))),
+        TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Success)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+      }
+      // only update depositor to whitelist before withdraw
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1, updateList2, deposit, updateList3))),
+        TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // only update contract to whitelist before withdraw
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1, updateList2, deposit, updateList4))),
+        TestBlock.createWithTxStatus(withdraw.timestamp, Seq(withdraw), TransactionStatus.Failed)) { (blockDiff, _) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Failed
+      }
+      // withdraw with a wrong caller
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(issue.timestamp, Seq(regContractWhite, regContractLock, issue, updateList1, updateList2, deposit))),
+        TestBlock.createWithTxStatus(withdrawInvalid.timestamp, Seq(withdrawInvalid), TransactionStatus.ContractInvalidCaller)) { (blockDiff, _) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.ContractInvalidCaller
       }
     }
