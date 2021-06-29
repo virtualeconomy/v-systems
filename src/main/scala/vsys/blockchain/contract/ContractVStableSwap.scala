@@ -90,7 +90,7 @@ object ContractVStableSwap {
   val depositId: Short = 1
   val depositPara: Seq[String] = Seq("depositor", "amount", "tokenId") ++
                                  Seq("baseTokenId", "targetTokenId", "isValidTokenId",
-                                     "isBaseToken", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
+                                     "isBaseToken", "valueFalse", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
   val depositDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val depositTriggerOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
@@ -98,21 +98,24 @@ object ContractVStableSwap {
     cdbvrGet ++ Array(targetTokenIdStateVar.index, 4.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
     compareBytesEqual ++ Array(2.toByte, 3.toByte, 6.toByte),
+    basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(7.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
+        assertEqual ++ Array(5.toByte, 7.toByte),
         cdbvMapValAdd ++ Array(baseTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(7.toByte),
-    compareBytesEqual ++ Array(2.toByte, 4.toByte, 8.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(8.toByte),
+    compareBytesEqual ++ Array(2.toByte, 4.toByte, 9.toByte),
     basicConstantGet ++ DataEntry(genFunctionOpcs(
       Seq(
+        assertEqual ++ Array(5.toByte, 7.toByte),
         cdbvMapValAdd ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(11.toByte),
-    conditionIf ++ Array(6.toByte, 7.toByte),
-    conditionIf ++ Array(8.toByte, 10.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(10.toByte),
+    conditionIf ++ Array(6.toByte, 8.toByte),
+    conditionIf ++ Array(9.toByte, 10.toByte),
     assertTrue ++ Array(5.toByte)
   )
   lazy val depositTrigger: Array[Byte] = getFunctionBytes(depositId, onDepositTriggerType, nonReturnType, depositDataType, depositTriggerOpcs)
@@ -122,7 +125,7 @@ object ContractVStableSwap {
   val withdrawId: Short = 2
   val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId") ++
                                   Seq("baseTokenId", "targetTokenId", "isValidTokenId",
-                                      "isBaseToken", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
+                                      "isBaseToken", "valueFalse", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
   val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),
@@ -142,9 +145,9 @@ object ContractVStableSwap {
         cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 0.toByte, 1.toByte),
         basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(5.toByte),
       )
-    ), DataType.OpcBlock).bytes ++ Array(11.toByte),
+    ), DataType.OpcBlock).bytes ++ Array(9.toByte),
     conditionIf ++ Array(6.toByte, 7.toByte),
-    conditionIf ++ Array(8.toByte, 10.toByte),
+    conditionIf ++ Array(8.toByte, 9.toByte),
     assertTrue ++ Array(5.toByte)
   )
   lazy val withdrawTrigger: Array[Byte] = getFunctionBytes(withdrawId, onWithDrawTriggerType, nonReturnType, withdrawDataType, withdrawTriggerOpcs)
@@ -176,8 +179,8 @@ object ContractVStableSwap {
     compareGreater ++ Array(11.toByte, 12.toByte, 13.toByte),
     assertTrue ++ Array(13.toByte),
     loadTransactionId ++ Array(14.toByte),
-    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 9.toByte),
-    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 10.toByte),
+    cdbvMapValMinus ++ Array(baseTokenBalanceMap.index, 10.toByte, 8.toByte),
+    cdbvMapValMinus ++ Array(targetTokenBalanceMap.index, 10.toByte, 9.toByte),
     cdbvMapSet ++ Array(orderOwnerMap.index, 14.toByte, 10.toByte),
     cdbvMapSet ++ Array(feeBaseMap.index, 14.toByte, 0.toByte),
     cdbvMapSet ++ Array(feeTargetMap.index, 14.toByte, 1.toByte),
