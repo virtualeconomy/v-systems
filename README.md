@@ -1,4 +1,4 @@
-# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master)
+# V Systems  [![Build Status](https://travis-ci.org/virtualeconomy/v-systems.svg?branch=master)](https://travis-ci.org/virtualeconomy/v-systems) [![Code Coverage](https://codecov.io/gh/virtualeconomy/v-systems/branch/master/graph/badge.svg?sanitize=true)](https://codecov.io/gh/virtualeconomy/v-systems/branch/master) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=faddat_v-systems&metric=alert_status)](https://sonarcloud.io/dashboard?id=faddat_v-systems)
 
 [V Systems](https://v.systems) is a public blockchain that brings real-world businesses into the virtual economy. 
 
@@ -8,9 +8,17 @@ The code in master branch is under development. The latest release for each netw
 
 ## Installation
 
-[Mainnet](https://github.com/virtualeconomy/v-systems/wiki/How-to-install-V-Systems-mainnet-Node)
+**Mainnet**
+```bash
+docker run faddat/vsys /usr/sbin/java -jar /v-systems/vsys-all-0.3.2.jar /v-systems/vsys-mainnet.conf
+```
 
-[Testnet](https://github.com/virtualeconomy/v-systems/wiki/How-to-Install-V-Systems-Testnet-Node)
+**Testnet**
+
+```bash
+docker run faddat/vsys /usr/sbin/java -jar /v-systems/vsys-all-0.3.2.jar /v-systems/vsys-testnet.conf
+```
+
 
 ## Documentation
 
