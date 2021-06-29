@@ -8,7 +8,7 @@ import vsys.utils.serialization.Deser
 object ContractVEscrow {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
-    Seq(supersedeFunc, createFunc, recipientDepositFunc, judgeDepositFunc, payerCancelFunc, recipientCancelFunc,
+    Seq(supersedeFunc, createFunc, recipientDepositFunc, judgeDepositFunc, payerCancelFunc, recipientCancelFunc, judgeCancelFunc,
       submitWorkFunc, approveWorkFunc, applyToJudgeFunc, judgeFunc, submitPenaltyFunc,
       payerRefundFunc, recipientRefundFunc, collectFunc),
     stateVarSeq, // StateVars
@@ -467,7 +467,7 @@ object ContractVEscrow {
     cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 5.toByte),
     assertEqual ++ Array(4.toByte, 5.toByte)) ++ timestampCheck(6, false) ++ Seq(
     cdbvrGet ++ Array(judgeStateVar.index, 9.toByte),
-    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+    cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 10.toByte),
     cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 11.toByte),
     basicAdd ++ Array(10.toByte, 11.toByte, 12.toByte),
     cdbvMapValAdd ++ Array(contractBalanceMap.index, 1.toByte, 12.toByte),
