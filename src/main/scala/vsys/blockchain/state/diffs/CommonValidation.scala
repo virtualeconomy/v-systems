@@ -45,6 +45,10 @@ object CommonValidation {
   private def isDepositWithdrawContracts(c: Contract): Boolean =
     c == ContractLock.contract || c == ContractPaymentChannel.contract || c == ContractNonFungible.contract
 
+  private def isExchangeContracts(c: Contract): Boolean =
+    c == ContractAtomicSwap.contract || c == ContractVEscrow.contract || c == ContractVOption.contract || c == ContractVStableSwap.contract || c == ContractVSwap.contract ||
+    c == ContractTokenV2.contractTokenBlackList || c == ContractTokenV2.contractTokenWhiteList || c == ContractNonFungibleV2.contractNFTBlacklist || c == ContractNonFungibleV2.contractNFTWhitelist
+
   private def disallowInvalidContractTxs[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T, c: Contract): Either[ValidationError, T] = {
     if (h <= settings.allowContractTransactionAfterHeight)
       Left(GenericError(s"must not appear before height=${settings.allowContractTransactionAfterHeight}"))
@@ -52,7 +56,9 @@ object CommonValidation {
       Left(GenericError(s"deposit withdraw contracts must not appear before height=${settings.allowDepositWithdrawContractAfterHeight}"))
     else if (h <= settings.allowExchangeContractAfterHeight && !isTokenContracts(c) && !isDepositWithdrawContracts(c))
       Left(GenericError(s"exchange contracts must not appear before height=${settings.allowExchangeContractAfterHeight}"))
-    else Right(tx)
+    else if (isTokenContracts(c) || isDepositWithdrawContracts(c) || isExchangeContracts(c))
+      Right(tx)
+    else Left(GenericError(s"unsupported contracts"))
   }
 
   def disallowBeforeActivationHeight[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T): Either[ValidationError, T] =
