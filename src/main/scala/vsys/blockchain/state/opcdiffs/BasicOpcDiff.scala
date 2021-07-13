@@ -83,7 +83,7 @@ object BasicOpcDiff extends OpcDiffer {
             case Int32      => formatResB[Int]   (addLeadingZeros(bytes, 4), Int32)
             case Amount     => formatResB[Long]  (addLeadingZeros(bytes, 8), Amount)
             case Timestamp  => formatResB[Long]  (addLeadingZeros(bytes, 8), Timestamp)
-            case BigInteger => formatResB[BigInt](bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1), BigInteger)
+            case BigInteger => formatResB[BigInt](bigintBytes(bytes), BigInteger)
             case _ => Left(ContractUnsupportedOPC)
           }
         }
@@ -126,6 +126,14 @@ object BasicOpcDiff extends OpcDiffer {
     val Or          = BasicTypeVal(12, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bOr))
     val Xor         = BasicTypeVal(13, 4, Seq(1, 2), (b, d) => boolBiOperation(d(b(1)), d(b(2)), bXor))
     val Not         = BasicTypeVal(14, 3, Seq(1),    (b, d) => not(d(b(1))))
+  }
+
+  private def bigintBytes (bytes: Array[Byte]): Array[Byte] = {
+    val x = bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1)
+    x.headOption match {
+      case Some(a: Byte) if a < 0 => Array(0.toByte) ++ x
+      case _ => x
+    }
   }
 
   private def formatRes[T] (res: T, dt: DataTypeVal[T]): Either[ValidationError, DataEntry] =
