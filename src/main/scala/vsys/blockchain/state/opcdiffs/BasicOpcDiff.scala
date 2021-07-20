@@ -142,11 +142,11 @@ object BasicOpcDiff extends OpcDiffer {
     val Not         = BasicTypeVal(14, 3, Seq(1),    (b, d) => not(d(b(1))))
   }
 
-  private def bigintBytes (bytes: Array[Byte]): Array[Byte] = {
-    val sig = bytes(0) >> 3
+  def bigintBytes (bytes: Array[Byte]): Array[Byte] = {
+    val sig = bytes(0) >> 7
     val x = bytes.dropRight(1).dropWhile(i => i == sig) ++ bytes.takeRight(1)
     x.headOption match {
-      case Some(a: Byte) if (a >> 3) != sig => Array[Byte](sig.toByte) ++ x
+      case Some(a: Byte) if (a >> 7) != sig => Array[Byte](sig.toByte) ++ x
       case _ => x
     }
   }
