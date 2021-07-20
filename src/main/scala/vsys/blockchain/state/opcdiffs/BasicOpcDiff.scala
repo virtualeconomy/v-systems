@@ -80,9 +80,9 @@ object BasicOpcDiff extends OpcDiffer {
       }) flatMap { bytes => {
           val to: DataTypeVal[_] = DataTypeObj.deserializer(t.data)
           to match {
-            case Int32      => formatResB[Int]   (addLeadingZeros(bytes, 4), Int32)
-            case Amount     => formatResB[Long]  (addLeadingZeros(bytes, 8), Amount)
-            case Timestamp  => formatResB[Long]  (addLeadingZeros(bytes, 8), Timestamp)
+            case Int32      => formatResB[Int]   (formatSignedByteArrayWithLength(bytes, 4), Int32)
+            case Amount     => formatResB[Long]  (formatPositiveByteArrayWithLength(bytes, 8), Amount)
+            case Timestamp  => formatResB[Long]  (formatPositiveByteArrayWithLength(bytes, 8), Timestamp)
             case BigInteger => formatResB[BigInt](bigintBytes(bytes), BigInteger)
             case _ => Left(ContractUnsupportedOPC)
           }
@@ -91,11 +91,25 @@ object BasicOpcDiff extends OpcDiffer {
       case _ => Left(ContractInvalidOPCData)
     }
 
-  def addLeadingZeros(in: Array[Byte], length: Int): Array[Byte] =
-    if (in.length - length > 0) {
+  private def formatPositiveByteArrayWithLength(in: Array[Byte], length: Int): Array[Byte] =
+    if (in.length > length) {
       in.take(in.length - length).dropWhile(i => i == 0) ++ in.takeRight(length)
+    } else if (in(0) >= 0) {
+      new Array[Byte](length - in.length) ++ in
     } else {
-      (new Array[Byte](0.max(length - in.length)) ++ in).takeRight(length)
+      new Array[Byte](length + 1)           // make overflow error when in < 0
+    }
+
+  private def formatSignedByteArrayWithLength(in: Array[Byte], length: Int): Array[Byte] =
+    if (in(0) >= 0) {
+      formatPositiveByteArrayWithLength(in, length)
+    } else if (in.length > length) {
+      val right = in.takeRight(length)
+      if (right(0) >= 0) in else {
+        in.take(in.length - length).dropWhile(i => i == -1) ++ right
+      }
+    } else {
+      Array.fill[Byte](length - in.length)(-1) ++ in
     }
 
   def concat(x: DataEntry, y: DataEntry): Either[ValidationError, DataEntry] =
@@ -129,10 +143,18 @@ object BasicOpcDiff extends OpcDiffer {
   }
 
   private def bigintBytes (bytes: Array[Byte]): Array[Byte] = {
-    val x = bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1)
-    x.headOption match {
-      case Some(a: Byte) if a < 0 => Array(0.toByte) ++ x
-      case _ => x
+    if (bytes(0) >= 0) {
+      val x = bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1)
+      x.headOption match {
+        case Some(a: Byte) if a < 0 => Array[Byte](0.toByte) ++ x
+        case _ => x
+      }
+    } else {
+      val x = bytes.dropRight(1).dropWhile(i => i == -1) ++ bytes.takeRight(1)
+      x.headOption match {
+        case Some(a: Byte) if a >= 0 => Array[Byte](-1.toByte) ++ x
+        case _ => x
+      }
     }
   }
 
