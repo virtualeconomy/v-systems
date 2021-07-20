@@ -8,7 +8,7 @@ import vsys.utils.serialization.Deser
 object ContractVEscrow {
   lazy val contract: Contract = Contract.buildContract(Deser.serilizeString("vdds"), Ints.toByteArray(2),
     Seq(initTrigger, depositTrigger, withdrawTrigger), // Triggers
-    Seq(supersedeFunc, createFunc, recipientDepositFunc, judgeDepositFunc, payerCancelFunc, recipientCancelFunc,
+    Seq(supersedeFunc, createFunc, recipientDepositFunc, judgeDepositFunc, payerCancelFunc, recipientCancelFunc, judgeCancelFunc,
       submitWorkFunc, approveWorkFunc, applyToJudgeFunc, judgeFunc, submitPenaltyFunc,
       payerRefundFunc, recipientRefundFunc, collectFunc),
     stateVarSeq, // StateVars
@@ -183,7 +183,6 @@ object ContractVEscrow {
       cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
       assertTrue ++ Array(2.toByte),
       cdbvrMapGet ++ Array(orderDepositStatusIndex, 0.toByte, 3.toByte),
-      assertTrue ++ Array(3.toByte),
       basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
       assertEqual ++ Array(3.toByte, 4.toByte),
       cdbvrMapGet ++ Array(orderDepositAmountIndex, 0.toByte, 5.toByte),
@@ -308,14 +307,14 @@ object ContractVEscrow {
                                          "recipient", "judge", "workAmount", "recipientLocked", "recipientAmount",
                                          "fee", "judgeLocked", "judgeAmount", "valueFalse")
   val approveWorkOpcs: Seq[Array[Byte]] =  Seq(
-    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
+    cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
     assertTrue ++ Array(2.toByte),
     cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
     assertTrue ++ Array(3.toByte)) ++ timestampCheck(4, true) ++ Seq(
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 7.toByte),
-    cdbvrGet ++ Array(judgeStateVar.index, 0.toByte, 8.toByte),
+    cdbvrGet ++ Array(judgeStateVar.index, 8.toByte),
     cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 9.toByte),
     cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
     basicAdd ++ Array(9.toByte, 10.toByte, 11.toByte),
@@ -336,7 +335,7 @@ object ContractVEscrow {
                                       Seq("payer", "orderStatus", "isSubmit", "currentTime", "expirationTime", "isValidTime",
                                           "judgeStatus", "valueFalse", "judgeDuration", "time", "updateTime", "valueTrue")
   val applyToJudgeOpcs: Seq[Array[Byte]] =  Seq(
-    cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
+    cdbvrMapGet ++ Array(orderPayerMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
     assertTrue ++ Array(2.toByte),
@@ -461,14 +460,14 @@ object ContractVEscrow {
     cdbvrMapGet ++ Array(orderRecipientMap.index, 0.toByte, 1.toByte),
     assertCaller ++ Array(1.toByte),
     cdbvrMapGet ++ Array(orderStatusMap.index, 0.toByte, 2.toByte),
-    assertCaller ++ Array(2.toByte),
+    assertTrue ++ Array(2.toByte),
     cdbvrMapGet ++ Array(orderSubmitStatusMap.index, 0.toByte, 3.toByte),
-    assertCaller ++ Array(3.toByte),
+    assertTrue ++ Array(3.toByte),
     basicConstantGet ++ DataEntry(Array(0.toByte), DataType.Boolean).bytes ++ Array(4.toByte),
     cdbvrMapGet ++ Array(orderJudgeStatusMap.index, 0.toByte, 5.toByte),
     assertEqual ++ Array(4.toByte, 5.toByte)) ++ timestampCheck(6, false) ++ Seq(
     cdbvrGet ++ Array(judgeStateVar.index, 9.toByte),
-    cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 10.toByte),
+    cdbvrMapGet ++ Array(orderRecipientAmountMap.index, 0.toByte, 10.toByte),
     cdbvrMapGet ++ Array(orderRepLockedAmountMap.index, 0.toByte, 11.toByte),
     basicAdd ++ Array(10.toByte, 11.toByte, 12.toByte),
     cdbvMapValAdd ++ Array(contractBalanceMap.index, 1.toByte, 12.toByte),
