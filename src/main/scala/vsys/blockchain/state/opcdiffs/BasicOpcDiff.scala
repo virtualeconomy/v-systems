@@ -143,18 +143,11 @@ object BasicOpcDiff extends OpcDiffer {
   }
 
   private def bigintBytes (bytes: Array[Byte]): Array[Byte] = {
-    if (bytes(0) >= 0) {
-      val x = bytes.dropRight(1).dropWhile(i => i == 0) ++ bytes.takeRight(1)
-      x.headOption match {
-        case Some(a: Byte) if a < 0 => Array[Byte](0.toByte) ++ x
-        case _ => x
-      }
-    } else {
-      val x = bytes.dropRight(1).dropWhile(i => i == -1) ++ bytes.takeRight(1)
-      x.headOption match {
-        case Some(a: Byte) if a >= 0 => Array[Byte](-1.toByte) ++ x
-        case _ => x
-      }
+    val sig = bytes(0) >> 3
+    val x = bytes.dropRight(1).dropWhile(i => i == sig) ++ bytes.takeRight(1)
+    x.headOption match {
+      case Some(a: Byte) if (a >> 3) != sig => Array[Byte](sig.toByte) ++ x
+      case _ => x
     }
   }
 
