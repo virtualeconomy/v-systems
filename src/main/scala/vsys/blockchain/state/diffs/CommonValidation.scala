@@ -46,7 +46,9 @@ object CommonValidation {
        (c != ContractPermitted.contract &&
         c != ContractPermitted.contractWithoutSplit))
       Left(GenericError(s"deposit withdraw contracts must not appear before height=${settings.allowDepositWithdrawContractAfterHeight}"))
-    else Right(tx)
+    else if (c == ContractLock.contract || c == ContractPaymentChannel.contract || c == ContractNonFungible.contract || c == ContractPermitted.contract || c == ContractPermitted.contractWithoutSplit)
+      Right(tx)
+    else Left(GenericError(s"unsupported contracts"))
   }
 
   def disallowBeforeActivationHeight[T <: Transaction](settings: FunctionalitySettings, h: Int, tx: T): Either[ValidationError, T] =
