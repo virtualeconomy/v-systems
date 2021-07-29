@@ -200,6 +200,8 @@ object ContractTranslator extends App {
       res = res + Ints.fromByteArray(s.tail).toString
     } else if (s(0) == DataType.Amount.id.toByte || s(0) == DataType.Timestamp.id.toByte) {
       res = res + Longs.fromByteArray(s.tail).toString
+    } else if (s(0) == DataType.BigInteger.id.toByte) {
+      res = res + BigInt(s.drop(3)).toString()
     } else if (s(0) == DataType.Boolean.id.toByte) {
       if (s(1) == 1.toByte) {
         res = res + "true"
