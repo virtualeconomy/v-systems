@@ -152,4 +152,87 @@ class ConvertOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriv
       Left(ValidationError.OverflowError)
     )
   }
+  property("test different length numbers for conversion to BigInt") {
+    val l: List[Long] = List(1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000,
+      1000000000, 10000000000L, 100000000000L, 1000000000000L, 10000000000000L, 100000000000000L,
+      1000000000000000L, 10000000000000000L, 100000000000000000L, 1000000000000000000L)
+    for (a <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(a), DataType.Amount), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(a).toByteArray.length.toShort) ++ BigInt(a).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (b <- l.slice(0, 9)) {
+      BasicOpcDiff.convertion(DataEntry(Ints.toByteArray(b.toInt), DataType.Int32), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(b).toByteArray.length.toShort) ++ BigInt(b).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (c <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(c), DataType.Timestamp), BigIntDataTypeObj) should be(
+        Right(DataEntry(Shorts.toByteArray(BigInt(c).toByteArray.length.toShort) ++ BigInt(c).toByteArray, DataType.BigInteger))
+      )
+    }
+  }
+
+  property("test different length negative numbers for conversion to BigInt") {
+    val l: List[Long] = List(1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000,
+      1000000000, 10000000000L, 100000000000L, 1000000000000L, 10000000000000L, 100000000000000L,
+      1000000000000000L, 10000000000000000L, 100000000000000000L, 1000000000000000000L)
+    for (a <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(-a), DataType.Amount), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(-a).toByteArray.length.toShort) ++ BigInt(-a).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (b <- l.slice(0, 9)) {
+      BasicOpcDiff.convertion(DataEntry(Ints.toByteArray(-b.toInt), DataType.Int32), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(-b).toByteArray.length.toShort) ++ BigInt(-b).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (c <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(-c), DataType.Timestamp), BigIntDataTypeObj) should be(
+        Right(DataEntry(Shorts.toByteArray(BigInt(-c).toByteArray.length.toShort) ++ BigInt(-c).toByteArray, DataType.BigInteger))
+      )
+    }
+  }
+
+  property("test different array length numbers for conversion to BigInt") {
+    val l: List[Long] = List(Math.pow(2, 0).toLong, Math.pow(2, 8).toLong, Math.pow(2, 16).toLong, Math.pow(2, 24).toLong,
+      (Math.pow(2, 32)/2 - 1).toLong, Math.pow(2, 32).toLong, Math.pow(2, 40).toLong, Math.pow(2, 48).toLong,
+      Math.pow(2, 56).toLong, (Math.pow(2, 64)/2 - 1).toLong)
+    for (a <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(a), DataType.Amount), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(a).toByteArray.length.toShort) ++ BigInt(a).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (b <- l.slice(0, 4)) {
+      BasicOpcDiff.convertion(DataEntry(Ints.toByteArray(b.toInt), DataType.Int32), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(b).toByteArray.length.toShort) ++ BigInt(b).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (c <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(c), DataType.Timestamp), BigIntDataTypeObj) should be(
+        Right(DataEntry(Shorts.toByteArray(BigInt(c).toByteArray.length.toShort) ++ BigInt(c).toByteArray, DataType.BigInteger))
+      )
+    }
+  }
+
+  property("test different array length negative numbers for conversion to BigInt") {
+    val l: List[Long] = List(Math.pow(2, 0).toLong, Math.pow(2, 8).toLong, Math.pow(2, 16).toLong, Math.pow(2, 24).toLong,
+      (Math.pow(2, 32)/2 - 1).toLong, Math.pow(2, 32).toLong, Math.pow(2, 40).toLong, Math.pow(2, 48).toLong,
+      Math.pow(2, 56).toLong, (Math.pow(2, 64)/2 - 1).toLong)
+    for (a <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(-a), DataType.Amount), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(-a).toByteArray.length.toShort) ++ BigInt(-a).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (b <- l.slice(0, 4)) {
+      BasicOpcDiff.convertion(DataEntry(Ints.toByteArray(-b.toInt), DataType.Int32), BigIntDataTypeObj) should be (
+        Right(DataEntry(Shorts.toByteArray(BigInt(-b).toByteArray.length.toShort) ++ BigInt(-b).toByteArray, DataType.BigInteger))
+      )
+    }
+    for (c <- l) {
+      BasicOpcDiff.convertion(DataEntry(Longs.toByteArray(-c), DataType.Timestamp), BigIntDataTypeObj) should be(
+        Right(DataEntry(Shorts.toByteArray(BigInt(-c).toByteArray.length.toShort) ++ BigInt(-c).toByteArray, DataType.BigInteger))
+      )
+    }
+  }
 }
