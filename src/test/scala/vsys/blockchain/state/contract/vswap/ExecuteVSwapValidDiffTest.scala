@@ -481,4 +481,60 @@ class ExecuteVSwapValidDiffTest extends PropSpec
       }
     }
   }
+
+  val preconditionsAndAddRemoveLiquidity: Gen[(GenesisTransaction, GenesisTransaction, RegisterContractTransaction,
+    RegisterContractTransaction, RegisterContractTransaction, RegisterContractTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction,
+    ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction, ExecuteContractFunctionTransaction)] = for {
+    (genesis, genesis2, master, user, regTokenA, regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, fee, ts, attach) <-
+      createABLiquidityTokenAndInitVSwap(
+        1000000000000000000L, // totalSupplyA
+        100000000, // unityA
+        1000000000000000000L, // issueAmountA
+        100000000000L, // totalSupplyB
+        1000, // unityB
+        100000000000L, // issueAmountB
+        1000000000000000000L, // liquidiityTotalSupply
+        1000, // liquidityUnity
+        10, // minimumLiquidity
+        1017988017151648L + 73842642848352L, // tokenADepositAmount
+        99001450413L + 998444587L) // tokenBDepositAmount
+
+    // set swap -> amountADesired, amountBDesired
+    setSwap <- setSwapVSwapGen(master, regVSwap.contractId, 73842642848352L, 998444587L, attach, fee + 10000000000L, ts + 10)
+
+    addLiquidity <- addLiquidityVSwapGen(master, regVSwap.contractId, 100000000L, 1350L, 99000000L, 1340L, ts + 1000000000000L, attach, fee + 10000000000L, ts + 11)
+
+    removeLiquidity <- removeLiquidityVSwapGen(master, regVSwap.contractId, 135764305914L, 36821321424176L, 498222293L, ts + 1000000000000L, attach, fee + 10000000000L, ts + 12)
+
+  } yield (genesis, genesis2, regTokenA, regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA,
+    depositB, depositLiquidity, setSwap, addLiquidity, removeLiquidity)
+
+  property("vswap test add liquidity to uneven pool") {
+    forAll(preconditionsAndAddRemoveLiquidity) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regTokenA: RegisterContractTransaction,
+      regTokenB: RegisterContractTransaction, regLiquidity: RegisterContractTransaction, regVSwap: RegisterContractTransaction, issueTokenA: ExecuteContractFunctionTransaction,
+      issueTokenB: ExecuteContractFunctionTransaction, issueLiquidity: ExecuteContractFunctionTransaction, depositA: ExecuteContractFunctionTransaction, depositB: ExecuteContractFunctionTransaction,
+      depositLiquidity: ExecuteContractFunctionTransaction, setSwap: ExecuteContractFunctionTransaction, addLiquidity: ExecuteContractFunctionTransaction, _) =>
+        assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regTokenA.timestamp, Seq(regTokenA,
+          regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
+          TestBlock.createWithTxStatus(addLiquidity.timestamp, Seq(addLiquidity), TransactionStatus.Success)) { (blockDiff, newState) =>
+          blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+        }
+      }
+  }
+
+  property("vswap test remove liquidity from uneven pool") {
+    forAll(preconditionsAndAddRemoveLiquidity) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, regTokenA: RegisterContractTransaction,
+    regTokenB: RegisterContractTransaction, regLiquidity: RegisterContractTransaction, regVSwap: RegisterContractTransaction, issueTokenA: ExecuteContractFunctionTransaction,
+    issueTokenB: ExecuteContractFunctionTransaction, issueLiquidity: ExecuteContractFunctionTransaction, depositA: ExecuteContractFunctionTransaction, depositB: ExecuteContractFunctionTransaction,
+    depositLiquidity: ExecuteContractFunctionTransaction, setSwap: ExecuteContractFunctionTransaction, _, removeLiquidity: ExecuteContractFunctionTransaction) =>
+      assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(regTokenA.timestamp, Seq(regTokenA,
+        regTokenB, regLiquidity, regVSwap, issueTokenA, issueTokenB, issueLiquidity, depositA, depositB, depositLiquidity, setSwap))),
+        TestBlock.createWithTxStatus(removeLiquidity.timestamp, Seq(removeLiquidity), TransactionStatus.Success)) { (blockDiff, newState) =>
+        blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
+
+      }
+    }
+  }
 }
