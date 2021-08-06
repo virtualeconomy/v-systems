@@ -102,9 +102,9 @@ class ExecuteVSwapInvalidDiffTest extends PropSpec
         10000, 1000,10, 3000, 3000)
     setSwap <- setSwapVSwapGen(master, regVSwap.contractId, 1000L, 1000L, attach, fee + 10000000000L, ts)
 
-    addLiquidity <- addLiquidityVSwapGen(master, regVSwap.contractId, 2000L, 2000L, 900L, 900L, ts + 1000000000000L, attach, fee + 10000000000L, ts)
+    addLiquidity <- addLiquidityVSwapGen(master, regVSwap.contractId, 3000L, 2000L, 900L, 900L, ts + 1000000000000L, attach, fee + 10000000000L, ts)
 
-    addInvalidLiquidity <- addLiquidityVSwapGen(master, regVSwap.contractId, 3000L, 2000L, 900L, 900L, ts + 1000000000000L, attach, fee + 10000000000L, ts)
+    addInvalidLiquidity <- addLiquidityVSwapGen(master, regVSwap.contractId, 2001, 2001L, 900L, 900L, ts + 1000000000000L, attach, fee + 10000000000L, ts)
 
     addInvalidLiquidity2 <- addLiquidityVSwapGen(master, regVSwap.contractId, 2000L, 2000L, 9000L, 900L, ts + 1000000000000L, attach, fee + 10000000000L, ts)
 
