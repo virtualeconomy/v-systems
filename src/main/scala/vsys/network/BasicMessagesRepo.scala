@@ -202,7 +202,7 @@ object TransactionMessageSpec extends MessageSpec[Transaction] {
 
   override val messageName: String = "Transaction message"
 
-  override val maxLength = 4096
+  override val maxLength = 8192
 
   override def deserializeData(bytes: Array[Byte]): Try[Transaction] =
     TransactionParser.parseBytes(bytes)
