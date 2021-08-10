@@ -78,7 +78,7 @@ class AtomicSwapContractInvalidDiffTest extends PropSpec
     lock <- lockAtomicSwapContractDataStackGen(user, regContract.contractId, lockData, lockType, attach, fee, ts + 3)
   } yield (genesis, genesis2, regContract, depositVSYS, lock, ts, fee)
 
-  property("wrong address cannot lock contract") {
+  property("insufficient balance cannot lock contract") {
     forAll(preconditionsAndAtomicSwapLockWrongAddressInvalidTest) { case (genesis: GenesisTransaction, genesis2: GenesisTransaction, reg: RegisterContractTransaction,
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
