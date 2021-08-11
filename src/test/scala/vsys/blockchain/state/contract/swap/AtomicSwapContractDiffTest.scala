@@ -195,7 +195,7 @@ class AtomicSwapContractDiffTest extends PropSpec
     deposit: ExecuteContractFunctionTransaction, lock: ExecuteContractFunctionTransaction, withdraw: ExecuteContractFunctionTransaction,
     withdrawVSYS: ExecuteContractFunctionTransaction, ts: Long, fee: Long) =>
       assertDiffAndStateCorrectBlockTime(Seq(TestBlock.create(genesis.timestamp, Seq(genesis, genesis2)), TestBlock.create(deposit.timestamp, Seq(reg, deposit))),
-        TestBlock.create(lock.timestamp + 101, Seq(lock, withdraw, withdrawVSYS))) { (blockDiff, newState) =>
+        TestBlock.create(lock.timestamp + 110, Seq(lock, withdraw, withdrawVSYS))) { (blockDiff, newState) =>
         blockDiff.txsDiff.txStatus shouldBe TransactionStatus.Success
         val totalPortfolioDiff: Portfolio = Monoid.combineAll(blockDiff.txsDiff.portfolios.values)
         totalPortfolioDiff.balance shouldBe -3 * fee
