@@ -25,9 +25,12 @@ case class SposConsensusApiRoute(
     }
 
   @Path("/generatingBalance/{address}")
-  @ApiOperation(value = "Generating balance", notes = "Account's generating balance(the same as balance atm)", httpMethod = "GET")
+  @ApiOperation(value = "Generating balance", notes = "Get Account's generating balance(the same as balance atm)", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
+  ))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json with error or response like {\"address\": \"your address\",\"balance\": \"your balance\"}")
   ))
   def generatingBalance: Route = (path("generatingBalance" / Segment) & get) { address =>
     Address.fromString(address) match {
@@ -40,7 +43,10 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/mintingAverageBalance/{address}")
-  @ApiOperation(value = "Minting average balance", notes = "Account's minting average balance", httpMethod = "GET")
+  @ApiOperation(value = "Minting average balance", notes = "Get the **minting average balance**(MAB) of an `address`", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of an address's MAB or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Address", required = true, dataType = "string", paramType = "path")
   ))
@@ -56,7 +62,9 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/allSlotsInfo")
-  @ApiOperation(value = "Get all slots' info", notes = "Get all slots' information", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of all slots details or error")
+  ))
   def allSlotsInfo: Route = (path("allSlotsInfo") & get) {
     val h = state.height
     val ret = Json.arr(Json.obj("height" -> h)) ++ JsArray(
@@ -84,9 +92,12 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/slotInfo/{slotId}")
-  @ApiOperation(value = "Minting average balance with slot ID", notes = "Account of supernode's minting average balance", httpMethod = "GET")
+  @ApiOperation(value = "Minting average balance with slot ID", notes = "Get the supernode's minting average balance by specified `slotId`", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "slotId", value = "Slot Id", required = true, dataType = "integer", paramType = "path")
+  ))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the minting average balance of a specified slot info or error")
   ))
   def mintingAverageBalanceId: Route = (path("slotInfo" / IntNumber) & get) { slotId =>
     state.slotAddress(slotId) match {
@@ -111,7 +122,7 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/mintTime/{blockId}")
-  @ApiOperation(value = "Mint time", notes = "Mint time of a block with specified id", httpMethod = "GET")
+  @ApiOperation(value = "Mint time", notes = "Mint time of a block with specified `blockId`", httpMethod = "GET", response = classOf[Long])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "blockId", value = "Block id ", required = true, dataType = "string", paramType = "path")
   ))
@@ -122,13 +133,16 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/mintTime")
-  @ApiOperation(value = "Mint time last", notes = "Mint time of a last block", httpMethod = "GET")
+  @ApiOperation(value = "Mint time last", notes = "Mint time of a last block", httpMethod = "GET", response = classOf[Long])
   def mintTime: Route = (path("mintTime") & get) {
     complete(Json.obj("mintTime" -> history.lastBlock.get.consensusData.mintTime))
   }
 
   @Path("/algo")
-  @ApiOperation(value = "Consensus algo", notes = "Shows which consensus algo being using", httpMethod = "GET")
+  @ApiOperation(value = "Consensus algo", notes = "Shows which **consensus algo** are being used", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json with error or response like {\"consensusAlgo\": \"current adopting algo\"}")
+  ))
   def algo: Route = (path("algo") & get) {
     complete(Json.obj("consensusAlgo" -> "supernode-proof-of-stake (SPoS)"))
   }

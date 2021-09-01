@@ -10,9 +10,9 @@ import vsys.blockchain.transaction.spos.ContendSlotsTransaction
 
 case class SignedContendSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                     senderPublicKey: String,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "5000000000000")
                                     fee: Long,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "100")
                                     feeScale: Short,
                                     @ApiModelProperty(required = true)
                                     slotId: Int,

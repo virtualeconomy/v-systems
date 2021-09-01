@@ -31,11 +31,10 @@ case class SPOSBroadcastApiRoute(
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.spos.SignedContendSlotsRequest",
-      defaultValue = "{\n\t\"slotId\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      dataType = "vsys.api.http.spos.SignedContendSlotsRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def signedContend: Route = (path("contend") & post) {
     json[SignedContendSlotsRequest] { contendReq =>
       doBroadcast(contendReq.toTx)
@@ -53,11 +52,10 @@ case class SPOSBroadcastApiRoute(
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.spos.SignedReleaseSlotsRequest",
-      defaultValue = "{\n\t\"slotId\": 0,\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      dataType = "vsys.api.http.spos.SignedReleaseSlotsRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def signRelease: Route = (path("release") & post) {
     json[SignedReleaseSlotsRequest] { releaseReq =>
       doBroadcast(releaseReq.toTx)

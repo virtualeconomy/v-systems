@@ -8,14 +8,14 @@ import vsys.api.http.BroadcastRequest
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.{PaymentTransaction, ValidationError}
 
-@ApiModel(value = "Signed Payment transaction")
+@ApiModel(value = "SignedPaymentTransaction")
 case class SignedPaymentRequest( @ApiModelProperty(required = true)
                                  timestamp: Long,
                                  @ApiModelProperty(required = true)
                                  amount: Long,
-                                 @ApiModelProperty(required = true)
+                                 @ApiModelProperty(required = true, example = "10000000")
                                  fee: Long,
-                                 @ApiModelProperty(required = true)
+                                 @ApiModelProperty(required = true, example = "100")
                                  feeScale: Short,
                                  @ApiModelProperty(value = "Recipient address", required = true)
                                  recipient: String,

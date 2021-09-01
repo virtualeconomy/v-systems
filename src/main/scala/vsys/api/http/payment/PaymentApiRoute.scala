@@ -23,7 +23,7 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
 
   @Path("/payment")
   @ApiOperation(value = "Send payment from wallet.",
-    notes = "Send payment from wallet to another wallet. Each call sends new payment.",
+    notes = "Send payment from wallet to another wallet.",
     httpMethod = "POST",
     produces = "application/json",
     consumes = "application/json",
@@ -34,12 +34,11 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.payment.PaymentRequest",
-      defaultValue = "{\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"sender\":\"senderId\",\n\t\"recipient\":\"recipientId\",\n\t\"attachment\":\"5VECG3ZHwy\"\n}"
+      dataType = "vsys.api.http.payment.PaymentRequest"
     )
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with response or error")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def payment: Route = (path("payment") & post & withAuth) {
     json[PaymentRequest] { p =>
@@ -57,11 +56,10 @@ case class PaymentApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPo
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.payment.SignedPaymentRequest",
-      defaultValue = "{\n\t\"timestamp\": 0,\n\t\"amount\":400,\n\t\"fee\":1,\n\t\"feeScale\":100,\n\t\"senderPublicKey\":\"senderPubKey\",\n\t\"recipient\":\"recipientId\",\n\t\"attachment\":\"5VECG3ZHwy\",\n\t\"signature\":\"sig\"\n}"
+      dataType = "vsys.api.http.payment.SignedPaymentRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def broadcastPayment: Route = (path("broadcast" / "payment") & post) {
     json[SignedPaymentRequest] { payment =>
       doBroadcast(payment.toTx)

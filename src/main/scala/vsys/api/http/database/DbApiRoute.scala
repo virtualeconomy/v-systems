@@ -39,10 +39,9 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       required = true,
       paramType = "body",
       dataType = "vsys.api.http.database.DbPutRequest",
-      defaultValue = "{\n\t\"dbKey\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def putKV: Route = processRequest("put", (t: DbPutRequest) => doBroadcast(TransactionFactory.dbPut(t, wallet, time)))
 
   @Path("/broadcast/put")
@@ -57,10 +56,9 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
       required = true,
       paramType = "body",
       dataType = "vsys.api.http.database.SignedDbPutRequest",
-      defaultValue = "{\n\t\"dbKey\": \"name\",\n\t\"data\": \"dbdata\",\n\t\"dataType\": \"ByteArray\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n\t\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def signPutKV: Route = (path("broadcast" / "put") & post) {
     json[SignedDbPutRequest] { signedDbPutReq =>
       doBroadcast(signedDbPutReq.toTx)
@@ -68,7 +66,10 @@ case class DbApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, 
   }
 
   @Path("/get/{nameSpace}/{dbKey}")
-  @ApiOperation(value = "get", notes = "Get db entry", httpMethod = "GET")
+  @ApiOperation(value = "get", notes = "Get **db entries** by given `nameSpace` and `dbKey`", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of db entries or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "nameSpace", value = "Address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "dbKey", value = "dbKey", required = true, dataType = "string", paramType = "path")

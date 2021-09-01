@@ -17,6 +17,9 @@ case class WalletApiRoute(settings: RestAPISettings, wallet: Wallet) extends Api
   @Path("/seed")
   @ApiOperation(value = "Seed", notes = "Export wallet seed", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of a wallet seed or error")
+  ))
   def seed: Route = (path("wallet" / "seed") & get & withAuth) {
     complete(Json.obj("seed" -> wallet.seed))
   }
