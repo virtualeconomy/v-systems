@@ -4,7 +4,7 @@ import cats.Monoid
 import cats.implicits._
 import vsys.blockchain.state.{BlockDiff, ByteStr, Diff, Portfolio}
 import vsys.blockchain.transaction.Transaction
-import vsys.account.{Account, Address}
+import vsys.account.Account
 
 case class OpcDiff(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
                    contractNumDB: Map[ByteStr, Long] = Map.empty,
@@ -12,7 +12,7 @@ case class OpcDiff(contractDB: Map[ByteStr, Array[Byte]] = Map.empty,
                    contractTokens: Map[ByteStr, Int] = Map.empty,
                    tokenDB: Map[ByteStr, Array[Byte]] = Map.empty,
                    tokenAccountBalance: Map[ByteStr, Long] = Map.empty,
-                   relatedAddress: Map[Address, Boolean] = Map.empty,
+                   relatedAddress: Map[Account, Boolean] = Map.empty,
                    portfolios: Map[Account, Portfolio] = Map.empty
                   ) {
 

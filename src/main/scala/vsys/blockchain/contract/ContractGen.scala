@@ -25,10 +25,13 @@ object ContractGen {
   val cdbvMapSet               = Array(3.toByte, 2.toByte)
   val cdbvMapValAdd            = Array(3.toByte, 3.toByte)
   val cdbvMapValMinus          = Array(3.toByte, 4.toByte)
+  val cdbvStateValAdd          = Array(3.toByte, 5.toByte)
+  val cdbvStateValMinus        = Array(3.toByte, 6.toByte)
 
   val cdbvrGet                 = Array(4.toByte, 1.toByte)
   val cdbvrMapGetOrDefault     = Array(4.toByte, 2.toByte)
   val cdbvrMapGet              = Array(4.toByte, 3.toByte)
+  val cdbvrGetOrDefault        = Array(4.toByte, 4.toByte)
 
   val tdbNewToken              = Array(5.toByte, 1.toByte)
   val tdbSplit                 = Array(5.toByte, 2.toByte)
@@ -44,7 +47,14 @@ object ContractGen {
 
   val returnValue              = Array(9.toByte, 1.toByte)
 
-  val compareGreater           = Array(10.toByte, 1.toByte)
+  val compareGreaterEqual      = Array(10.toByte, 1.toByte)
+  val compareGreater           = Array(10.toByte, 2.toByte)
+  val compareLessEqual         = Array(10.toByte, 3.toByte)
+  val compareLess              = Array(10.toByte, 4.toByte)
+  val compareNumEqual          = Array(10.toByte, 5.toByte)
+  val compareNumNotEqual       = Array(10.toByte, 6.toByte)
+  val compareBytesEqual        = Array(10.toByte, 7.toByte)
+  val compareBytesNotEqual     = Array(10.toByte, 8.toByte)
 
   val basicAdd                 = Array(11.toByte, 1.toByte)
   val basicMinus               = Array(11.toByte, 2.toByte)
@@ -54,6 +64,15 @@ object ContractGen {
   val basicMax                 = Array(11.toByte, 6.toByte)
   val basicConcat              = Array(11.toByte, 7.toByte)
   val basicConstantGet         = Array(11.toByte, 8.toByte)
+  val basicSqrtBigint          = Array(11.toByte, 9.toByte)
+  val basicConvert             = Array(11.toByte, 10.toByte)
+  val basicAnd                 = Array(11.toByte, 11.toByte)
+  val basicOr                  = Array(11.toByte, 12.toByte)
+  val basicXor                 = Array(11.toByte, 13.toByte)
+  val basicNot                 = Array(11.toByte, 14.toByte)
+
+  val conditionIf             = Array(12.toByte, 1.toByte)
+  val conditionIfElse         = Array(12.toByte, 2.toByte)
 
   sealed case class StateVar(index: Byte, dataType: Byte) {
     lazy val arr: Array[Byte] = Array(index, dataType)

@@ -60,7 +60,7 @@ trait NonFungibleContractGen {
     } yield ExecuteContractFunctionTransaction.create(sender, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def transferNonFungibleGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def transferNonFungibleGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                              attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = transferIndex
     for {
@@ -68,7 +68,7 @@ trait NonFungibleContractGen {
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def depositNonFungibleGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def depositNonFungibleGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                             attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = depositIndex
     for {
@@ -76,7 +76,7 @@ trait NonFungibleContractGen {
     } yield ExecuteContractFunctionTransaction.create(signer, contractId, id, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def withdrawNonFungibleGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def withdrawNonFungibleGen(signer: PrivateKeyAccount, contractId: ContractAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                              attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     val id: Short = withdrawIndex
     for {

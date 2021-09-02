@@ -27,21 +27,21 @@ trait SystemContractGen {
     } yield ExecuteContractFunctionTransaction.create(sender, ContractAccount.systemContractId, sysSend, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def transferVSYSGen(signer: PrivateKeyAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def transferVSYSGen(signer: PrivateKeyAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                       attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     for {
       data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
     } yield ExecuteContractFunctionTransaction.create(signer, ContractAccount.systemContractId, sysTransfer, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def depositVSYSGen(signer: PrivateKeyAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def depositVSYSGen(signer: PrivateKeyAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                      attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     for {
       data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)
     } yield ExecuteContractFunctionTransaction.create(signer, ContractAccount.systemContractId, sysDeposit, data, attachment, fee, feeScale, ts).explicitGet()
   }
 
-  def withdrawVSYSGen(signer: PrivateKeyAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.Value],
+  def withdrawVSYSGen(signer: PrivateKeyAccount, data: Seq[Array[Byte]], dataType: Seq[DataType.DataTypeVal[_]],
                       attachment: Array[Byte], fee: Long, ts: Long): Gen[ExecuteContractFunctionTransaction] = {
     for {
       data: Seq[DataEntry] <- ContractGenHelper.dataListGen(data, dataType)

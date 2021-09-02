@@ -42,7 +42,7 @@ object ContractGenHelper extends TransactionGen {
 
   val returnValue              = Array(9.toByte, 1.toByte)
 
-  val compareGreater           = Array(10.toByte, 1.toByte)
+  val compareGreaterEqual           = Array(10.toByte, 1.toByte)
 
   val ENOUGH_AMT: Long = Long.MaxValue / 3
 
@@ -73,8 +73,8 @@ object ContractGenHelper extends TransactionGen {
     Bytes.concat(retType, paraType)
   }
 
-  def dataListGen(seqDataByte: Seq[Array[Byte]], seqDataType: Seq[DataType.Value]): Gen[Seq[DataEntry]] =
-    seqDataByte.zip(seqDataType).map { case (e1: Array[Byte], e2: DataType.Value) => DataEntry.create(e1, e2).explicitGet()}
+  def dataListGen(seqDataByte: Seq[Array[Byte]], seqDataType: Seq[DataType.DataTypeVal[_]]): Gen[Seq[DataEntry]] =
+    seqDataByte.zip(seqDataType).map { case (e1: Array[Byte], e2: DataType.DataTypeVal[_]) => DataEntry.create(e1, e2).explicitGet()}
 
   def basicContractTestGen(): Gen[(PrivateKeyAccount, Long, Long)] = for {
     master <- accountGen

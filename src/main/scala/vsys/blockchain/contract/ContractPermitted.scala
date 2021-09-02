@@ -96,7 +96,7 @@ object ContractPermitted {
     cdbvrGet ++ Array(issuerStateVar.index, 1.toByte),
     assertCaller ++ Array(1.toByte),
     tdbSplit ++ Array(0.toByte))
-  lazy val splitFunc: Array[Byte] = getFunctionBytes(splitId, publicFuncType, nonReturnType, destroyDataType, splitOpcs)
+  lazy val splitFunc: Array[Byte] = getFunctionBytes(splitId, publicFuncType, nonReturnType, splitDataType, splitOpcs)
   val splitFuncBytes: Array[Byte] = textualFunc("split", Seq(), splitPara)
 
   //send

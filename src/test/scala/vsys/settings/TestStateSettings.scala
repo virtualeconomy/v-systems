@@ -2,9 +2,11 @@ package vsys.settings
 
 object TestStateSettings {
   val AllOn = StateSettings(
-    txTypeAccountTxIds = true
+    txTypeAccountTxIds = true,
+    txContractTxIds = true
   )
   val AllOff = StateSettings(
-    txTypeAccountTxIds = false
+    txTypeAccountTxIds = false,
+    txContractTxIds = false
   )
 }

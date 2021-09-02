@@ -1,8 +1,8 @@
 package vsys.blockchain.state
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
-
 import cats.implicits._
+import vsys.account.Address
 import vsys.blockchain.state.reader.StateReaderImpl
 import vsys.utils.ScorexLogging
 import vsys.settings.StateSettings
@@ -45,7 +45,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     }
 
     measureSizeLog("accountTransactionIds")(blockDiff.txsDiff.accountTransactionIds) {
-      _.foreach { case (acc, txIds) =>
+      _.foreach { case (acc, txIds) => if (stateSettings.txContractTxIds || acc.bytes.arr(0) == Address.AddressVersion) {
         val startIdxShift = sp().accountTransactionsLengths.get(acc.bytes).getOrElse(0)
         txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
           sp().accountTransactionIds.put(accountIndexKey(acc, shift), txId)
@@ -53,17 +53,20 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
         }
         sp().accountTransactionsLengths.put(acc.bytes, startIdxShift + txIds.length)
       }
+      }
     }
 
     if(stateSettings.txTypeAccountTxIds) {
       measureSizeLog("txTypeAccountTxIds")(blockDiff.txsDiff.txTypeAccountTxIds) {
         _.foreach { case ((txType, acc), txIds) =>
-          val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
-          txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
-            sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
-            shift + 1
+          if (stateSettings.txContractTxIds || acc.bytes.arr(0) == Address.AddressVersion) {
+            val startIdxShift = sp().txTypeAccTxLengths.get(txTypeAccKey(txType, acc)).getOrElse(0)
+            txIds.reverse.foldLeft(startIdxShift) { case (shift, txId) =>
+              sp().txTypeAccountTxIds.put(txTypeAccIndexKey(txType, acc, shift), txId)
+              shift + 1
+            }
+            sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
           }
-          sp().txTypeAccTxLengths.put(txTypeAccKey(txType, acc), startIdxShift + txIds.length)
         }
       }
     }

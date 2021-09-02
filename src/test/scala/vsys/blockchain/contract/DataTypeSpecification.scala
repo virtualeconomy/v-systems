@@ -6,6 +6,7 @@ import org.scalatest.prop.{GeneratorDrivenPropertyChecks, PropertyChecks}
 class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorDrivenPropertyChecks with Matchers {
 
   property("convert byte to DataType") {
+    DataType.fromByte(0) should be (Some(DataType.DataTypeObj))
     DataType.fromByte(1) should be (Some(DataType.PublicKey))
     DataType.fromByte(2) should be (Some(DataType.Address))
     DataType.fromByte(3) should be (Some(DataType.Amount))
@@ -17,11 +18,14 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.fromByte(9) should be (Some(DataType.Timestamp))
     DataType.fromByte(10) should be (Some(DataType.Boolean))
     DataType.fromByte(11) should be (Some(DataType.ShortBytes))
-    DataType.fromByte(0) should be (None)
-    DataType.fromByte(12) should be (None)
+    DataType.fromByte(12) should be (Some(DataType.Balance))
+    DataType.fromByte(13) should be (Some(DataType.OpcBlock))
+    DataType.fromByte(14) should be (Some(DataType.BigInteger))
+    DataType.fromByte(15) should be (None)
   }
 
   property("convert DataType to byte") {
+    DataType.DataTypeObj.id should be (0)
     DataType.PublicKey.id should be (1)
     DataType.Address.id should be (2)
     DataType.Amount.id should be (3)
@@ -33,5 +37,8 @@ class DataTypeSpecification extends PropSpec with PropertyChecks with GeneratorD
     DataType.Timestamp.id should be (9)
     DataType.Boolean.id should be (10)
     DataType.ShortBytes.id should be (11)
+    DataType.Balance.id should be (12)
+    DataType.OpcBlock.id should be (13)
+    DataType.BigInteger.id should be (14)
   }
 }

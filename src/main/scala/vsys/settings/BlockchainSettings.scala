@@ -8,7 +8,8 @@ import net.ceedubs.ficus.readers.EnumerationReader._
 case class FunctionalitySettings(numOfSlots: Int,
                                  mintingSpeed: Int,
                                  allowContractTransactionAfterHeight: Int,
-                                 allowDepositWithdrawContractAfterHeight: Int)
+                                 allowDepositWithdrawContractAfterHeight: Int,
+                                 allowExchangeContractAfterHeight: Int)
 
 object FunctionalitySettings {
   val MAINNET = FunctionalitySettings(
@@ -17,7 +18,8 @@ object FunctionalitySettings {
     //TODO
     //set the value
     allowContractTransactionAfterHeight = 6100000,
-    allowDepositWithdrawContractAfterHeight = 13140520)
+    allowDepositWithdrawContractAfterHeight = 13140520,
+    allowExchangeContractAfterHeight = Int.MaxValue)
 
   val TESTNET = FunctionalitySettings(
     numOfSlots = 60,
@@ -25,12 +27,14 @@ object FunctionalitySettings {
     //TODO
     //set the value
     allowContractTransactionAfterHeight = 4236000,
-    allowDepositWithdrawContractAfterHeight = 12550000)
+    allowDepositWithdrawContractAfterHeight = 12550000,
+    allowExchangeContractAfterHeight = Int.MaxValue)
 
   val configPath = "vsys.blockchain.custom.functionality"
 }
 
-case class StateSettings(txTypeAccountTxIds: Boolean)
+case class StateSettings(txTypeAccountTxIds: Boolean,
+                         txContractTxIds: Boolean)
 
 object StateSettings {
   val configPath = "vsys.blockchain.state"

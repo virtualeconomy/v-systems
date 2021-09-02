@@ -27,7 +27,12 @@ import ContractApiRoute._
 
 @Path("/contract")
 @Api(value = "/contract")
-case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: UtxPool, allChannels: ChannelGroup, time: Time, state: StateReader)
+case class ContractApiRoute (settings: RestAPISettings,
+                             wallet: Wallet,
+                             utx: UtxPool,
+                             allChannels: ChannelGroup,
+                             time: Time,
+                             state: StateReader)
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
@@ -152,17 +157,26 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
     }
   }
 
-  private def typeFromBytes(bytes: ByteStr): String = bytes match {
-      case ContractPermitted.contract.bytes => "TokenContractWithSplit"
-      case ContractPermitted.contractWithoutSplit.bytes => "TokenContract"
-      case ContractDepositWithdraw.contract.bytes => "DepositWithdrawContract"
-      case ContractDepositWithdrawProductive.contract.bytes => "ProductiveDepositWithdrawContract"
-      case ContractSystem.contract.bytes => "SystemContract"
-      case ContractLock.contract.bytes => "LockContract"
-      case ContractNonFungible.contract.bytes => "NonFungibleContract"
-      case ContractPaymentChannel.contract.bytes => "PaymentChannelContract"
-      case _ => "GeneralContract"
-    }
+  private val contractType: Map[ByteStr, String] = Map(
+    ContractPermitted.contract.bytes -> "TokenContractWithSplit",
+    ContractPermitted.contractWithoutSplit.bytes -> "TokenContract",
+    ContractSystem.contract.bytes -> "SystemContract",
+    ContractLock.contract.bytes -> "LockContract",
+    ContractNonFungible.contract.bytes -> "NonFungibleContract",
+    ContractPaymentChannel.contract.bytes -> "PaymentChannelContract",
+    ContractAtomicSwap.contract.bytes -> "AtomicSwapContract",
+    ContractVSwap.contract.bytes -> "VSwapContract",
+    ContractVOption.contract.bytes -> "VOptionContract",
+    ContractVStableSwap.contract.bytes -> "VStableSwapContract",
+    ContractVEscrow.contract.bytes -> "ESCROWContract",
+    ContractTokenV2.contractTokenWhiteList.bytes -> "TokenContractWithWhitelist",
+    ContractTokenV2.contractTokenBlackList.bytes -> "TokenContractWithBlacklist",
+    ContractNonFungibleV2.contractNFTWhitelist.bytes -> "NFTContractWithWhitelist",
+    ContractNonFungibleV2.contractNFTBlacklist.bytes -> "NFTContractWithBlacklist"
+  )
+
+  private def typeFromBytes(bytes: ByteStr): String =
+    contractType.getOrElse(bytes, "GeneralContract")
 
   @Path("/tokenInfo/{tokenId}")
   @ApiOperation(value = "Token's Info", notes = "Token's info by given token", httpMethod = "Get")
@@ -305,7 +319,6 @@ case class ContractApiRoute (settings: RestAPISettings, wallet: Wallet, utx: Utx
       }
     }
   }
-
 }
 
 object ContractApiRoute {
