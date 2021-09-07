@@ -10,11 +10,11 @@ import vsys.blockchain.transaction.spos.ReleaseSlotsTransaction
 
 case class SignedReleaseSlotsRequest(@ApiModelProperty(value = "Base58 encoded sender public key", required = true)
                                     senderPublicKey: String,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "10000000")
                                     fee: Long,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "100")
                                     feeScale: Short,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "0")
                                     slotId: Int,
                                     @ApiModelProperty(required = true)
                                     timestamp: Long,

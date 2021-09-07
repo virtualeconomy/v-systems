@@ -24,9 +24,9 @@ case class NodeApiRoute(settings: RestAPISettings,
   }
 
   @Path("/version")
-  @ApiOperation(value = "Version", notes = "Get VSYS node version", httpMethod = "GET")
+  @ApiOperation(value = "Version", notes = "Get VSYS node version", httpMethod = "GET", response = classOf[String])
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json VSYS node version")
+    new ApiResponse(code = 200, message = "Json response of VSYS node version")
   ))
   def version: Route = (get & path("version")) {
     complete(Json.obj("version" -> Constants.AgentName))
@@ -35,6 +35,9 @@ case class NodeApiRoute(settings: RestAPISettings,
   @Path("/stop")
   @ApiOperation(value = "Stop", notes = "Stop the node", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   def stop: Route = (post & path("stop") & withAuth) {
     log.info("Request to stop application")
     application.shutdown()
@@ -42,7 +45,10 @@ case class NodeApiRoute(settings: RestAPISettings,
   }
 
   @Path("/status")
-  @ApiOperation(value = "Status", notes = "Get status of the running core", httpMethod = "GET")
+  @ApiOperation(value = "Status", notes = "Get **status** of the running core", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the node status or error")
+  ))
   def status: Route = (get & path("status")) {
     val lastUpdated = history.lastBlock.get.timestamp
     complete(

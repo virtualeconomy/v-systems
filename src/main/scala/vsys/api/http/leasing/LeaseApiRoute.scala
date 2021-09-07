@@ -36,14 +36,16 @@ case class LeaseApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.leasing.LeaseRequest",
-      defaultValue = "{\n\t\"amount\": 100000000,\n\t\"recipient\": \"3NBsppTVpai9jq6agi9wXXrWhaMPPig48Aw\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100\n}"
+      dataType = "vsys.api.http.leasing.LeaseRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def lease: Route = processRequest("lease", (t: LeaseRequest) => doBroadcast(TransactionFactory.lease(t, wallet, time)))
 
   @Path("/cancel")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
   @ApiOperation(value = "Interrupt a lease",
     httpMethod = "POST",
     produces = "application/json",
@@ -55,8 +57,7 @@ case class LeaseApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.leasing.LeaseCancelRequest",
-      defaultValue = "{\n\t\"sender\": \"3Myss6gmMckKYtka3cKCM563TBJofnxvfD7\",\n\t\"txId\": \"ABMZDPY4MyQz7kKNAevw5P9eNmRErMutJoV9UNeCtqRV\",\n\t\"fee\": 10000000,\n\t\"feeScale\": 100\n}"
+      dataType = "vsys.api.http.leasing.LeaseCancelRequest"
     )
   ))
   def cancel: Route = processRequest("cancel", (t: LeaseCancelRequest) => doBroadcast(TransactionFactory.leaseCancel(t, wallet, time)))

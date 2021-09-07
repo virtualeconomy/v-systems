@@ -162,8 +162,11 @@ case class TransactionsApiRoute(
   }
 
   @Path("/activeLeaseList/{address}")
-  @ApiOperation(value = "Address", notes = "Get list of active lease transactions", httpMethod = "GET",
+  @ApiOperation(value = "Address", notes = "Get a list of **active lease transactions** by a specified `address`", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response with a list of active lease transactions or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address ", required = true, dataType = "string", paramType = "path"),
   ))
@@ -186,7 +189,10 @@ case class TransactionsApiRoute(
   }
 
   @Path("/info/{id}")
-  @ApiOperation(value = "Info", notes = "Get transaction info", httpMethod = "GET")
+  @ApiOperation(value = "Info", notes = "Get transaction info by a specified transaction `id`", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of transaction info or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "id", value = "transaction id ", required = true, dataType = "string", paramType = "path")
   ))
@@ -209,7 +215,10 @@ case class TransactionsApiRoute(
   }
 
   @Path("/unconfirmed")
-  @ApiOperation(value = "Unconfirmed", notes = "Get list of unconfirmed transactions", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the unconfirmed transactions list or error")
+  ))
+  @ApiOperation(value = "Unconfirmed", notes = "Get a list of unconfirmed transactions", httpMethod = "GET")
   def unconfirmed: Route = (pathPrefix("unconfirmed") & get) {
     pathEndOrSingleSlash {
       complete(JsArray(utxPool.all().map(txToExtendedJson)))
@@ -217,13 +226,16 @@ case class TransactionsApiRoute(
   }
 
   @Path("/unconfirmed/size")
-  @ApiOperation(value = "Size of UTX pool", notes = "Get number of unconfirmed transactions in the UTX pool", httpMethod = "GET")
+  @ApiOperation(value = "Size of UTX pool", notes = "Get the number of transactions in the unconfirmed transactions(UTX) pool", httpMethod = "GET", response = classOf[Int])
   def utxSize: Route = (pathPrefix("size") & get) {
     complete(Json.obj("size" -> JsNumber(utxPool.size)))
   }
 
   @Path("/unconfirmed/info/{id}")
-  @ApiOperation(value = "Transaction Info", notes = "Get transaction that is in the UTX", httpMethod = "GET")
+  @ApiOperation(value = "Transaction Info", notes = "Get the **unconfirmed transaction** by a specified transaction `id`", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the unconfirmed transaction info or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "id", value = "Transaction id ", required = true, dataType = "string", paramType = "path")
   ))

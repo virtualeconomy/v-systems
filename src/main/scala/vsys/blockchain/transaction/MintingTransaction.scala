@@ -9,12 +9,16 @@ import vsys.account.Address
 import vsys.utils.crypto.hash.FastCryptographicHash
 import vsys.blockchain.transaction.TransactionParser._
 import vsys.blockchain.consensus.SPoSCalc._
-
+import io.swagger.annotations._
 import scala.util.{Failure, Success, Try}
 
-case class MintingTransaction private(recipient: Address,
+case class MintingTransaction private(@ApiModelProperty(required = true)
+                                      recipient: Address,
+                                      @ApiModelProperty(required = true)
                                       amount: Long,
+                                      @ApiModelProperty(required = true)
                                       timestamp: Long,
+                                      @ApiModelProperty(required = true)
                                       currentBlockHeight: Int) extends NonFeeTransaction {
 
   val transactionType = TransactionType.MintingTransaction
@@ -39,7 +43,7 @@ case class MintingTransaction private(recipient: Address,
   )
 
   override lazy val bytes: Array[Byte] = Bytes.concat(toSign)
-  
+
 }
 
 object MintingTransaction extends TransactionParser {

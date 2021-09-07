@@ -8,6 +8,7 @@ import vsys.account.PublicKeyAccount
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.{Transaction, ProcessedTransaction}
 import vsys.utils.serialization.{BytesSerializable, JsonSerializable}
+import io.swagger.annotations._
 
 /**
   * An abstraction of a part of a block, wrapping some data. The wrapper interface
@@ -47,6 +48,7 @@ case class TransactionBlockField(override val name: String, override val value: 
   override lazy val bytes: Array[Byte] = value.bytes
 }
 
+@ApiModelProperty(hidden= true)
 case class SignerData(generator: PublicKeyAccount, signature: ByteStr)
 
 case class SignerDataBlockField(override val name: String, override val value: SignerData)

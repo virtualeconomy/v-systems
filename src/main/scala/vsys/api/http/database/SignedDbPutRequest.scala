@@ -16,9 +16,9 @@ case class SignedDbPutRequest(@ApiModelProperty(value = "Base58 encoded sender p
                                      dataType: String,
                                      @ApiModelProperty(value = "data")
                                      data: String,
-                                     @ApiModelProperty(required = true)
+                                     @ApiModelProperty(required = true, example = "100000000")
                                      fee: Long,
-                                     @ApiModelProperty(required = true)
+                                     @ApiModelProperty(required = true, example = "100")
                                      feeScale: Short,
                                      @ApiModelProperty(required = true)
                                      timestamp: Long,
