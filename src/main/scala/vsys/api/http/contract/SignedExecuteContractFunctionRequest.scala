@@ -21,9 +21,9 @@ case class SignedExecuteContractFunctionRequest(@ApiModelProperty(value = "Base5
                                                 functionData: String,
                                                 @ApiModelProperty(value = "Base58 encoded attachment")
                                                 attachment: Option[String],
-                                                @ApiModelProperty(required = true)
+                                                @ApiModelProperty(required = true, example = "30000000")
                                                 fee: Long,
-                                                @ApiModelProperty(required = true)
+                                                @ApiModelProperty(required = true, example = "100")
                                                 feeScale: Short,
                                                 @ApiModelProperty(required = true)
                                                 timestamp: Long,

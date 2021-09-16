@@ -34,11 +34,10 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.spos.ContendSlotsRequest",
-      defaultValue = "{\n\t\"slotId\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 10000000\n\t\"feeScale\": 100\n}"
+      dataType = "vsys.api.http.spos.ContendSlotsRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def contend: Route = processRequest("contend", (t: ContendSlotsRequest) => doBroadcast(TransactionFactory.contendSlots(t, wallet, time)))
 
   @Path("/release")
@@ -53,11 +52,10 @@ case class SPOSApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.spos.ReleaseSlotsRequest",
-      defaultValue = "{\n\t\"slotId\": 0,\n\t\"sender\": \"3N4SMepbKXPRADdjfUwNYKdcZdMoVJGXQP5\",\n\t\"fee\": 100000\n\t\"feeScale\": 100\n}"
+      dataType = "vsys.api.http.spos.ReleaseSlotsRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def release: Route = processRequest("release", (t: ReleaseSlotsRequest) => doBroadcast(TransactionFactory.releaseSlots(t, wallet, time)))
 
 }

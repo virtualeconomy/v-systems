@@ -75,7 +75,7 @@ class PeerDatabaseImpl(settings: NetworkSettings) extends PeerDatabase with Auto
     removeObsoleteRecords(suspension, settings.suspensionResidenceTime.toMillis).keySet().asScala.toSet
 
   override def detailedBlacklist: Map[InetAddress, (Long, String)] =
-    removeObsoleteRecords(suspension, settings.blackListResidenceTime.toMillis).asScala.map{
+    removeObsoleteRecords(blacklist, settings.blackListResidenceTime.toMillis).asScala.map{
       case ((h, t)) => h -> ((t, Option(reasons.get(h)).getOrElse("")))
     }.toMap
 

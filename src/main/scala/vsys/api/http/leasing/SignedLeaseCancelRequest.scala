@@ -16,9 +16,9 @@ case class SignedLeaseCancelRequest(@ApiModelProperty(value = "Base58 encoded se
                                     timestamp: Long,
                                     @ApiModelProperty(required = true)
                                     signature: String,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "10000000")
                                     fee: Long,
-                                    @ApiModelProperty(required = true)
+                                    @ApiModelProperty(required = true, example = "100")
                                     feeScale: Short) extends BroadcastRequest {
   def toTx: Either[ValidationError, LeaseCancelTransaction] = for {
     _sender <- PublicKeyAccount.fromBase58String(senderPublicKey)
@@ -37,4 +37,3 @@ case class SignedLeaseCancelRequest(@ApiModelProperty(value = "Base58 encoded se
 object SignedLeaseCancelRequest {
   implicit val leaseCancelRequestFormat: Format[SignedLeaseCancelRequest] = Json.format
 }
-

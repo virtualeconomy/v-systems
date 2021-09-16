@@ -30,11 +30,10 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.contract.SignedRegisterContractRequest",
-      defaultValue = "{\n\t\"contract\": \"contract\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      dataType = "vsys.api.http.contract.SignedRegisterContractRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def signedRegister: Route = (path("register") & post) {
     json[SignedRegisterContractRequest] { contractReq =>
       doBroadcast(contractReq.toTx)
@@ -52,11 +51,10 @@ case class ContractBroadcastApiRoute(settings: RestAPISettings,
       value = "Json with data",
       required = true,
       paramType = "body",
-      dataType = "vsys.api.http.contract.SignedExecuteContractFunctionRequest",
-      defaultValue = "{\n\t\"contractId\": \"contractId\",\n\t\"funcIdx\": \"0\",\n\t\"data\":\"data\",\n\t\"description\":\"5VECG3ZHwy\",\n\t\"senderPublicKey\": \"11111\",\n\t\"fee\": 100000,\n\t\"feeScale\": 100,\"timestamp\": 12345678,\n\t\"signature\": \"asdasdasd\"\n}"
+      dataType = "vsys.api.http.contract.SignedExecuteContractFunctionRequest"
     )
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json with response or error")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def signedExecute: Route = (path("execute") & post) {
     json[SignedExecuteContractFunctionRequest] { contractReq =>
       doBroadcast(contractReq.toTx)

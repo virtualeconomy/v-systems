@@ -48,6 +48,9 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/blocks/{howMany}")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the sizes and full hashes for last blocks or error")
+  ))
   @ApiOperation(value = "Blocks", notes = "Get sizes and full hashes for last blocks", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
@@ -70,7 +73,9 @@ case class DebugApiRoute(settings: RestAPISettings,
   @Path("/state")
   @ApiOperation(value = "State", notes = "Get current state", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Json state")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of  the current state or error")
+  ))
   def state: Route = (path("state") & get & withAuth) {
     complete(stateReader.accountPortfolios
       .map { case (k, v) =>
@@ -82,7 +87,7 @@ case class DebugApiRoute(settings: RestAPISettings,
   @Path("/portfolios/{address}")
   @ApiOperation(
     value = "Portfolio",
-    notes = "Get current portfolio considering pessimistic transactions in the UTX pool",
+    notes = "Get current portfolio considering pessimistic transactions in the unconfirmed transactions(UTX) pool by a speicified `address`",
     httpMethod = "GET",
     authorizations = Array(new Authorization("api_key"))
   )
@@ -116,8 +121,11 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/stateVsys/{height}")
-  @ApiOperation(value = "State at block", notes = "Get state at specified height", httpMethod = "GET",
+  @ApiOperation(value = "State at block", notes = "Get the **state** at a specified `height`", httpMethod = "GET",
     authorizations = Array(new Authorization("api_key")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of the address/balance pairing or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "height", value = "height", required = true, dataType = "integer", paramType = "path")
   ))
@@ -155,7 +163,7 @@ case class DebugApiRoute(settings: RestAPISettings,
     )
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "200 if success, 404 if there are no block at this height")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def rollback: Route = withAuth {
     (path("rollback") & post) {
@@ -171,9 +179,9 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/info")
-  @ApiOperation(value = "State", notes = "All info you need to debug", httpMethod = "GET")
+  @ApiOperation(value = "State", notes = "Get all info you need to debug", httpMethod = "GET")
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json state")
+    new ApiResponse(code = 200, message = "Json response of the debug info or error")
   ))
   def info: Route = (path("info") & get & withAuth) {
     complete(Json.obj(
@@ -184,7 +192,10 @@ case class DebugApiRoute(settings: RestAPISettings,
 
 
   @Path("/rollback-to/{signature}")
-  @ApiOperation(value = "Block signature", notes = "Rollback the state to the block with a given signature", httpMethod = "DELETE",
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Successful Operation")
+  ))
+  @ApiOperation(value = "Block signature", notes = "Rollback the state to the block with a given `signature`", httpMethod = "DELETE",
     authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "signature", value = "Base58-encoded block signature", required = true, dataType = "string", paramType = "path")
@@ -201,13 +212,13 @@ case class DebugApiRoute(settings: RestAPISettings,
   }
 
   @Path("/blacklist")
-  @ApiOperation(value = "Blacklist given peer", notes = "Moving peer to blacklist", httpMethod = "POST",
+  @ApiOperation(value = "Blacklist given peer", notes = "Moving peer to blacklist by a specified node `address`", httpMethod = "POST",
     authorizations = Array(new Authorization("api_key")))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "IP address of node", required = true, dataType = "string", paramType = "body")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "200 if success, 404 if there are no peer with such address")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def blacklist: Route = withAuth {
     (path("blacklist") & post) {

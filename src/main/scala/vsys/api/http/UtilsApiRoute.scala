@@ -28,10 +28,10 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
   }
 
   @Path("/time")
-  @ApiOperation(value = "Time", notes = "Current Node time (UTC)", httpMethod = "GET")
+  @ApiOperation(value = "Time", notes = "Get the Current Node time (UTC)", httpMethod = "GET")
   @ApiResponses(
     Array(
-      new ApiResponse(code = 200, message = "Json with time or error")
+      new ApiResponse(code = 200, message = "Json response of the current node time or error")
     ))
   def time: Route = (path("time") & get) {
     val t = System.currentTimeMillis()*1000000L + System.nanoTime()%1000000L
@@ -41,30 +41,32 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
   @Path("/seed")
   @ApiOperation(value = "Seed", notes = "Generate random seed", httpMethod = "GET")
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with peer list or error")
+    new ApiResponse(code = 200, message = "Json response of a random seed or error")
   ))
   def seedRoute: Route = (path("seed") & get) {
     complete(seed(DefaultSeedSize))
   }
 
   @Path("/seed/{length}")
-  @ApiOperation(value = "Seed of specified length", notes = "Generate random seed of specified length", httpMethod = "GET")
+  @ApiOperation(value = "Seed of specified length", notes = "Generate random seed of specified `length`", httpMethod = "GET")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "length", value = "Seed length ", required = true, dataType = "integer", paramType = "path")
   ))
-  @ApiResponse(code = 200, message = "Json with error message")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response of a random seed or error")
+  ))
   def length: Route = (path("seed" / IntNumber) & get) { length =>
       if (length <= MaxSeedSize) complete(seed(length))
       else complete(TooBigArrayAllocation)
   }
 
   @Path("/hash/secure")
-  @ApiOperation(value = "Hash", notes = "Return SecureCryptographicHash of specified message", httpMethod = "POST")
+  @ApiOperation(value = "Hash", notes = "Return a hash(SecureCryptographicHash) of a specified `message`", httpMethod = "POST")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "message", value = "Message to hash", required = true, paramType = "body", dataType = "string")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with error or json like {\"message\": \"your message\",\"hash\": \"your message hash\"}")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def hashSecure: Route = (path("hash" / "secure") & post) {
     entity(as[String]) { message =>
@@ -73,12 +75,12 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
   }
 
   @Path("/hash/fast")
-  @ApiOperation(value = "Hash", notes = "Return FastCryptographicHash of specified message", httpMethod = "POST")
+  @ApiOperation(value = "Hash", notes = "Return a hash(FastCryptographicHash) of a specified `message`", httpMethod = "POST")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "message", value = "Message to hash", required = true, paramType = "body", dataType = "string")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with error or json like {\"message\": \"your message\",\"hash\": \"your message hash\"}")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def hashFast: Route = (path("hash" / "fast") & post) {
     entity(as[String]) { message =>
@@ -88,13 +90,13 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
 
 
   @Path("/sign/{privateKey}")
-  @ApiOperation(value = "Hash", notes = "Return FastCryptographicHash of specified message", httpMethod = "POST")
+  @ApiOperation(value = "Hash", notes = "Return a hash(FastCryptographicHash) of a specified message with the `privateKey`", httpMethod = "POST")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "privateKey", value = "privateKey", required = true, paramType = "path", dataType = "string"),
     new ApiImplicitParam(name = "message", value = "Message to hash", required = true, paramType = "body", dataType = "string")
   ))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Json with error or json like {\"message\": \"your message\",\"hash\": \"your message hash\"}")
+    new ApiResponse(code = 200, message = "Successful Operation")
   ))
   def sign: Route = (path("sign" / Segment) & post) {pk =>
     entity(as[String]) { message =>
