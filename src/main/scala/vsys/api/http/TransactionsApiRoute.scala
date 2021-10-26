@@ -47,7 +47,8 @@ case class TransactionsApiRoute(
   @Path("/count")
   @ApiOperation(value = "Count",
                 notes = "Get count of transactions where specified address (wallet address or contract address) has been involved. *This is a custom api, you need to enable it in configuration file.*",
-                httpMethod = "GET")
+                httpMethod = "GET",
+                response = classOf[Int])
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address or contract address", required = true, dataType = "string", paramType = "query"),
     new ApiImplicitParam(name = "txType", value = "Transaction type", required = false, dataType = "integer", paramType = "query")
@@ -86,6 +87,9 @@ case class TransactionsApiRoute(
   @ApiOperation(value = "List",
                 notes = "Get list of transactions where specified address (wallet address or contract address) has been involved. *This is a custom api, you need to enable it in configuration file.*",
                 httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response with a list of transactions or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address or contract address", required = true, dataType = "string", paramType = "query"),
     new ApiImplicitParam(name = "txType", value = "Transaction type", required = false, dataType = "integer", paramType = "query"),
@@ -130,6 +134,9 @@ case class TransactionsApiRoute(
 
   @Path("/address/{address}/limit/{limit}")
   @ApiOperation(value = "Address", notes = "Get list of transactions where specified address (wallet address or contract address) has been involved", httpMethod = "GET")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response with a list of transactions or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "Wallet address or contract address", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "limit", value = "Specified number of records to be returned", required = true, dataType = "integer", paramType = "path")

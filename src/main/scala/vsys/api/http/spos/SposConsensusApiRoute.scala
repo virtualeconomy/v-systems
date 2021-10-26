@@ -62,6 +62,7 @@ case class SposConsensusApiRoute(
   }
 
   @Path("/allSlotsInfo")
+  @ApiOperation(value = "Get all slots' info", notes = "Get all slots' information", httpMethod = "GET")
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Json response of all slots details or error")
   ))

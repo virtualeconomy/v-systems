@@ -76,6 +76,9 @@ case class ContractApiRoute (settings: RestAPISettings,
 
   @Path("/lastTokenIndex/{contractId}")
   @ApiOperation(value = "Last Token Index", notes = "Token contract last token index", httpMethod = "Get")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Json response with Last Token Index or error")
+  ))
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "contractId", value = "Contract ID", required = true, dataType = "string", paramType = "path")
   ))
@@ -86,10 +89,7 @@ case class ContractApiRoute (settings: RestAPISettings,
         if (lastTokenIndex == -1) {
           complete(CustomValidationError("No token generated in this contract"))
         } else {
-          complete(Json.obj(
-            "contractId" -> contractId,
-            "lastTokenIndex" -> lastTokenIndex
-          ))
+          complete(TokenIndex(contractId, lastTokenIndex))
         }
       }
       case _ => complete(InvalidContractAddress)
@@ -342,5 +342,9 @@ object ContractApiRoute {
   case class Balance(address: String, confirmations: Int, balance: Long)
 
   implicit val balanceFormat: Format[Balance] = Json.format
+
+  case class TokenIndex(contractId: String, lastTokenIndex: Int)
+
+  implicit val tokenIndexFormat: Format[TokenIndex] = Json.format
 
 }
