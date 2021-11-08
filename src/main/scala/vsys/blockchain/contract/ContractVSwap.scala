@@ -199,13 +199,13 @@ object ContractVSwap {
     assertTrue ++ Array(19.toByte),
     cdbvMapValMinus ++ Array(liquidityBalanceMap.index, 2.toByte, 18.toByte),
     cdbvMapValAdd ++ Array(liquidityBalanceMap.index, 2.toByte, 17.toByte),
-    basicMinus ++ Array(18.toByte, 14.toByte, 19.toByte),
-    cdbvStateValAdd ++ Array(liquidityTokenLeftStateVar.index, 19.toByte),
+    basicMinus ++ Array(18.toByte, 14.toByte, 20.toByte),
+    cdbvStateValAdd ++ Array(liquidityTokenLeftStateVar.index, 20.toByte),
     cdbvStateValAdd ++ Array(totalSupplyStateVar.index, 14.toByte),
     cdbvStateValAdd ++ Array(tokenAReservedStateVar.index, 0.toByte),
     cdbvStateValAdd ++ Array(tokenBReservedStateVar.index, 1.toByte),
-    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(20.toByte),
-    cdbvSet ++ Array(swapStatusStateVar.index, 20.toByte)
+    basicConstantGet ++ DataEntry(Array(1.toByte), DataType.Boolean).bytes ++ Array(21.toByte),
+    cdbvSet ++ Array(swapStatusStateVar.index, 21.toByte)
   )
   lazy val setSwapFunc: Array[Byte] = getFunctionBytes(setSwapId, publicFuncType, nonReturnType, setSwapDataType, setSwapFunctionOpcs)
   val setSwapTextualBytes: Array[Byte] = textualFunc("setSwap", Seq(), setSwapPara)
@@ -427,7 +427,7 @@ object ContractVSwap {
     basicMinus ++ Array(13.toByte, 21.toByte, 25.toByte),
     basicMultiply ++ Array(25.toByte, 17.toByte, 26.toByte),
     basicAdd ++ Array(18.toByte, 16.toByte, 27.toByte)) ++
-    swapKValueCheck(26.toByte, 27.toByte, 15.toByte, 13.toByte, 14.toByte, 28.toByte) ++ Seq(
+    swapKValueCheck(26.toByte, 27.toByte, 17.toByte, 13.toByte, 14.toByte, 28.toByte) ++ Seq(
     cdbvStateValMinus ++ Array(tokenAReservedStateVar.index, 23.toByte),
     cdbvMapValMinus ++ Array(tokenBBalanceMap.index, 3.toByte, 1.toByte),
     cdbvStateValAdd ++ Array(tokenBReservedStateVar.index, 1.toByte),
@@ -498,7 +498,7 @@ object ContractVSwap {
     basicMinus ++ Array(14.toByte, 21.toByte, 25.toByte),
     basicMultiply ++ Array(25.toByte, 17.toByte, 26.toByte),
     basicAdd ++ Array(18.toByte, 16.toByte, 27.toByte)) ++
-    swapKValueCheck(27.toByte, 26.toByte, 15.toByte, 13.toByte, 14.toByte, 28.toByte) ++ Seq(
+    swapKValueCheck(27.toByte, 26.toByte, 17.toByte, 13.toByte, 14.toByte, 28.toByte) ++ Seq(
     cdbvStateValMinus ++ Array(tokenBReservedStateVar.index, 23.toByte),
     cdbvMapValMinus ++ Array(tokenABalanceMap.index, 3.toByte, 1.toByte),
     cdbvStateValAdd ++ Array(tokenAReservedStateVar.index, 1.toByte),
