@@ -356,8 +356,8 @@ object ContractTranslator extends App {
 
       case opcType: Byte if opcType == OpcType.TDBAOpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "operation.token.deposit(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
-          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "operation.token.withdraw(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "operation.token.issue(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "operation.token.brun(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == TDBAType.TransferTDBA.id => "operation.token.transfer(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
           case _ => "--- invalid opc code ---"
         }
