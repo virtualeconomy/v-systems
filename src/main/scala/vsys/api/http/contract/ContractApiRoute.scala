@@ -36,7 +36,7 @@ case class ContractApiRoute (settings: RestAPISettings,
   extends ApiRoute with BroadcastRoute {
 
   override val route = pathPrefix("contract") {
-    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData
+    register ~ content ~ info ~ tokenInfo ~ balance ~ execute ~ tokenId ~ vBalance ~ getContractData ~ lastToken
   }
 
   @Path("/register")
@@ -115,7 +115,7 @@ case class ContractApiRoute (settings: RestAPISettings,
     }
   }
 
-  @Path("data/{contractId}/{key}")
+  @Path("/data/{contractId}/{key}")
   @ApiOperation(value = "Contract Data", notes = "Get **contract data** by given `contractId` and `key` (default numerical 0).", httpMethod = "Get", authorizations = Array(new Authorization("api_key")))
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Json response of contract data or error")
@@ -124,7 +124,7 @@ case class ContractApiRoute (settings: RestAPISettings,
     new ApiImplicitParam(name = "contractId", value = "Contract Account", required = true, dataType = "string", paramType = "path"),
     new ApiImplicitParam(name = "key", value = "Key", required = true, dataType = "string", paramType = "path")
   ))
-  def getContractData: Route = (get & withAuth & path("data" / Segment / Segment)) { (contractId, key) =>
+  def getContractData: Route = (get & path("data" / Segment / Segment)) { (contractId, key) =>
     complete(dataJson(contractId, key))
   }
 
@@ -225,7 +225,7 @@ case class ContractApiRoute (settings: RestAPISettings,
     }
   }
 
-  @Path("balance/{address}/{tokenId}")
+  @Path("/balance/{address}/{tokenId}")
   @ApiOperation(value = "Token's balance", notes = "Get the **balance** of a specified `tokenId` by a given `address`", httpMethod = "Get")
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Json response of the token balance or error")
@@ -302,7 +302,7 @@ case class ContractApiRoute (settings: RestAPISettings,
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Successful Operation")))
   def execute: Route = processRequest("execute", (t: ExecuteContractFunctionRequest) => doBroadcast(TransactionFactory.executeContractFunction(t, wallet, time)))
 
-  @Path("contractId/{contractId}/tokenIndex/{tokenIndex}")
+  @Path("/contractId/{contractId}/tokenIndex/{tokenIndex}")
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Json response of a token id or error")
   ))
