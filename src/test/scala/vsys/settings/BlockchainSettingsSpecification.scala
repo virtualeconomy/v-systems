@@ -142,7 +142,7 @@ class BlockchainSettingsSpecification extends FlatSpec with Matchers {
     settings.functionalitySettings.mintingSpeed should be (1)
     settings.functionalitySettings.allowContractTransactionAfterHeight should be (6100000) // same as the setting
     settings.functionalitySettings.allowDepositWithdrawContractAfterHeight should be (13140520)
-    settings.functionalitySettings.allowExchangeContractAfterHeight should be (24400000)
+    settings.functionalitySettings.allowExchangeContractAfterHeight should be (24724000)
     settings.genesisSettings.blockTimestamp should be(1543286357457333127L)
     settings.genesisSettings.timestamp should be(1543286357457333127L)
     settings.genesisSettings.signature should be(ByteStr.decodeBase58("3yYNd7quEWaWytrAug4yGwQvpL3PVJegf9d9NTv9PVE3ouBYJs5PTQqxCjd294uK1zPLj6G5Tk447LqFMWdSFvaQ").toOption)

@@ -22,7 +22,7 @@ import vsys.utils.serialization.Deser
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractVOption.contract.bytes.arr
+  val bytes = ContractVStableSwap.contract.bytes.arr
   val showHex = false
 
   println(Base58.encode(bytes))
