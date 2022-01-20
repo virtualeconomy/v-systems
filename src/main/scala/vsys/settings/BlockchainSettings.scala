@@ -19,7 +19,7 @@ object FunctionalitySettings {
     //set the value
     allowContractTransactionAfterHeight = 6100000,
     allowDepositWithdrawContractAfterHeight = 13140520,
-    allowExchangeContractAfterHeight = 24724000)
+    allowExchangeContractAfterHeight = 25416184)
 
   val TESTNET = FunctionalitySettings(
     numOfSlots = 60,
