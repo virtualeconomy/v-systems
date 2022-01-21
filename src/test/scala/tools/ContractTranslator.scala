@@ -22,7 +22,7 @@ import vsys.utils.serialization.Deser
 import scala.util.{Failure, Success, Try}
 
 object ContractTranslator extends App {
-  val bytes = ContractVOption.contract.bytes.arr
+  val bytes = ContractVStableSwap.contract.bytes.arr
   val showHex = false
 
   println(Base58.encode(bytes))
@@ -356,8 +356,8 @@ object ContractTranslator extends App {
 
       case opcType: Byte if opcType == OpcType.TDBAOpc.id =>
         y match {
-          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "operation.token.deposit(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
-          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "operation.token.withdraw(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBAType.DepositTDBA.id => "operation.token.issue(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == TDBAType.WithdrawTDBA.id => "operation.token.brun(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == TDBAType.TransferTDBA.id => "operation.token.transfer(" + nameList(data(2)) + ", " + nameList(data(3)) + ", " + nameList(data(4)) + ")"
           case _ => "--- invalid opc code ---"
         }
@@ -375,6 +375,7 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == CompareType.Ge.id => nameList(data(4)) + " = operation.compare.greaterEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == CompareType.Gt.id => nameList(data(4)) + " = operation.compare.greater(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == CompareType.Beq.id => nameList(data(4)) + " = operation.compare.bytesEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
+          case opcType: Byte if opcType == CompareType.Le.id => nameList(data(4)) + " = operation.compare.lessEqual(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
 
@@ -390,6 +391,7 @@ object ContractTranslator extends App {
           case opcType: Byte if opcType == BasicType.Convert.id => nameList(data(4)) + " = operation.basic.convert(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case opcType: Byte if opcType == BasicType.ConstantGet.id => nameList(data.last) + " = operation.basic.getConstant(" + strDataEntry(data.slice(2, data.length - 1), nameList) + ")"
           case opcType: Byte if opcType == BasicType.SqrtBigInt.id => nameList(data(3)) + " = operation.basic.sqrt(" + nameList(data(2)) + ")"
+          case opcType: Byte if opcType == BasicType.And.id => nameList(data(4)) + " = operation.basic.and(" + nameList(data(2)) + ", " + nameList(data(3)) + ")"
           case _ => "--- invalid opc code ---"
         }
       case opcType: Byte if opcType == OpcType.IfOpc.id =>

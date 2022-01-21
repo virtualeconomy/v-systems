@@ -125,7 +125,7 @@ object ContractVStableSwap {
   val withdrawId: Short = 2
   val withdrawPara: Seq[String] = Seq("withdrawer", "amount", "tokenId") ++
                                   Seq("baseTokenId", "targetTokenId", "isValidTokenId",
-                                      "isBaseToken", "valueFalse", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
+                                      "isBaseToken", "baseTokenIfBlock", "isTargetToken", "targetTokenIfBlock")
   val withdrawDataType: Array[Byte] = Array(DataType.Address.id.toByte, DataType.Amount.id.toByte, DataType.TokenId.id.toByte)
   val withdrawTriggerOpcs: Seq[Array[Byte]] = Seq(
     assertCaller ++ Array(0.toByte),

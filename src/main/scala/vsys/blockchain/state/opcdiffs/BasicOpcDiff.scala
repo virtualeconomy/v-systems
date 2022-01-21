@@ -157,7 +157,7 @@ object BasicOpcDiff extends OpcDiffer {
   private def formatResB[T] (res: Array[Byte], dt: DataTypeVal[T]): Either[ValidationError, DataEntry] =
     DataEntry.create(res, dt).left.map(_ => ValidationError.OverflowError)
 
-  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: BasicType.BasicTypeVal) = updateStack(data, bytes.last, t.op(bytes, data))
+  def differ(bytes: Array[Byte], data: Seq[DataEntry], t: BasicType.BasicTypeVal): Either[ValidationError, Seq[DataEntry]] = updateStack(data, bytes.last, t.op(bytes, data))
 
   override def parseBytesDt(context: ExecutionContext)(bytes: Array[Byte], data: Seq[DataEntry]): Either[ValidationError, Seq[DataEntry]] =
     bytes.headOption.flatMap(f => Try(BasicType(f)).toOption) match {

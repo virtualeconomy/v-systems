@@ -46,6 +46,14 @@ class BasicOpcDiffTest extends PropSpec with PropertyChecks with GeneratorDriven
       BasicOpcDiff.minus) should be (Right(DataEntry(Longs.toByteArray(0), DataType.Amount)))
     BasicOpcDiff.numBiOperation(
       DataEntry(Longs.toByteArray(1), DataType.Amount),
+      DataEntry(Longs.toByteArray(2), DataType.Amount),
+      BasicOpcDiff.minus) should be (Left(ValidationError.OverflowError))
+    BasicOpcDiff.numBiOperation(
+      DataEntry(DataType.arrayShortLengthToByteArray(BigInt(1).toByteArray) ++ BigInt(1).toByteArray, DataType.BigInteger),
+      DataEntry(DataType.arrayShortLengthToByteArray(BigInt(2).toByteArray) ++ BigInt(2).toByteArray, DataType.BigInteger),
+      BasicOpcDiff.minus) should be (Right(DataEntry(DataType.arrayShortLengthToByteArray(BigInt(-1).toByteArray) ++ BigInt(-1).toByteArray, DataType.BigInteger)))
+    BasicOpcDiff.numBiOperation(
+      DataEntry(Longs.toByteArray(1), DataType.Amount),
       DataEntry(Longs.toByteArray(1), DataType.Timestamp),
       BasicOpcDiff.minus) should be (Left(ContractDataTypeMismatch))
     BasicOpcDiff.numBiOperation(
