@@ -9,7 +9,7 @@ import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
 import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json}
 import vsys.account.{Account, ContractAccount}
-import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes}
+import vsys.account.ContractAccount.{contractIdFromBytes, tokenIdFromBytes, tokenIndexFromBytes}
 import vsys.api.http._
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.state.reader.StateReader
@@ -207,7 +207,8 @@ case class ContractApiRoute (settings: RestAPISettings,
             "max" -> x.json.value("data"),
             "total" -> state.tokenAccountBalance(totalKey),
             "unity" -> state.tokenInfo(unityKey).get.json.value("data"),
-            "description" -> state.tokenInfo(descKey).get.json.value("data")
+            "description" -> state.tokenInfo(descKey).get.json.value("data"),
+            "tokenIndex" -> tokenIndexFromBytes(id.arr)
           ))
           case _ => complete(TokenNotExists)
         }
