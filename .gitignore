@@ -54,3 +54,12 @@ src/test/**/.DS_Store
 .bloop/
 .ammonite/
 project/metals.sbt
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
