@@ -19,11 +19,10 @@
         fi'';
 
         run.exec = ''
-        echo "Waiting for jar file to be built...";
         while [ ! -e "$VSYS_JAR_FILE" ]; do
-            sleep 1;
+            echo -ne "\rWaiting for jar file to be built...";
+            sleep 5;
         done;
-        sleep 5;
 
         echo "Starting VSYS node...";
         for attempt in seq 1 5; do
@@ -31,16 +30,7 @@
             if [ $? -eq 0 ]; then
                 break;
             fi;
-            
-            if [ $attempt -eq 1 ]; then
-                echo "Failed to start VSYS node, retrying...";
-            fi;
-
-            if [ $attempt -eq 5 ]; then
-                echo "Failed to start VSYS node, exiting...";
-                exit 1;
-            fi;
-
+            echo -ne "\rFailed to start VSYS node, retrying...";
             sleep 5;
         done'';
     };
