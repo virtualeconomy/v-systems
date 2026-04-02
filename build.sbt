@@ -48,7 +48,8 @@ libraryDependencies ++=
     "com.iheart" %% "ficus" % "1.4.3",
     ("org.scorexfoundation" %% "scrypto" % "1.2.2")
       .exclude("org.slf4j", "slf4j-api"),
-    "commons-net" % "commons-net" % "3.+",
+    "commons-net" % "commons-net" % "3.9.0",
+    "commons-io" % "commons-io" % "2.16.1",
     "org.typelevel" %% "cats-core" % "1.0.0-RC1",
     "io.monix" %% "monix" % "3.0.0-M2"
   )
