@@ -1,11 +1,12 @@
 package vsys.account
 
+import com.google.common.primitives.Ints
 import scorex.crypto.encode.Base58
 import vsys.blockchain.state.ByteStr
 import vsys.blockchain.transaction.ValidationError
-import vsys.blockchain.transaction.ValidationError.{InvalidContractAddress, InvalidAddress}
+import vsys.blockchain.transaction.ValidationError.{InvalidAddress, InvalidContractAddress}
 import vsys.utils.crypto.hash.SecureCryptographicHash._
-import vsys.utils.{base58Length, ScorexLogging}
+import vsys.utils.{ScorexLogging, base58Length}
 
 import scala.util.Success
 
@@ -110,6 +111,12 @@ object ContractAccount extends ScorexLogging {
     val withoutChecksum = Array(AddressVersion) ++ contractIdNoCheckSum
     val bytes = withoutChecksum ++ calcCheckSum(withoutChecksum)
     ByteStr(bytes)
+  }
+
+  def tokenIndexFromBytes(tokenIdBytes: Array[Byte]): Int = {
+    val tokenIndexBytes = tokenIdBytes.dropRight(ChecksumLength).takeRight(TokenIndexLength)
+    val tokenIndex = Ints.fromByteArray(tokenIndexBytes)
+    tokenIndex
   }
 
 }
